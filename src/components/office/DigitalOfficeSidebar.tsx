@@ -1,0 +1,339 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  LayoutDashboard, 
+  CheckSquare, 
+  Calendar, 
+  HardDrive, 
+  Newspaper, 
+  Award, 
+  MessageSquare, 
+  Sparkles, 
+  FileCheck, 
+  BarChart3, 
+  Users, 
+  ShieldAlert, 
+  Building2, 
+  Lock, 
+  ChevronDown, 
+  FileText, 
+  Layers, 
+  LucideIcon 
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { canAccessView } from '../../lib/rbac';
+import { UserRole } from '../../types';
+
+interface SidebarItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
+}
+
+interface DigitalOfficeSidebarProps {
+  currentView: string;
+  setCurrentView: (view: string) => void;
+  onGoToPortal?: () => void;
+  onLogout?: () => void;
+  staffName?: string;
+  staffRole?: string;
+  staffAvatar?: string;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}
+
+export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
+  currentView,
+  setCurrentView,
+  staffRole = 'STAFF',
+  isMobileOpen = false,
+  onCloseMobile
+}) => {
+  const userRole = (staffRole as UserRole) || 'STAFF';
+
+  // 1. NHÓM TỔNG QUAN & ĐIỀU HÀNH
+  const overviewItems: SidebarItem[] = [
+    { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
+    { id: 'neighborhood_map', label: 'Bản đồ 12 Khu phố', icon: Building2, badge: 'MỚI' },
+    { id: 'tasks', label: 'Quản lý Công việc', icon: CheckSquare },
+    { id: 'calendar', label: 'Lịch công tác Phường', icon: Calendar },
+  ];
+
+  // 2. NHÓM QUẢN TRỊ WEB (Gom gọn dạng Accordion xổ dọc)
+  const webMenuItems: SidebarItem[] = [
+    { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN TỨC' },
+    { id: 'cms_documents', label: 'Văn bản & Chỉ đạo', icon: FileText, badge: 'VĂN BẢN' },
+    { id: 'competitions_admin', label: 'Hội thi & Khảo sát', icon: Award, badge: 'HỘI THI' },
+    { id: 'opinions', label: 'Ý kiến Dân sinh', icon: MessageSquare, badge: 'DÂN SINH' },
+    { id: 'templates', label: 'Mẫu Văn bản MTTQ', icon: FileCheck, badge: 'BIỂU MẪU' },
+  ];
+
+  // 3. NHÓM CÔNG CỤ HỖ TRỢ
+  const systemAndToolsItems: SidebarItem[] = [
+    { id: 'ai_assistant', label: 'Trợ lý AI Tham mưu', icon: Sparkles, badge: 'HOT' },
+  ];
+
+  const webViewIds = ['cms', 'cms_articles', 'cms_documents', 'competitions_admin', 'opinions', 'templates'];
+  const isCurrentViewWeb = webViewIds.includes(currentView);
+
+  // Accordion state for "Quản trị web"
+  const [isWebMenuOpen, setIsWebMenuOpen] = useState<boolean>(true);
+
+  // Auto-expand if the active view is inside web group
+  useEffect(() => {
+    if (isCurrentViewWeb) {
+      setIsWebMenuOpen(true);
+    }
+  }, [currentView, isCurrentViewWeb]);
+
+  const hasAnyWebAccess = webMenuItems.some(item => canAccessView(userRole, item.id));
+
+  return (
+    <>
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40"
+          onClick={onCloseMobile}
+        />
+      )}
+
+      {/* Sidebar Container */}
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-68 xl:w-72 bg-white text-slate-800 flex flex-col h-screen shrink-0 border-r border-slate-200 select-none shadow-md
+        transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Brand Header */}
+      <div className="p-4 border-b border-blue-100 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border border-white/40">
+            <img
+              src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
+              alt="Logo MTTQ"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-xs font-black text-white tracking-wider uppercase">VĂN PHÒNG SỐ</h2>
+              <span className="text-[8px] bg-amber-400 text-slate-900 font-black px-1.5 py-0.2 rounded-full border border-amber-200 shadow-2xs">V2.0</span>
+            </div>
+            <p className="text-[10px] text-blue-100 font-semibold mt-0.5">MTTQ Phường Chánh Hiệp</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Links - Clean Streamlined 3 Groups */}
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3.5 text-xs scrollbar-thin">
+        
+        {/* NHÓM 1: TỔNG QUAN & ĐIỀU HÀNH */}
+        <div className="space-y-1">
+          <h3 className="px-3 text-[10px] font-extrabold text-blue-900/60 uppercase tracking-wider">
+            TỔNG QUAN &amp; ĐIỀU HÀNH
+          </h3>
+          
+          {overviewItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
+            const isAllowed = canAccessView(userRole, item.id);
+
+            return (
+              <motion.button
+                key={item.id}
+                whileHover={{ x: isAllowed ? 3 : 0 }}
+                whileTap={{ scale: isAllowed ? 0.98 : 1 }}
+                onClick={() => {
+                  if (isAllowed) setCurrentView(item.id);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                  isActive 
+                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white font-extrabold shadow-md border border-blue-400' 
+                    : isAllowed 
+                      ? 'text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 font-semibold' 
+                      : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
+                  {item.badge && isAllowed && (
+                    <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${
+                      isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* NHÓM 2: QUẢN TRỊ WEB (ACCORDION GOM GỌN 5 MỤC) */}
+        <div className="space-y-1">
+          <h3 className="px-3 text-[10px] font-extrabold text-blue-900/60 uppercase tracking-wider flex items-center justify-between">
+            <span>CỔNG THÔNG TIN</span>
+            <span className="text-[8px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded-full">CMS</span>
+          </h3>
+
+          <div className="rounded-2xl border border-blue-200/90 bg-gradient-to-b from-blue-50/60 to-indigo-50/40 p-1 shadow-2xs">
+            <button
+              onClick={() => {
+                if (hasAnyWebAccess) {
+                  setIsWebMenuOpen(!isWebMenuOpen);
+                  if (!isWebMenuOpen && !isCurrentViewWeb) {
+                    setCurrentView('cms');
+                  }
+                }
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                isCurrentViewWeb
+                  ? 'bg-blue-600 text-white font-black shadow-sm'
+                  : 'text-blue-900 hover:bg-white/80 font-bold'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className={`p-1.5 rounded-lg ${isCurrentViewWeb ? 'bg-white/20 text-white' : 'bg-blue-600 text-white shadow-2xs'}`}>
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-black tracking-tight leading-none">Quản trị Web</div>
+                  <div className={`text-[9px] mt-0.5 ${isCurrentViewWeb ? 'text-blue-100' : 'text-blue-600 font-medium'}`}>
+                    5 chức năng nội dung
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
+                  isCurrentViewWeb ? 'bg-amber-400 text-slate-950 font-black' : 'bg-blue-200/80 text-blue-900'
+                }`}>
+                  5 MỤC
+                </span>
+                <motion.div
+                  animate={{ rotate: isWebMenuOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronDown className={`w-4 h-4 ${isCurrentViewWeb ? 'text-white' : 'text-blue-700'}`} />
+                </motion.div>
+              </div>
+            </button>
+
+            {/* Submenu Accordion Items */}
+            <AnimatePresence initial={false}>
+              {isWebMenuOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-1.5 pb-1 px-1 space-y-1 border-t border-blue-200/60 mt-1">
+                    {webMenuItems.map((subItem) => {
+                      const Icon = subItem.icon;
+                      const isActive = currentView === subItem.id || (subItem.id === 'cms' && currentView === 'cms_articles');
+                      const isAllowed = canAccessView(userRole, subItem.id);
+
+                      return (
+                        <motion.button
+                          key={subItem.id}
+                          whileHover={{ x: isAllowed ? 3 : 0 }}
+                          whileTap={{ scale: isAllowed ? 0.98 : 1 }}
+                          onClick={() => {
+                            if (isAllowed) {
+                              setCurrentView(subItem.id);
+                            }
+                          }}
+                          className={`w-full flex items-center justify-between pl-3 pr-2.5 py-2 rounded-xl transition-all cursor-pointer text-left text-xs ${
+                            isActive
+                              ? 'bg-gradient-to-r from-blue-700 to-indigo-700 text-white font-black shadow-sm ring-1 ring-blue-300'
+                              : isAllowed
+                                ? 'text-slate-700 hover:bg-white hover:text-blue-700 font-semibold'
+                                : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-amber-300 ring-2 ring-amber-300/40' : 'bg-blue-400'}`} />
+                            <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
+                            <span className={`truncate whitespace-nowrap ${isActive ? 'text-white font-black' : ''}`}>{subItem.label}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
+                            {subItem.badge && isAllowed && (
+                              <span className={`text-[8px] font-black px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap ${
+                                isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-white/80 text-blue-700 border border-blue-200'
+                              }`}>
+                                {subItem.badge}
+                              </span>
+                            )}
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* NHÓM 3: CÔNG CỤ HỖ TRỢ */}
+        <div className="space-y-1">
+          <h3 className="px-3 text-[10px] font-extrabold text-blue-900/60 uppercase tracking-wider">
+            CÔNG CỤ HỖ TRỢ
+          </h3>
+          
+          {systemAndToolsItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
+            const isAllowed = canAccessView(userRole, item.id);
+
+            return (
+              <motion.button
+                key={item.id}
+                whileHover={{ x: isAllowed ? 3 : 0 }}
+                whileTap={{ scale: isAllowed ? 0.98 : 1 }}
+                onClick={() => {
+                  if (isAllowed) setCurrentView(item.id);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                  isActive 
+                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white font-extrabold shadow-md border border-blue-400' 
+                    : isAllowed 
+                      ? 'text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 font-semibold' 
+                      : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
+                  {item.badge && isAllowed && (
+                    <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${
+                      isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+
+      </div>
+    </aside>
+    </>
+  );
+};

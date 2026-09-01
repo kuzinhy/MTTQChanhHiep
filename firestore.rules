@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Cho phép đọc và đồng bộ thời gian thực cho tất cả các thiết bị kết nối vào Cổng thông tin MTTQ
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+

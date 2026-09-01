@@ -1,0 +1,251 @@
+import { 
+  INITIAL_ARTICLES, 
+  INITIAL_DOCUMENTS, 
+  INITIAL_COMPETITIONS, 
+  INITIAL_TRIVIA_QUESTIONS, 
+  INITIAL_PUBLIC_OPINIONS, 
+  INITIAL_TASKS, 
+  INITIAL_EVENTS, 
+  INITIAL_NOTES, 
+  INITIAL_TEMPLATES, 
+  INITIAL_DRIVE_FILES, 
+  INITIAL_STAFF_USERS, 
+  INITIAL_AUDIT_LOGS 
+} from '../data/seedData';
+import { 
+  Article, 
+  OfficialDocument, 
+  Competition, 
+  CompetitionSubmission, 
+  PublicOpinion, 
+  Task, 
+  WorkEvent, 
+  Note, 
+  TemplateDoc, 
+  DriveFileItem, 
+  StaffUser, 
+  AuditLog 
+} from '../types';
+import {
+  sortArticlesNewestFirst,
+  sortDocumentsNewestFirst,
+  sortCompetitionsNewestFirst,
+  sortOpinionsNewestFirst
+} from './dateUtils';
+
+const STORAGE_KEYS = {
+  ARTICLES: 'mttq_chanhhiep_articles_v2',
+  DOCUMENTS: 'mttq_chanhhiep_documents_v2',
+  COMPETITIONS: 'mttq_chanhhiep_competitions_v2',
+  OPINIONS: 'mttq_chanhhiep_opinions_v2',
+  TASKS: 'mttq_chanhhiep_tasks_v2',
+  EVENTS: 'mttq_chanhhiep_events_v2',
+  NOTES: 'mttq_chanhhiep_notes_v2',
+  TEMPLATES: 'mttq_chanhhiep_templates_v2',
+  SUBMISSIONS: 'mttq_chanhhiep_submissions_v2',
+  DRIVE_FILES: 'mttq_chanhhiep_drive_v2',
+  STAFF_USERS: 'mttq_chanhhiep_staff_users_v2',
+  AUDIT_LOGS: 'mttq_chanhhiep_audit_logs_v2',
+  CURRENT_USER: 'mttq_chanhhiep_current_user_v2',
+  LAST_BACKUP_TIME: 'mttq_chanhhiep_last_backup_time'
+};
+
+// In-Memory Storage Cache to prevent redundant serialization & disk writes
+const memoryCache = new Map<string, string>();
+
+export function loadInitialData<T>(key: string, fallback: T): T {
+  try {
+    const cached = memoryCache.get(key);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const item = localStorage.getItem(key);
+    if (!item) return fallback;
+    memoryCache.set(key, item);
+    const parsed = JSON.parse(item);
+    if (Array.isArray(fallback) && !Array.isArray(parsed)) return fallback;
+    return parsed;
+  } catch (err) {
+    console.warn(`[StorageEngine] Failed to load key "${key}", falling back:`, err);
+    return fallback;
+  }
+}
+
+function sanitizeForLocalStorage<T>(data: T): T {
+  if (!data) return data;
+  try {
+    const str = JSON.stringify(data, (_key, value) => {
+      if (typeof value === 'string' && value.startsWith('data:') && value.length > 30000) {
+        return value.substring(0, 100) + '...[file_stored_in_google_drive]';
+      }
+      return value;
+    });
+    return JSON.parse(str);
+  } catch {
+    return data;
+  }
+}
+
+export function saveStorageData<T>(key: string, data: T): void {
+  try {
+    const jsonStr = JSON.stringify(data);
+    if (memoryCache.get(key) === jsonStr) {
+      // Data unchanged, skip expensive localStorage writing
+      return;
+    }
+    memoryCache.set(key, jsonStr);
+    localStorage.setItem(key, jsonStr);
+    localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
+  } catch (err) {
+    console.warn(`[StorageEngine] Quota limit exceeded for key "${key}". Sanitizing large payloads...`, err);
+    try {
+      const sanitized = sanitizeForLocalStorage(data);
+      const sanitizedStr = JSON.stringify(sanitized);
+      memoryCache.set(key, sanitizedStr);
+      localStorage.setItem(key, sanitizedStr);
+      localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
+      console.log(`[StorageEngine] Saved sanitized payload for key "${key}" successfully.`);
+    } catch (fallbackErr) {
+      console.warn(`[StorageEngine] Secondary quota error for key "${key}". Clearing audit logs cache...`, fallbackErr);
+      try {
+        localStorage.removeItem(STORAGE_KEYS.AUDIT_LOGS);
+        const sanitized = sanitizeForLocalStorage(data);
+        const sanitizedStr = JSON.stringify(sanitized);
+        memoryCache.set(key, sanitizedStr);
+        localStorage.setItem(key, sanitizedStr);
+      } catch (finalErr) {
+        console.error(`[StorageEngine] Critical storage quota error for key "${key}":`, finalErr);
+      }
+    }
+  }
+}
+
+export const AppStorageEngine = {
+  KEYS: STORAGE_KEYS,
+
+  getArticles: (): Article[] => {
+    const raw = loadInitialData(STORAGE_KEYS.ARTICLES, INITIAL_ARTICLES);
+    const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
+    const filtered = raw.filter(a => !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
+    return sortArticlesNewestFirst(filtered);
+  },
+  saveArticles: (articles: Article[]) => {
+    const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
+    const filtered = articles.filter(a => !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
+    saveStorageData(STORAGE_KEYS.ARTICLES, sortArticlesNewestFirst(filtered));
+  },
+
+  getDocuments: (): OfficialDocument[] => {
+    const raw = loadInitialData(STORAGE_KEYS.DOCUMENTS, INITIAL_DOCUMENTS);
+    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
+    const filtered = raw.filter(d => !demoIds.has(d.id));
+    return sortDocumentsNewestFirst(filtered);
+  },
+  saveDocuments: (documents: OfficialDocument[]) => {
+    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
+    const filtered = documents.filter(d => !demoIds.has(d.id));
+    saveStorageData(STORAGE_KEYS.DOCUMENTS, sortDocumentsNewestFirst(filtered));
+  },
+
+  getCompetitions: (): Competition[] => sortCompetitionsNewestFirst(loadInitialData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS)),
+  saveCompetitions: (competitions: Competition[]) => saveStorageData(STORAGE_KEYS.COMPETITIONS, sortCompetitionsNewestFirst(competitions)),
+
+  getOpinions: (): PublicOpinion[] => sortOpinionsNewestFirst(loadInitialData(STORAGE_KEYS.OPINIONS, INITIAL_PUBLIC_OPINIONS)),
+  saveOpinions: (opinions: PublicOpinion[]) => saveStorageData(STORAGE_KEYS.OPINIONS, sortOpinionsNewestFirst(opinions)),
+
+  getTasks: (): Task[] => loadInitialData(STORAGE_KEYS.TASKS, INITIAL_TASKS),
+  saveTasks: (tasks: Task[]) => saveStorageData(STORAGE_KEYS.TASKS, tasks),
+
+  getEvents: (): WorkEvent[] => loadInitialData(STORAGE_KEYS.EVENTS, INITIAL_EVENTS),
+  saveEvents: (events: WorkEvent[]) => saveStorageData(STORAGE_KEYS.EVENTS, events),
+
+  getNotes: (): Note[] => loadInitialData(STORAGE_KEYS.NOTES, INITIAL_NOTES),
+  saveNotes: (notes: Note[]) => saveStorageData(STORAGE_KEYS.NOTES, notes),
+
+  getTemplates: (): TemplateDoc[] => loadInitialData(STORAGE_KEYS.TEMPLATES, INITIAL_TEMPLATES),
+  saveTemplates: (templates: TemplateDoc[]) => saveStorageData(STORAGE_KEYS.TEMPLATES, templates),
+
+  getSubmissions: (): CompetitionSubmission[] => loadInitialData(STORAGE_KEYS.SUBMISSIONS, []),
+  saveSubmissions: (submissions: CompetitionSubmission[]) => saveStorageData(STORAGE_KEYS.SUBMISSIONS, submissions),
+
+  getDriveFiles: (): DriveFileItem[] => loadInitialData(STORAGE_KEYS.DRIVE_FILES, INITIAL_DRIVE_FILES),
+  saveDriveFiles: (files: DriveFileItem[]) => saveStorageData(STORAGE_KEYS.DRIVE_FILES, files),
+
+  getStaffUsers: (): StaffUser[] => loadInitialData(STORAGE_KEYS.STAFF_USERS, INITIAL_STAFF_USERS),
+  saveStaffUsers: (users: StaffUser[]) => saveStorageData(STORAGE_KEYS.STAFF_USERS, users),
+
+  getAuditLogs: (): AuditLog[] => loadInitialData(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS),
+  saveAuditLogs: (logs: AuditLog[]) => saveStorageData(STORAGE_KEYS.AUDIT_LOGS, logs),
+
+  getCurrentUser: (): StaffUser | null => loadInitialData<StaffUser | null>(STORAGE_KEYS.CURRENT_USER, null),
+  saveCurrentUser: (user: StaffUser | null) => saveStorageData(STORAGE_KEYS.CURRENT_USER, user),
+
+  getLastBackupTime: (): string => {
+    return localStorage.getItem(STORAGE_KEYS.LAST_BACKUP_TIME) || new Date().toISOString();
+  },
+
+  // Export all application data as a JSON file backup
+  exportFullDatabase: () => {
+    const backupData = {
+      version: '2.0',
+      exportedAt: new Date().toISOString(),
+      source: 'MTTQ Phường Chánh Hiệp - Văn phòng số & Cổng thông tin',
+      data: {
+        articles: AppStorageEngine.getArticles(),
+        documents: AppStorageEngine.getDocuments(),
+        competitions: AppStorageEngine.getCompetitions(),
+        opinions: AppStorageEngine.getOpinions(),
+        tasks: AppStorageEngine.getTasks(),
+        events: AppStorageEngine.getEvents(),
+        notes: AppStorageEngine.getNotes(),
+        templates: AppStorageEngine.getTemplates(),
+        submissions: AppStorageEngine.getSubmissions(),
+        driveFiles: AppStorageEngine.getDriveFiles(),
+        staffUsers: AppStorageEngine.getStaffUsers(),
+        auditLogs: AppStorageEngine.getAuditLogs(),
+        currentUser: AppStorageEngine.getCurrentUser()
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_mttq_chanhhiep_${new Date().toISOString().substring(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+
+  // Import application data from JSON
+  importDatabaseFromJson: (jsonText: string): boolean => {
+    try {
+      const parsed = JSON.parse(jsonText);
+      const data = parsed.data || parsed;
+
+      if (data.articles) AppStorageEngine.saveArticles(data.articles);
+      if (data.documents) AppStorageEngine.saveDocuments(data.documents);
+      if (data.competitions) AppStorageEngine.saveCompetitions(data.competitions);
+      if (data.opinions) AppStorageEngine.saveOpinions(data.opinions);
+      if (data.tasks) AppStorageEngine.saveTasks(data.tasks);
+      if (data.events) AppStorageEngine.saveEvents(data.events);
+      if (data.notes) AppStorageEngine.saveNotes(data.notes);
+      if (data.templates) AppStorageEngine.saveTemplates(data.templates);
+      if (data.submissions) AppStorageEngine.saveSubmissions(data.submissions);
+      if (data.driveFiles) AppStorageEngine.saveDriveFiles(data.driveFiles);
+      if (data.staffUsers) AppStorageEngine.saveStaffUsers(data.staffUsers);
+      if (data.auditLogs) AppStorageEngine.saveAuditLogs(data.auditLogs);
+      if (data.currentUser) AppStorageEngine.saveCurrentUser(data.currentUser);
+
+      return true;
+    } catch (err) {
+      console.error('[StorageEngine] Error importing JSON backup:', err);
+      return false;
+    }
+  },
+
+  resetAllToDefaults: () => {
+    localStorage.clear();
+  }
+};

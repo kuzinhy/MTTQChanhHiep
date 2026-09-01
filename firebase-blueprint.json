@@ -1,0 +1,174 @@
+{
+  "entities": {
+    "users": {
+      "title": "Users",
+      "description": "Public users and profile records",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "staffUsers": {
+      "title": "Staff Users",
+      "description": "Authorized staff allowlist and permissions",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "fullname": { "type": "string" },
+        "position": { "type": "string" },
+        "department": { "type": "string" },
+        "role": { "type": "string" },
+        "active": { "type": "boolean" },
+        "permissions": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "articles": {
+      "title": "News Articles",
+      "description": "CMS Articles for Public Portal",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "string" },
+        "featuredImage": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string" },
+        "authorName": { "type": "string" },
+        "publishDate": { "type": "string" },
+        "views": { "type": "number" },
+        "isFeatured": { "type": "boolean" }
+      },
+      "required": ["title", "category", "status"]
+    },
+    "documents": {
+      "title": "Official Documents",
+      "description": "Public and internal legal documents",
+      "type": "object",
+      "properties": {
+        "codeNumber": { "type": "string" },
+        "title": { "type": "string" },
+        "docType": { "type": "string" },
+        "issuer": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "effectiveDate": { "type": "string" },
+        "signer": { "type": "string" },
+        "field": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "isPublic": { "type": "boolean" }
+      },
+      "required": ["codeNumber", "title", "docType"]
+    },
+    "competitions": {
+      "title": "Online Competitions",
+      "description": "Trivia and Writing Competitions",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "bannerUrl": { "type": "string" },
+        "type": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "status": { "type": "string" },
+        "timeLimitMinutes": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "rules": { "type": "string" }
+      },
+      "required": ["title", "type", "status"]
+    },
+    "publicOpinions": {
+      "title": "Public Opinions & Feedback",
+      "description": "Citizen feedback and social opinion reflections",
+      "type": "object",
+      "properties": {
+        "receiptCode": { "type": "string" },
+        "topic": { "type": "string" },
+        "content": { "type": "string" },
+        "neighborhood": { "type": "string" },
+        "fullname": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "isAnonymous": { "type": "boolean" },
+        "status": { "type": "string" },
+        "priority": { "type": "string" },
+        "assignedTo": { "type": "string" },
+        "adminResponse": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["receiptCode", "topic", "content", "status"]
+    },
+    "tasks": {
+      "title": "Work Tasks",
+      "description": "Task management for MTTQ staff",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "assigneeId": { "type": "string" },
+        "assigneeName": { "type": "string" },
+        "assignerName": { "type": "string" },
+        "priority": { "type": "string" },
+        "status": { "type": "string" },
+        "deadline": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "status", "priority"]
+    },
+    "events": {
+      "title": "Work Schedule & Events",
+      "description": "Calendar events for MTTQ Chanh Hiep",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "location": { "type": "string" },
+        "chair": { "type": "string" },
+        "participants": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["title", "startTime", "endTime"]
+    },
+    "notes": {
+      "title": "Personal Notes",
+      "description": "Staff personal scratchpad notes",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "color": { "type": "string" },
+        "isPinned": { "type": "boolean" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "title"]
+    },
+    "auditLogs": {
+      "title": "Audit Logs",
+      "description": "System activity logs for security auditing",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "entity": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["userId", "action", "timestamp"]
+    }
+  }
+}
