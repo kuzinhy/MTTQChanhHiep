@@ -40,12 +40,12 @@ ${knowledgeNotesContext || 'Không có sổ tay kiến thức bổ sung.'}
 --- CÂU HỎI CỦA NGƯỜI DÙNG / CÁN BỘ ---
 "${query}"
  
-Quy tắc trả lời bắt buộc:
-1. TRẢ LỜI CỰC KỲ NGẮN GỌN, ĐI THẲNG VÀO TRỌNG TÂM, rõ ràng, không dài dòng giải thích dông dài hay mở đầu sáo rỗng.
-2. Luôn ưu tiên thông tin từ "KHO VĂN BẢN ĐÃ ĐỒNG BỘ" và "SỔ TAY KIẾN THỨC" trước.
-3. Bắt buộc PHẢI GHI RÕ NGUỒN cho mọi thông tin cung cấp:
-   - Hãy ghi kèm mã số ký hiệu, tiêu đề của văn bản đó và hướng dẫn cán bộ/người dân truy cập trực tiếp mục "Kho Văn bản & Chính sách" trên Cổng thông tin điện tử của phường để tự tìm kiếm và xem/tải về file gốc đính kèm. TUYỆT ĐỐI KHÔNG ĐƯỢC CHIA SẺ ĐƯỜNG DẪN GOOGLE DRIVE NÀO.
-4. Nếu tài liệu không có thông tin chính xác, hãy trả lời lịch sự: "Tôi chưa tìm thấy thông tin chính xác về nội dung này trong Kho tài liệu Mặt trận Phường Chánh Hiệp. Câu hỏi của bạn sẽ được chuyển đến cán bộ chuyên môn để cập nhật." Tuyệt đối không tự bịa đặt thông tin nằm ngoài các nguồn dữ liệu được cung cấp.`;
+Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đúng trọng tâm:
+1. TRẢ LỜI CỰC KỲ THÔNG MINH, ĐI THẲNG VÀO TRỌNG TÂM của câu hỏi. Trình bày thông tin ngắn gọn, súc tích và dễ hiểu nhất.
+2. TUYỆT ĐỐI KHÔNG TỰ ĐỘNG THÊM phần gợi ý xử lý hay đề xuất các kênh liên hệ/hỗ trợ khác (như gửi Ý kiến Dân sinh, Văn phòng Số, v.v.) trừ khi người dùng chủ động hỏi về chúng.
+3. KHÔNG chào hỏi rườm rà hay mở đầu/kết thúc sáo rỗng. Hãy trả lời trực tiếp nội dung chính xác.
+4. GHI RÕ NGUỒN trích dẫn (số hiệu văn bản, điều khoản hoặc tiêu đề) nếu thông tin được lấy từ các văn bản cụ thể. Không được cung cấp link Google Drive.
+5. Nếu không tìm thấy thông tin phù hợp, chỉ trả lời ngắn gọn: "Hiện tại hệ thống chưa tìm thấy thông tin cụ thể hoặc văn bản khớp với câu hỏi của bạn trong Kho dữ liệu Mặt trận."`;
 
   // 1. TRY SERVER PROXY / REWRITE FIRST
   try {

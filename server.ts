@@ -361,52 +361,28 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
     const hasGreeting = cleanAndNormalize(normalizedQuery).some(w => greetingKeywords.includes(w));
 
     if (bestMatch === 'note' && bestScore > 2) {
-      return `[Trích Sổ tay Kiến thức Chánh Hiệp]
-Chào bạn! Dựa trên Sổ tay Nghiệp vụ Mặt trận Phường Chánh Hiệp, tôi xin giải đáp thắc mắc của bạn về nội dung: "${matchedQuestion}" như sau:
-
----
-${matchedAnswer}
----
-
-*Ghi chú: Nếu cần giải đáp thêm các nghiệp vụ chuyên sâu, bạn có thể gửi câu hỏi trực tiếp cho Cán bộ Mặt trận tại tab Văn phòng Số hoặc liên hệ trực tiếp Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.*`;
+      return matchedAnswer;
     }
 
     if (bestMatch === 'doc' && bestScore > 2) {
-      return `[Trích Kho văn bản Chánh Hiệp]
-Chào bạn! Tôi đã tìm thấy văn bản liên quan trực tiếp đến yêu cầu tra cứu của bạn trong Kho văn bản Mặt trận Phường Chánh Hiệp:
-
-- **Số hiệu văn bản**: ${matchedCode}
-- **Tên văn bản**: ${matchedTitle}
-- **Lĩnh vực công tác**: ${matchedField}
-- **Người ký ban hành**: ${matchedSigner}
-
-**Gợi ý xử lý**: Bạn có thể tra cứu toàn văn văn bản này trực tiếp tại mục **Kho văn bản** bằng cách tìm theo số hiệu \`${matchedCode}\` hoặc tiêu đề \`${matchedTitle}\`.
-
-*Hệ thống Mặt trận Tổ quốc Phường Chánh Hiệp luôn công khai minh bạch các chỉ đạo, văn bản pháp luật hành chính để phục vụ cán bộ và nhân dân.*`;
+      return `**Số hiệu văn bản**: ${matchedCode}
+**Tên văn bản**: ${matchedTitle}
+**Lĩnh vực**: ${matchedField}
+**Người ký**: ${matchedSigner}`;
     }
 
     if (hasGreeting || normalizedQuery.length < 5) {
-      return `Chào bạn! Tôi là Trợ lý AI thông minh của Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
+      return `Chào bạn! Tôi là Trợ lý AI của Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
 
-Tôi luôn sẵn sàng hỗ trợ cán bộ và nhân dân tra cứu:
-1. **Sổ tay Nghiệp vụ**: Các câu hỏi quy trình bầu cử, giám sát, phản biện, ban thanh tra nhân dân, ban giám sát đầu tư cộng đồng.
-2. **Kho văn bản Mặt trận**: Tra cứu các quyết định, kế hoạch chỉ đạo của Ủy ban MTTQ Phường Chánh Hiệp.
-3. **Ý kiến Dân sinh**: Hướng dẫn gửi phản ánh, kiến nghị của bà con lên Ban Thường trực.
+Tôi hỗ trợ tra cứu:
+1. Sổ tay Nghiệp vụ Mặt trận (Quy trình bầu cử, giám sát, phản biện, thanh tra nhân dân).
+2. Kho văn bản quyết định, kế hoạch của Ủy ban MTTQ Phường Chánh Hiệp.
 
-Bạn vui lòng nhập câu hỏi cụ thể hơn (ví dụ: "giám sát đầu tư cộng đồng là gì?", "quy định về ban thanh tra nhân dân", hoặc "văn bản về an sinh xã hội") để tôi tìm kiếm chính xác nhất nhé!`;
+Hãy nhập nội dung hoặc câu hỏi bạn cần tra cứu cụ thể.`;
     }
 
     // Default helpful response
-    return `Chào bạn! Tôi là Trợ lý AI của Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.
-
-Đối với nội dung tra cứu của bạn: "${query}", hiện tại hệ thống chưa tìm thấy tài liệu hướng dẫn cụ thể hoặc số hiệu văn bản khớp hoàn toàn trong Sổ tay Kiến thức đã duyệt.
-
-**Gợi ý các kênh hỗ trợ trực tiếp:**
-1. **Tra cứu toàn văn**: Bạn có thể vào mục **Kho văn bản** trên hệ thống để tìm kiếm thêm các tài liệu liên quan bằng từ khóa.
-2. **Gửi Ý kiến Dân sinh**: Nếu đây là một ý kiến phản ánh, kiến nghị dân sinh hoặc đóng góp xây dựng chính quyền, xin vui lòng gửi ý kiến qua mục **Ý kiến Dân sinh** để Ban Thường trực MTTQ Phường tiếp nhận, giải quyết kịp thời.
-3. **Ghi nhận tự động**: Câu hỏi của bạn đã được ghi nhận tự động vào Nhật ký Tra cứu để chuyển Cán bộ Mặt trận chuyên trách bổ sung hướng dẫn chi tiết vào hệ thống trong thời gian sớm nhất.
-
-Cảm ơn bạn đã đồng hành cùng Mặt trận Tổ quốc Phường Chánh Hiệp!`;
+    return `Hiện tại hệ thống chưa tìm thấy thông tin cụ thể hoặc văn bản khớp với câu hỏi: "${query}" trong Kho dữ liệu đã duyệt của Mặt trận Tổ quốc Phường Chánh Hiệp.`;
   };
 
   async function searchDuckDuckGo(searchQuery: string): Promise<Array<{ title: string; snippet: string; link: string }>> {
@@ -496,13 +472,12 @@ ${webSearchContext}
 --- CÂU HỎI CỦA NGƯỜI DÙNG / CÁN BỘ ---
 "${query}"
  
-Quy tắc trả lời bắt buộc:
-1. TRẢ LỜI CỰC KỲ NGẮN GỌN, ĐI THẲNG VÀO TRỌNG TÂM, rõ ràng, không dài dòng giải thích dông dài hay mở đầu sáo rỗng.
-2. Luôn ưu tiên thông tin từ "KHO VĂN BẢN ĐÃ ĐỒNG BỘ" và "SỔ TAY KIẾN THỨC" trước. Nếu không có hoặc cần mở rộng thông tin thời gian thực, hãy kết hợp thông tin từ "KẾT QUẢ TRA CỨU INTERNET".
-3. Bắt buộc PHẢI GHI RÕ NGUỒN cho mọi thông tin cung cấp:
-   - Nếu dùng tài liệu hoặc sổ tay nghiệp vụ: Hãy ghi kèm mã số ký hiệu, tiêu đề của văn bản đó và hướng dẫn cán bộ/người dân truy cập trực tiếp mục "Kho Văn bản & Chính sách" trên Cổng thông tin điện tử của phường để tự tìm kiếm và xem/tải về file gốc đính kèm. TUYỆT ĐỐI KHÔNG ĐƯỢC CHIA SẺ ĐƯỜNG DẪN GOOGLE DRIVE NÀO.
-   - Nếu dùng thông tin tra cứu internet: Ghi rõ nguồn tiêu đề và đính kèm đường dẫn trực tiếp dưới dạng markdown (ví dụ: [Tên Nguồn](Đường dẫn liên kết)).
-4. Nếu cả tài liệu lẫn kết quả internet đều không có thông tin chính xác, hãy trả lời lịch sự: "Tôi chưa tìm thấy thông tin chính xác về nội dung này trong Kho tài liệu Mặt trận Phường Chánh Hiệp hay trên Internet. Câu hỏi của bạn sẽ được chuyển đến cán bộ chuyên môn để cập nhật." Tuyệt đối không tự bịa đặt thông tin nằm ngoài các nguồn dữ liệu được cung cấp.`;
+Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đúng trọng tâm:
+1. TRẢ LỜI CỰC KỲ THÔNG MINH, ĐI THẲNG VÀO TRỌNG TÂM của câu hỏi. Trình bày thông tin ngắn gọn, súc tích và dễ hiểu nhất.
+2. TUYỆT ĐỐI KHÔNG TỰ ĐỘNG THÊM phần gợi ý xử lý hay đề xuất các kênh liên hệ/hỗ trợ khác (như gửi Ý kiến Dân sinh, Văn phòng Số, v.v.) trừ khi người dùng chủ động hỏi về chúng.
+3. KHÔNG chào hỏi rườm rà hay mở đầu/kết thúc sáo rỗng. Hãy trả lời trực tiếp nội dung chính xác.
+4. GHI RÕ NGUỒN trích dẫn (số hiệu văn bản, điều khoản hoặc tiêu đề) nếu thông tin được lấy từ các văn bản cụ thể. Đối với thông tin internet, trích dẫn liên kết dạng markdown [Tên Nguồn](Đường dẫn liên kết). Không cung cấp link Google Drive.
+5. Nếu không tìm thấy thông tin phù hợp, chỉ trả lời ngắn gọn: "Hiện tại hệ thống chưa tìm thấy thông tin cụ thể hoặc văn bản khớp với câu hỏi của bạn trong Kho dữ liệu Mặt trận."`;
  
       const response = await ai.models.generateContent({
         model: 'gemini-3.5-flash',
