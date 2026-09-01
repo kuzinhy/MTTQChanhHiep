@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { uploadFileToGoogleDrive, DEFAULT_DRIVE_FOLDER_ID, DEFAULT_DRIVE_FOLDER_URL, getAppsScriptUrl, saveAppsScriptUrl, getGoogleDriveDirectImageUrl } from '../../lib/googleDriveService';
+import { getApiUrl } from '../../lib/api';
 import { AdminAnalyticsView } from './AdminAnalyticsView';
 import { 
   Article, 
@@ -273,7 +274,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     }
     setIsParsingNewsLink(true);
     try {
-      const response = await fetch('/api/ai/parse-news-link', {
+      const response = await fetch(getApiUrl('/api/ai/parse-news-link'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: targetUrl })
@@ -330,7 +331,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         }
       }
 
-      const response = await fetch('/api/ai/extract-document-meta', {
+      const response = await fetch(getApiUrl('/api/ai/extract-document-meta'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName: file.name, textContent: textSnippet })

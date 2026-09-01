@@ -3,6 +3,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config({ override: true });
 
@@ -24,6 +25,12 @@ function getGeminiClient() {
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  app.use(cors({
+    origin: '*', // Allow any origin to connect, or we can restrict it later. It is simple and robust.
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));

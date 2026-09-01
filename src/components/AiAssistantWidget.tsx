@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { AppStorageEngine } from '../lib/storage';
 import { CloudDatabase } from '../lib/firestoreService';
+import { getApiUrl } from '../lib/api';
 import { AiChatLog } from '../types';
 
 interface ChatMessage {
@@ -76,7 +77,7 @@ export const AiAssistantWidget: React.FC = () => {
         .map(n => `HỎI: ${n.question}\nĐÁP: ${n.answer}`)
         .join('\n\n');
 
-      const response = await fetch('/api/ai/knowledge-search', {
+      const response = await fetch(getApiUrl('/api/ai/knowledge-search'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

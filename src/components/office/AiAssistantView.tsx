@@ -29,6 +29,7 @@ import {
   Edit
 } from 'lucide-react';
 import { AiChatLog, KnowledgeNote, StaffUser } from '../../types';
+import { getApiUrl } from '../../lib/api';
 
 interface AiAssistantViewProps {
   documentsContext?: string;
@@ -120,7 +121,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch('/api/ai/plan', {
+      const res = await fetch(getApiUrl('/api/ai/plan'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,7 +145,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch('/api/ai/speech', {
+      const res = await fetch(getApiUrl('/api/ai/speech'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -167,7 +168,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch('/api/ai/report', {
+      const res = await fetch(getApiUrl('/api/ai/report'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -193,7 +194,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch('/api/ai/summarize', {
+      const res = await fetch(getApiUrl('/api/ai/summarize'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ documentText: summarizeText })
@@ -212,7 +213,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch('/api/ai/spelling', {
+      const res = await fetch(getApiUrl('/api/ai/spelling'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ draftText: spellingText })
@@ -237,7 +238,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
         .map(n => `HỎI: ${n.question}\nĐÁP: ${n.answer}`)
         .join('\n\n');
 
-      const res = await fetch('/api/ai/knowledge-search', {
+      const res = await fetch(getApiUrl('/api/ai/knowledge-search'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -274,7 +275,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch('/api/ai/opinion-summary', {
+      const res = await fetch(getApiUrl('/api/ai/opinion-summary'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ opinionsList: opinionsContext })

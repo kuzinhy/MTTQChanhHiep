@@ -1,5 +1,6 @@
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from './firebase';
+import { getApiUrl } from './api';
 
 // Google Drive Provider configured with drive.file scope
 export const googleDriveProvider = new GoogleAuthProvider();
@@ -132,7 +133,7 @@ export async function uploadFileViaServerProxy(
     reader.readAsDataURL(file);
   });
 
-  const response = await fetch('/api/drive/upload-proxy', {
+  const response = await fetch(getApiUrl('/api/drive/upload-proxy'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
