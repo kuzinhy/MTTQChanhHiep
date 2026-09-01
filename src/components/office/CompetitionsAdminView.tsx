@@ -15,7 +15,12 @@ import {
   X,
   Check,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  ChevronRight,
+  ChevronLeft,
+  Settings,
+  HelpCircle,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -26,6 +31,7 @@ interface CompetitionsAdminViewProps {
   onUpdateCompetition?: (comp: Competition) => void;
   onDeleteCompetition?: (id: string) => void;
   onGradeSubmission?: (id: string, score: number, comment: string) => void;
+  onSelectCompetitionDetail: (id: string) => void;
 }
 
 export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
@@ -34,129 +40,88 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
   onAddCompetition,
   onUpdateCompetition,
   onDeleteCompetition,
-  onGradeSubmission
+  onGradeSubmission,
+  onSelectCompetitionDetail
 }) => {
-  const [activeTab, setActiveTab] = useState<'SUBMISSIONS' | 'LIST'>('SUBMISSIONS');
+  const [activeTab, setActiveTab] = useState<'LIST' | 'SUBMISSIONS'>('LIST');
   
-  // Grading Modal State
+  // 6-Step Creation Wizard State
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+
+  // Wizard Form Fields
+  const [wTitle, setWTitle] = useState('');
+  const [wType, setWType] = useState<'TRIVIA' | 'WRITING' | 'MIXED'>('TRIVIA');
+  const [wDesc, setWDesc] = useState('');
+  const [wBanner, setWBanner] = useState('https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=1200');
+  const [wStartDate, setWStartDate] = useState(new Date().toISOString().substring(0, 10));
+  const [wEndDate, setWEndDate] = useState('2026-12-31');
+  const [wRules, setWRules] = useState('1. Đối tượng tham gia: Toàn thể cán bộ, công chức, đoàn viên hội viên và nhân dân trên địa bàn phường Chánh Hiệp.\n2. Nội dung: Tìm hiểu kiến thức lịch sử, nghị quyết và các phong trào thi đua yêu nước.');
+  const [wAccessMode, setWAccessMode] = useState<'PUBLIC' | 'LOGIN_REQUIRED' | 'ACCESS_CODE'>('PUBLIC');
+  const [wTimeLimit, setWTimeLimit] = useState(15);
+  const [wTotalQuestions, setWTotalQuestions] = useState(10);
+  const [wStatus, setWStatus] = useState<'DRAFT' | 'SCHEDULED' | 'OPEN' | 'PUBLISHED'>('OPEN');
+
+  // Grading modal state
   const [selectedSub, setSelectedSub] = useState<CompetitionSubmission | null>(null);
   const [scoreInput, setScoreInput] = useState<number>(85);
   const [commentInput, setCommentInput] = useState('Bài viết sâu sắc, nêu bật vai trò công tác Mặt trận khu phố.');
 
-  // Competition CRUD Modal State
-  const [isCompModalOpen, setIsCompModalOpen] = useState(false);
-  const [editingComp, setEditingComp] = useState<Competition | null>(null);
+  // Delete confirmation
   const [compToDelete, setCompToDelete] = useState<Competition | null>(null);
 
-  // Form fields
-  const [compTitle, setCompTitle] = useState('');
-  const [compType, setCompType] = useState<'TRIVIA' | 'WRITING'>('TRIVIA');
-  const [compDesc, setCompDesc] = useState('');
-  const [compRules, setCompRules] = useState('Dự thi trực tuyến cá nhân, trả lời đầy đủ các câu hỏi theo quy định.');
-  const [compStartDate, setCompStartDate] = useState(new Date().toISOString().substring(0, 10));
-  const [compEndDate, setCompEndDate] = useState('31/12/2026');
-  const [compStatus, setCompStatus] = useState<'ONGOING' | 'UPCOMING' | 'ENDED'>('ONGOING');
-  const [compTotalQuestions, setCompTotalQuestions] = useState(10);
-
-  const resetForm = () => {
-    setEditingComp(null);
-    setCompTitle('');
-    setCompType('TRIVIA');
-    setCompDesc('');
-    setCompRules('Dự thi trực tuyến cá nhân, trả lời đầy đủ các câu hỏi theo quy định.');
-    setCompStartDate(new Date().toISOString().substring(0, 10));
-    setCompEndDate('31/12/2026');
-    setCompStatus('ONGOING');
-    setCompTotalQuestions(10);
+  const handleResetWizard = () => {
+    setWizardStep(1);
+    setWTitle('');
+    setWType('TRIVIA');
+    setWDesc('');
+    setWStartDate(new Date().toISOString().substring(0, 10));
+    setWEndDate('2026-12-31');
+    setWRules('1. Đối tượng tham gia: Toàn thể cán bộ, nhân dân phường Chánh Hiệp.');
+    setWAccessMode('PUBLIC');
+    setWTimeLimit(15);
+    setWTotalQuestions(10);
+    setWStatus('OPEN');
   };
 
-  const handleOpenEdit = (comp: Competition) => {
-    setEditingComp(comp);
-    setCompTitle(comp.title);
-    setCompType(comp.type);
-    setCompDesc(comp.description || '');
-    setCompRules(comp.rules || '');
-    setCompStartDate(comp.startDate || new Date().toISOString().substring(0, 10));
-    setCompEndDate(comp.endDate || '31/12/2026');
-    setCompStatus(comp.status);
-    setCompTotalQuestions(comp.totalQuestions || 10);
-    setIsCompModalOpen(true);
-  };
-
-  const handleSaveCompetition = (e: React.FormEvent) => {
+  const handleFinishWizard = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!compTitle.trim()) return;
+    if (!wTitle.trim()) return;
 
-    if (editingComp) {
-      const updated: Competition = {
-        ...editingComp,
-        title: compTitle.trim(),
-        type: compType,
-        description: compDesc.trim(),
-        rules: compRules.trim(),
-        startDate: compStartDate,
-        endDate: compEndDate,
-        status: compStatus,
-        totalQuestions: compTotalQuestions
-      };
-      if (onUpdateCompetition) onUpdateCompetition(updated);
-    } else {
-      const newComp: Competition = {
-        id: 'comp-' + Date.now(),
-        title: compTitle.trim(),
-        type: compType,
-        description: compDesc.trim() || 'Hội thi trực tuyến chào mừng kỷ niệm thành lập Mặt trận.',
-        rules: compRules.trim(),
-        startDate: compStartDate,
-        endDate: compEndDate,
-        status: compStatus,
-        totalQuestions: compTotalQuestions
-      };
-      if (onAddCompetition) onAddCompetition(newComp);
-    }
+    const newComp: Competition = {
+      id: 'comp-' + Date.now(),
+      title: wTitle.trim(),
+      type: wType,
+      description: wDesc.trim() || 'Hội thi trực tuyến tìm hiểu kiến thức pháp luật và phong trào MTTQ phường Chánh Hiệp.',
+      bannerUrl: wBanner,
+      startDate: wStartDate,
+      endDate: wEndDate,
+      status: wStatus as any,
+      rules: wRules,
+      timeLimitMinutes: wTimeLimit,
+      totalQuestions: wTotalQuestions
+    };
 
-    setIsCompModalOpen(false);
-    resetForm();
-  };
-
-  const handleConfirmDelete = () => {
-    if (!compToDelete) return;
-    if (onDeleteCompetition) onDeleteCompetition(compToDelete.id);
-    setCompToDelete(null);
-  };
-
-  const handleGradeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedSub) return;
-    if (onGradeSubmission) {
-      onGradeSubmission(selectedSub.id, scoreInput, commentInput);
-    }
-    setSelectedSub(null);
+    if (onAddCompetition) onAddCompetition(newComp);
+    setIsWizardOpen(false);
+    handleResetWizard();
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto text-slate-900 font-sans">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto text-slate-900 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
         <div>
           <div className="flex items-center gap-2 text-blue-700 font-bold text-xs uppercase tracking-wider">
             <Award className="w-4 h-4 text-blue-600" />
-            <span>QUẢN TRỊ HỘI THI &amp; BÀI DỰ THI DÂN VẬN</span>
+            <span>QUẢN TRỊ HỘI THI &amp; KHẢO SÁT CHUYÊN NGHIỆP</span>
           </div>
-          <h1 className="text-xl font-black text-slate-900 mt-1">Quản Lý Hội Thi &amp; Chấm Điểm Trực Tuyến</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Tổng hợp kết quả cuộc thi Trắc nghiệm &amp; Bài viết cảm nhận của nhân dân 12 khu phố</p>
+          <h1 className="text-xl font-black text-slate-900 mt-1">Hệ Thống Quản Lý Hội Thi (Competition Management System)</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Quản trị toàn diện đề thi, ngân hàng câu hỏi, chấm điểm tự động và xếp hạng trực tuyến</p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl">
-            <button
-              onClick={() => setActiveTab('SUBMISSIONS')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                activeTab === 'SUBMISSIONS' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Bài dự thi ({submissions.length})
-            </button>
             <button
               onClick={() => setActiveTab('LIST')}
               className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
@@ -165,10 +130,18 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
             >
               Danh sách Cuộc thi ({competitions.length})
             </button>
+            <button
+              onClick={() => setActiveTab('SUBMISSIONS')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                activeTab === 'SUBMISSIONS' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Tất cả Bài dự thi ({submissions.length})
+            </button>
           </div>
 
           <button
-            onClick={() => { resetForm(); setIsCompModalOpen(true); }}
+            onClick={() => { handleResetWizard(); setIsWizardOpen(true); }}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -177,331 +150,362 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
         </div>
       </div>
 
-      {/* Content Tabs */}
-      {activeTab === 'SUBMISSIONS' && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-            <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex justify-between items-center">
-              <span className="font-black text-slate-800 uppercase text-[11px] tracking-wider">
-                DANH SÁCH BÀI DỰ THI CỦA CÁN BỘ &amp; BÀ CON NHÂN DÂN
-              </span>
-              <span className="text-blue-700 font-semibold text-[11px]">Đánh giá theo thang điểm 100 &amp; Nhận xét của Ban Giám khảo</span>
-            </div>
-
-            {submissions.length === 0 ? (
-              <div className="p-12 text-center text-slate-400">
-                <Award className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                <p className="font-bold text-sm text-slate-700">Chưa có bài nộp nào từ cổng người dân</p>
-                <p className="text-xs text-slate-400 mt-1">Khi bà con làm bài thi trực tuyến, kết quả sẽ tự động đồng bộ về đây.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {submissions.map((sub) => (
-                  <div key={sub.id} className="p-5 hover:bg-slate-50/90 transition-colors flex flex-col md:flex-row justify-between gap-4 items-start">
-                    <div className="space-y-1.5 max-w-2xl">
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-sm text-slate-900">{sub.participantName}</span>
-                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-800 font-bold text-[10px] rounded-md border border-blue-200">
-                          {sub.neighborhood}
-                        </span>
-                        <span className="text-xs text-slate-400">• SĐT: {sub.phone}</span>
-                      </div>
-
-                      {sub.essayText && (
-                        <p className="text-xs text-slate-700 line-clamp-2 italic bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                          "{sub.essayText}"
-                        </p>
-                      )}
-
-                      {sub.adminComment && (
-                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900">
-                          <strong>Nhận xét BGK:</strong> {sub.adminComment}
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-4 text-[11px] text-slate-500 pt-1">
-                        <span>Nộp lúc: {sub.submittedAt}</span>
-                        {sub.score !== undefined && (
-                          <span className="font-black text-emerald-700">Điểm số: {sub.score}/100</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setSelectedSub(sub);
-                        if (sub.score !== undefined) setScoreInput(sub.score);
-                        if (sub.adminComment) setCommentInput(sub.adminComment);
-                      }}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs shrink-0 cursor-pointer"
-                    >
-                      {sub.score !== undefined ? 'Sửa Điểm & Nhận Xét' : 'Chấm Điểm Bài Thi'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
+      {/* Main Content */}
       {activeTab === 'LIST' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {competitions.map((comp) => (
-            <div key={comp.id} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs space-y-3 flex flex-col justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className={`px-2.5 py-0.5 font-black text-[10px] rounded-full uppercase ${
-                    comp.status === 'ONGOING' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {comp.status === 'ONGOING' ? 'Đang diễn ra' : comp.status === 'UPCOMING' ? 'Sắp diễn ra' : 'Đã kết thúc'}
+            <div key={comp.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div>
+                <div className="relative h-48 w-full bg-slate-900">
+                  <img
+                    src={comp.bannerUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800'}
+                    alt={comp.title}
+                    className="w-full h-full object-cover opacity-85"
+                  />
+                  <div className="absolute top-3 left-3 flex items-center gap-2">
+                    <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md text-white shadow-xs ${
+                      comp.status === 'OPEN' || comp.status === 'ONGOING' ? 'bg-emerald-600' :
+                      comp.status === 'DRAFT' ? 'bg-amber-600' : 'bg-slate-700'
+                    }`}>
+                      {comp.status === 'OPEN' || comp.status === 'ONGOING' ? 'Đang diễn ra' :
+                       comp.status === 'DRAFT' ? 'Bản nháp' : 'Đã kết thúc'}
+                    </span>
+                    <span className="bg-slate-900/95 backdrop-blur-xs text-amber-300 text-[10px] font-bold px-2 py-1 rounded-md border border-slate-700">
+                      {comp.type === 'TRIVIA' ? 'Trắc nghiệm' : comp.type === 'WRITING' ? 'Bài viết' : 'Hỗn hợp'}
+                    </span>
+                  </div>
+
+                  <span className="absolute bottom-3 right-3 bg-blue-900/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-md">
+                    {comp.totalQuestions || 10} câu hỏi &bull; {comp.timeLimitMinutes || 15} phút
                   </span>
-                  <span className="text-xs font-bold text-slate-400">{comp.startDate} - {comp.endDate}</span>
                 </div>
 
-                <h3 className="font-black text-base text-slate-900">{comp.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{comp.description}</p>
+                <div className="p-5 space-y-3">
+                  <h3 className="font-black text-slate-900 text-base leading-snug">{comp.title}</h3>
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">{comp.description}</p>
+
+                  <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 font-medium border-t border-slate-100">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-blue-600" />
+                      Thời gian: {comp.startDate} &rarr; {comp.endDate}
+                    </span>
+                    <span className="font-bold text-slate-800">
+                      {submissions.filter(s => s.competitionId === comp.id).length} lượt thi
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="font-bold text-blue-700">
-                  {comp.type === 'TRIVIA' ? 'Trắc nghiệm trực tuyến' : 'Bài viết cảm nhận'}
-                </span>
-                
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => handleOpenEdit(comp)}
-                    className="p-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-xl transition-all cursor-pointer"
-                    title="Chỉnh sửa cuộc thi"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setCompToDelete(comp)}
-                    className="p-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded-xl transition-all cursor-pointer"
-                    title="Xóa cuộc thi"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+              {/* Action Buttons: Quản lý hội thi */}
+              <div className="p-5 pt-0 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => onSelectCompetitionDetail(comp.id)}
+                  className="py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Quản lý hội thi</span>
+                </button>
+                <a
+                  href={`#/hoi-thi/${comp.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Globe className="w-4 h-4 text-blue-600" />
+                  <span>Xem trang</span>
+                </a>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal Grade */}
-      <AnimatePresence>
-        {selectedSub && (
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 text-slate-900"
-            >
-              <div className="flex items-center justify-between border-b pb-3 border-slate-100">
-                <h3 className="font-black text-base text-slate-900">
-                  Chấm điểm Bài dự thi - {selectedSub.participantName}
-                </h3>
-                <button onClick={() => setSelectedSub(null)} className="text-slate-400 font-bold hover:text-slate-700 cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleGradeSubmit} className="space-y-3.5 text-xs">
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
-                  <p className="font-black text-slate-900">Thí sinh: {selectedSub.participantName} ({selectedSub.neighborhood})</p>
-                  <p className="text-slate-700 italic leading-relaxed">"{selectedSub.essayText}"</p>
-                </div>
-
-                <div>
-                  <label className="block font-black text-slate-800 mb-1">Điểm số (0 - 100) (*)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    required
-                    value={scoreInput}
-                    onChange={(e) => setScoreInput(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-black text-lg text-blue-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-black text-slate-800 mb-1">Nhận xét của Ban Giám khảo (*)</label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={commentInput}
-                    onChange={(e) => setCommentInput(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSub(null)}
-                    className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl cursor-pointer"
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 shadow-md cursor-pointer"
-                  >
-                    Lưu Kết Quả Chấm
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+      {activeTab === 'SUBMISSIONS' && (
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 className="font-black text-slate-900 text-base">Toàn Bộ Bài Dự Thi Trực Tuyến</h3>
+            <p className="text-xs text-slate-500">Danh sách các bài làm và chấm điểm của tất cả các cuộc thi</p>
           </div>
-        )}
-      </AnimatePresence>
 
-      {/* Modal Add / Edit Competition */}
-      <AnimatePresence>
-        {isCompModalOpen && (
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 text-slate-900 max-h-[92vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b pb-3 border-slate-100">
-                <h3 className="font-black text-base text-slate-900">
-                  {editingComp ? 'Chỉnh sửa cuộc thi' : 'Khởi tạo cuộc thi trực tuyến mới'}
-                </h3>
-                <button onClick={() => setIsCompModalOpen(false)} className="text-slate-400 font-bold hover:text-slate-700 cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-bold text-slate-700">
+                  <th className="p-3">Thí sinh</th>
+                  <th className="p-3">Khu phố</th>
+                  <th className="p-3">Số điện thoại</th>
+                  <th className="p-3">Thời gian nộp</th>
+                  <th className="p-3 text-center">Điểm số</th>
+                  <th className="p-3 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {submissions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-slate-500">Chưa có bài thi nào được nộp.</td>
+                  </tr>
+                ) : (
+                  submissions.map(sub => (
+                    <tr key={sub.id} className="hover:bg-slate-50">
+                      <td className="p-3 font-black text-slate-900">{sub.participantName}</td>
+                      <td className="p-3 text-slate-600">{sub.neighborhood}</td>
+                      <td className="p-3 font-mono text-slate-600">{sub.phone}</td>
+                      <td className="p-3 font-mono text-slate-500">{sub.submittedAt}</td>
+                      <td className="p-3 text-center font-black text-blue-700">{sub.score || 0} đ</td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => {
+                            setSelectedSub(sub);
+                            setScoreInput(sub.score || 85);
+                            setCommentInput(sub.adminComment || 'Bài làm đạt yêu cầu.');
+                          }}
+                          className="px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200 hover:bg-blue-100 cursor-pointer"
+                        >
+                          Chấm điểm
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 6-Step Creation Wizard Modal */}
+      {isWizardOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            {/* Wizard Header & Stepper */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-xs font-black text-blue-600 uppercase tracking-widest">Trình tạo cuộc thi chuyên nghiệp</span>
+                <h3 className="text-lg font-black text-slate-900">Tạo Cuộc Thi Mới (Bước {wizardStep} / 6)</h3>
               </div>
+              <button 
+                onClick={() => setIsWizardOpen(false)}
+                className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              <form onSubmit={handleSaveCompetition} className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-black text-slate-800 mb-1">Tên cuộc thi (*)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nhập tên hội thi, cuộc khảo sát..."
-                    value={compTitle}
-                    onChange={(e) => setCompTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold outline-hidden focus:ring-2 focus:ring-blue-600"
-                  />
+            {/* Stepper indicator */}
+            <div className="grid grid-cols-6 gap-1.5">
+              {[
+                { step: 1, label: 'Thông tin' },
+                { step: 2, label: 'Thể lệ' },
+                { step: 3, label: 'Đối tượng' },
+                { step: 4, label: 'Ngân hàng' },
+                { step: 5, label: 'Cấu hình đề' },
+                { step: 6, label: 'Xuất bản' }
+              ].map(s => (
+                <div key={s.step} className={`p-2 rounded-xl text-center text-[10px] font-black ${
+                  wizardStep === s.step ? 'bg-blue-600 text-white' :
+                  wizardStep > s.step ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {s.step}. {s.label}
                 </div>
+              ))}
+            </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-black text-slate-800 mb-1">Hình thức</label>
-                    <select
-                      value={compType}
-                      onChange={(e) => setCompType(e.target.value as any)}
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold bg-white cursor-pointer"
-                    >
-                      <option value="TRIVIA">Trắc nghiệm trực tuyến</option>
-                      <option value="WRITING">Bài viết cảm nhận</option>
-                    </select>
+            <form onSubmit={handleFinishWizard} className="space-y-6 pt-2">
+              {wizardStep === 1 && (
+                <div className="space-y-4">
+                  <h4 className="font-black text-slate-800 text-sm">1. Thông tin chung cuộc thi</h4>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-slate-700 uppercase">Tên cuộc thi</label>
+                    <input
+                      type="text"
+                      value={wTitle}
+                      onChange={(e) => setWTitle(e.target.value)}
+                      placeholder="VD: Hội thi tìm hiểu Lịch sử MTTQ Việt Nam năm 2026..."
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900"
+                      required
+                    />
                   </div>
 
-                  <div>
-                    <label className="block font-black text-slate-800 mb-1">Trạng thái</label>
-                    <select
-                      value={compStatus}
-                      onChange={(e) => setCompStatus(e.target.value as any)}
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold bg-white cursor-pointer"
-                    >
-                      <option value="ONGOING">Đang diễn ra</option>
-                      <option value="UPCOMING">Sắp diễn ra</option>
-                      <option value="ENDED">Đã kết thúc</option>
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-slate-700 uppercase">Hình thức</label>
+                      <select
+                        value={wType}
+                        onChange={(e) => setWType(e.target.value as any)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900"
+                      >
+                        <option value="TRIVIA">Trắc nghiệm trực tuyến</option>
+                        <option value="WRITING">Cuộc thi viết cảm nhận</option>
+                        <option value="MIXED">Trắc nghiệm + Bài viết</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-slate-700 uppercase">Trạng thái ban đầu</label>
+                      <select
+                        value={wStatus}
+                        onChange={(e) => setWStatus(e.target.value as any)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900"
+                      >
+                        <option value="DRAFT">Bản nháp (DRAFT)</option>
+                        <option value="SCHEDULED">Sắp diễn ra (SCHEDULED)</option>
+                        <option value="OPEN">Đang mở (OPEN)</option>
+                        <option value="PUBLISHED">Công bố (PUBLISHED)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-slate-700 uppercase">Ngày bắt đầu</label>
+                      <input
+                        type="date"
+                        value={wStartDate}
+                        onChange={(e) => setWStartDate(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-black text-slate-700 uppercase">Ngày kết thúc</label>
+                      <input
+                        type="date"
+                        value={wEndDate}
+                        onChange={(e) => setWEndDate(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-slate-700 uppercase">Mô tả chi tiết</label>
+                    <textarea
+                      rows={3}
+                      value={wDesc}
+                      onChange={(e) => setWDesc(e.target.value)}
+                      placeholder="Nhập giới thiệu ngắn gọn..."
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900"
+                    />
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block font-black text-slate-800 mb-1">Mô tả tóm tắt</label>
+              {wizardStep === 2 && (
+                <div className="space-y-4">
+                  <h4 className="font-black text-slate-800 text-sm">2. Thể lệ & Quy chế cuộc thi</h4>
                   <textarea
-                    rows={2}
-                    value={compDesc}
-                    onChange={(e) => setCompDesc(e.target.value)}
-                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl font-medium"
+                    rows={8}
+                    value={wRules}
+                    onChange={(e) => setWRules(e.target.value)}
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800"
                   />
                 </div>
+              )}
 
-                <div>
-                  <label className="block font-black text-slate-800 mb-1">Thể lệ cuộc thi</label>
-                  <textarea
-                    rows={3}
-                    value={compRules}
-                    onChange={(e) => setCompRules(e.target.value)}
-                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl font-medium"
-                  />
+              {wizardStep === 3 && (
+                <div className="space-y-4">
+                  <h4 className="font-black text-slate-800 text-sm">3. Đối tượng & Điều kiện dự thi</h4>
+                  <div className="space-y-3">
+                    <label className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-3 cursor-pointer">
+                      <input type="radio" name="wAccess" defaultChecked className="mt-1" />
+                      <div>
+                        <span className="font-black text-slate-900 text-sm block">Công khai cho toàn thể nhân dân (Public)</span>
+                        <span className="text-xs text-slate-600">Không yêu cầu đăng nhập tài khoản hệ thống nội bộ.</span>
+                      </div>
+                    </label>
+                    <label className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-3 cursor-pointer">
+                      <input type="radio" name="wAccess" className="mt-1" />
+                      <div>
+                        <span className="font-black text-slate-900 text-sm block">Chỉ dành cho cán bộ & đoàn viên</span>
+                        <span className="text-xs text-slate-600">Yêu cầu đăng nhập tài khoản cán bộ phường / khu phố.</span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
+              )}
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              {wizardStep === 4 && (
+                <div className="space-y-4">
+                  <h4 className="font-black text-slate-800 text-sm">4. Ngân hàng câu hỏi khởi tạo</h4>
+                  <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200 text-xs text-blue-900 space-y-1">
+                    <p className="font-black">Hệ thống sẽ tự động khởi tạo 10 câu hỏi mẫu chuẩn về Mặt trận Tổ quốc và địa bàn phường Chánh Hiệp.</p>
+                    <p>Bạn có thể tiếp tục thêm, sửa hoặc import Excel ngay sau khi tạo cuộc thi.</p>
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 5 && (
+                <div className="space-y-4">
+                  <h4 className="font-black text-slate-800 text-sm">5. Cấu hình thời gian & đề thi</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Thời gian làm bài (Phút)</label>
+                      <input
+                        type="number"
+                        value={wTimeLimit}
+                        onChange={(e) => setWTimeLimit(Number(e.target.value))}
+                        className="w-full p-2.5 bg-slate-50 border rounded-xl text-sm font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Số câu hỏi mỗi đề</label>
+                      <input
+                        type="number"
+                        value={wTotalQuestions}
+                        onChange={(e) => setWTotalQuestions(Number(e.target.value))}
+                        className="w-full p-2.5 bg-slate-50 border rounded-xl text-sm font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 6 && (
+                <div className="space-y-4 text-center py-6">
+                  <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+                    <Check className="w-8 h-8" />
+                  </div>
+                  <h4 className="text-lg font-black text-slate-900">Sẵn sàng xuất bản cuộc thi!</h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    Cuộc thi "{wTitle}" sẽ được tạo mới và tự động sinh trang public độc lập tại `/hoi-thi/...`.
+                  </p>
+                </div>
+              )}
+
+              {/* Wizard navigation */}
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                {wizardStep > 1 ? (
                   <button
                     type="button"
-                    onClick={() => setIsCompModalOpen(false)}
-                    className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl cursor-pointer"
+                    onClick={() => setWizardStep(wizardStep - 1)}
+                    className="px-4 py-2.5 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
                   >
-                    Hủy
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Quay lại</span>
                   </button>
+                ) : <div></div>}
+
+                {wizardStep < 6 ? (
+                  <button
+                    type="button"
+                    onClick={() => setWizardStep(wizardStep + 1)}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Tiếp theo</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                ) : (
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-md cursor-pointer"
+                    className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md inline-flex items-center gap-2 cursor-pointer"
                   >
-                    Lưu Cuộc Thi
+                    <Check className="w-4 h-4" />
+                    <span>Hoàn tất & Tạo Cuộc Thi</span>
                   </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {compToDelete && (
-          <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 text-slate-900"
-            >
-              <div className="flex items-center gap-3 text-rose-600">
-                <div className="p-3 bg-rose-100 rounded-2xl">
-                  <Trash2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-black text-base text-slate-900">Xóa cuộc thi</h3>
-                  <p className="text-xs text-slate-500">Bạn có chắc chắn muốn xóa cuộc thi này?</p>
-                </div>
+                )}
               </div>
-
-              <p className="text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                {compToDelete.title}
-              </p>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  onClick={() => setCompToDelete(null)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer"
-                >
-                  Xác nhận xóa
-                </button>
-              </div>
-            </motion.div>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 };

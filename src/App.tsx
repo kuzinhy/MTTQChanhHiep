@@ -31,6 +31,7 @@ import { WorkCalendarView } from './components/office/WorkCalendarView';
 import { PersonalNotesView } from './components/office/PersonalNotesView';
 import { DocumentTemplatesView } from './components/office/DocumentTemplatesView';
 import { CompetitionsAdminView } from './components/office/CompetitionsAdminView';
+import { CompetitionAdminDetailView } from './components/office/CompetitionAdminDetailView';
 import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
 import { UserProfileView } from './components/office/UserProfileView';
@@ -64,6 +65,7 @@ export default function App() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<OfficialDocument | null>(null);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
+  const [activeCompetitionId, setActiveCompetitionId] = useState<string | null>(null);
   const [showStaffLoginPage, setShowStaffLoginPage] = useState(false);
   const [isMobileOfficeSidebarOpen, setIsMobileOfficeSidebarOpen] = useState(false);
 
@@ -138,6 +140,30 @@ export default function App() {
   useEffect(() => { AppStorageEngine.saveStaffUsers(staffUsers); }, [staffUsers]);
   useEffect(() => { AppStorageEngine.saveAuditLogs(auditLogs); }, [auditLogs]);
   useEffect(() => { AppStorageEngine.saveCurrentUser(currentStaffUser); }, [currentStaffUser]);
+
+  // Handle Hash Routing for Public Competition Pages (e.g. #/hoi-thi/:id)
+  useEffect(() => {
+    const handleHashRouting = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/hoi-thi/')) {
+        const compId = hash.replace('#/hoi-thi/', '');
+        const targetComp = competitions.find(c => c.id === compId);
+        if (targetComp) {
+          setCurrentSpace('PORTAL');
+          setPortalTab('competitions');
+          setSelectedCompetition(targetComp);
+        } else if (competitions.length > 0) {
+          setCurrentSpace('PORTAL');
+          setPortalTab('competitions');
+          setSelectedCompetition(competitions[0]);
+        }
+      }
+    };
+
+    handleHashRouting();
+    window.addEventListener('hashchange', handleHashRouting);
+    return () => window.removeEventListener('hashchange', handleHashRouting);
+  }, [competitions]);
 
   // Scroll to top on tab change
   useEffect(() => {
@@ -1001,21 +1027,39 @@ export default function App() {
                     )}
 
                     {officeView === 'competitions_admin' && (
-                      <CompetitionsAdminView
-                        competitions={competitions}
-                        submissions={submissions}
-                        onAddCompetition={handleAddCompetition}
-                        onUpdateCompetition={handleUpdateCompetition}
-                        onDeleteCompetition={handleDeleteCompetition}
-                        onGradeSubmission={(id, score, comment) => {
-                          setSubmissions(prev => {
-                            const next = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' } : s);
-                            AppStorageEngine.saveSubmissions(next);
-                            return next;
-                          });
-                          handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ.');
-                        }}
-                      />
+                      activeCompetitionId ? (
+                        <CompetitionAdminDetailView
+                          competition={competitions.find(c => c.id === activeCompetitionId) || competitions[0]}
+                          onBack={() => setActiveCompetitionId(null)}
+                          onUpdateCompetition={handleUpdateCompetition}
+                          submissions={submissions}
+                          onGradeSubmission={(id, score, comment) => {
+                            setSubmissions(prev => {
+                              const next = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' } : s);
+                              AppStorageEngine.saveSubmissions(next);
+                              return next;
+                            });
+                            handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ.');
+                          }}
+                        />
+                      ) : (
+                        <CompetitionsAdminView
+                          competitions={competitions}
+                          submissions={submissions}
+                          onAddCompetition={handleAddCompetition}
+                          onUpdateCompetition={handleUpdateCompetition}
+                          onDeleteCompetition={handleDeleteCompetition}
+                          onGradeSubmission={(id, score, comment) => {
+                            setSubmissions(prev => {
+                              const next = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' } : s);
+                              AppStorageEngine.saveSubmissions(next);
+                              return next;
+                            });
+                            handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ.');
+                          }}
+                          onSelectCompetitionDetail={(id) => setActiveCompetitionId(id)}
+                        />
+                      )
                     )}
 
                     {officeView === 'users' && (

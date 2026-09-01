@@ -147,7 +147,27 @@ export const AppStorageEngine = {
     saveStorageData(STORAGE_KEYS.DOCUMENTS, sortDocumentsNewestFirst(filtered));
   },
 
-  getCompetitions: (): Competition[] => sortCompetitionsNewestFirst(loadInitialData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS)),
+  getCompetitions: (): Competition[] => {
+    const raw = loadInitialData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
+    // Ensure all INITIAL_COMPETITIONS are present
+    const compMap = new Map<string, Competition>();
+    INITIAL_COMPETITIONS.forEach(c => compMap.set(c.id, c));
+    raw.forEach(c => {
+      if (!compMap.has(c.id)) {
+        compMap.set(c.id, c);
+      } else {
+        // Update with latest seed content if questions or rules are updated
+        const existing = compMap.get(c.id)!;
+        compMap.set(c.id, {
+          ...existing,
+          ...c,
+          questions: c.questions && c.questions.length > 0 ? c.questions : existing.questions,
+          rules: c.rules || existing.rules
+        });
+      }
+    });
+    return sortCompetitionsNewestFirst(Array.from(compMap.values()));
+  },
   saveCompetitions: (competitions: Competition[]) => saveStorageData(STORAGE_KEYS.COMPETITIONS, sortCompetitionsNewestFirst(competitions)),
 
   getOpinions: (): PublicOpinion[] => sortOpinionsNewestFirst(loadInitialData(STORAGE_KEYS.OPINIONS, INITIAL_PUBLIC_OPINIONS)),

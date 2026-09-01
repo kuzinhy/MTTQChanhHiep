@@ -48,6 +48,22 @@ import {
   sortEventsNewestFirst
 } from './dateUtils';
 
+function cleanFirestoreData(data: any): any {
+  if (data === null || typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data.map(cleanFirestoreData);
+  }
+  const cleaned: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      cleaned[key] = cleanFirestoreData(value);
+    }
+  }
+  return cleaned;
+}
+
 export const FirestoreCollections = {
   ARTICLES: 'articles',
   DOCUMENTS: 'documents',
@@ -327,66 +343,66 @@ class CloudSyncService {
         const initialArticles = AppStorageEngine.getArticles();
         for (const art of initialArticles) {
           const artDoc = doc(db, FirestoreCollections.ARTICLES, art.id);
-          await setDoc(artDoc, art, { merge: true });
+          await setDoc(artDoc, cleanFirestoreData(art), { merge: true });
         }
 
         // Batch seed documents
         const initialDocs = AppStorageEngine.getDocuments();
         for (const docItem of initialDocs) {
           const dDoc = doc(db, FirestoreCollections.DOCUMENTS, docItem.id);
-          await setDoc(dDoc, docItem, { merge: true });
+          await setDoc(dDoc, cleanFirestoreData(docItem), { merge: true });
         }
 
         // Batch seed public opinions
         const initialOpinions = AppStorageEngine.getOpinions();
         for (const op of initialOpinions) {
           const opDoc = doc(db, FirestoreCollections.OPINIONS, op.id);
-          await setDoc(opDoc, op, { merge: true });
+          await setDoc(opDoc, cleanFirestoreData(op), { merge: true });
         }
 
         // Batch seed competitions
         const initialComps = AppStorageEngine.getCompetitions();
         for (const comp of initialComps) {
           const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
-          await setDoc(compDoc, comp, { merge: true });
+          await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });
         }
 
         // Batch seed staff
         const initialStaff = AppStorageEngine.getStaffUsers();
         for (const st of initialStaff) {
           const stDoc = doc(db, FirestoreCollections.STAFF_USERS, st.id);
-          await setDoc(stDoc, st, { merge: true });
+          await setDoc(stDoc, cleanFirestoreData(st), { merge: true });
         }
 
         // Batch seed tasks
         const initialTasks = AppStorageEngine.getTasks();
         for (const t of initialTasks) {
           const tDoc = doc(db, FirestoreCollections.TASKS, t.id);
-          await setDoc(tDoc, t, { merge: true });
+          await setDoc(tDoc, cleanFirestoreData(t), { merge: true });
         }
 
         // Batch seed events
         const initialEvents = AppStorageEngine.getEvents();
         for (const ev of initialEvents) {
           const evDoc = doc(db, FirestoreCollections.EVENTS, ev.id);
-          await setDoc(evDoc, ev, { merge: true });
+          await setDoc(evDoc, cleanFirestoreData(ev), { merge: true });
         }
 
         // Mark as seeded so future deletions are never resurrected
-        await setDoc(stateDocRef, {
+        await setDoc(stateDocRef, cleanFirestoreData({
           isSeeded: true,
           seededAt: new Date().toISOString(),
           app: 'MTTQ Phường Chánh Hiệp'
-        }, { merge: true });
+        }), { merge: true });
 
         console.log('[Firestore] Seed complete. Cloud database is ready and active!');
       } else {
         // Mark as seeded
-        await setDoc(stateDocRef, {
+        await setDoc(stateDocRef, cleanFirestoreData({
           isSeeded: true,
           seededAt: new Date().toISOString(),
           app: 'MTTQ Phường Chánh Hiệp'
-        }, { merge: true });
+        }), { merge: true });
       }
     } catch (err) {
       console.warn('[Firestore] Error during ensureSeedData:', err);
@@ -399,7 +415,7 @@ class CloudSyncService {
   async saveArticle(article: Article): Promise<boolean> {
     try {
       const artDoc = doc(db, FirestoreCollections.ARTICLES, article.id);
-      await setDoc(artDoc, article, { merge: true });
+      await setDoc(artDoc, cleanFirestoreData(article), { merge: true });
       return true;
     } catch (err) {
       console.error('[Firestore] Error saving article:', err);
@@ -422,7 +438,7 @@ class CloudSyncService {
   async saveDocument(docItem: OfficialDocument): Promise<boolean> {
     try {
       const dDoc = doc(db, FirestoreCollections.DOCUMENTS, docItem.id);
-      await setDoc(dDoc, docItem, { merge: true });
+      await setDoc(dDoc, cleanFirestoreData(docItem), { merge: true });
       return true;
     } catch (err) {
       console.error('[Firestore] Error saving document:', err);
@@ -445,7 +461,7 @@ class CloudSyncService {
   async saveOpinion(opinion: PublicOpinion): Promise<void> {
     try {
       const opDoc = doc(db, FirestoreCollections.OPINIONS, opinion.id);
-      await setDoc(opDoc, opinion, { merge: true });
+      await setDoc(opDoc, cleanFirestoreData(opinion), { merge: true });
     } catch (err) {
       console.error('[Firestore] Error saving opinion:', err);
     }
@@ -464,7 +480,7 @@ class CloudSyncService {
   async saveCompetition(comp: Competition): Promise<void> {
     try {
       const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
-      await setDoc(compDoc, comp, { merge: true });
+      await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });
     } catch (err) {
       console.error('[Firestore] Error saving competition:', err);
     }
@@ -474,7 +490,7 @@ class CloudSyncService {
   async saveTask(task: Task): Promise<void> {
     try {
       const tDoc = doc(db, FirestoreCollections.TASKS, task.id);
-      await setDoc(tDoc, task, { merge: true });
+      await setDoc(tDoc, cleanFirestoreData(task), { merge: true });
     } catch (err) {
       console.error('[Firestore] Error saving task:', err);
     }
@@ -493,7 +509,7 @@ class CloudSyncService {
   async saveEvent(event: WorkEvent): Promise<void> {
     try {
       const evDoc = doc(db, FirestoreCollections.EVENTS, event.id);
-      await setDoc(evDoc, event, { merge: true });
+      await setDoc(evDoc, cleanFirestoreData(event), { merge: true });
     } catch (err) {
       console.error('[Firestore] Error saving event:', err);
     }
@@ -512,7 +528,7 @@ class CloudSyncService {
   async saveNote(note: Note): Promise<void> {
     try {
       const nDoc = doc(db, FirestoreCollections.NOTES, note.id);
-      await setDoc(nDoc, note, { merge: true });
+      await setDoc(nDoc, cleanFirestoreData(note), { merge: true });
     } catch (err) {
       console.error('[Firestore] Error saving note:', err);
     }
@@ -531,7 +547,7 @@ class CloudSyncService {
   async saveStaffUser(user: StaffUser): Promise<void> {
     try {
       const uDoc = doc(db, FirestoreCollections.STAFF_USERS, user.id);
-      await setDoc(uDoc, user, { merge: true });
+      await setDoc(uDoc, cleanFirestoreData(user), { merge: true });
     } catch (err) {
       console.error('[Firestore] Error saving staff user:', err);
     }
@@ -553,7 +569,7 @@ class CloudSyncService {
   async logAudit(log: AuditLog): Promise<void> {
     try {
       const lDoc = doc(db, FirestoreCollections.AUDIT_LOGS, log.id);
-      await setDoc(lDoc, log, { merge: true });
+      await setDoc(lDoc, cleanFirestoreData(log), { merge: true });
     } catch (err) {
       console.error('[Firestore] Error saving audit log:', err);
     }

@@ -100,8 +100,21 @@ export interface OfficialDocument {
   syncedAt?: string;
 }
 
-export type CompetitionType = 'TRIVIA' | 'WRITING';
-export type CompetitionStatus = 'UPCOMING' | 'ONGOING' | 'ENDED';
+export type CompetitionType = 'TRIVIA' | 'WRITING' | 'MIXED';
+export type CompetitionStatus = 'DRAFT' | 'SCHEDULED' | 'OPEN' | 'CLOSED' | 'GRADING' | 'PUBLISHED' | 'ARCHIVED' | 'UPCOMING' | 'ONGOING' | 'ENDED';
+
+export interface CompetitionQuestion {
+  id: string;
+  competitionId: string;
+  questionText: string;
+  questionType: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'ESSAY';
+  category: string;
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  score: number;
+  options: { id: string; text: string; isCorrect: boolean }[];
+  explanation?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+}
 
 export interface Competition {
   id: string;
@@ -115,6 +128,8 @@ export interface Competition {
   timeLimitMinutes?: number;
   totalQuestions?: number;
   rules?: string;
+  questions?: CompetitionQuestion[];
+  isYouthCompetition?: boolean;
 }
 
 export interface TriviaQuestion {
