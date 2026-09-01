@@ -20,7 +20,8 @@ import {
   ChevronLeft,
   Settings,
   HelpCircle,
-  Globe
+  Globe,
+  RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -32,6 +33,7 @@ interface CompetitionsAdminViewProps {
   onDeleteCompetition?: (id: string) => void;
   onGradeSubmission?: (id: string, score: number, comment: string) => void;
   onSelectCompetitionDetail: (id: string) => void;
+  onRestoreDefaultBanners?: () => void;
 }
 
 export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
@@ -41,7 +43,8 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
   onUpdateCompetition,
   onDeleteCompetition,
   onGradeSubmission,
-  onSelectCompetitionDetail
+  onSelectCompetitionDetail,
+  onRestoreDefaultBanners
 }) => {
   const [activeTab, setActiveTab] = useState<'LIST' | 'SUBMISSIONS'>('LIST');
   
@@ -139,6 +142,17 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
               Tất cả Bài dự thi ({submissions.length})
             </button>
           </div>
+
+          {onRestoreDefaultBanners && (
+            <button
+              onClick={onRestoreDefaultBanners}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer transition-all"
+              type="button"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Khôi phục 4 Banner Mặc định</span>
+            </button>
+          )}
 
           <button
             onClick={() => { handleResetWizard(); setIsWizardOpen(true); }}

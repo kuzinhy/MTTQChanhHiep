@@ -524,6 +524,31 @@ export default function App() {
     CloudDatabase.saveCompetition(updatedComp);
   };
 
+  const handleRestoreDefaultBanners = () => {
+    const seedMap = new Map<string, string>();
+    INITIAL_COMPETITIONS.forEach(c => {
+      if (c && c.id && c.bannerUrl) {
+        seedMap.set(c.id, c.bannerUrl);
+      }
+    });
+
+    setCompetitions(prev => {
+      const next = prev.map(c => {
+        if (seedMap.has(c.id)) {
+          const defaultBanner = seedMap.get(c.id)!;
+          const updated = { ...c, bannerUrl: defaultBanner };
+          CloudDatabase.saveCompetition(updated);
+          return updated;
+        }
+        return c;
+      });
+      AppStorageEngine.saveCompetitions(next);
+      return next;
+    });
+
+    handleTriggerSystemToast('Đã khôi phục 4 banner', 'Đã khôi phục thành công hình ảnh banner gốc của 4 hội thi chính thức.');
+  };
+
   const handleDeleteCompetition = (compId: string) => {
     setCompetitions(prev => {
       const next = prev.filter(c => c.id !== compId);
@@ -1112,6 +1137,7 @@ export default function App() {
                             handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ.');
                           }}
                           onSelectCompetitionDetail={(id) => setActiveCompetitionId(id)}
+                          onRestoreDefaultBanners={handleRestoreDefaultBanners}
                         />
                       )
                     )}

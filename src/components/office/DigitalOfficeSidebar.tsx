@@ -147,20 +147,27 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                 onClick={() => {
                   if (isAllowed) setCurrentView(item.id);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer relative ${
                   isActive 
-                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white font-extrabold shadow-md border border-blue-400' 
+                    ? 'text-white font-extrabold shadow-md' 
                     : isAllowed 
                       ? 'text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 font-semibold' 
                       : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                {isActive && (
+                  <motion.div
+                    layoutId="active-main-tab-indicator"
+                    className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-xl border border-blue-400 shadow-md"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <div className="flex items-center gap-2.5 relative z-10">
                   <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
                   <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
                 </div>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 relative z-10">
                   {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
                   {item.badge && isAllowed && (
                     <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${
@@ -251,21 +258,28 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                               setCurrentView(subItem.id);
                             }
                           }}
-                          className={`w-full flex items-center justify-between pl-3 pr-2.5 py-2 rounded-xl transition-all cursor-pointer text-left text-xs ${
+                          className={`w-full flex items-center justify-between pl-3 pr-2.5 py-2 rounded-xl transition-all cursor-pointer text-left text-xs relative ${
                             isActive
-                              ? 'bg-gradient-to-r from-blue-700 to-indigo-700 text-white font-black shadow-sm ring-1 ring-blue-300'
+                              ? 'text-white font-black shadow-sm'
                               : isAllowed
                                 ? 'text-slate-700 hover:bg-white hover:text-blue-700 font-semibold'
                                 : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
                           }`}
                         >
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {isActive && (
+                            <motion.div
+                              layoutId="active-submenu-tab-indicator"
+                              className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700 rounded-xl ring-1 ring-blue-300"
+                              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                            />
+                          )}
+                          <div className="flex items-center gap-2 min-w-0 flex-1 relative z-10">
                             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-amber-300 ring-2 ring-amber-300/40' : 'bg-blue-400'}`} />
                             <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
                             <span className={`truncate whitespace-nowrap ${isActive ? 'text-white font-black' : ''}`}>{subItem.label}</span>
                           </div>
 
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0 relative z-10">
                             {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
                             {subItem.badge && isAllowed && (
                               <span className={`text-[8px] font-black px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap ${
@@ -304,20 +318,27 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                 onClick={() => {
                   if (isAllowed) setCurrentView(item.id);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer relative ${
                   isActive 
-                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white font-extrabold shadow-md border border-blue-400' 
+                    ? 'text-white font-extrabold shadow-md' 
                     : isAllowed 
                       ? 'text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 font-semibold' 
                       : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
+                {isActive && (
+                  <motion.div
+                    layoutId="active-main-tab-indicator"
+                    className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-xl border border-blue-400 shadow-md"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <div className="flex items-center gap-2.5 relative z-10">
                   <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
                   <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
                 </div>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 relative z-10">
                   {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
                   {item.badge && isAllowed && (
                     <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${

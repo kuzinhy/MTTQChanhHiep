@@ -169,6 +169,7 @@ export const AppStorageEngine = {
           compMap.set(c.id, {
             ...existing,
             ...c,
+            bannerUrl: c.bannerUrl && c.bannerUrl.trim() !== '' ? c.bannerUrl : existing.bannerUrl,
             questions: c.questions && c.questions.length > 0 ? c.questions : existing.questions,
             rules: c.rules || existing.rules
           });
