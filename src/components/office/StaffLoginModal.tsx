@@ -469,7 +469,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                       required
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
-                      placeholder="VD: nguyenhuy hoặc nguyenhuy.thudaumot@gmail.com"
+                      placeholder="VD: canbo.mttq hoặc canbo@chanhhiep.vn"
                       disabled={isLoading}
                       className="w-full p-2.5 pl-9 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 bg-white text-xs disabled:bg-slate-50"
                     />

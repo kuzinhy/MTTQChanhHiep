@@ -236,7 +236,14 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
   app.post('/api/ai/knowledge-search', async (req: Request, res: Response) => {
     try {
       const { query, documentsContext } = req.body;
-      const ai = getGeminiClient();
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey || apiKey.trim() === '') {
+        return res.json({ 
+          result: `Chào bạn! Trợ lý AI hiện chưa được cấu hình khóa API (GEMINI_API_KEY) trong hệ thống. Vui lòng cấu hình khóa API Gemini hợp lệ hoặc sử dụng tính năng tra cứu văn bản trực tiếp.` 
+        });
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
 
       const prompt = `Bạn là Trợ lý Tra cứu Kho Dữ liệu Nội bộ MTTQ Phường Chánh Hiệp.
 Dữ liệu kho tài liệu được cấp quyền:
@@ -254,7 +261,9 @@ Hãy trả lời chính xác, trung thực dựa trên dữ liệu kho tài li�
       res.json({ result: response.text });
     } catch (error: any) {
       console.error('Error in /api/ai/knowledge-search:', error);
-      res.status(500).json({ error: error.message || 'Lỗi xử lý AI.' });
+      res.json({ 
+        result: `Trợ lý AI đang gặp sự cố kết nối hoặc khóa API không hợp lệ. Bạn có thể tra cứu thông tin trực tiếp tại mục Kho văn bản hoặc gửi Ý kiến Dân sinh.` 
+      });
     }
   });
 

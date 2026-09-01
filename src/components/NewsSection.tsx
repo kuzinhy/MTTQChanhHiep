@@ -26,50 +26,92 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-// Custom Lotus Flower SVG Component for Uncle Ho's Learning Space (Tone màu hồng hoa sen)
+// Custom Lotus Flower SVG Component matching the exact artistic botanical composition (Three lotus flowers, stems, and wavy leaf)
 const LotusFlowerIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <g opacity="0.98">
-      {/* Outer Lotus Petals */}
-      <path d="M50 12 C30 32 15 52 25 74 C35 84 50 82 50 82 C50 82 65 84 75 74 C85 52 70 32 50 12 Z" fill="url(#lotus-pink-grad-outer)" />
-      {/* Left Petals */}
-      <path d="M50 28 C20 42 8 68 28 80 C42 86 50 82 50 82 C50 82 35 62 50 28 Z" fill="url(#lotus-pink-grad-left)" opacity="0.92" />
-      {/* Right Petals */}
-      <path d="M50 28 C80 42 92 68 72 80 C58 86 50 82 50 82 C50 82 65 62 50 28 Z" fill="url(#lotus-pink-grad-right)" opacity="0.92" />
-      {/* Center Main Petal */}
-      <path d="M50 18 C38 38 32 62 50 78 C68 62 62 38 50 18 Z" fill="url(#lotus-pink-grad-center)" />
-      {/* Inner Petal Glow */}
-      <path d="M50 32 C42 48 40 66 50 76 C60 66 58 48 50 32 Z" fill="url(#lotus-gold-core)" opacity="0.88" />
-      {/* Lotus Stamen Core */}
-      <circle cx="50" cy="70" r="4.5" fill="#fef08a" />
-      <circle cx="45" cy="68" r="1.5" fill="#fde047" />
-      <circle cx="55" cy="68" r="1.5" fill="#fde047" />
-      <circle cx="50" cy="65" r="1.5" fill="#fde047" />
+  <svg viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <g filter="url(#lotus-exact-shadow)">
+      {/* Back Outermost Petals (Cánh lớn ngoài cùng) */}
+      <path d="M120 18 C85 35 30 75 15 110 C25 145 65 170 120 185 C175 170 215 145 225 110 C210 75 155 35 120 18 Z" fill="url(#lotus-p-back)" />
+      
+      {/* Mid Layer Left & Right Wings (Cánh tầng giữa hai bên) */}
+      <path d="M120 30 C75 50 25 90 45 135 C65 160 95 175 120 180 C105 150 95 115 100 80 C105 55 112 40 120 30 Z" fill="url(#lotus-p-mid-l)" />
+      <path d="M120 30 C165 50 215 90 195 135 C175 160 145 175 120 180 C135 150 145 115 140 80 C135 55 128 40 120 30 Z" fill="url(#lotus-p-mid-r)" />
+
+      {/* Prominent Back-Center Petals (Cánh dựng đứng phía sau tâm) */}
+      <path d="M120 22 C95 45 75 85 95 135 C105 150 115 160 120 165 C125 160 135 150 145 135 C165 85 145 45 120 22 Z" fill="url(#lotus-p-high)" />
+
+      {/* Front Lower Drooping Petal (Cánh rủ phía trước chân bông hoa) */}
+      <path d="M120 130 C95 135 75 155 85 195 C100 215 115 225 120 230 C125 225 140 215 155 195 C165 155 145 135 120 130 Z" fill="url(#lotus-p-front)" />
+
+      {/* Inner Central Curved Petals (Cánh ôm bầu nhụy trung tâm) */}
+      <path d="M120 65 C95 80 85 115 105 140 C112 148 118 152 120 155 C122 152 128 148 135 140 C155 115 145 80 120 65 Z" fill="url(#lotus-p-center)" />
+      
+      {/* Soft White Inner Highlights */}
+      <path d="M120 75 C105 90 98 115 110 132 C115 138 120 142 120 145 C120 142 125 138 130 132 C142 115 135 90 120 75 Z" fill="#ffffff" opacity="0.65" />
+
+      {/* Central Golden Receptacle (Đài nhụy hoa sen vàng hạt gạo) */}
+      <ellipse cx="120" cy="115" rx="16" ry="10" fill="url(#lotus-exact-receptacle)" />
+      {/* Stamens / Anthers (Các hạt nhụy vàng nổi bật) */}
+      <circle cx="120" cy="111" r="3" fill="#fde047" />
+      <circle cx="112" cy="114" r="2.2" fill="#fef08a" />
+      <circle cx="128" cy="114" r="2.2" fill="#fef08a" />
+      <circle cx="116" cy="118" r="2" fill="#facc15" />
+      <circle cx="124" cy="118" r="2" fill="#facc15" />
+      <circle cx="120" cy="121" r="1.8" fill="#eab308" />
     </g>
+
     <defs>
-      <linearGradient id="lotus-pink-grad-outer" x1="50" y1="12" x2="50" y2="84" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#f472b6" />
-        <stop offset="0.5" stopColor="#e11d48" />
+      <filter id="lotus-exact-shadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="#881337" floodOpacity="0.18" />
+      </filter>
+
+      <linearGradient id="lotus-p-back" x1="120" y1="18" x2="120" y2="185" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#fecdd3" />
+        <stop offset="0.4" stopColor="#fb7185" />
+        <stop offset="0.8" stopColor="#e11d48" />
         <stop offset="1" stopColor="#881337" />
       </linearGradient>
-      <linearGradient id="lotus-pink-grad-center" x1="50" y1="18" x2="50" y2="78" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#fbcfe8" />
-        <stop offset="0.6" stopColor="#f43f5e" />
+
+      <linearGradient id="lotus-p-mid-l" x1="45" y1="30" x2="120" y2="180" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#ffe4e6" />
+        <stop offset="0.35" stopColor="#fb7185" />
+        <stop offset="0.75" stopColor="#be123c" />
+        <stop offset="1" stopColor="#500724" />
+      </linearGradient>
+
+      <linearGradient id="lotus-p-mid-r" x1="195" y1="30" x2="120" y2="180" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#ffe4e6" />
+        <stop offset="0.35" stopColor="#fb7185" />
+        <stop offset="0.75" stopColor="#be123c" />
+        <stop offset="1" stopColor="#500724" />
+      </linearGradient>
+
+      <linearGradient id="lotus-p-high" x1="120" y1="22" x2="120" y2="165" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#ffffff" />
+        <stop offset="0.3" stopColor="#fda4af" />
+        <stop offset="0.7" stopColor="#f43f5e" />
         <stop offset="1" stopColor="#9f1239" />
       </linearGradient>
-      <linearGradient id="lotus-pink-grad-left" x1="8" y1="42" x2="50" y2="82" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#fb7185" />
-        <stop offset="1" stopColor="#be123c" />
-      </linearGradient>
-      <linearGradient id="lotus-pink-grad-right" x1="92" y1="42" x2="50" y2="82" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#fb7185" />
-        <stop offset="1" stopColor="#be123c" />
-      </linearGradient>
-      <linearGradient id="lotus-gold-core" x1="50" y1="32" x2="50" y2="76" gradientUnits="userSpaceOnUse">
+
+      <linearGradient id="lotus-p-front" x1="120" y1="130" x2="120" y2="230" gradientUnits="userSpaceOnUse">
         <stop stopColor="#fff1f2" />
-        <stop offset="0.7" stopColor="#f472b6" />
-        <stop offset="1" stopColor="#fde047" />
+        <stop offset="0.3" stopColor="#fb7185" />
+        <stop offset="0.7" stopColor="#e11d48" />
+        <stop offset="1" stopColor="#831843" />
       </linearGradient>
+
+      <linearGradient id="lotus-p-center" x1="120" y1="65" x2="120" y2="155" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#ffffff" />
+        <stop offset="0.4" stopColor="#fbcfe8" />
+        <stop offset="0.8" stopColor="#f43f5e" />
+        <stop offset="1" stopColor="#be123c" />
+      </linearGradient>
+
+      <radialGradient id="lotus-exact-receptacle" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#fef08a" />
+        <stop offset="65%" stopColor="#facc15" />
+        <stop offset="100%" stopColor="#ca8a04" />
+      </radialGradient>
     </defs>
   </svg>
 );
@@ -472,15 +514,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
 
       {/* 5. SPECIAL SECTION: HỌC TẬP VÀ LÀM THEO BÁC (SOFT PINK & WHITE THEME) */}
       <div className="p-6 sm:p-8 bg-gradient-to-br from-rose-50/90 via-pink-50/60 to-white rounded-3xl text-slate-900 shadow-xs border border-rose-200/80 space-y-6 relative overflow-hidden backdrop-blur-md">
-        {/* Background Decorative Lotus Watermark */}
-        <div className="absolute -right-12 -bottom-12 opacity-15 pointer-events-none transform rotate-12 scale-150 text-rose-300">
-          <LotusFlowerIcon className="w-80 h-80 text-rose-300" />
-        </div>
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-rose-200/80 pb-5 relative z-10">
           <div className="flex items-center gap-3.5">
             <div className="p-2.5 bg-gradient-to-br from-rose-600 to-pink-600 text-white rounded-2xl shadow-md border border-rose-300 shrink-0">
-              <LotusFlowerIcon className="w-8 h-8" />
+              <BookOpen className="w-8 h-8" />
             </div>
             <div className="space-y-1">
               <div className="text-[11px] font-black uppercase text-rose-800 bg-rose-100/90 border border-rose-200/80 px-3 py-0.5 rounded-full w-max flex items-center gap-1.5 shadow-2xs">

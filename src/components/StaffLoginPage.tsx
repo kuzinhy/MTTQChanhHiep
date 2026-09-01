@@ -302,7 +302,7 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="nguyenhuy hoặc nguyenhuy.thudaumot@gmail.com"
+                    placeholder="canbo.mttq hoặc canbo@chanhhiep.vn"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}

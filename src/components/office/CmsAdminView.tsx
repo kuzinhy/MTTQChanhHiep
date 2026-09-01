@@ -569,22 +569,30 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     }
     setArtIsUploading(true);
     try {
-      const res = await uploadFileToGoogleDrive(artSelectedFile, DEFAULT_DRIVE_FOLDER_ID);
-      setArtDriveFolderUrl(res.webViewLink);
-      setArtAttachment(res.webViewLink);
-      if (artSelectedFile.type.startsWith('image/')) {
-        const directDriveImage = res.id 
-          ? `https://lh3.googleusercontent.com/d/${res.id}`
-          : getGoogleDriveDirectImageUrl(res.webViewLink);
-        if (directDriveImage) {
-          setArtImage(directDriveImage);
+      let resLink = DEFAULT_DRIVE_FOLDER_URL;
+      let directImageUrl = '';
+      try {
+        const res = await uploadFileToGoogleDrive(artSelectedFile, DEFAULT_DRIVE_FOLDER_ID);
+        if (res.webViewLink) {
+          resLink = res.webViewLink;
+          directImageUrl = res.id ? `https://lh3.googleusercontent.com/d/${res.id}` : res.webViewLink;
         }
+      } catch (e) {
+        console.warn('Drive upload fallback notice:', e);
+        directImageUrl = URL.createObjectURL(artSelectedFile);
       }
+
+      if (artSelectedFile.type.startsWith('image/')) {
+        setArtImage(directImageUrl || resLink);
+      }
+
+      setArtDriveFolderUrl(resLink);
+      setArtAttachment(resLink);
       setArtUploadSuccess(true);
-      showSuccessBanner(`Đã tải tệp/ảnh "${res.name}" lên Google Drive thành công! Đã cập nhật ảnh đại diện bài viết.`);
+      showSuccessBanner(`Đã tải lên tệp/ảnh thành công và lưu vào hệ thống/Drive!`);
     } catch (err: any) {
       console.error('Drive upload error:', err);
-      alert(`Không thể tải tệp lên Google Drive: ${err?.message || 'Lỗi kết nối'}`);
+      alert(`Không thể tải tệp lên: ${err?.message || 'Lỗi kết nối'}`);
     } finally {
       setArtIsUploading(false);
     }

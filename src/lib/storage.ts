@@ -30,7 +30,8 @@ import {
   sortArticlesNewestFirst,
   sortDocumentsNewestFirst,
   sortCompetitionsNewestFirst,
-  sortOpinionsNewestFirst
+  sortOpinionsNewestFirst,
+  sortEventsNewestFirst
 } from './dateUtils';
 
 const STORAGE_KEYS = {
@@ -126,24 +127,24 @@ export const AppStorageEngine = {
   getArticles: (): Article[] => {
     const raw = loadInitialData(STORAGE_KEYS.ARTICLES, INITIAL_ARTICLES);
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
-    const filtered = raw.filter(a => !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
+    const filtered = (raw || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
     return sortArticlesNewestFirst(filtered);
   },
   saveArticles: (articles: Article[]) => {
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
-    const filtered = articles.filter(a => !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
+    const filtered = (articles || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
     saveStorageData(STORAGE_KEYS.ARTICLES, sortArticlesNewestFirst(filtered));
   },
 
   getDocuments: (): OfficialDocument[] => {
     const raw = loadInitialData(STORAGE_KEYS.DOCUMENTS, INITIAL_DOCUMENTS);
     const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
-    const filtered = raw.filter(d => !demoIds.has(d.id));
+    const filtered = (raw || []).filter(d => d && d.id && !demoIds.has(d.id));
     return sortDocumentsNewestFirst(filtered);
   },
   saveDocuments: (documents: OfficialDocument[]) => {
     const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
-    const filtered = documents.filter(d => !demoIds.has(d.id));
+    const filtered = (documents || []).filter(d => d && d.id && !demoIds.has(d.id));
     saveStorageData(STORAGE_KEYS.DOCUMENTS, sortDocumentsNewestFirst(filtered));
   },
 
@@ -151,57 +152,130 @@ export const AppStorageEngine = {
     const raw = loadInitialData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
     // Ensure all INITIAL_COMPETITIONS are present
     const compMap = new Map<string, Competition>();
-    INITIAL_COMPETITIONS.forEach(c => compMap.set(c.id, c));
-    raw.forEach(c => {
-      if (!compMap.has(c.id)) {
-        compMap.set(c.id, c);
-      } else {
-        // Update with latest seed content if questions or rules are updated
-        const existing = compMap.get(c.id)!;
-        compMap.set(c.id, {
-          ...existing,
-          ...c,
-          questions: c.questions && c.questions.length > 0 ? c.questions : existing.questions,
-          rules: c.rules || existing.rules
-        });
+    INITIAL_COMPETITIONS.forEach(c => {
+      if (c && c.id) compMap.set(c.id, c);
+    });
+    (raw || []).forEach(c => {
+      if (c && c.id) {
+        if (!compMap.has(c.id)) {
+          compMap.set(c.id, c);
+        } else {
+          // Update with latest seed content if questions or rules are updated
+          const existing = compMap.get(c.id)!;
+          compMap.set(c.id, {
+            ...existing,
+            ...c,
+            questions: c.questions && c.questions.length > 0 ? c.questions : existing.questions,
+            rules: c.rules || existing.rules
+          });
+        }
       }
     });
     return sortCompetitionsNewestFirst(Array.from(compMap.values()));
   },
-  saveCompetitions: (competitions: Competition[]) => saveStorageData(STORAGE_KEYS.COMPETITIONS, sortCompetitionsNewestFirst(competitions)),
+  saveCompetitions: (competitions: Competition[]) => {
+    const filtered = (competitions || []).filter(c => c && c.id);
+    saveStorageData(STORAGE_KEYS.COMPETITIONS, sortCompetitionsNewestFirst(filtered));
+  },
 
-  getOpinions: (): PublicOpinion[] => sortOpinionsNewestFirst(loadInitialData(STORAGE_KEYS.OPINIONS, INITIAL_PUBLIC_OPINIONS)),
-  saveOpinions: (opinions: PublicOpinion[]) => saveStorageData(STORAGE_KEYS.OPINIONS, sortOpinionsNewestFirst(opinions)),
+  getOpinions: (): PublicOpinion[] => {
+    const raw = loadInitialData(STORAGE_KEYS.OPINIONS, INITIAL_PUBLIC_OPINIONS);
+    const filtered = (raw || []).filter(o => o && o.id);
+    return sortOpinionsNewestFirst(filtered);
+  },
+  saveOpinions: (opinions: PublicOpinion[]) => {
+    const filtered = (opinions || []).filter(o => o && o.id);
+    saveStorageData(STORAGE_KEYS.OPINIONS, sortOpinionsNewestFirst(filtered));
+  },
 
-  getTasks: (): Task[] => loadInitialData(STORAGE_KEYS.TASKS, INITIAL_TASKS),
-  saveTasks: (tasks: Task[]) => saveStorageData(STORAGE_KEYS.TASKS, tasks),
+  getTasks: (): Task[] => {
+    const raw = loadInitialData(STORAGE_KEYS.TASKS, INITIAL_TASKS);
+    return (raw || []).filter(t => t && t.id);
+  },
+  saveTasks: (tasks: Task[]) => {
+    const filtered = (tasks || []).filter(t => t && t.id);
+    saveStorageData(STORAGE_KEYS.TASKS, filtered);
+  },
 
-  getEvents: (): WorkEvent[] => loadInitialData(STORAGE_KEYS.EVENTS, INITIAL_EVENTS),
-  saveEvents: (events: WorkEvent[]) => saveStorageData(STORAGE_KEYS.EVENTS, events),
+  getEvents: (): WorkEvent[] => {
+    const raw = loadInitialData(STORAGE_KEYS.EVENTS, INITIAL_EVENTS);
+    const filtered = (raw || []).filter(e => e && e.id);
+    return sortEventsNewestFirst(filtered);
+  },
+  saveEvents: (events: WorkEvent[]) => {
+    const filtered = (events || []).filter(e => e && e.id);
+    saveStorageData(STORAGE_KEYS.EVENTS, filtered);
+  },
 
-  getNotes: (): Note[] => loadInitialData(STORAGE_KEYS.NOTES, INITIAL_NOTES),
-  saveNotes: (notes: Note[]) => saveStorageData(STORAGE_KEYS.NOTES, notes),
+  getNotes: (): Note[] => {
+    const raw = loadInitialData(STORAGE_KEYS.NOTES, INITIAL_NOTES);
+    return (raw || []).filter(n => n && n.id);
+  },
+  saveNotes: (notes: Note[]) => {
+    const filtered = (notes || []).filter(n => n && n.id);
+    saveStorageData(STORAGE_KEYS.NOTES, filtered);
+  },
 
-  getTemplates: (): TemplateDoc[] => loadInitialData(STORAGE_KEYS.TEMPLATES, INITIAL_TEMPLATES),
-  saveTemplates: (templates: TemplateDoc[]) => saveStorageData(STORAGE_KEYS.TEMPLATES, templates),
+  getTemplates: (): TemplateDoc[] => {
+    const raw = loadInitialData(STORAGE_KEYS.TEMPLATES, INITIAL_TEMPLATES);
+    return (raw || []).filter(t => t && t.id);
+  },
+  saveTemplates: (templates: TemplateDoc[]) => {
+    const filtered = (templates || []).filter(t => t && t.id);
+    saveStorageData(STORAGE_KEYS.TEMPLATES, filtered);
+  },
 
-  getSubmissions: (): CompetitionSubmission[] => loadInitialData(STORAGE_KEYS.SUBMISSIONS, []),
-  saveSubmissions: (submissions: CompetitionSubmission[]) => saveStorageData(STORAGE_KEYS.SUBMISSIONS, submissions),
+  getSubmissions: (): CompetitionSubmission[] => {
+    const raw = loadInitialData(STORAGE_KEYS.SUBMISSIONS, []);
+    return (raw || []).filter(s => s && s.id);
+  },
+  saveSubmissions: (submissions: CompetitionSubmission[]) => {
+    const filtered = (submissions || []).filter(s => s && s.id);
+    saveStorageData(STORAGE_KEYS.SUBMISSIONS, filtered);
+  },
 
-  getDriveFiles: (): DriveFileItem[] => loadInitialData(STORAGE_KEYS.DRIVE_FILES, INITIAL_DRIVE_FILES),
-  saveDriveFiles: (files: DriveFileItem[]) => saveStorageData(STORAGE_KEYS.DRIVE_FILES, files),
+  getDriveFiles: (): DriveFileItem[] => {
+    const raw = loadInitialData(STORAGE_KEYS.DRIVE_FILES, INITIAL_DRIVE_FILES);
+    return (raw || []).filter(f => f && f.id);
+  },
+  saveDriveFiles: (files: DriveFileItem[]) => {
+    const filtered = (files || []).filter(f => f && f.id);
+    saveStorageData(STORAGE_KEYS.DRIVE_FILES, filtered);
+  },
 
-  getStaffUsers: (): StaffUser[] => loadInitialData(STORAGE_KEYS.STAFF_USERS, INITIAL_STAFF_USERS),
-  saveStaffUsers: (users: StaffUser[]) => saveStorageData(STORAGE_KEYS.STAFF_USERS, users),
+  getStaffUsers: (): StaffUser[] => {
+    const raw = loadInitialData(STORAGE_KEYS.STAFF_USERS, INITIAL_STAFF_USERS);
+    return (raw || []).filter(u => u && u.id);
+  },
+  saveStaffUsers: (users: StaffUser[]) => {
+    const filtered = (users || []).filter(u => u && u.id);
+    saveStorageData(STORAGE_KEYS.STAFF_USERS, filtered);
+  },
 
-  getAuditLogs: (): AuditLog[] => loadInitialData(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS),
-  saveAuditLogs: (logs: AuditLog[]) => saveStorageData(STORAGE_KEYS.AUDIT_LOGS, logs),
+  getAuditLogs: (): AuditLog[] => {
+    const raw = loadInitialData(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+    return (raw || []).filter(l => l && l.id);
+  },
+  saveAuditLogs: (logs: AuditLog[]) => {
+    const filtered = (logs || []).filter(l => l && l.id);
+    saveStorageData(STORAGE_KEYS.AUDIT_LOGS, filtered);
+  },
 
-  getCurrentUser: (): StaffUser | null => loadInitialData<StaffUser | null>(STORAGE_KEYS.CURRENT_USER, null),
+  getCurrentUser: (): StaffUser | null => {
+    try {
+      return loadInitialData<StaffUser | null>(STORAGE_KEYS.CURRENT_USER, null);
+    } catch {
+      return null;
+    }
+  },
   saveCurrentUser: (user: StaffUser | null) => saveStorageData(STORAGE_KEYS.CURRENT_USER, user),
 
   getLastBackupTime: (): string => {
-    return localStorage.getItem(STORAGE_KEYS.LAST_BACKUP_TIME) || new Date().toISOString();
+    try {
+      return localStorage.getItem(STORAGE_KEYS.LAST_BACKUP_TIME) || new Date().toISOString();
+    } catch {
+      return new Date().toISOString();
+    }
   },
 
   // Export all application data as a JSON file backup

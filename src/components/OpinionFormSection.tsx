@@ -32,7 +32,13 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     'Ý kiến đóng góp khác'
   ];
 
-  const neighborhoods = Array.from({ length: 12 }, (_, i) => `Khu phố ${i + 1}`);
+  const neighborhoods = [
+    'Tương Bình Hiệp 1', 'Tương Bình Hiệp 2', 'Tương Bình Hiệp 3', 'Tương Bình Hiệp 4', 'Tương Bình Hiệp 5', 'Tương Bình Hiệp 6', 'Tương Bình Hiệp 7',
+    'Hiệp An 7', 'Hiệp An 8', 'Hiệp An 9',
+    'Định Hòa 1', 'Định Hòa 2', 'Định Hòa 3', 'Định Hòa 4', 'Định Hòa 5', 'Định Hòa 6', 'Định Hòa 7', 'Định Hòa 8',
+    'Mỹ Hảo',
+    'Chánh Mỹ 1', 'Chánh Mỹ 2'
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

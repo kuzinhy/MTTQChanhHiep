@@ -72,7 +72,7 @@ export const AiAssistantWidget: React.FC = () => {
       }
 
       const data = await response.json();
-      const aiReply = data.answer || 'Tôi đã tiếp nhận câu hỏi của bạn. Hệ thống đang đồng bộ dữ liệu với Kho văn bản Mặt trận Phường Chánh Hiệp.';
+      const aiReply = data.result || data.answer || data.error || 'Tôi đã tiếp nhận câu hỏi của bạn. Hệ thống đang đồng bộ dữ liệu với Kho văn bản Mặt trận Phường Chánh Hiệp.';
 
       setMessages(prev => [
         ...prev,

@@ -325,9 +325,16 @@ class CloudSyncService {
     }
   }
 
-  // Seed Firestore only if never initialized before
+  // Seed Firestore only if never initialized before or ensure all initial competitions exist
   private async ensureSeedData() {
     try {
+      // Always ensure all initial competitions exist in Firestore
+      const initialComps = AppStorageEngine.getCompetitions();
+      for (const comp of initialComps) {
+        const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
+        await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });
+      }
+
       const stateDocRef = doc(db, 'settings', 'app_state');
       const stateDocSnap = await getDoc(stateDocRef);
 
@@ -362,7 +369,6 @@ class CloudSyncService {
         }
 
         // Batch seed competitions
-        const initialComps = AppStorageEngine.getCompetitions();
         for (const comp of initialComps) {
           const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
           await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });

@@ -100,8 +100,15 @@ export interface OfficialDocument {
   syncedAt?: string;
 }
 
-export type CompetitionType = 'TRIVIA' | 'WRITING' | 'MIXED';
+export type CompetitionType = 'TRIVIA' | 'WRITING' | 'PHOTO_VIDEO' | 'SURVEY' | 'MIXED';
 export type CompetitionStatus = 'DRAFT' | 'SCHEDULED' | 'OPEN' | 'CLOSED' | 'GRADING' | 'PUBLISHED' | 'ARCHIVED' | 'UPCOMING' | 'ONGOING' | 'ENDED';
+
+export interface ScoringCriterion {
+  id: string;
+  name: string;
+  maxScore: number;
+  description: string;
+}
 
 export interface CompetitionQuestion {
   id: string;
@@ -130,6 +137,18 @@ export interface Competition {
   rules?: string;
   questions?: CompetitionQuestion[];
   isYouthCompetition?: boolean;
+  rubric?: ScoringCriterion[];
+  judges?: { id: string; name: string; email: string; assignedCount: number }[];
+  targetAudience?: string;
+  submissionFields?: {
+    title: boolean;
+    summary: boolean;
+    content: boolean;
+    image: boolean;
+    document: boolean;
+    videoUrl: boolean;
+    authorInfo: boolean;
+  };
 }
 
 export interface TriviaQuestion {

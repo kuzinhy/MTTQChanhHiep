@@ -24,18 +24,27 @@ interface NeighborhoodMapDashboardProps {
 }
 
 export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
-  { id: 'kp-1', name: 'Khu phố 1', chiefName: 'Ông Lê Văn Nam', phone: '0908.111.001', opinionCount: 8, resolvedCount: 7, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 98, status: 'GREEN' },
-  { id: 'kp-2', name: 'Khu phố 2', chiefName: 'Bà Nguyễn Thị Mai', phone: '0908.111.002', opinionCount: 12, resolvedCount: 11, poorHouseholds: 5, nearPoorHouseholds: 7, unityHousesBuilt: 3, satisfactionRate: 96, status: 'GREEN' },
-  { id: 'kp-3', name: 'Khu phố 3', chiefName: 'Ông Phạm Văn Bình', phone: '0908.111.003', opinionCount: 15, resolvedCount: 13, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 4, satisfactionRate: 94, status: 'YELLOW' },
-  { id: 'kp-4', name: 'Khu phố 4', chiefName: 'Bà Trần Thị Loan', phone: '0908.111.004', opinionCount: 6, resolvedCount: 6, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 1, satisfactionRate: 100, status: 'GREEN' },
-  { id: 'kp-5', name: 'Khu phố 5', chiefName: 'Ông Hoàng Kim Định', phone: '0908.111.005', opinionCount: 19, resolvedCount: 17, poorHouseholds: 7, nearPoorHouseholds: 9, unityHousesBuilt: 5, satisfactionRate: 92, status: 'YELLOW' },
-  { id: 'kp-6', name: 'Khu phố 6', chiefName: 'Bà Vũ Thị Cúc', phone: '0908.111.006', opinionCount: 9, resolvedCount: 9, poorHouseholds: 1, nearPoorHouseholds: 3, unityHousesBuilt: 2, satisfactionRate: 99, status: 'GREEN' },
-  { id: 'kp-7', name: 'Khu phố 7', chiefName: 'Ông Đỗ Minh Tuấn', phone: '0908.111.007', opinionCount: 14, resolvedCount: 12, poorHouseholds: 6, nearPoorHouseholds: 8, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
-  { id: 'kp-8', name: 'Khu phố 8', chiefName: 'Bà Ngô Thị Hạnh', phone: '0908.111.008', opinionCount: 7, resolvedCount: 7, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 1, satisfactionRate: 98, status: 'GREEN' },
-  { id: 'kp-9', name: 'Khu phố 9', chiefName: 'Ông Bùi Quang Huy', phone: '0908.111.009', opinionCount: 11, resolvedCount: 10, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 97, status: 'GREEN' },
-  { id: 'kp-10', name: 'Khu phố 10', chiefName: 'Bà Dương Thị Tuyết', phone: '0908.111.010', opinionCount: 16, resolvedCount: 14, poorHouseholds: 5, nearPoorHouseholds: 8, unityHousesBuilt: 3, satisfactionRate: 93, status: 'YELLOW' },
-  { id: 'kp-11', name: 'Khu phố 11', chiefName: 'Ông Lý Minh Châu', phone: '0908.111.011', opinionCount: 10, resolvedCount: 9, poorHouseholds: 3, nearPoorHouseholds: 6, unityHousesBuilt: 2, satisfactionRate: 96, status: 'GREEN' },
-  { id: 'kp-12', name: 'Khu phố 12', chiefName: 'Bà Đặng Thị Yến', phone: '0908.111.012', opinionCount: 13, resolvedCount: 11, poorHouseholds: 4, nearPoorHouseholds: 7, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
+  { id: 'kp-tibh-1', name: 'Tương Bình Hiệp 1', chiefName: 'Trần Thị Tố Như', phone: '0933.742.769', opinionCount: 8, resolvedCount: 7, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 2, satisfactionRate: 98, status: 'GREEN' },
+  { id: 'kp-tibh-2', name: 'Tương Bình Hiệp 2', chiefName: 'Nguyễn Thanh Sơn', phone: '0336.749.484', opinionCount: 12, resolvedCount: 11, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 96, status: 'GREEN' },
+  { id: 'kp-tibh-3', name: 'Tương Bình Hiệp 3', chiefName: 'Nguyễn Việt Toàn', phone: '0919.908.008', opinionCount: 15, resolvedCount: 13, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 94, status: 'YELLOW' },
+  { id: 'kp-tibh-4', name: 'Tương Bình Hiệp 4', chiefName: 'Lê Duy Khang', phone: '0358.934.767', opinionCount: 6, resolvedCount: 6, poorHouseholds: 1, nearPoorHouseholds: 3, unityHousesBuilt: 1, satisfactionRate: 100, status: 'GREEN' },
+  { id: 'kp-tibh-5', name: 'Tương Bình Hiệp 5', chiefName: 'Phạm Thị Tố Mai', phone: '0908.739.555', opinionCount: 19, resolvedCount: 17, poorHouseholds: 5, nearPoorHouseholds: 7, unityHousesBuilt: 4, satisfactionRate: 92, status: 'YELLOW' },
+  { id: 'kp-tibh-6', name: 'Tương Bình Hiệp 6', chiefName: 'Trần Quốc Nghĩa', phone: '0915.337.788', opinionCount: 9, resolvedCount: 9, poorHouseholds: 2, nearPoorHouseholds: 3, unityHousesBuilt: 2, satisfactionRate: 99, status: 'GREEN' },
+  { id: 'kp-tibh-7', name: 'Tương Bình Hiệp 7', chiefName: 'Lê Văn Chí', phone: '0914.919.646', opinionCount: 14, resolvedCount: 12, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
+  { id: 'kp-ha-7', name: 'Hiệp An 7', chiefName: 'Nguyễn Thành Châu', phone: '0965.052.061', opinionCount: 7, resolvedCount: 7, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 1, satisfactionRate: 98, status: 'GREEN' },
+  { id: 'kp-ha-8', name: 'Hiệp An 8', chiefName: 'Võ Hoàng Phương', phone: '0918.231.463', opinionCount: 11, resolvedCount: 10, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 97, status: 'GREEN' },
+  { id: 'kp-ha-9', name: 'Hiệp An 9', chiefName: 'Lê Phước Hùng', phone: '0828.643.979', opinionCount: 16, resolvedCount: 14, poorHouseholds: 4, nearPoorHouseholds: 7, unityHousesBuilt: 3, satisfactionRate: 93, status: 'YELLOW' },
+  { id: 'kp-dh-1', name: 'Định Hòa 1', chiefName: 'Phan Hà Như Thủy', phone: '0987.933.156', opinionCount: 10, resolvedCount: 9, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 96, status: 'GREEN' },
+  { id: 'kp-dh-2', name: 'Định Hòa 2', chiefName: 'Trần Văn Hoàng', phone: '0918.598.078', opinionCount: 13, resolvedCount: 11, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
+  { id: 'kp-dh-3', name: 'Định Hòa 3', chiefName: 'Nguyễn Văn Gu', phone: '0785.185.879', opinionCount: 8, resolvedCount: 8, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 1, satisfactionRate: 100, status: 'GREEN' },
+  { id: 'kp-dh-4', name: 'Định Hòa 4', chiefName: 'Ngô Quốc Phong', phone: '0938.377.151', opinionCount: 12, resolvedCount: 11, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 96, status: 'GREEN' },
+  { id: 'kp-dh-5', name: 'Định Hòa 5', chiefName: 'Phạm Văn Chí', phone: '0938.565.172', opinionCount: 9, resolvedCount: 8, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 2, satisfactionRate: 97, status: 'GREEN' },
+  { id: 'kp-dh-6', name: 'Định Hòa 6', chiefName: 'Lê Văn Hoài', phone: '0919.042.548', opinionCount: 14, resolvedCount: 13, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
+  { id: 'kp-dh-7', name: 'Định Hòa 7', chiefName: 'Nguyễn Văn Gấm', phone: '0985.996.979', opinionCount: 7, resolvedCount: 7, poorHouseholds: 1, nearPoorHouseholds: 3, unityHousesBuilt: 1, satisfactionRate: 99, status: 'GREEN' },
+  { id: 'kp-dh-8', name: 'Định Hòa 8', chiefName: 'Trần Quốc Dương', phone: '0886.848.586', opinionCount: 11, resolvedCount: 10, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 97, status: 'GREEN' },
+  { id: 'kp-mh', name: 'Mỹ Hảo', chiefName: 'Ngô Quốc Trung', phone: '0901.689.828', opinionCount: 9, resolvedCount: 9, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 2, satisfactionRate: 98, status: 'GREEN' },
+  { id: 'kp-cm-1', name: 'Chánh Mỹ 1', chiefName: 'Đào Thanh Trung', phone: '0919.450.576', opinionCount: 13, resolvedCount: 12, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 3, satisfactionRate: 96, status: 'GREEN' },
+  { id: 'kp-cm-2', name: 'Chánh Mỹ 2', chiefName: 'Nguyễn Minh Triết', phone: '0907.008.308', opinionCount: 15, resolvedCount: 14, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 4, satisfactionRate: 95, status: 'GREEN' },
 ];
 
 export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> = ({
@@ -75,20 +84,20 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
           </div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
-              Bản đồ Số 12 Khu phố &amp; Chỉ số An sinh Xã hội
+              Bản đồ Số 21 Khu phố &amp; Chỉ số An sinh Xã hội
             </h1>
             <span className="text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-900 px-2.5 py-0.5 rounded-full shadow-xs">
               Interactive Map
             </span>
           </div>
           <p className="text-xs text-blue-100 mt-1 font-medium">
-            Giám sát dư luận xã hội, tiến độ xử lý ý kiến dân sinh và công tác hỗ trợ hộ nghèo theo từng khu phố
+            Giám sát dư luận xã hội, tiến độ xử lý ý kiến dân sinh và công tác hỗ trợ hộ nghèo theo toàn bộ 21 khu phố
           </p>
         </div>
 
         <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/30 shrink-0 shadow-sm">
           <div className="text-center border-r border-white/30 pr-4">
-            <div className="text-xl font-black text-amber-300">12/12</div>
+            <div className="text-xl font-black text-amber-300">21/21</div>
             <div className="text-[10px] uppercase font-black text-blue-100">Khu phố Số</div>
           </div>
           <div className="text-center pl-1">

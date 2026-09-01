@@ -57,11 +57,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Logo & Agency Title */}
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveTab('home')}>
-            <div className="w-11 h-11 rounded-2xl bg-blue-600 p-1.5 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20 border border-blue-400 transition-all duration-300 group-hover:scale-105">
+            <div className="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md shadow-slate-300/50 border border-amber-400 transition-all duration-300 group-hover:scale-105">
               <img
                 src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
                 alt="Logo Ủy ban Mặt trận Tổ quốc Việt Nam"
-                className="w-full h-full object-contain filter brightness-0 invert"
+                className="w-full h-full object-contain"
               />
             </div>
             <div>

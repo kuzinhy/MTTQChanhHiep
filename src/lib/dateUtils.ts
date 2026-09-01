@@ -49,7 +49,9 @@ export function parseDateToTimestamp(dateStr?: string, fallbackId?: string): num
  * Sort articles strictly in descending order (newest publishDate / createdAt at the top).
  */
 export function sortArticlesNewestFirst(articles: Article[]): Article[] {
-  return [...articles].sort((a, b) => {
+  if (!articles || !Array.isArray(articles)) return [];
+  return [...articles].filter(Boolean).sort((a, b) => {
+    if (!a || !b) return 0;
     const tsA = Math.max(
       parseDateToTimestamp(a.publishDate, a.id),
       parseDateToTimestamp(a.createdAt, a.id)
@@ -66,7 +68,9 @@ export function sortArticlesNewestFirst(articles: Article[]): Article[] {
  * Sort official documents strictly by issue date newest first.
  */
 export function sortDocumentsNewestFirst(docs: OfficialDocument[]): OfficialDocument[] {
-  return [...docs].sort((a, b) => {
+  if (!docs || !Array.isArray(docs)) return [];
+  return [...docs].filter(Boolean).sort((a, b) => {
+    if (!a || !b) return 0;
     const tsA = parseDateToTimestamp(a.issueDate, a.id);
     const tsB = parseDateToTimestamp(b.issueDate, b.id);
     return tsB - tsA;
@@ -77,7 +81,9 @@ export function sortDocumentsNewestFirst(docs: OfficialDocument[]): OfficialDocu
  * Sort competitions with active / newest first.
  */
 export function sortCompetitionsNewestFirst(comps: Competition[]): Competition[] {
-  return [...comps].sort((a, b) => {
+  if (!comps || !Array.isArray(comps)) return [];
+  return [...comps].filter(Boolean).sort((a, b) => {
+    if (!a || !b) return 0;
     // If one is ONGOING and another ENDED, ONGOING comes first
     if (a.status === 'ONGOING' && b.status !== 'ONGOING') return -1;
     if (a.status !== 'ONGOING' && b.status === 'ONGOING') return 1;
@@ -92,7 +98,9 @@ export function sortCompetitionsNewestFirst(comps: Competition[]): Competition[]
  * Sort public opinions with newest at the top.
  */
 export function sortOpinionsNewestFirst(opinions: PublicOpinion[]): PublicOpinion[] {
-  return [...opinions].sort((a, b) => {
+  if (!opinions || !Array.isArray(opinions)) return [];
+  return [...opinions].filter(Boolean).sort((a, b) => {
+    if (!a || !b) return 0;
     const tsA = parseDateToTimestamp(a.createdAt, a.id);
     const tsB = parseDateToTimestamp(b.createdAt, b.id);
     return tsB - tsA;
@@ -103,7 +111,9 @@ export function sortOpinionsNewestFirst(opinions: PublicOpinion[]): PublicOpinio
  * Sort work events with upcoming / newest at the top.
  */
 export function sortEventsNewestFirst(events: WorkEvent[]): WorkEvent[] {
-  return [...events].sort((a, b) => {
+  if (!events || !Array.isArray(events)) return [];
+  return [...events].filter(Boolean).sort((a, b) => {
+    if (!a || !b) return 0;
     const tsA = parseDateToTimestamp(a.startTime, a.id);
     const tsB = parseDateToTimestamp(b.startTime, b.id);
     return tsB - tsA;
