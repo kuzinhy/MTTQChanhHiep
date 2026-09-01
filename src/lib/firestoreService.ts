@@ -107,6 +107,7 @@ class CloudSyncService {
       // 1. Initial check & auto-seed if cloud database is empty, plus purge demo articles
       await this.ensureSeedData();
       await this.purgeDemoArticles();
+      await this.pullCloudToLocal();
       this.isConnected = true;
 
       // 2. Setup Realtime Listeners with Firestore as Master Source of Truth
