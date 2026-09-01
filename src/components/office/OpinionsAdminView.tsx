@@ -44,7 +44,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
             <MessageSquare className="w-6 h-6 text-red-800" />
             <span>HỘM THƯ NẮM BẮT DƯ LUẬN XÃ HỘI</span>
           </h1>
-          <p className="text-xs text-stone-500">Tiếp nhận, xử lý và phản hồi ý kiến phản ánh của nhân dân 12 Khu phố</p>
+          <p className="text-xs text-stone-500">Tiếp nhận, xử lý và phản hồi ý kiến phản ánh của nhân dân 21 Khu phố</p>
         </div>
 
         <button

@@ -25,7 +25,7 @@ const DEFAULT_EVENTS: WorkEvent[] = [
     endTime: '2026-09-01T09:00',
     location: 'Phòng họp B - Ủy ban MTTQ Phường Chánh Hiệp',
     chair: 'Đ/c Chủ tịch Ủy ban MTTQ Phường',
-    participants: 'Thường trực Mặt trận, Trưởng các Ban công tác Mặt trận 12 Khu phố',
+    participants: 'Thường trực Mặt trận, Trưởng các Ban công tác Mặt trận 21 Khu phố',
     content: 'Đánh giá công tác dân vận, an sinh xã hội tháng 8 và triển khai Kế hoạch Kỷ niệm Ngày Quốc khánh 2/9.',
     category: 'Giao ban'
   },
@@ -58,7 +58,7 @@ const DEFAULT_EVENTS: WorkEvent[] = [
     endTime: '2026-09-04T11:00',
     location: 'Hội trường Lớn - UBND Phường Chánh Hiệp',
     chair: 'Báo cáo viên Thành ủy TP. Thủ Dầu Một',
-    participants: 'Toàn thể Cán bộ Mặt trận, Đoàn thể Phường & 12 Khu phố',
+    participants: 'Toàn thể Cán bộ Mặt trận, Đoàn thể Phường & 21 Khu phố',
     content: 'Tập huấn kỹ năng khai thác Cổng thông tin điện tử & phần mềm quản lý văn bản số.',
     category: 'Hội nghị'
   }

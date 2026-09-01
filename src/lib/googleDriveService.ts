@@ -6,8 +6,8 @@ export const googleDriveProvider = new GoogleAuthProvider();
 googleDriveProvider.addScope('https://www.googleapis.com/auth/drive.file');
 
 // Target folder ID on Google Drive
-export const DEFAULT_DRIVE_FOLDER_ID = '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL';
-export const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}`;
+export const DEFAULT_DRIVE_FOLDER_ID = '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G';
+export const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}?hl=vi`;
 
 // Optional default or custom Apps Script Web App URL
 export const APPS_SCRIPT_STORAGE_KEY = 'mttq_apps_script_url';

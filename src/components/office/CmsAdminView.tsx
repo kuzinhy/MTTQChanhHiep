@@ -84,6 +84,7 @@ interface CmsAdminViewProps {
   onUpdateOpinionStatus?: (id: string, status: OpinionStatus, response?: string) => void;
   onRequestDocApproval?: (doc: OfficialDocument) => void;
   onForceCloudSync?: () => void;
+  onShowToast?: (title: string, message: string) => void;
 }
 
 const DEFAULT_IMAGE_PRESETS = [
@@ -150,7 +151,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onDeleteCompetition,
   onUpdateOpinionStatus,
   onRequestDocApproval,
-  onForceCloudSync
+  onForceCloudSync,
+  onShowToast
 }) => {
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS'>(initialTab || 'ARTICLES');
 
@@ -266,7 +268,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const handleParseNewsLink = async () => {
     const targetUrl = artInputUrl.trim() || artOriginalUrl.trim();
     if (!targetUrl) {
-      alert('Vui lòng nhập đường dẫn (Link URL) bài viết báo chí hoặc tin tức.');
+      showErrorBanner('Vui lòng nhập đường dẫn (Link URL) bài viết báo chí hoặc tin tức.');
       return;
     }
     setIsParsingNewsLink(true);
@@ -297,7 +299,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       showSuccessBanner(`AI đã tự động bóc tách thành công tin tức: "${parsed.title || targetUrl}"`);
     } catch (err: any) {
       console.error('AI link parsing error:', err);
-      alert(`Không thể bóc tách dữ liệu từ Link: ${err.message || 'Lỗi hệ thống'}`);
+      showErrorBanner(`Không thể bóc tách dữ liệu từ Link: ${err.message || 'Lỗi hệ thống'}`);
     } finally {
       setIsParsingNewsLink(false);
     }
@@ -390,10 +392,25 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
   const showSuccessBanner = (msg: string) => {
-    setActionSuccessMsg(msg);
-    setTimeout(() => {
-      setActionSuccessMsg(null);
-    }, 4000);
+    if (onShowToast) {
+      onShowToast('Thành công', msg);
+    } else {
+      setActionSuccessMsg(msg);
+      setTimeout(() => {
+        setActionSuccessMsg(null);
+      }, 4000);
+    }
+  };
+
+  const showErrorBanner = (msg: string) => {
+    if (onShowToast) {
+      onShowToast('Có lỗi xảy ra', msg);
+    } else {
+      setActionSuccessMsg('⚠️ Lỗi: ' + msg);
+      setTimeout(() => {
+        setActionSuccessMsg(null);
+      }, 5000);
+    }
   };
 
   // Reset Article Form
@@ -564,7 +581,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   // Upload Article Attachment or Image to Google Drive
   const handleUploadArticleAttachmentToDrive = async () => {
     if (!artSelectedFile) {
-      alert('Vui lòng chọn tệp tin hoặc ảnh từ máy tính trước.');
+      showErrorBanner('Vui lòng chọn tệp tin hoặc ảnh từ máy tính trước.');
       return;
     }
     setArtIsUploading(true);
@@ -592,7 +609,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       showSuccessBanner(`Đã tải lên tệp/ảnh thành công và lưu vào hệ thống/Drive!`);
     } catch (err: any) {
       console.error('Drive upload error:', err);
-      alert(`Không thể tải tệp lên: ${err?.message || 'Lỗi kết nối'}`);
+      showErrorBanner(`Không thể tải tệp lên: ${err?.message || 'Lỗi kết nối'}`);
     } finally {
       setArtIsUploading(false);
     }
@@ -737,7 +754,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   // Upload Document File to Google Drive
   const handleUploadDocFileToDrive = async () => {
     if (!docSelectedFile) {
-      alert('Vui lòng chọn tệp văn bản từ máy tính trước.');
+      showErrorBanner('Vui lòng chọn tệp văn bản từ máy tính trước.');
       return;
     }
     setDocIsUploading(true);
@@ -749,7 +766,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       showSuccessBanner(`Đã tải tệp văn bản "${res.name}" lên thư mục Google Drive thành công!`);
     } catch (err: any) {
       console.error('Drive upload error:', err);
-      alert(`Không thể tải tệp văn bản lên Google Drive: ${err?.message || 'Lỗi kết nối'}`);
+      showErrorBanner(`Không thể tải tệp văn bản lên Google Drive: ${err?.message || 'Lỗi kết nối'}`);
     } finally {
       setDocIsUploading(false);
     }
@@ -2659,6 +2676,140 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   ))}
                 </div>
               )}
+            </motion.div>
+          </div>
+        )}
+
+        {previewDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col my-8 max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 bg-blue-600 text-white font-mono font-black text-xs rounded-lg shadow-2xs">
+                    {previewDoc.codeNumber}
+                  </span>
+                  <span className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-xs border border-slate-200">
+                    {previewDoc.docType}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setPreviewDoc(null)}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 md:p-8 overflow-y-auto space-y-6">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-snug">
+                    {previewDoc.title}
+                  </h2>
+                </div>
+
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 font-sans">
+                  <div className="flex items-start gap-2.5">
+                    <FileText className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-500 block">Cơ quan ban hành:</span>
+                      <span className="font-extrabold text-slate-900">{previewDoc.issuer}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <User className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-500 block">Người ký duyệt:</span>
+                      <span className="font-extrabold text-slate-900">{previewDoc.signer}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <Calendar className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-500 block">Ngày ban hành:</span>
+                      <span className="font-bold text-slate-800">{previewDoc.issueDate}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <FileText className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-500 block">Lĩnh vực:</span>
+                      <span className="font-bold text-slate-800">{previewDoc.field}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description / Summary */}
+                {previewDoc.summary && (
+                  <div className="p-5 rounded-2xl bg-blue-50/80 border border-blue-200 text-slate-900 text-xs sm:text-sm font-medium leading-relaxed space-y-2">
+                    <span className="font-extrabold text-blue-900 block uppercase tracking-wide text-xs">Mô tả tóm tắt nội dung văn bản:</span>
+                    <p>{previewDoc.summary}</p>
+                  </div>
+                )}
+
+                {/* Google Drive View/Download Card */}
+                <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-2xl text-slate-900 font-sans space-y-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="p-3 bg-blue-100 text-blue-700 rounded-xl shadow-xs shrink-0">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-black text-sm text-blue-900 uppercase tracking-wide">
+                        Văn bản đính kèm chính thức (Google Drive)
+                      </h4>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Tài liệu đã được đăng tải và quản lý chính thức trên tài khoản Google Drive. Bạn có thể mở trực tiếp để xem toàn văn hoặc tải về máy của mình.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2.5 pt-1.5">
+                    {previewDoc.driveUrl && (
+                      <a
+                        href={previewDoc.driveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer no-underline"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>Xem trực tiếp trên Google Drive</span>
+                      </a>
+                    )}
+                    {previewDoc.fileUrl && (
+                      <a
+                        href={previewDoc.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer no-underline"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Tải file đính kèm trực tiếp</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                <button
+                  onClick={() => setPreviewDoc(null)}
+                  className="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black rounded-xl cursor-pointer"
+                >
+                  Đóng lại
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

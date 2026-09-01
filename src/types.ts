@@ -334,6 +334,42 @@ export interface NeighborhoodStats {
   nearPoorHouseholds: number;
   unityHousesBuilt: number;
   satisfactionRate: number; // e.g. 98%
-  status: 'GREEN' | 'YELLOW' | 'ORANGE';
+  status: 'GREEN' | 'YELLOW' | 'ORANGE' | 'RED';
+  mttqName?: string;
+  mttqPhone?: string;
+  secretaryName?: string;
+  secretaryPhone?: string;
+  youthUnionSecretary?: string;
+  youthUnionPhone?: string;
+  youthUnionDeputy?: string;
+  youthUnionDeputyPhone?: string;
+  womenAssociationChief?: string;
+  womenAssociationPhone?: string;
+}
+
+export interface AiChatLog {
+  id: string;
+  query: string;
+  response: string;
+  timestamp: string;
+  userId?: string;
+  userName?: string;
+  isStaff: boolean;
+  helpfulness?: 'UP' | 'DOWN' | null;
+  feedbackText?: string;
+  ratingScore?: number;
+  category?: string;
+}
+
+export interface KnowledgeNote {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  status: 'DRAFT' | 'APPROVED';
+  createdBy: string;
+  createdAt: string;
+  approvedBy?: string;
+  approvedAt?: string;
 }
 

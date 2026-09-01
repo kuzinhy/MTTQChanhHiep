@@ -104,7 +104,7 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
           </div>
           <div className="text-2xl font-black text-slate-900">{opinionsCount}</div>
           <p className="text-[11px] text-amber-700 font-bold">
-            Tiếp nhận từ 12 Khu phố
+            Tiếp nhận từ 21 Khu phố
           </p>
         </div>
 
@@ -156,7 +156,7 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
 
           <div className="text-xs text-blue-100 space-y-3 leading-relaxed">
             <p>
-              <strong>1. Đánh giá chung:</strong> 8 tháng đầu năm 2026, Ủy ban MTTQ Việt Nam phường Chánh Hiệp đã triển khai đồng bộ hệ thống Văn phòng số và Cổng thông tin tương tác dân sinh. Toàn bộ 12 Khu phố đều hoàn thành các chỉ tiêu tuyên truyền và tiếp nhận ý kiến.
+              <strong>1. Đánh giá chung:</strong> 8 tháng đầu năm 2026, Ủy ban MTTQ Việt Nam phường Chánh Hiệp đã triển khai đồng bộ hệ thống Văn phòng số và Cổng thông tin tương tác dân sinh. Toàn bộ 21 Khu phố đều hoàn thành các chỉ tiêu tuyên truyền và tiếp nhận ý kiến.
             </p>
             <p>
               <strong>2. Kết quả An sinh & Dư luận:</strong> Tiếp nhận {opinionsCount} phản ánh dân sinh (đã xử lý dứt điểm 92.8%), vận động xây mới {totalUnityHousesCount(opinionsCount)} nhà Đại đoàn kết và phân bổ quà an sinh cho các hộ nghèo đúng đối tượng.
@@ -230,7 +230,7 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
           <ul className="text-xs text-slate-300 space-y-3 leading-relaxed">
             <li className="flex items-start gap-2.5">
               <span className="text-amber-400 font-extrabold text-sm">•</span>
-              <span><strong>Tuyên truyền & Hội thi:</strong> Đã xuất bản {articlesCount} bài viết tin tức và tổ chức hội thi thu hút nhân dân 12 Khu phố tích cực tham gia.</span>
+              <span><strong>Tuyên truyền & Hội thi:</strong> Đã xuất bản {articlesCount} bài viết tin tức và tổ chức hội thi thu hút nhân dân 21 Khu phố tích cực tham gia.</span>
             </li>
             <li className="flex items-start gap-2.5">
               <span className="text-amber-400 font-extrabold text-sm">•</span>

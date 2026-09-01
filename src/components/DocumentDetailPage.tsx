@@ -208,6 +208,50 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
             </div>
 
             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 text-xs sm:text-sm text-slate-800 leading-relaxed font-mono whitespace-pre-line space-y-4">
+              {/* Highlight Google Drive View/Download Card */}
+              {(document.driveUrl || document.fileUrl) && (
+                <div className="mb-6 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-2xl text-slate-900 font-sans space-y-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="p-3 bg-blue-100 text-blue-700 rounded-xl shadow-xs shrink-0">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-black text-sm text-blue-900 uppercase tracking-wide">
+                        Văn bản đính kèm chính thức (Google Drive)
+                      </h4>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Tệp văn bản gốc đã được số hóa và lưu trữ chính thức trên Google Drive. Bạn có thể mở trực tiếp để xem toàn văn hoặc tải về máy tính/điện thoại của mình.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2.5 pt-1.5">
+                    {document.driveUrl && (
+                      <a
+                        href={document.driveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer no-underline"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>Xem trực tiếp trên Google Drive</span>
+                      </a>
+                    )}
+                    {document.fileUrl && (
+                      <a
+                        href={document.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer no-underline"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Tải file đính kèm trực tiếp</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="text-center space-y-1 font-sans not-italic border-b border-slate-200 pb-4">
                 <p className="font-extrabold text-slate-900 uppercase">ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG CHÁNH HIỆP</p>
                 <p className="font-bold text-blue-700">Số: {document.codeNumber}</p>
@@ -220,10 +264,10 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
 
               <div className="font-sans text-xs space-y-3 leading-relaxed text-slate-700">
                 <p>Căn cứ Nghị quyết Đại hội Đại biểu Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp;</p>
-                <p>Căn cứ chương trình phối hợp thống nhất hành động năm 2026 về công tác an sinh xã hội, cứu trợ khẩn cấp và công khai ngân sách chăm lo người nghèo trên địa bàn 12 khu phố;</p>
+                <p>Căn cứ chương trình phối hợp thống nhất hành động năm 2026 về công tác an sinh xã hội, cứu trợ khẩn cấp và công khai ngân sách chăm lo người nghèo trên địa bàn 21 khu phố;</p>
                 <p className="font-bold text-slate-900 pt-2">Ban Thường trực Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp ban hành Kế hoạch thực hiện cụ thể như sau:</p>
                 <p><strong>Điều 1.</strong> Triển khai quy trình số hóa công khai, tiếp nhận đóng góp Quỹ Vì người nghèo và phản ánh dân sinh trực tiếp qua Cổng An sinh Số.</p>
-                <p><strong>Điều 2.</strong> Giao các Trưởng Ban Công tác Mặt trận tại 12 khu phố chịu trách nhiệm hướng dẫn nhân dân tra cứu, đăng ký danh sách nhận hỗ trợ và tổ chức triển khai thực hiện.</p>
+                <p><strong>Điều 2.</strong> Giao các Trưởng Ban Công tác Mặt trận tại 21 khu phố chịu trách nhiệm hướng dẫn nhân dân tra cứu, đăng ký danh sách nhận hỗ trợ và tổ chức triển khai thực hiện.</p>
                 <p><strong>Điều 3.</strong> Văn bản này có hiệu lực kể từ ngày ký.</p>
               </div>
 
@@ -232,7 +276,7 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
                   <p className="font-bold">Nơi nhận:</p>
                   <p>- Ban Thường trực MTTQ TP;</p>
                   <p>- Đảng ủy, HĐND, UBND Phường;</p>
-                  <p>- 12 Ban Công tác Mặt trận KP;</p>
+                  <p>- 21 Ban Công tác Mặt trận KP;</p>
                   <p>- Lưu: VT.</p>
                 </div>
                 <div className="text-center font-bold text-slate-900">

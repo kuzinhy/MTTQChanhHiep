@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'motion/react';
 import { Article } from '../types';
 import { sortArticlesNewestFirst } from '../lib/dateUtils';
 import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
@@ -120,9 +121,10 @@ interface NewsSectionProps {
   articles: Article[];
   searchQuery: string;
   onSelectArticle: (article: Article) => void;
+  onGoToOpinion?: () => void;
 }
 
-export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery, onSelectArticle }) => {
+export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery, onSelectArticle, onGoToOpinion }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   const categories: { id: string; label: string }[] = [
@@ -283,7 +285,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
             <div className="flex items-center gap-2">
               <div className="w-3.5 h-3.5 bg-blue-600 rounded-sm shadow-xs" />
               <h2 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                <span>TIN TIÊU ĐIỂM &amp; CHĂM LO AN SINH</span>
+                <span>TIN TỨC ĐỊA PHƯƠNG TIÊU ĐIỂM</span>
                 <span className="text-[10px] bg-blue-50 text-blue-700 font-extrabold px-2 py-0.5 rounded-full border border-blue-200">VÌ NGƯỜI NGHÈO</span>
               </h2>
             </div>
@@ -293,10 +295,15 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-2xs hover:shadow-md transition-all">
-            {/* Left Main Hero (7 cols) - Clear Image Focus */}
-            <div 
+            {/* Left Main Hero (7 cols) - Clear Image Focus with motion effect */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.025, y: -4 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
               onClick={() => onSelectArticle(mainHero)}
-              className="lg:col-span-7 group cursor-pointer space-y-3 flex flex-col justify-between"
+              className="lg:col-span-7 group cursor-pointer space-y-3 flex flex-col justify-between hover:shadow-lg p-2.5 rounded-2xl transition-all duration-300 bg-white"
             >
               <div className="relative h-64 sm:h-80 md:h-[360px] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
                 <img
@@ -343,7 +350,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                   Xem toàn văn tin bài <ArrowRight className="w-4 h-4 text-blue-600" />
                 </span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Right Secondary Stack (5 cols) */}
             <div className="lg:col-span-5 space-y-3 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
@@ -353,11 +360,16 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               </h3>
 
               <div className="space-y-3 flex-1 divide-y divide-slate-100">
-                {secondaryHeroes.map((item) => (
-                  <div
+                {secondaryHeroes.map((item, index) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.03, x: 4 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
                     key={item.id}
                     onClick={() => onSelectArticle(item)}
-                    className="pt-3 first:pt-0 group cursor-pointer flex gap-3.5 items-center"
+                    className="pt-3 pb-3 px-2 first:pt-0 group cursor-pointer flex gap-3.5 items-center hover:shadow-lg hover:bg-slate-50/90 rounded-xl transition-all duration-300"
                   >
                     <div className="w-24 h-20 sm:w-28 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200 relative shadow-2xs">
                       <img
@@ -382,7 +394,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                         <span>{item.views} lượt xem</span>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
@@ -396,7 +408,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                   <div className="text-xs font-black text-white mt-0.5">Gửi Ý kiến &amp; Phản ánh Số</div>
                 </div>
                 <button 
-                  onClick={() => alert('Vui lòng chọn tab "Gửi ý kiến dân sinh" trên thanh menu chính')}
+                  onClick={() => onGoToOpinion && onGoToOpinion()}
                   className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-[11px] rounded-xl transition-all shrink-0 active:scale-95 shadow-2xs cursor-pointer"
                 >
                   Gửi ngay
@@ -413,7 +425,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
           <div className="flex items-center gap-2">
             <div className="w-3.5 h-3.5 bg-blue-600 rounded-xs shadow-xs" />
             <h2 className="text-base font-black text-slate-900 uppercase tracking-tight">
-              TIN BÀI THEO CHUYÊN MỤC AN SINH XÃ HỘI &amp; MẶT TRẬN SỐ
+              TIN TỨC ĐỊA PHƯƠNG THEO CHUYÊN MỤC
             </h2>
           </div>
           
@@ -452,10 +464,15 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredArticles.map((article) => (
-            <article
+            <motion.article
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.035, y: -6 }}
+              viewport={{ once: true, margin: "-20px" }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
               key={article.id}
               onClick={() => onSelectArticle(article)}
-              className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-lg hover:border-blue-400 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer group"
+              className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xl hover:border-blue-400 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer group"
             >
               {/* CLEAR IMAGE CONTAINER */}
               <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-slate-100">
@@ -507,7 +524,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                   </span>
                 </div>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       )}
@@ -532,7 +549,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
 
           <div className="bg-rose-100/60 border border-rose-200/90 p-3.5 rounded-2xl text-rose-950 text-xs italic font-medium max-w-lg space-y-1 shadow-2xs">
             <div className="text-rose-800 font-extrabold not-italic text-[11px] flex items-center gap-1">
-              <span>★ Không gian văn hóa Hồ Chí Minh Số tại 12 Khu phố</span>
+              <span>★ Không gian văn hóa Hồ Chí Minh Số tại 21 Khu phố</span>
             </div>
             <p className="text-rose-900/90 leading-relaxed">
               "Tháp Mười đẹp nhất bông sen - Việt Nam đẹp nhất có tên Bác Hồ" — Lan tỏa nếp sống văn minh, mô hình "Dân vận khéo" số hóa tại phường Chánh Hiệp.
@@ -547,11 +564,16 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative z-10">
-            {hcmIdeologyArticles.slice(0, 3).map((item) => (
-              <div
+            {hcmIdeologyArticles.slice(0, 3).map((item, idx) => (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.025, y: -4 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
                 key={item.id}
                 onClick={() => onSelectArticle(item)}
-                className="bg-white hover:bg-rose-50/50 border border-rose-200/80 hover:border-rose-300 p-4 rounded-2xl cursor-pointer transition-all duration-300 space-y-3 group shadow-2xs hover:shadow-md flex flex-col justify-between"
+                className="bg-white hover:bg-rose-50/50 border border-rose-200/80 hover:border-rose-300 p-4 rounded-2xl cursor-pointer transition-all duration-300 space-y-3 group shadow-2xs hover:shadow-lg flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="h-36 rounded-xl overflow-hidden bg-rose-100 border border-rose-200 relative">
@@ -587,19 +609,19 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                     Xem bài viết <ChevronRight className="w-3.5 h-3.5 text-rose-600" />
                   </span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
 
-      {/* 6. NEIGHBORHOOD 12 STREAM (HOẠT ĐỘNG 12 KHU PHỐ) */}
+      {/* 6. NEIGHBORHOOD 21 STREAM (HOẠT ĐỘNG 21 KHU PHỐ) */}
       <div className="bg-white rounded-3xl border border-blue-100 p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-blue-100 pb-3">
           <div className="flex items-center gap-2">
             <Building2 className="w-5 h-5 text-blue-600" />
             <h3 className="font-black text-slate-900 text-sm uppercase tracking-wide">
-              TIN HOẠT ĐỘNG TẠI 12 KHU PHỐ DÂN CƯ
+              TIN HOẠT ĐỘNG TẠI 21 KHU PHỐ DÂN CƯ
             </h3>
           </div>
           <span className="text-xs text-slate-500 font-semibold">
@@ -608,11 +630,16 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {neighborhoodArticles.map((art) => (
-            <div
+          {neighborhoodArticles.map((art, idx) => (
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3 }}
               key={art.id}
               onClick={() => onSelectArticle(art)}
-              className="p-4 bg-slate-50 hover:bg-blue-50/70 rounded-2xl border border-slate-200 hover:border-blue-300 transition-all cursor-pointer flex gap-3.5 items-center group"
+              className="p-4 bg-slate-50 hover:bg-blue-50/70 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer flex gap-3.5 items-center group"
             >
               <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-200 border border-slate-200">
                 <img
@@ -632,7 +659,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                   {art.publishDate} • {art.authorName}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

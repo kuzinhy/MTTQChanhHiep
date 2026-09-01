@@ -18,32 +18,63 @@ import {
   TrendingUp,
   ArrowRight,
   Compass,
-  Filter
+  Filter,
+  Plus,
+  Trash2,
+  Check,
+  History,
+  Book,
+  ThumbsUp,
+  ThumbsDown,
+  Edit
 } from 'lucide-react';
+import { AiChatLog, KnowledgeNote, StaffUser } from '../../types';
 
 interface AiAssistantViewProps {
   documentsContext?: string;
   opinionsContext?: any[];
+  aiChats?: AiChatLog[];
+  knowledgeNotes?: KnowledgeNote[];
+  currentStaffUser?: StaffUser | null;
+  onSaveAiChat?: (chat: AiChatLog) => Promise<void>;
+  onSaveKnowledgeNote?: (note: KnowledgeNote) => Promise<void>;
+  onDeleteKnowledgeNote?: (id: string) => Promise<void>;
+  onShowToast?: (title: string, message: string) => void;
 }
 
 export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
   documentsContext = '',
-  opinionsContext = []
+  opinionsContext = [],
+  aiChats = [],
+  knowledgeNotes = [],
+  currentStaffUser = null,
+  onSaveAiChat,
+  onSaveKnowledgeNote,
+  onDeleteKnowledgeNote,
+  onShowToast
 }) => {
   const [activeTool, setActiveTool] = useState<
-    'plan' | 'speech' | 'report' | 'summarize' | 'spelling' | 'search' | 'opinion'
+    'plan' | 'speech' | 'report' | 'summarize' | 'spelling' | 'search' | 'opinion' | 'knowledge_notes' | 'chat_history'
   >('plan');
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [activeChipCategory, setActiveChipCategory] = useState<'all' | 'search' | 'opinion' | 'draft'>('all');
 
+  const triggerToast = (title: string, message: string) => {
+    if (onShowToast) {
+      onShowToast(title, message);
+    } else {
+      console.log(`[AI Toast] ${title}: ${message}`);
+    }
+  };
+
   // Form States
   // Plan
   const [planTopic, setPlanTopic] = useState('Kế hoạch Chăm lo Tết Ất Tỵ cho các hộ khó khăn năm 2026');
   const [planPurpose, setPlanPurpose] = useState('Đảm bảo 100% hộ nghèo, cận nghèo, hoàn cảnh đặc biệt khó khăn đều có Tết');
   const [planRequirement, setPlanRequirement] = useState('Nhanh chóng, chính xác, không trùng lặp, hỗ trợ đúng đối tượng');
-  const [planTimeLocation, setPlanTimeLocation] = useState('Từ 15/12/2026 đến 25/01/2027 tại UBND và 12 Khu phố');
+  const [planTimeLocation, setPlanTimeLocation] = useState('Từ 15/12/2026 đến 25/01/2027 tại UBND và 21 Khu phố');
 
   // Speech
   const [speechEvent, setSpeechEvent] = useState('Lễ Kỷ niệm 96 năm Ngày truyền thống Mặt trận Dân tộc Thống nhất Việt Nam');
@@ -72,7 +103,16 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     { id: 'spelling', label: '5. Kiểm Tra Chính Tả & Văn Phong', desc: 'Phát hiện lỗi sai và chuẩn hóa hành chính' },
     { id: 'search', label: '6. Tra Cứu Kho Tài Liệu', desc: 'Hỏi đáp AI trong kho văn bản nội bộ' },
     { id: 'opinion', label: '7. Tóm Tắt Dư Luận Xã Hội', desc: 'Phân tích xu hướng phản ánh của người dân' },
+    { id: 'knowledge_notes', label: '8. Sổ Tay Kiến Thức', desc: 'Thêm/sửa ghi chú, hướng dẫn xử lý nghiệp vụ Mặt trận' },
+    { id: 'chat_history', label: '9. Nhật Ký Tra Cứu AI', desc: 'Xem lại các câu hỏi tra cứu & phản hồi từ hệ thống' }
   ];
+
+  // Knowledge Note form states
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [noteQuestion, setNoteQuestion] = useState('');
+  const [noteAnswer, setNoteAnswer] = useState('');
+  const [noteCategory, setNoteCategory] = useState('Nghiệp vụ Mặt trận');
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   const handleGeneratePlan = async (customTopic?: string, customPurpose?: string) => {
     const topic = customTopic || planTopic;
@@ -147,7 +187,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
 
   const handleSummarize = async () => {
     if (!summarizeText.trim()) {
-      alert('Vui lòng dán nội dung văn bản cần tóm tắt!');
+      triggerToast('Thiếu thông tin', 'Vui lòng dán nội dung văn bản cần tóm tắt!');
       return;
     }
     setLoading(true);
@@ -192,13 +232,37 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
     setLoading(true);
     setResult(null);
     try {
+      const notesString = (knowledgeNotes || [])
+        .filter(n => n.status === 'APPROVED')
+        .map(n => `HỎI: ${n.question}\nĐÁP: ${n.answer}`)
+        .join('\n\n');
+
       const res = await fetch('/api/ai/knowledge-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, documentsContext })
+        body: JSON.stringify({ 
+          query: q, 
+          documentsContext,
+          knowledgeNotesContext: notesString
+        })
       });
       const data = await res.json();
-      setResult(data.result || data.error);
+      const aiResult = data.result || data.error;
+      setResult(aiResult);
+
+      if (onSaveAiChat) {
+        const newLog: AiChatLog = {
+          id: 'chat-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+          query: q,
+          response: aiResult || 'Không nhận được câu trả lời.',
+          timestamp: new Date().toISOString(),
+          userId: currentStaffUser?.id,
+          userName: currentStaffUser?.fullname,
+          isStaff: true,
+          category: 'Tra cứu'
+        };
+        onSaveAiChat(newLog);
+      }
     } catch (err: any) {
       setResult('Lỗi kết nối API AI: ' + err.message);
     } finally {
@@ -227,7 +291,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
   const copyToClipboard = () => {
     if (!result) return;
     navigator.clipboard.writeText(result);
-    alert('Đã sao chép nội dung vào khay nhớ tạm!');
+    triggerToast('Sao chép', 'Đã sao chép nội dung vào khay nhớ tạm!');
   };
 
   // Preset Prompt Chips Definitions
@@ -264,11 +328,11 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
       id: 'chip-search-3',
       category: 'search' as const,
       icon: Search,
-      label: 'Mức phụ cấp Trưởng ban CTMT 12 Khu phố',
+      label: 'Mức phụ cấp Trưởng ban CTMT 21 Khu phố',
       desc: 'Tra cứu chính sách cán bộ Mặt trận cơ sở',
       badge: 'Chế độ CB',
       action: () => {
-        const q = 'Mức hỗ trợ và phụ cấp hàng tháng cho Trưởng ban Công tác Mặt trận 12 Khu phố';
+        const q = 'Mức hỗ trợ và phụ cấp hàng tháng cho Trưởng ban Công tác Mặt trận 21 Khu phố';
         setSearchQuery(q);
         setActiveTool('search');
         handleSearchKnowledge(q);
@@ -278,7 +342,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
       id: 'chip-opinion-1',
       category: 'opinion' as const,
       icon: MessageSquare,
-      label: 'Tổng hợp phản ánh dân sinh 12 Khu phố',
+      label: 'Tổng hợp phản ánh dân sinh 21 Khu phố',
       desc: 'Phân tích dư luận xã hội theo khu vực',
       badge: 'Dư luận XH',
       action: () => {
@@ -322,7 +386,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
       desc: 'Soạn bài phát biểu Lễ kỷ niệm truyền thống MTTQ',
       badge: 'Bài phát biểu',
       action: () => {
-        const evt = 'Lễ Kỷ niệm 96 năm Ngày truyền thống Mặt trận Dân tộc Thống nhất Việt Nam tại 12 Khu phố';
+        const evt = 'Lễ Kỷ niệm 96 năm Ngày truyền thống Mặt trận Dân tộc Thống nhất Việt Nam tại 21 Khu phố';
         setSpeechEvent(evt);
         setActiveTool('speech');
         handleGenerateSpeech(evt);
@@ -752,6 +816,268 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
                   {loading ? <Loader2 className="w-4 h-4 animate-spin text-slate-950" /> : <Sparkles className="w-4 h-4 text-slate-950" />}
                   <span>Tạo Báo Cáo Nhanh Dư Luận Bằng AI</span>
                 </button>
+              </div>
+            )}
+
+            {/* TOOL 8: KNOWLEDGE NOTES MANAGEMENT */}
+            {activeTool === 'knowledge_notes' && (
+              <div className="space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-sm">
+                      Sổ Tay Kiến Thức &amp; Hướng Dẫn Nghiệp Vụ
+                    </h3>
+                    <p className="text-[11px] text-slate-500">Cơ sở tri thức bổ sung được kết nối trực tiếp với RAG Search để Gemini tra cứu</p>
+                  </div>
+                  {!isAddingNote && !editingNoteId && (
+                    <button
+                      onClick={() => {
+                        setIsAddingNote(true);
+                        setNoteQuestion('');
+                        setNoteAnswer('');
+                        setNoteCategory('Nghiệp vụ Mặt trận');
+                        setEditingNoteId(null);
+                      }}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1 active:scale-95 text-nowrap"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Thêm ghi chú</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Form Add / Edit Note */}
+                {(isAddingNote || editingNoteId) ? (
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                    <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-700">
+                      {editingNoteId ? 'Cập Nhật Ghi Chú Kiến Thức' : 'Tạo Ghi Chú Kiến Thức Mới'}
+                    </h4>
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">Chủ đề / Chuyên mục</label>
+                        <select
+                          value={noteCategory}
+                          onChange={(e) => setNoteCategory(e.target.value)}
+                          className="w-full p-2.5 border border-slate-300 rounded-xl bg-white outline-hidden font-medium"
+                        >
+                          <option value="Nghiệp vụ Mặt trận">Nghiệp vụ Mặt trận</option>
+                          <option value="Quỹ Vì người nghèo">Quỹ Vì người nghèo</option>
+                          <option value="Cuộc vận động Đô thị văn minh">Cuộc vận động Đô thị văn minh</option>
+                          <option value="Chế độ &amp; Chính sách cán bộ">Chế độ &amp; Chính sách cán bộ</option>
+                          <option value="Ý kiến nhân dân &amp; Giám sát">Ý kiến nhân dân &amp; Giám sát</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">Câu hỏi tra cứu / Tình huống nghiệp vụ (*)</label>
+                        <input
+                          type="text"
+                          value={noteQuestion}
+                          onChange={(e) => setNoteQuestion(e.target.value)}
+                          placeholder="Ví dụ: Mức phụ cấp cho Trưởng ban Công tác Mặt trận là bao nhiêu?"
+                          className="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 bg-white outline-hidden font-medium"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">Nội dung hướng dẫn giải quyết / Câu trả lời chuẩn (*)</label>
+                        <textarea
+                          rows={5}
+                          value={noteAnswer}
+                          onChange={(e) => setNoteAnswer(e.target.value)}
+                          placeholder="Nhập nội dung câu trả lời chuẩn xác dựa trên văn bản pháp lý..."
+                          className="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 bg-white outline-hidden leading-relaxed font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 text-xs">
+                      <button
+                        onClick={() => {
+                          setIsAddingNote(false);
+                          setEditingNoteId(null);
+                        }}
+                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors"
+                      >
+                        Hủy bỏ
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!noteQuestion.trim() || !noteAnswer.trim()) {
+                            triggerToast('Thiếu thông tin', 'Vui lòng nhập đầy đủ câu hỏi và câu trả lời!');
+                            return;
+                          }
+                          const updatedNote: KnowledgeNote = {
+                            id: editingNoteId || 'kn-' + Date.now(),
+                            question: noteQuestion,
+                            answer: noteAnswer,
+                            category: noteCategory,
+                            status: editingNoteId ? (knowledgeNotes.find(n => n.id === editingNoteId)?.status || 'DRAFT') : 'DRAFT',
+                            createdBy: currentStaffUser?.fullname || 'Cán bộ MTTQ',
+                            createdAt: editingNoteId ? (knowledgeNotes.find(n => n.id === editingNoteId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+                          };
+                          if (onSaveKnowledgeNote) {
+                            await onSaveKnowledgeNote(updatedNote);
+                          }
+                          setIsAddingNote(false);
+                          setEditingNoteId(null);
+                        }}
+                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl transition-colors"
+                      >
+                        Lưu ghi chú
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {knowledgeNotes.length === 0 ? (
+                      <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-slate-500 text-xs">
+                        Chưa có ghi chú kiến thức nào được tạo. Hãy bấm "Thêm ghi chú" để tạo hướng dẫn xử lý nghiệp vụ đầu tiên!
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-3">
+                        {knowledgeNotes.map((note) => {
+                          const isLeader = currentStaffUser?.role === 'ADMIN' || currentStaffUser?.role === 'CHAIRMAN';
+                          return (
+                            <div key={note.id} className="p-4 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 shadow-3xs transition-all space-y-2.5">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-100">
+                                  {note.category}
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  {note.status === 'APPROVED' ? (
+                                    <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-0.5">
+                                      <Check className="w-3 h-3" /> Đã duyệt vào RAG
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 flex items-center gap-0.5">
+                                      Chờ duyệt
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                                  {note.question}
+                                </h4>
+                                <p className="text-[11px] text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 whitespace-pre-line font-medium">
+                                  {note.answer}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px] text-slate-400 font-semibold">
+                                <span>Tạo bởi: {note.createdBy}</span>
+                                <div className="flex items-center gap-2">
+                                  {/* Approve button for leaders */}
+                                  {note.status === 'DRAFT' && isLeader && (
+                                    <button
+                                      onClick={async () => {
+                                        if (onSaveKnowledgeNote) {
+                                          await onSaveKnowledgeNote({
+                                            ...note,
+                                            status: 'APPROVED',
+                                            approvedBy: currentStaffUser?.fullname,
+                                            approvedAt: new Date().toISOString()
+                                          });
+                                        }
+                                      }}
+                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg flex items-center gap-0.5 transition-colors"
+                                    >
+                                      <Check className="w-3 h-3" /> Duyệt
+                                    </button>
+                                  )}
+
+                                  <button
+                                    onClick={() => {
+                                      setEditingNoteId(note.id);
+                                      setNoteQuestion(note.question);
+                                      setNoteAnswer(note.answer);
+                                      setNoteCategory(note.category);
+                                    }}
+                                    className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-all"
+                                    title="Chỉnh sửa"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (confirm('Bạn có chắc chắn muốn xóa ghi chú này?')) {
+                                        if (onDeleteKnowledgeNote) {
+                                          await onDeleteKnowledgeNote(note.id);
+                                        }
+                                      }
+                                    }}
+                                    className="p-1 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded transition-all"
+                                    title="Xóa"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TOOL 9: CHAT LOGS HISTORY */}
+            {activeTool === 'chat_history' && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-100 pb-2.5">
+                  <h3 className="font-extrabold text-slate-900 text-sm">
+                    Nhật Ký Tra Cứu &amp; Tham Mưu AI
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Toàn bộ lịch sử các câu hỏi nghiệp vụ và kết quả phản hồi của trợ lý AI để cán bộ tham khảo chéo
+                  </p>
+                </div>
+
+                <div className="space-y-3.5">
+                  {aiChats.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-slate-500 text-xs">
+                      Chưa ghi nhận lịch sử tra cứu nào trong hệ thống.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {aiChats.map((chat) => (
+                        <div key={chat.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-3xs space-y-2">
+                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold border-b border-slate-50 pb-1.5">
+                            <span className="flex items-center gap-1">
+                              <History className="w-3.5 h-3.5 text-blue-600" />
+                              <span>{new Date(chat.timestamp).toLocaleString('vi-VN')}</span>
+                            </span>
+                            <span>Cán bộ: {chat.userName || 'Hệ thống'}</span>
+                          </div>
+
+                          <div className="text-xs space-y-1">
+                            <div className="font-extrabold text-slate-900 flex items-start gap-1">
+                              <span className="text-blue-600 font-black shrink-0">Hỏi:</span>
+                              <span className="leading-relaxed">{chat.query}</span>
+                            </div>
+                            <div className="p-3 bg-slate-50 text-slate-800 rounded-lg border border-slate-100 leading-relaxed font-medium whitespace-pre-line text-[11px] relative">
+                              <span className="text-amber-600 font-black block text-[10px] mb-1">AI TRẢ LỜI:</span>
+                              {chat.response}
+
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(chat.response);
+                                  triggerToast('Sao chép', 'Đã sao chép câu trả lời của AI!');
+                                }}
+                                className="absolute top-2.5 right-2.5 p-1 text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-lg border border-slate-200 shadow-4xs transition-all"
+                                title="Sao chép câu trả lời"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

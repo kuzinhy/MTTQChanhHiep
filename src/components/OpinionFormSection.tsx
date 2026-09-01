@@ -10,12 +10,13 @@ interface OpinionFormSectionProps {
 export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions, onSubmitOpinion }) => {
   const [topic, setTopic] = useState<OpinionTopic>('Vấn đề dân sinh');
   const [content, setContent] = useState('');
-  const [neighborhood, setNeighborhood] = useState('Khu phố 1');
+  const [neighborhood, setNeighborhood] = useState('Tương Bình Hiệp 1');
   const [fullname, setFullname] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Lookup Tool State
   const [lookupCode, setLookupCode] = useState('');
@@ -42,8 +43,9 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!content.trim()) {
-      alert('Vui lòng nhập nội dung phản ánh!');
+      setFormError('Vui lòng nhập nội dung phản ánh hoặc đề xuất cụ thể của bạn!');
       return;
     }
 
@@ -129,6 +131,12 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {formError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs font-semibold">
+                  <AlertCircle className="w-4 h-4 shrink-0 animate-pulse" />
+                  <span>{formError}</span>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
@@ -169,7 +177,10 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                   rows={5}
                   placeholder="Mô tả chi tiết địa điểm, thời gian, sự việc..."
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => {
+                    setContent(e.target.value);
+                    if (formError) setFormError(null);
+                  }}
                   className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden leading-relaxed"
                 />
               </div>

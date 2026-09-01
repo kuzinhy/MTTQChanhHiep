@@ -18,7 +18,7 @@ export const WorkCalendarView: React.FC<WorkCalendarViewProps> = ({ events, onAd
   const [endTime, setEndTime] = useState('2026-08-31 10:30');
   const [location, setLocation] = useState('Hội trường MTTQ Phường Chánh Hiệp');
   const [chair, setChair] = useState('Đ/c Trần Thị Hoa - Chủ tịch MTTQ');
-  const [participants, setParticipants] = useState('Ban Thường trực, Trưởng Ban CTMT 11 khu phố');
+  const [participants, setParticipants] = useState('Ban Thường trực, Trưởng Ban CTMT 21 khu phố');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('Giao ban');
 

@@ -12,6 +12,9 @@ import {
   Building2,
   ChevronDown
 } from 'lucide-react';
+import { AppStorageEngine } from '../lib/storage';
+import { CloudDatabase } from '../lib/firestoreService';
+import { AiChatLog } from '../types';
 
 interface ChatMessage {
   id: string;
@@ -61,10 +64,26 @@ export const AiAssistantWidget: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Gather RAG context from local storage cache
+      const docs = AppStorageEngine.getDocuments() || [];
+      const docContext = docs
+        .map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`)
+        .join('\n');
+
+      const notes = AppStorageEngine.getKnowledgeNotes() || [];
+      const notesString = notes
+        .filter(n => n.status === 'APPROVED')
+        .map(n => `HỎI: ${n.question}\nĐÁP: ${n.answer}`)
+        .join('\n\n');
+
       const response = await fetch('/api/ai/knowledge-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query.trim() })
+        body: JSON.stringify({ 
+          query: query.trim(), 
+          documentsContext: docContext,
+          knowledgeNotesContext: notesString 
+        })
       });
 
       if (!response.ok) {
@@ -83,6 +102,25 @@ export const AiAssistantWidget: React.FC = () => {
           timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+
+      // Save to chat log database
+      const currentStaffUser = AppStorageEngine.getCurrentUser();
+      const newLog: AiChatLog = {
+        id: 'chat-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+        query: query.trim(),
+        response: aiReply,
+        timestamp: new Date().toISOString(),
+        userId: currentStaffUser?.id,
+        userName: currentStaffUser?.fullname || 'Người dân Phường Chánh Hiệp',
+        isStaff: !!currentStaffUser,
+        category: 'Hỏi đáp nhân dân'
+      };
+
+      // Sync locally and trigger cloud save
+      const currentChats = AppStorageEngine.getAiChats() || [];
+      AppStorageEngine.saveAiChats([newLog, ...currentChats]);
+      CloudDatabase.saveAiChat(newLog);
+
     } catch (err: any) {
       setMessages(prev => [
         ...prev,

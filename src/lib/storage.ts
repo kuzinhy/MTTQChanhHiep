@@ -24,7 +24,9 @@ import {
   TemplateDoc, 
   DriveFileItem, 
   StaffUser, 
-  AuditLog 
+  AuditLog,
+  AiChatLog,
+  KnowledgeNote
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -48,7 +50,9 @@ const STORAGE_KEYS = {
   STAFF_USERS: 'mttq_chanhhiep_staff_users_v2',
   AUDIT_LOGS: 'mttq_chanhhiep_audit_logs_v2',
   CURRENT_USER: 'mttq_chanhhiep_current_user_v2',
-  LAST_BACKUP_TIME: 'mttq_chanhhiep_last_backup_time'
+  LAST_BACKUP_TIME: 'mttq_chanhhiep_last_backup_time',
+  AI_CHATS: 'mttq_chanhhiep_ai_chats_v2',
+  KNOWLEDGE_NOTES: 'mttq_chanhhiep_knowledge_notes_v2'
 };
 
 // In-Memory Storage Cache to prevent redundant serialization & disk writes
@@ -259,6 +263,20 @@ export const AppStorageEngine = {
   saveAuditLogs: (logs: AuditLog[]) => {
     const filtered = (logs || []).filter(l => l && l.id);
     saveStorageData(STORAGE_KEYS.AUDIT_LOGS, filtered);
+  },
+
+  getAiChats: (): AiChatLog[] => {
+    return loadInitialData(STORAGE_KEYS.AI_CHATS, []);
+  },
+  saveAiChats: (chats: AiChatLog[]) => {
+    saveStorageData(STORAGE_KEYS.AI_CHATS, chats || []);
+  },
+
+  getKnowledgeNotes: (): KnowledgeNote[] => {
+    return loadInitialData(STORAGE_KEYS.KNOWLEDGE_NOTES, []);
+  },
+  saveKnowledgeNotes: (notes: KnowledgeNote[]) => {
+    saveStorageData(STORAGE_KEYS.KNOWLEDGE_NOTES, notes || []);
   },
 
   getCurrentUser: (): StaffUser | null => {

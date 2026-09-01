@@ -48,6 +48,7 @@ interface CompetitionAdminDetailViewProps {
   onUpdateCompetition: (comp: Competition) => void;
   submissions: CompetitionSubmission[];
   onGradeSubmission?: (subId: string, score: number, comment: string) => void;
+  onShowToast?: (title: string, message: string) => void;
 }
 
 export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProps> = ({
@@ -55,7 +56,8 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
   onBack,
   onUpdateCompetition,
   submissions,
-  onGradeSubmission
+  onGradeSubmission,
+  onShowToast
 }) => {
   const [activeTab, setActiveTab] = useState<
     'OVERVIEW' | 'RULES' | 'QUESTIONS' | 'CONFIG' | 'PARTICIPANTS' | 'SUBMISSIONS' | 'GRADING' | 'RUBRIC' | 'JUDGES' | 'RANKING' | 'ANALYTICS' | 'CERTIFICATES' | 'SHARE'
@@ -64,6 +66,15 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
   // Local editable state for competition
   const [compData, setCompData] = useState<Competition>(competition);
   const [saveNotice, setSaveNotice] = useState(false);
+
+  const triggerToast = (title: string, message: string) => {
+    if (onShowToast) {
+      onShowToast(title, message);
+    } else {
+      setSaveNotice(true);
+      setTimeout(() => setSaveNotice(false), 3000);
+    }
+  };
 
   // Google Drive Upload States
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -106,10 +117,10 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
       }
 
       setCompData(prev => ({ ...prev, bannerUrl: driveLink }));
-      alert(`Đã tải lên và lưu hình ảnh banner thành công!\n- Liên kết: ${driveLink}`);
+      triggerToast('Tải lên banner', `Đã tải lên và lưu hình ảnh banner thành công!`);
       setBannerFile(null);
     } catch (err: any) {
-      alert('Lỗi tải banner: ' + (err?.message || 'Không xác định'));
+      triggerToast('Lỗi tải banner', err?.message || 'Không xác định');
     } finally {
       setIsUploadingBanner(false);
     }
@@ -129,10 +140,10 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
 
       const linkSnippet = `\n\n📌 Tài liệu / Thể lệ đính kèm: [${docFile.name}](${fileUrl})`;
       setCompData(prev => ({ ...prev, rules: (prev.rules || '') + linkSnippet }));
-      alert(`Đã tải tài liệu hội thi "${docFile.name}" thành công! Link đã được chèn vào thể lệ.`);
+      triggerToast('Tải tài liệu', `Đã tải tài liệu hội thi "${docFile.name}" thành công! Link đã được chèn vào thể lệ.`);
       setDocFile(null);
     } catch (err: any) {
-      alert('Lỗi tải tài liệu: ' + (err?.message || 'Không xác định'));
+      triggerToast('Lỗi tải tài liệu', err?.message || 'Không xác định');
     } finally {
       setIsUploadingDoc(false);
     }
@@ -267,7 +278,7 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
                 const updatedStatus = compData.status === 'DRAFT' ? 'OPEN' : 'DRAFT';
                 setCompData(prev => ({ ...prev, status: updatedStatus }));
                 onUpdateCompetition({ ...compData, status: updatedStatus });
-                alert(`Đã chuyển trạng thái cuộc thi thành: ${updatedStatus === 'OPEN' ? 'Đang diễn ra (Xuất bản)' : 'Bản nháp'}`);
+                triggerToast('Cập nhật trạng thái', `Đã chuyển trạng thái cuộc thi thành: ${updatedStatus === 'OPEN' ? 'Đang diễn ra (Xuất bản)' : 'Bản nháp'}`);
               }}
               className={`px-4 py-2.5 font-bold text-xs rounded-xl shadow-md inline-flex items-center gap-2 transition-all cursor-pointer ${
                 compData.status === 'DRAFT' 
@@ -812,7 +823,7 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
               <p className="text-xs text-slate-500">Danh sách bài nộp từ nhân dân và đoàn viên</p>
             </div>
             <button
-              onClick={() => alert('Đã xuất báo cáo danh sách bài dự thi ra Excel thành công!')}
+              onClick={() => triggerToast('Xuất báo cáo', 'Đã xuất báo cáo danh sách bài dự thi ra Excel thành công!')}
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-4 h-4" />
@@ -928,7 +939,7 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
               <p className="text-xs text-slate-500">Xếp hạng thí sinh theo điểm số và thời gian nộp bài</p>
             </div>
             <button
-              onClick={() => alert('Đã công bố kết quả xếp hạng chính thức lên trang công khai!')}
+              onClick={() => triggerToast('Công bố kết quả', 'Đã công bố kết quả xếp hạng chính thức lên trang công khai!')}
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md inline-flex items-center gap-1.5 cursor-pointer"
             >
               <Award className="w-4 h-4" />
@@ -1049,7 +1060,7 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(`${window.location.origin}/#/hoi-thi/${compData.id}`);
-                      alert('Đã sao chép đường dẫn cuộc thi vào bộ nhớ tạm!');
+                      triggerToast('Sao chép đường dẫn', 'Đã sao chép đường dẫn cuộc thi vào bộ nhớ tạm!');
                     }}
                     className="px-4 py-3 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-xs inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
                   >
@@ -1072,7 +1083,7 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
                   </button>
                   <button
                     onClick={() => {
-                      alert('Đã tạo nội dung sẵn sàng chia sẻ qua Zalo OA / Zalo Group!');
+                      triggerToast('Chia sẻ Zalo', 'Đã tạo nội dung sẵn sàng chia sẻ qua Zalo OA / Zalo Group!');
                     }}
                     className="px-4 py-2 bg-sky-600 text-white font-bold text-xs rounded-xl inline-flex items-center gap-2 cursor-pointer"
                   >
@@ -1091,7 +1102,7 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
                 <p className="text-xs text-slate-500 mt-1">Quét bằng camera điện thoại hoặc Zalo để tham gia ngay</p>
               </div>
               <button
-                onClick={() => alert('Đã tải xuống mã QR Code định dạng PNG thành công!')}
+                onClick={() => triggerToast('Tải xuống QR Code', 'Đã tải xuống mã QR Code định dạng PNG thành công!')}
                 className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl inline-flex items-center gap-2 cursor-pointer"
               >
                 <Download className="w-4 h-4" />
@@ -1166,7 +1177,7 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
                   if (onGradeSubmission) {
                     onGradeSubmission(gradingSub.id, gradeScore, gradeComment);
                   }
-                  alert(`Đã chấm điểm thành công cho thí sinh ${gradingSub.participantName}: ${gradeScore} điểm!`);
+                  triggerToast('Chấm điểm thành công', `Đã chấm điểm thành công cho thí sinh ${gradingSub.participantName}: ${gradeScore} điểm!`);
                   setGradingSub(null);
                 }}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer"

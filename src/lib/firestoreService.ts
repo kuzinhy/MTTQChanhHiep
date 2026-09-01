@@ -38,7 +38,9 @@ import {
   TemplateDoc,
   DriveFileItem,
   StaffUser,
-  AuditLog
+  AuditLog,
+  AiChatLog,
+  KnowledgeNote
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -77,7 +79,9 @@ export const FirestoreCollections = {
   DRIVE_FILES: 'driveFiles',
   STAFF_USERS: 'staffUsers',
   AUDIT_LOGS: 'auditLogs',
-  SETTINGS: 'settings'
+  SETTINGS: 'settings',
+  AI_CHATS: 'aiChats',
+  KNOWLEDGE_NOTES: 'knowledgeNotes'
 };
 
 class CloudSyncService {
@@ -98,6 +102,8 @@ class CloudSyncService {
       onTemplatesUpdate?: (templates: TemplateDoc[]) => void;
       onStaffUsersUpdate?: (users: StaffUser[]) => void;
       onAuditLogsUpdate?: (logs: AuditLog[]) => void;
+      onAiChatsUpdate?: (chats: AiChatLog[]) => void;
+      onKnowledgeNotesUpdate?: (notes: KnowledgeNote[]) => void;
     }
   ) {
     if (this.isInitialized) return;
@@ -271,6 +277,37 @@ class CloudSyncService {
         this.syncListeners.push(unsub);
       }
 
+      // AI Chats Listener
+      if (callbacks.onAiChatsUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.AI_CHATS), (snapshot) => {
+          const remoteChats: AiChatLog[] = snapshot.docs
+            .map(d => ({ ...(d.data() as AiChatLog), id: d.id }))
+            .filter(c => c && c.id);
+          
+          remoteChats.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          AppStorageEngine.saveAiChats(remoteChats);
+          callbacks.onAiChatsUpdate?.(remoteChats);
+        }, (err) => {
+          console.warn('[Firestore] AI Chats sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
+      // Knowledge Notes Listener
+      if (callbacks.onKnowledgeNotesUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.KNOWLEDGE_NOTES), (snapshot) => {
+          const remoteNotes: KnowledgeNote[] = snapshot.docs
+            .map(d => ({ ...(d.data() as KnowledgeNote), id: d.id }))
+            .filter(n => n && n.id);
+          
+          AppStorageEngine.saveKnowledgeNotes(remoteNotes);
+          callbacks.onKnowledgeNotesUpdate?.(remoteNotes);
+        }, (err) => {
+          console.warn('[Firestore] Knowledge Notes sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
       // 3. Database successfully initialized. Clients will listen to real-time cloud updates.
       // A manual cloud sync is still available via the UI's "Đồng bộ Cloud" button if needed.
 
@@ -437,6 +474,41 @@ class CloudSyncService {
       return true;
     } catch (err) {
       console.error('[Firestore] Error deleting article:', err);
+      return false;
+    }
+  }
+
+  // AI Chat Logs
+  async saveAiChat(chat: AiChatLog): Promise<boolean> {
+    try {
+      const cDoc = doc(db, FirestoreCollections.AI_CHATS, chat.id);
+      await setDoc(cDoc, cleanFirestoreData(chat), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving AI chat:', err);
+      return false;
+    }
+  }
+
+  // Knowledge Notes
+  async saveKnowledgeNote(note: KnowledgeNote): Promise<boolean> {
+    try {
+      const nDoc = doc(db, FirestoreCollections.KNOWLEDGE_NOTES, note.id);
+      await setDoc(nDoc, cleanFirestoreData(note), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving knowledge note:', err);
+      return false;
+    }
+  }
+
+  async deleteKnowledgeNote(noteId: string): Promise<boolean> {
+    try {
+      const nDoc = doc(db, FirestoreCollections.KNOWLEDGE_NOTES, noteId);
+      await deleteDoc(nDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting knowledge note:', err);
       return false;
     }
   }
@@ -636,6 +708,18 @@ class CloudSyncService {
       const compsSnap = await getDocs(collection(db, FirestoreCollections.COMPETITIONS));
       if (!compsSnap.empty) {
         AppStorageEngine.saveCompetitions(sortCompetitionsNewestFirst(compsSnap.docs.map(d => ({ ...(d.data() as Competition), id: d.id }))));
+      }
+
+      const chatsSnap = await getDocs(collection(db, FirestoreCollections.AI_CHATS));
+      if (!chatsSnap.empty) {
+        const remoteChats = chatsSnap.docs.map(d => ({ ...(d.data() as AiChatLog), id: d.id }));
+        remoteChats.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        AppStorageEngine.saveAiChats(remoteChats);
+      }
+
+      const knowledgeSnap = await getDocs(collection(db, FirestoreCollections.KNOWLEDGE_NOTES));
+      if (!knowledgeSnap.empty) {
+        AppStorageEngine.saveKnowledgeNotes(knowledgeSnap.docs.map(d => ({ ...(d.data() as KnowledgeNote), id: d.id })));
       }
 
       return true;

@@ -36,6 +36,7 @@ import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
+import { SessionLockScreen } from './components/office/SessionLockScreen';
 import { ToastContainer } from './components/ToastNotification';
 
 import { 
@@ -44,7 +45,7 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -83,6 +84,14 @@ export default function App() {
   // Authentication State
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentStaffUser, setCurrentStaffUser] = useState<StaffUser | null>(() => AppStorageEngine.getCurrentUser());
+  const [isLocked, setIsLocked] = useState<boolean>(() => {
+    return localStorage.getItem('office_session_locked') === 'true';
+  });
+
+  // Keep lock state synchronized to localStorage
+  useEffect(() => {
+    localStorage.setItem('office_session_locked', isLocked.toString());
+  }, [isLocked]);
 
   // Data Collections with Local Persistence Engine
   const [articles, setArticles] = useState<Article[]>(() => AppStorageEngine.getArticles());
@@ -97,6 +106,8 @@ export default function App() {
   const [notes, setNotes] = useState(() => AppStorageEngine.getNotes());
   const [templates] = useState(INITIAL_TEMPLATES);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>(() => AppStorageEngine.getStaffUsers());
+  const [aiChats, setAiChats] = useState<AiChatLog[]>(() => AppStorageEngine.getAiChats());
+  const [knowledgeNotes, setKnowledgeNotes] = useState<KnowledgeNote[]>(() => AppStorageEngine.getKnowledgeNotes());
 
   // Initialize real-time visitor & session tracking & Firebase Cloud Sync
   useEffect(() => {
@@ -124,6 +135,8 @@ export default function App() {
         }
       },
       onAuditLogsUpdate: (logs) => setAuditLogs(logs),
+      onAiChatsUpdate: (chats) => setAiChats(chats),
+      onKnowledgeNotesUpdate: (notes) => setKnowledgeNotes(notes),
     });
   }, []);
 
@@ -140,6 +153,8 @@ export default function App() {
   useEffect(() => { AppStorageEngine.saveStaffUsers(staffUsers); }, [staffUsers]);
   useEffect(() => { AppStorageEngine.saveAuditLogs(auditLogs); }, [auditLogs]);
   useEffect(() => { AppStorageEngine.saveCurrentUser(currentStaffUser); }, [currentStaffUser]);
+  useEffect(() => { AppStorageEngine.saveAiChats(aiChats); }, [aiChats]);
+  useEffect(() => { AppStorageEngine.saveKnowledgeNotes(knowledgeNotes); }, [knowledgeNotes]);
 
   // Handle Hash Routing for Public Competition Pages (e.g. #/hoi-thi/:id)
   useEffect(() => {
@@ -257,7 +272,14 @@ export default function App() {
 
   // Simulation Triggers for Testing
   const handleTriggerSimulatedOpinion = () => {
-    const neighborhoodNum = Math.floor(Math.random() * 12) + 1;
+    const REAL_NEIGHBORHOODS = [
+      'Tương Bình Hiệp 1', 'Tương Bình Hiệp 2', 'Tương Bình Hiệp 3', 'Tương Bình Hiệp 4', 'Tương Bình Hiệp 5', 'Tương Bình Hiệp 6', 'Tương Bình Hiệp 7',
+      'Hiệp An 7', 'Hiệp An 8', 'Hiệp An 9',
+      'Định Hòa 1', 'Định Hòa 2', 'Định Hòa 3', 'Định Hòa 4', 'Định Hòa 5', 'Định Hòa 6', 'Định Hòa 7', 'Định Hòa 8',
+      'Mỹ Hảo',
+      'Chánh Mỹ 1', 'Chánh Mỹ 2'
+    ];
+    const randomNb = REAL_NEIGHBORHOODS[Math.floor(Math.random() * REAL_NEIGHBORHOODS.length)];
     const randomTopics: any[] = ['Vấn đề dân sinh', 'Môi trường & Đô thị', 'An sinh xã hội', 'Trật tự an toàn'];
     const selectedTopic = randomTopics[Math.floor(Math.random() * randomTopics.length)];
     const code = 'PA-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
@@ -266,9 +288,9 @@ export default function App() {
       id: 'sim-op-' + Date.now(),
       receiptCode: code,
       topic: selectedTopic,
-      content: `Đề nghị Ban Thường trực MTTQ kiểm tra, khắc phục tình trạng đọng nước và chiếu sáng công cộng tại hẻm thuộc Khu phố ${neighborhoodNum}.`,
-      neighborhood: `Khu phố ${neighborhoodNum}`,
-      fullname: `Nguyễn Văn Dân (${neighborhoodNum})`,
+      content: `Đề nghị Ban Thường trực MTTQ kiểm tra, khắc phục tình trạng đọng nước và chiếu sáng công cộng tại hẻm thuộc địa bàn ${randomNb}.`,
+      neighborhood: randomNb,
+      fullname: `Nguyễn Văn Dân (${randomNb})`,
       phone: '0908123xxx',
       isAnonymous: false,
       status: 'NEW',
@@ -539,308 +561,321 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white">
       
-      {/* PUBLIC PORTAL SPACE */}
-      {currentSpace === 'PORTAL' && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="flex flex-col min-h-screen"
-        >
-          <Navbar
-            activeTab={portalTab}
-            setActiveTab={handleSelectPortalTab}
-            onOpenLoginModal={() => setShowStaffLoginPage(true)}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            isStaffLoggedIn={!!currentStaffUser}
-            onGoToOffice={() => {
-              if (currentStaffUser) {
-                setCurrentSpace('OFFICE');
-              } else {
-                setShowStaffLoginPage(true);
-              }
-            }}
-          />
-
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-10">
-            {showStaffLoginPage ? (
-              <StaffLoginPage
-                staffUsers={staffUsers}
-                onLoginSuccess={(user) => {
-                  setCurrentStaffUser(user);
-                  setShowStaffLoginPage(false);
-                  setCurrentSpace('OFFICE');
-                }}
-                onBack={() => setShowStaffLoginPage(false)}
-              />
-            ) : selectedArticle ? (
-              <ArticleDetailPage
-                article={selectedArticle}
-                allArticles={articles}
-                articles={articles}
-                onBack={() => setSelectedArticle(null)}
-                onSelectArticle={(art) => {
-                  setSelectedArticle(art);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                onGoToOpinion={() => handleSelectPortalTab('opinion')}
-                onSelectDocumentTab={() => handleSelectPortalTab('documents')}
-              />
-            ) : selectedDocument ? (
-              <DocumentDetailPage
-                document={selectedDocument}
-                onBack={() => setSelectedDocument(null)}
-                onDownload={(doc) => {
-                  alert(`Đang tải file văn bản chính thức: ${doc.codeNumber}`);
-                }}
-              />
-            ) : selectedCompetition ? (
-              <CompetitionDetailPage
-                competition={selectedCompetition}
-                triviaQuestions={INITIAL_TRIVIA_QUESTIONS}
-                onAddSubmission={handleAddSubmission}
-                onBack={() => setSelectedCompetition(null)}
-              />
-            ) : (
-              <>
-                {portalTab === 'home' && (
-                  <>
-                    {/* Quick Services Grid - Vibrant Colorful Modern Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <motion.div 
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSelectPortalTab('opinion')}
-                        className="bg-gradient-to-br from-rose-50 via-white to-pink-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-rose-200/90 shadow-xs"
-                      >
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-rose-600">Dân sinh & Trợ cấp</span>
-                          </div>
-                          <h3 className="font-black text-sm text-slate-900 group-hover:text-rose-600 transition-colors">Gửi Ý kiến Dân sinh</h3>
-                          <p className="text-xs text-slate-500 mt-0.5 font-medium">Nắm bắt dư luận & trợ cấp</p>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-600 to-red-600 text-white shadow-md shadow-rose-500/20 group-hover:scale-110 transition-transform">
-                          <MessageSquare className="w-5 h-5" />
-                        </div>
-                      </motion.div>
-
-                      <motion.div 
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSelectPortalTab('competitions')}
-                        className="bg-gradient-to-br from-amber-50 via-white to-orange-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-amber-200/90 shadow-xs"
-                      >
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">Phong trào thi đua</span>
-                          </div>
-                          <h3 className="font-black text-sm text-slate-900 group-hover:text-amber-700 transition-colors">Hội thi Trực tuyến</h3>
-                          <p className="text-xs text-slate-500 mt-0.5 font-medium">Thi trắc nghiệm & giải thưởng</p>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
-                          <Sparkles className="w-5 h-5" />
-                        </div>
-                      </motion.div>
-
-                      <motion.div 
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSelectPortalTab('documents')}
-                        className="bg-gradient-to-br from-blue-50 via-white to-sky-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-blue-200/90 shadow-xs"
-                      >
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-blue-700">Tra cứu số hóa</span>
-                          </div>
-                          <h3 className="font-black text-sm text-slate-900 group-hover:text-blue-700 transition-colors">Kho Văn bản Mặt trận</h3>
-                          <p className="text-xs text-slate-500 mt-0.5 font-medium">Kế hoạch & quyết định mới</p>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                          <FileText className="w-5 h-5" />
-                        </div>
-                      </motion.div>
-
-                      <motion.div 
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          if (currentStaffUser) {
-                            setCurrentSpace('OFFICE');
-                          } else {
-                            setShowStaffLoginPage(true);
-                          }
-                        }}
-                        className="bg-gradient-to-br from-emerald-50 via-white to-teal-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-emerald-200/90 shadow-xs"
-                      >
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Không gian điều hành</span>
-                          </div>
-                          <h3 className="font-black text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">Văn phòng Số Cán bộ</h3>
-                          <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                            {currentStaffUser ? `Đang đăng nhập: ${currentStaffUser.fullname}` : 'Đăng nhập bảo mật & quản trị'}
-                          </p>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-                          <ShieldCheck className="w-5 h-5" />
-                        </div>
-                      </motion.div>
-                    </div>
-
-                    <HeroCarousel articles={articles} onSelectArticle={(art) => setSelectedArticle(art)} />
-
-                    <NewsSection
-                      articles={articles}
-                      searchQuery={searchQuery}
-                      onSelectArticle={(art) => setSelectedArticle(art)}
-                    />
-                    <WorkCalendarSection events={events} />
-                    <DocumentsSection
-                      documents={documents}
-                      onSelectDocument={(doc) => setSelectedDocument(doc)}
-                    />
-                  </>
-                )}
-
-                {portalTab === 'news' && (
-                  <NewsSection
-                    articles={articles}
-                    searchQuery={searchQuery}
-                    onSelectArticle={(art) => setSelectedArticle(art)}
-                  />
-                )}
-                {portalTab === 'documents' && (
-                  <DocumentsSection
-                    documents={documents}
-                    onSelectDocument={(doc) => setSelectedDocument(doc)}
-                  />
-                )}
-                {portalTab === 'competitions' && (
-                  <CompetitionsSection
-                    competitions={competitions}
-                    onSelectCompetition={(comp) => setSelectedCompetition(comp)}
-                  />
-                )}
-                {portalTab === 'opinion' && (
-                  <OpinionFormSection opinions={opinions} onSubmitOpinion={handleAddOpinion} />
-                )}
-              </>
-            )}
-          </main>
-
-          <Footer />
-          <AiAssistantWidget />
-        </motion.div>
-      )}
-
-      {/* DIGITAL OFFICE SPACE */}
-      {currentSpace === 'OFFICE' && (
-        !currentStaffUser ? (
-          <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+      <AnimatePresence mode="wait">
+        {/* PUBLIC PORTAL SPACE */}
+        {currentSpace === 'PORTAL' ? (
+          <motion.div 
+            key="portal-space"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="flex flex-col min-h-screen"
+          >
             <Navbar
               activeTab={portalTab}
-              setActiveTab={(tab) => {
-                setCurrentSpace('PORTAL');
-                handleSelectPortalTab(tab);
-              }}
+              setActiveTab={handleSelectPortalTab}
               onOpenLoginModal={() => setShowStaffLoginPage(true)}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              isStaffLoggedIn={false}
-              onGoToOffice={() => setShowStaffLoginPage(true)}
+              isStaffLoggedIn={!!currentStaffUser}
+              onGoToOffice={() => {
+                if (currentStaffUser) {
+                  setCurrentSpace('OFFICE');
+                } else {
+                  setShowStaffLoginPage(true);
+                }
+              }}
             />
-            <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex items-center justify-center">
-              <div className="w-full">
+
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-10">
+              {showStaffLoginPage ? (
                 <StaffLoginPage
                   staffUsers={staffUsers}
                   onLoginSuccess={(user) => {
                     setCurrentStaffUser(user);
-                    AppStorageEngine.saveCurrentUser(user);
+                    setShowStaffLoginPage(false);
                     setCurrentSpace('OFFICE');
                   }}
-                  onBack={() => setCurrentSpace('PORTAL')}
+                  onBack={() => setShowStaffLoginPage(false)}
                 />
-              </div>
-            </div>
-            <Footer />
-          </div>
-        ) : (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="flex h-screen overflow-hidden bg-slate-100"
-        >
-          <DigitalOfficeSidebar
-            currentView={officeView}
-            setCurrentView={(view) => {
-              setOfficeView(view);
-              setIsMobileOfficeSidebarOpen(false);
-            }}
-            onGoToPortal={() => setCurrentSpace('PORTAL')}
-            onLogout={() => {
-              setCurrentStaffUser(null);
-              setCurrentSpace('PORTAL');
-            }}
-            staffName={currentStaffUser?.fullname || ''}
-            staffRole={currentStaffUser?.role || ''}
-            staffAvatar={currentStaffUser?.avatar}
-            isMobileOpen={isMobileOfficeSidebarOpen}
-            onCloseMobile={() => setIsMobileOfficeSidebarOpen(false)}
-          />
-
-          <div className="flex-1 flex flex-col overflow-y-auto">
-            <DigitalOfficeHeader
-              staffName={currentStaffUser?.fullname || ''}
-              staffPosition={currentStaffUser?.position || ''}
-              staffAvatar={currentStaffUser?.avatar}
-              staffRole={currentStaffUser?.role || 'STAFF'}
-              staffEmail={currentStaffUser?.email}
-              staffDepartment={currentStaffUser?.department}
-              onNavigate={(view) => setOfficeView(view)}
-              onOpenProfile={() => setOfficeView('profile')}
-              onOpenAi={() => setOfficeView('ai_assistant')}
-              onGoToPortal={() => setCurrentSpace('PORTAL')}
-              onForceCloudSync={handleForceCloudSync}
-              onToggleMobileSidebar={() => setIsMobileOfficeSidebarOpen(true)}
-              onLogout={async () => {
-                try {
-                  await signOut(auth);
-                } catch (e) {
-                  console.error('SignOut error:', e);
-                }
-                setCurrentStaffUser(null);
-                AppStorageEngine.saveCurrentUser(null);
-                setCurrentSpace('PORTAL');
-              }}
-              onTriggerSimulatedOpinion={handleTriggerSimulatedOpinion}
-              onTriggerSimulatedDocApproval={handleTriggerSimulatedDocApproval}
-            />
-
-            <main className="flex-1 pb-12 p-2 sm:p-4">
-              {!isOfficeViewAllowed ? (
-                <div className="p-8 max-w-lg mx-auto my-12 bg-white rounded-3xl border border-red-200 shadow-xl text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-red-100 text-red-700 mx-auto flex items-center justify-center">
-                    <Lock className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-lg font-black text-slate-900">Giới hạn Quyền Truy cập</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Tài khoản của bạn ({currentStaffUser?.fullname} - <span className="font-extrabold text-red-800">{userRole}</span>) không đủ phân quyền để xem chức năng này.
-                  </p>
-                  <button
-                    onClick={() => setOfficeView('dashboard')}
-                    className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-bold rounded-xl transition-colors"
-                  >
-                    Về Trang Tổng quan
-                  </button>
-                </div>
+              ) : selectedArticle ? (
+                <ArticleDetailPage
+                  article={selectedArticle}
+                  allArticles={articles}
+                  articles={articles}
+                  onBack={() => setSelectedArticle(null)}
+                  onSelectArticle={(art) => {
+                    setSelectedArticle(art);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onGoToOpinion={() => handleSelectPortalTab('opinion')}
+                  onSelectDocumentTab={() => handleSelectPortalTab('documents')}
+                />
+              ) : selectedDocument ? (
+                <DocumentDetailPage
+                  document={selectedDocument}
+                  onBack={() => setSelectedDocument(null)}
+                  onDownload={(doc) => {
+                    handleTriggerSystemToast('Tải văn bản chính thức', `Hệ thống đang chuẩn bị tệp và tải xuống văn bản số ${doc.codeNumber}...`);
+                  }}
+                />
+              ) : selectedCompetition ? (
+                <CompetitionDetailPage
+                  competition={selectedCompetition}
+                  triviaQuestions={INITIAL_TRIVIA_QUESTIONS}
+                  onAddSubmission={handleAddSubmission}
+                  onBack={() => setSelectedCompetition(null)}
+                />
               ) : (
+                <>
+                  {portalTab === 'home' && (
+                    <>
+                      {/* Quick Services Grid - Vibrant Colorful Modern Cards */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <motion.div 
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleSelectPortalTab('opinion')}
+                          className="bg-gradient-to-br from-rose-50 via-white to-pink-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-rose-200/90 shadow-xs"
+                        >
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-rose-600">Dân sinh & Trợ cấp</span>
+                            </div>
+                            <h3 className="font-black text-sm text-slate-900 group-hover:text-rose-600 transition-colors">Gửi Ý kiến Dân sinh</h3>
+                            <p className="text-xs text-slate-500 mt-0.5 font-medium">Nắm bắt dư luận & trợ cấp</p>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-600 to-red-600 text-white shadow-md shadow-rose-500/20 group-hover:scale-110 transition-transform">
+                            <MessageSquare className="w-5 h-5" />
+                          </div>
+                        </motion.div>
+
+                        <motion.div 
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleSelectPortalTab('competitions')}
+                          className="bg-gradient-to-br from-amber-50 via-white to-orange-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-amber-200/90 shadow-xs"
+                        >
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">Phong trào thi đua</span>
+                            </div>
+                            <h3 className="font-black text-sm text-slate-900 group-hover:text-amber-700 transition-colors">Hội thi Trực tuyến</h3>
+                            <p className="text-xs text-slate-500 mt-0.5 font-medium">Thi trắc nghiệm & giải thưởng</p>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                            <Sparkles className="w-5 h-5" />
+                          </div>
+                        </motion.div>
+
+                        <motion.div 
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleSelectPortalTab('documents')}
+                          className="bg-gradient-to-br from-blue-50 via-white to-sky-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-blue-200/90 shadow-xs"
+                        >
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-blue-700">Tra cứu số hóa</span>
+                            </div>
+                            <h3 className="font-black text-sm text-slate-900 group-hover:text-blue-700 transition-colors">Kho Văn bản Mặt trận</h3>
+                            <p className="text-xs text-slate-500 mt-0.5 font-medium">Kế hoạch & quyết định mới</p>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                        </motion.div>
+
+                        <motion.div 
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            if (currentStaffUser) {
+                              setCurrentSpace('OFFICE');
+                            } else {
+                              setShowStaffLoginPage(true);
+                            }
+                          }}
+                          className="bg-gradient-to-br from-emerald-50 via-white to-teal-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-emerald-200/90 shadow-xs"
+                        >
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Không gian điều hành</span>
+                            </div>
+                            <h3 className="font-black text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">Văn phòng Số Cán bộ</h3>
+                            <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                              {currentStaffUser ? `Đang đăng nhập: ${currentStaffUser.fullname}` : 'Đăng nhập bảo mật & quản trị'}
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                            <ShieldCheck className="w-5 h-5" />
+                          </div>
+                        </motion.div>
+                      </div>
+
+                      <HeroCarousel articles={articles} onSelectArticle={(art) => setSelectedArticle(art)} />
+
+                      <NewsSection
+                        articles={articles}
+                        searchQuery={searchQuery}
+                        onSelectArticle={(art) => setSelectedArticle(art)}
+                        onGoToOpinion={() => setPortalTab('opinion')}
+                      />
+                      <WorkCalendarSection events={events} />
+                      <DocumentsSection
+                        documents={documents}
+                        onSelectDocument={(doc) => setSelectedDocument(doc)}
+                      />
+                    </>
+                  )}
+
+                  {portalTab === 'news' && (
+                    <NewsSection
+                      articles={articles}
+                      searchQuery={searchQuery}
+                      onSelectArticle={(art) => setSelectedArticle(art)}
+                      onGoToOpinion={() => setPortalTab('opinion')}
+                    />
+                  )}
+                  {portalTab === 'documents' && (
+                    <DocumentsSection
+                      documents={documents}
+                      onSelectDocument={(doc) => setSelectedDocument(doc)}
+                    />
+                  )}
+                  {portalTab === 'competitions' && (
+                    <CompetitionsSection
+                      competitions={competitions}
+                      onSelectCompetition={(comp) => setSelectedCompetition(comp)}
+                    />
+                  )}
+                  {portalTab === 'opinion' && (
+                    <OpinionFormSection opinions={opinions} onSubmitOpinion={handleAddOpinion} />
+                  )}
+                </>
+              )}
+            </main>
+
+            <Footer />
+            <AiAssistantWidget />
+          </motion.div>
+        ) : (
+          /* DIGITAL OFFICE SPACE */
+          !currentStaffUser ? (
+            <motion.div 
+              key="office-login-space"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              className="min-h-screen bg-slate-50 flex flex-col justify-between"
+            >
+              <Navbar
+                activeTab={portalTab}
+                setActiveTab={(tab) => {
+                  setCurrentSpace('PORTAL');
+                  handleSelectPortalTab(tab);
+                }}
+                onOpenLoginModal={() => setShowStaffLoginPage(true)}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                isStaffLoggedIn={false}
+                onGoToOffice={() => setShowStaffLoginPage(true)}
+              />
+              <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex items-center justify-center">
+                <div className="w-full">
+                  <StaffLoginPage
+                    staffUsers={staffUsers}
+                    onLoginSuccess={(user) => {
+                      setCurrentStaffUser(user);
+                      AppStorageEngine.saveCurrentUser(user);
+                      setIsLocked(false);
+                      setCurrentSpace('OFFICE');
+                    }}
+                    onBack={() => setCurrentSpace('PORTAL')}
+                  />
+                </div>
+              </div>
+              <Footer />
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="office-dashboard-space"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              className="flex h-screen overflow-hidden bg-slate-100"
+            >
+              <DigitalOfficeSidebar
+                currentView={officeView}
+                setCurrentView={(view) => {
+                  setOfficeView(view);
+                  setIsMobileOfficeSidebarOpen(false);
+                }}
+                onGoToPortal={() => setCurrentSpace('PORTAL')}
+                onLogout={() => {
+                  setCurrentStaffUser(null);
+                  setCurrentSpace('PORTAL');
+                }}
+                staffName={currentStaffUser?.fullname || ''}
+                staffRole={currentStaffUser?.role || ''}
+                staffAvatar={currentStaffUser?.avatar}
+                isMobileOpen={isMobileOfficeSidebarOpen}
+                onCloseMobile={() => setIsMobileOfficeSidebarOpen(false)}
+              />
+
+              <div className="flex-1 flex flex-col overflow-y-auto">
+                <DigitalOfficeHeader
+                  staffName={currentStaffUser?.fullname || ''}
+                  staffPosition={currentStaffUser?.position || ''}
+                  staffAvatar={currentStaffUser?.avatar}
+                  staffRole={currentStaffUser?.role || 'STAFF'}
+                  staffEmail={currentStaffUser?.email}
+                  staffDepartment={currentStaffUser?.department}
+                  onNavigate={(view) => setOfficeView(view)}
+                  onOpenProfile={() => setOfficeView('profile')}
+                  onOpenAi={() => setOfficeView('ai_assistant')}
+                  onGoToPortal={() => setCurrentSpace('PORTAL')}
+                  onForceCloudSync={handleForceCloudSync}
+                  onToggleMobileSidebar={() => setIsMobileOfficeSidebarOpen(true)}
+                  onLogout={async () => {
+                    try {
+                      await signOut(auth);
+                    } catch (e) {
+                      console.error('SignOut error:', e);
+                    }
+                    setCurrentStaffUser(null);
+                    AppStorageEngine.saveCurrentUser(null);
+                    setCurrentSpace('PORTAL');
+                  }}
+                  onTriggerSimulatedOpinion={handleTriggerSimulatedOpinion}
+                  onTriggerSimulatedDocApproval={handleTriggerSimulatedDocApproval}
+                />
+
+                <main className="flex-1 pb-12 p-2 sm:p-4">
+                  {!isOfficeViewAllowed ? (
+                    <div className="p-8 max-w-lg mx-auto my-12 bg-white rounded-3xl border border-red-200 shadow-xl text-center space-y-4">
+                      <div className="w-16 h-16 rounded-2xl bg-red-100 text-red-700 mx-auto flex items-center justify-center">
+                        <Lock className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-lg font-black text-slate-900">Giới hạn Quyền Truy cập</h3>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        Tài khoản của bạn ({currentStaffUser?.fullname} - <span className="font-extrabold text-red-800">{userRole}</span>) không đủ phân quyền để xem chức năng này.
+                      </p>
+                      <button
+                        onClick={() => setOfficeView('dashboard')}
+                        className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-bold rounded-xl transition-colors"
+                      >
+                        Về Trang Tổng quan
+                      </button>
+                    </div>
+                  ) : (
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={officeView}
@@ -913,8 +948,24 @@ export default function App() {
 
                     {officeView === 'ai_assistant' && (
                       <AiAssistantView
-                        documentsContext={documents.map(d => `${d.codeNumber}: ${d.title}`).join('\n')}
+                        documentsContext={documents.map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`).join('\n')}
                         opinionsContext={opinions}
+                        aiChats={aiChats}
+                        knowledgeNotes={knowledgeNotes}
+                        currentStaffUser={currentStaffUser}
+                        onSaveAiChat={async (chat) => {
+                          setAiChats(prev => [chat, ...prev]);
+                          CloudDatabase.saveAiChat(chat);
+                        }}
+                        onSaveKnowledgeNote={async (note) => {
+                          setKnowledgeNotes(prev => [note, ...prev]);
+                          CloudDatabase.saveKnowledgeNote(note);
+                        }}
+                        onDeleteKnowledgeNote={async (id) => {
+                          setKnowledgeNotes(prev => prev.filter(n => n.id !== id));
+                          CloudDatabase.deleteKnowledgeNote(id);
+                        }}
+                        onShowToast={handleTriggerSystemToast}
                       />
                     )}
 
@@ -945,6 +996,7 @@ export default function App() {
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
                         onRequestDocApproval={handleTriggerDocApprovalToast}
                         onForceCloudSync={handleForceCloudSync}
+                        onShowToast={handleTriggerSystemToast}
                       />
                     )}
 
@@ -967,6 +1019,7 @@ export default function App() {
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
                         onRequestDocApproval={handleTriggerDocApprovalToast}
                         onForceCloudSync={handleForceCloudSync}
+                        onShowToast={handleTriggerSystemToast}
                       />
                     )}
 
@@ -1041,6 +1094,7 @@ export default function App() {
                             });
                             handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ.');
                           }}
+                          onShowToast={handleTriggerSystemToast}
                         />
                       ) : (
                         <CompetitionsAdminView
@@ -1131,8 +1185,9 @@ export default function App() {
             </main>
           </div>
         </motion.div>
-        )
-      )}
+          )
+        )}
+      </AnimatePresence>
 
       {/* STAFF LOGIN MODAL */}
       <StaffLoginModal
@@ -1147,8 +1202,32 @@ export default function App() {
           setCurrentStaffUser(user);
           AppStorageEngine.saveCurrentUser(user);
           CloudDatabase.saveStaffUser(user);
+          setIsLocked(false);
           setCurrentSpace('OFFICE');
         }}
+      />
+
+      {/* SESSION LOCK & WARNING SCREEN */}
+      <SessionLockScreen
+        currentUser={currentStaffUser}
+        onUnlock={() => {
+          handleTriggerSystemToast('Đã mở khóa', 'Phiên làm việc của bạn đã được khôi phục an toàn.');
+        }}
+        onLogout={async () => {
+          try {
+            await signOut(auth);
+          } catch (e) {
+            console.error('SignOut error:', e);
+          }
+          setCurrentStaffUser(null);
+          AppStorageEngine.saveCurrentUser(null);
+          setCurrentSpace('PORTAL');
+          handleTriggerSystemToast('Đã đăng xuất', 'Phiên làm việc đã kết thúc.');
+        }}
+        auditLogs={auditLogs}
+        setAuditLogs={setAuditLogs}
+        isLocked={isLocked}
+        setIsLocked={setIsLocked}
       />
 
       {/* REAL-TIME TOAST NOTIFICATION CONTAINER */}

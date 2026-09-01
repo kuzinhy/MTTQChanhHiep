@@ -52,6 +52,7 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
   // Essay states
   const [essayText, setEssayText] = useState('');
   const [essaySubmitted, setEssaySubmitted] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -112,8 +113,9 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
   ];
 
   const handleConfirmStartQuiz = () => {
+    setFormError(null);
     if (!participantName.trim() || !phone.trim()) {
-      alert('Vui lòng nhập đầy đủ Họ tên và Số điện thoại thi sinh!');
+      setFormError('Vui lòng nhập đầy đủ Họ tên và Số điện thoại thí sinh để tiếp tục!');
       return;
     }
     setQuizStarted(true);
@@ -150,8 +152,9 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
 
   const handleSubmitEssay = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!participantName.trim() || !phone.trim() || !essayText.trim()) {
-      alert('Vui lòng nhập đầy đủ thông tin tác giả và nội dung bài viết!');
+      setFormError('Vui lòng điền đầy đủ Họ tên, Số điện thoại và Nội dung bài thi cảm nhận!');
       return;
     }
 
@@ -265,6 +268,12 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
                   <span>Thông tin thí sinh tham gia</span>
                 </h3>
 
+                {formError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs font-semibold animate-pulse">
+                    <span>⚠️ {formError}</span>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-bold text-slate-700 block mb-1">Họ và tên thí sinh (*)</label>
@@ -272,7 +281,10 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
                       type="text"
                       placeholder="Nguyễn Văn A"
                       value={participantName}
-                      onChange={(e) => setParticipantName(e.target.value)}
+                      onChange={(e) => {
+                        setParticipantName(e.target.value);
+                        if (formError) setFormError(null);
+                      }}
                       className="w-full text-xs px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
                     />
                   </div>
@@ -283,7 +295,10 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
                       type="text"
                       placeholder="0908xxxxxx"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        if (formError) setFormError(null);
+                      }}
                       className="w-full text-xs px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
                     />
                   </div>
@@ -423,6 +438,12 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
                 <p className="text-xs text-slate-500 mt-1">Bài viết dự thi sẽ được Ban giám khảo MTTQ phường chấm điểm và trao giải.</p>
               </div>
 
+              {formError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs font-semibold animate-pulse">
+                  <span>⚠️ {formError}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Họ tên tác giả (*)</label>
@@ -430,7 +451,10 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
                     type="text"
                     placeholder="Nguyễn Văn A"
                     value={participantName}
-                    onChange={(e) => setParticipantName(e.target.value)}
+                    onChange={(e) => {
+                      setParticipantName(e.target.value);
+                      if (formError) setFormError(null);
+                    }}
                     className="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
                   />
                 </div>
@@ -441,7 +465,10 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
                     type="text"
                     placeholder="0908xxxxxx"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (formError) setFormError(null);
+                    }}
                     className="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
                   />
                 </div>
@@ -466,7 +493,10 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
                   rows={12}
                   placeholder="Nhập nội dung bài viết cảm nhận, câu chuyện gương sáng cộng đồng, kỷ niệm công tác Mặt trận..."
                   value={essayText}
-                  onChange={(e) => setEssayText(e.target.value)}
+                  onChange={(e) => {
+                    setEssayText(e.target.value);
+                    if (formError) setFormError(null);
+                  }}
                   className="w-full text-xs sm:text-sm p-4 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-600 outline-hidden leading-relaxed font-normal"
                 />
               </div>

@@ -24,27 +24,428 @@ interface NeighborhoodMapDashboardProps {
 }
 
 export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
-  { id: 'kp-tibh-1', name: 'Tương Bình Hiệp 1', chiefName: 'Trần Thị Tố Như', phone: '0933.742.769', opinionCount: 8, resolvedCount: 7, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 2, satisfactionRate: 98, status: 'GREEN' },
-  { id: 'kp-tibh-2', name: 'Tương Bình Hiệp 2', chiefName: 'Nguyễn Thanh Sơn', phone: '0336.749.484', opinionCount: 12, resolvedCount: 11, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 96, status: 'GREEN' },
-  { id: 'kp-tibh-3', name: 'Tương Bình Hiệp 3', chiefName: 'Nguyễn Việt Toàn', phone: '0919.908.008', opinionCount: 15, resolvedCount: 13, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 94, status: 'YELLOW' },
-  { id: 'kp-tibh-4', name: 'Tương Bình Hiệp 4', chiefName: 'Lê Duy Khang', phone: '0358.934.767', opinionCount: 6, resolvedCount: 6, poorHouseholds: 1, nearPoorHouseholds: 3, unityHousesBuilt: 1, satisfactionRate: 100, status: 'GREEN' },
-  { id: 'kp-tibh-5', name: 'Tương Bình Hiệp 5', chiefName: 'Phạm Thị Tố Mai', phone: '0908.739.555', opinionCount: 19, resolvedCount: 17, poorHouseholds: 5, nearPoorHouseholds: 7, unityHousesBuilt: 4, satisfactionRate: 92, status: 'YELLOW' },
-  { id: 'kp-tibh-6', name: 'Tương Bình Hiệp 6', chiefName: 'Trần Quốc Nghĩa', phone: '0915.337.788', opinionCount: 9, resolvedCount: 9, poorHouseholds: 2, nearPoorHouseholds: 3, unityHousesBuilt: 2, satisfactionRate: 99, status: 'GREEN' },
-  { id: 'kp-tibh-7', name: 'Tương Bình Hiệp 7', chiefName: 'Lê Văn Chí', phone: '0914.919.646', opinionCount: 14, resolvedCount: 12, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
-  { id: 'kp-ha-7', name: 'Hiệp An 7', chiefName: 'Nguyễn Thành Châu', phone: '0965.052.061', opinionCount: 7, resolvedCount: 7, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 1, satisfactionRate: 98, status: 'GREEN' },
-  { id: 'kp-ha-8', name: 'Hiệp An 8', chiefName: 'Võ Hoàng Phương', phone: '0918.231.463', opinionCount: 11, resolvedCount: 10, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 97, status: 'GREEN' },
-  { id: 'kp-ha-9', name: 'Hiệp An 9', chiefName: 'Lê Phước Hùng', phone: '0828.643.979', opinionCount: 16, resolvedCount: 14, poorHouseholds: 4, nearPoorHouseholds: 7, unityHousesBuilt: 3, satisfactionRate: 93, status: 'YELLOW' },
-  { id: 'kp-dh-1', name: 'Định Hòa 1', chiefName: 'Phan Hà Như Thủy', phone: '0987.933.156', opinionCount: 10, resolvedCount: 9, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 96, status: 'GREEN' },
-  { id: 'kp-dh-2', name: 'Định Hòa 2', chiefName: 'Trần Văn Hoàng', phone: '0918.598.078', opinionCount: 13, resolvedCount: 11, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
-  { id: 'kp-dh-3', name: 'Định Hòa 3', chiefName: 'Nguyễn Văn Gu', phone: '0785.185.879', opinionCount: 8, resolvedCount: 8, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 1, satisfactionRate: 100, status: 'GREEN' },
-  { id: 'kp-dh-4', name: 'Định Hòa 4', chiefName: 'Ngô Quốc Phong', phone: '0938.377.151', opinionCount: 12, resolvedCount: 11, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 96, status: 'GREEN' },
-  { id: 'kp-dh-5', name: 'Định Hòa 5', chiefName: 'Phạm Văn Chí', phone: '0938.565.172', opinionCount: 9, resolvedCount: 8, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 2, satisfactionRate: 97, status: 'GREEN' },
-  { id: 'kp-dh-6', name: 'Định Hòa 6', chiefName: 'Lê Văn Hoài', phone: '0919.042.548', opinionCount: 14, resolvedCount: 13, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 3, satisfactionRate: 95, status: 'GREEN' },
-  { id: 'kp-dh-7', name: 'Định Hòa 7', chiefName: 'Nguyễn Văn Gấm', phone: '0985.996.979', opinionCount: 7, resolvedCount: 7, poorHouseholds: 1, nearPoorHouseholds: 3, unityHousesBuilt: 1, satisfactionRate: 99, status: 'GREEN' },
-  { id: 'kp-dh-8', name: 'Định Hòa 8', chiefName: 'Trần Quốc Dương', phone: '0886.848.586', opinionCount: 11, resolvedCount: 10, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 2, satisfactionRate: 97, status: 'GREEN' },
-  { id: 'kp-mh', name: 'Mỹ Hảo', chiefName: 'Ngô Quốc Trung', phone: '0901.689.828', opinionCount: 9, resolvedCount: 9, poorHouseholds: 2, nearPoorHouseholds: 4, unityHousesBuilt: 2, satisfactionRate: 98, status: 'GREEN' },
-  { id: 'kp-cm-1', name: 'Chánh Mỹ 1', chiefName: 'Đào Thanh Trung', phone: '0919.450.576', opinionCount: 13, resolvedCount: 12, poorHouseholds: 3, nearPoorHouseholds: 5, unityHousesBuilt: 3, satisfactionRate: 96, status: 'GREEN' },
-  { id: 'kp-cm-2', name: 'Chánh Mỹ 2', chiefName: 'Nguyễn Minh Triết', phone: '0907.008.308', opinionCount: 15, resolvedCount: 14, poorHouseholds: 4, nearPoorHouseholds: 6, unityHousesBuilt: 4, satisfactionRate: 95, status: 'GREEN' },
+  {
+    id: 'kp-tibh-1',
+    name: 'Tương Bình Hiệp 1',
+    chiefName: 'Trần Thị Tố Như',
+    phone: '0933742769',
+    opinionCount: 8,
+    resolvedCount: 7,
+    poorHouseholds: 2,
+    nearPoorHouseholds: 4,
+    unityHousesBuilt: 2,
+    satisfactionRate: 98,
+    status: 'GREEN',
+    mttqName: 'Phan Thanh Phong',
+    mttqPhone: '0944029851',
+    secretaryName: 'Đoàn Thị Bích Vân',
+    secretaryPhone: '0919926385',
+    youthUnionSecretary: 'Nguyễn Anh Khoa',
+    youthUnionPhone: '0793515812',
+    youthUnionDeputy: 'Huỳnh Thị Ngọc Thùy',
+    youthUnionDeputyPhone: '0816850889',
+    womenAssociationChief: 'Nguyễn Thị Thu Dung'
+  },
+  {
+    id: 'kp-tibh-2',
+    name: 'Tương Bình Hiệp 2',
+    chiefName: 'Nguyễn Thanh Sơn',
+    phone: '0336749484',
+    opinionCount: 12,
+    resolvedCount: 11,
+    poorHouseholds: 3,
+    nearPoorHouseholds: 5,
+    unityHousesBuilt: 2,
+    satisfactionRate: 96,
+    status: 'GREEN',
+    mttqName: 'Lê Minh Trí',
+    mttqPhone: '0933410441',
+    secretaryName: 'Lê Thị Thanh Loan',
+    secretaryPhone: '0913140999',
+    youthUnionSecretary: 'Triệu Thùy Linh',
+    youthUnionPhone: '0329674272',
+    youthUnionDeputy: 'Võ Quang Tiến',
+    youthUnionDeputyPhone: '0345605902'
+  },
+  {
+    id: 'kp-tibh-3',
+    name: 'Tương Bình Hiệp 3',
+    chiefName: 'Nguyễn Việt Toàn',
+    phone: '0919908008',
+    opinionCount: 15,
+    resolvedCount: 13,
+    poorHouseholds: 4,
+    nearPoorHouseholds: 6,
+    unityHousesBuilt: 3,
+    satisfactionRate: 94,
+    status: 'YELLOW',
+    mttqName: 'Lê Trần Quốc Thái',
+    mttqPhone: '0363763231',
+    secretaryName: 'Nguyễn Văn An',
+    secretaryPhone: '0913163103',
+    youthUnionSecretary: 'Trần Lê Bảo Trân',
+    youthUnionPhone: '0365028774',
+    youthUnionDeputy: 'Phạm Thuận Tiến',
+    youthUnionDeputyPhone: '0839520139'
+  },
+  {
+    id: 'kp-tibh-4',
+    name: 'Tương Bình Hiệp 4',
+    chiefName: 'Lê Duy Khang',
+    phone: '0358934767',
+    opinionCount: 6,
+    resolvedCount: 6,
+    poorHouseholds: 1,
+    nearPoorHouseholds: 3,
+    unityHousesBuilt: 1,
+    satisfactionRate: 100,
+    status: 'GREEN',
+    mttqName: 'Trần Văn An',
+    mttqPhone: '0948667996',
+    secretaryName: 'Nguyễn Minh Hoàng',
+    secretaryPhone: '0918014758',
+    youthUnionSecretary: 'Nguyễn Chí Cường',
+    youthUnionPhone: '0961581254',
+    youthUnionDeputy: 'Hoàng Tuấn Dũng',
+    youthUnionDeputyPhone: '0364422946'
+  },
+  {
+    id: 'kp-tibh-5',
+    name: 'Tương Bình Hiệp 5',
+    chiefName: 'Phạm Thị Tố Mai',
+    phone: '0908739555',
+    opinionCount: 19,
+    resolvedCount: 17,
+    poorHouseholds: 5,
+    nearPoorHouseholds: 7,
+    unityHousesBuilt: 4,
+    satisfactionRate: 92,
+    status: 'YELLOW',
+    mttqName: 'Tiết Tuấn',
+    mttqPhone: '0987720790',
+    secretaryName: 'Nguyễn Hoài Tân',
+    secretaryPhone: '0969232715',
+    youthUnionSecretary: 'Nguyễn Trần Văn Cường',
+    youthUnionPhone: '0855189755',
+    youthUnionDeputy: 'Nguyễn Huỳnh Đăng Khoa',
+    youthUnionDeputyPhone: '0928371249'
+  },
+  {
+    id: 'kp-tibh-6',
+    name: 'Tương Bình Hiệp 6',
+    chiefName: 'Trần Quốc Nghĩa',
+    phone: '0915337788',
+    opinionCount: 9,
+    resolvedCount: 9,
+    poorHouseholds: 2,
+    nearPoorHouseholds: 3,
+    unityHousesBuilt: 2,
+    satisfactionRate: 99,
+    status: 'GREEN',
+    mttqName: 'Nguyễn Thị Ánh Tuyết',
+    mttqPhone: '0706055248',
+    secretaryName: 'Võ Oanh Kiều',
+    secretaryPhone: '0369794592',
+    youthUnionSecretary: 'Trần Thị Huế Trân',
+    youthUnionPhone: '0777445753',
+    youthUnionDeputy: 'Huỳnh Long Nhựt',
+    youthUnionDeputyPhone: '0886378437'
+  },
+  {
+    id: 'kp-tibh-7',
+    name: 'Tương Bình Hiệp 7',
+    chiefName: 'Lê Văn Chí',
+    phone: '0914919646',
+    opinionCount: 14,
+    resolvedCount: 12,
+    poorHouseholds: 4,
+    nearPoorHouseholds: 6,
+    unityHousesBuilt: 3,
+    satisfactionRate: 95,
+    status: 'GREEN',
+    mttqName: 'Võ Ngọc Giàu',
+    mttqPhone: '0888503448',
+    secretaryName: 'Trần Minh Khải',
+    secretaryPhone: '0907401441',
+    youthUnionSecretary: 'Phạm Kiều Trinh',
+    youthUnionPhone: '0347878735',
+    youthUnionDeputy: 'Ngô Nguyễn Huyền Trân',
+    youthUnionDeputyPhone: '0914107295'
+  },
+  {
+    id: 'kp-ha-7',
+    name: 'Hiệp An 7',
+    chiefName: 'Nguyễn Thành Châu',
+    phone: '0965052061',
+    opinionCount: 7,
+    resolvedCount: 7,
+    poorHouseholds: 2,
+    nearPoorHouseholds: 4,
+    unityHousesBuilt: 1,
+    satisfactionRate: 98,
+    status: 'GREEN',
+    mttqName: 'Dương Văn Thọ',
+    mttqPhone: '0976534508',
+    secretaryName: 'Nguyễn Thanh Trí',
+    secretaryPhone: '0909197497',
+    youthUnionSecretary: 'Nguyễn Ngọc Khánh Quỳnh',
+    youthUnionPhone: '0339845828',
+    youthUnionDeputy: 'Lê Thị Thảo Như',
+    youthUnionDeputyPhone: '0942280700'
+  },
+  {
+    id: 'kp-ha-8',
+    name: 'Hiệp An 8',
+    chiefName: 'Võ Hoàng Phương',
+    phone: '0918231463',
+    opinionCount: 11,
+    resolvedCount: 10,
+    poorHouseholds: 3,
+    nearPoorHouseholds: 5,
+    unityHousesBuilt: 2,
+    satisfactionRate: 97,
+    status: 'GREEN',
+    mttqName: 'Đinh Xuân Phúc',
+    mttqPhone: '0928579957',
+    secretaryName: 'Phan Tấn Nhân',
+    secretaryPhone: '0913107009',
+    youthUnionSecretary: 'Trần Hà An',
+    youthUnionPhone: '0965663443',
+    youthUnionDeputy: 'Đinh Xuân Phúc',
+    youthUnionDeputyPhone: '0928579957'
+  },
+  {
+    id: 'kp-ha-9',
+    name: 'Hiệp An 9',
+    chiefName: 'Lê Phước Hùng',
+    phone: '0828643979',
+    opinionCount: 16,
+    resolvedCount: 14,
+    poorHouseholds: 4,
+    nearPoorHouseholds: 7,
+    unityHousesBuilt: 3,
+    satisfactionRate: 93,
+    status: 'YELLOW',
+    mttqName: 'Trần Văn Lợi',
+    mttqPhone: '0908758565',
+    secretaryName: 'Nguyễn Nhật Hồng',
+    secretaryPhone: '0919447708',
+    youthUnionSecretary: 'Vũ Thị Quỳnh Hương',
+    youthUnionPhone: '0925921499',
+    youthUnionDeputy: 'Lê Ái Vy',
+    youthUnionDeputyPhone: '0857950121'
+  },
+  {
+    id: 'kp-dh-1',
+    name: 'Định Hòa 1',
+    chiefName: 'Phan Hà Như Thủy',
+    phone: '0987933156',
+    opinionCount: 10,
+    resolvedCount: 9,
+    poorHouseholds: 3,
+    nearPoorHouseholds: 5,
+    unityHousesBuilt: 2,
+    satisfactionRate: 96,
+    status: 'GREEN',
+    mttqName: 'Hoàng Thị Xuân Lành',
+    mttqPhone: '0977137382',
+    secretaryName: 'Nguyễn Thanh Vân',
+    secretaryPhone: '0946692121',
+    youthUnionSecretary: 'Lê Hồ Phương Ngân',
+    youthUnionPhone: '0832092523',
+    youthUnionDeputy: 'Nguyễn Phan Nhựt Hùng',
+    youthUnionDeputyPhone: '0369306630'
+  },
+  {
+    id: 'kp-dh-2',
+    name: 'Định Hòa 2',
+    chiefName: 'Trần Văn Hoàng',
+    phone: '0918598078',
+    opinionCount: 13,
+    resolvedCount: 11,
+    poorHouseholds: 4,
+    nearPoorHouseholds: 6,
+    unityHousesBuilt: 3,
+    satisfactionRate: 95,
+    status: 'GREEN',
+    mttqName: 'Nguyễn Thanh Phương',
+    mttqPhone: '0961880602',
+    secretaryName: 'Nguyễn Phượng Hằng',
+    secretaryPhone: '0856269368',
+    youthUnionSecretary: 'Trần Ngọc Khánh Vy',
+    youthUnionPhone: '0946175665',
+    youthUnionDeputy: 'Trần Phú Điền'
+  },
+  {
+    id: 'kp-dh-3',
+    name: 'Định Hòa 3',
+    chiefName: 'Nguyễn Văn Gu',
+    phone: '0785185879',
+    opinionCount: 8,
+    resolvedCount: 8,
+    poorHouseholds: 2,
+    nearPoorHouseholds: 4,
+    unityHousesBuilt: 1,
+    satisfactionRate: 100,
+    status: 'GREEN',
+    mttqName: 'Vương Thị Tuyết Mai',
+    mttqPhone: '0902477692',
+    secretaryName: 'Đỗ Thị Tấn',
+    secretaryPhone: '0907429889',
+    youthUnionSecretary: 'Dương Huỳnh Trân',
+    youthUnionPhone: '0387793600',
+    youthUnionDeputy: 'Hạ Thị Kiều Trúc',
+    youthUnionDeputyPhone: '0969448349'
+  },
+  {
+    id: 'kp-dh-4',
+    name: 'Định Hòa 4',
+    chiefName: 'Ngô Quốc Phong',
+    phone: '0938377151',
+    opinionCount: 12,
+    resolvedCount: 11,
+    poorHouseholds: 3,
+    nearPoorHouseholds: 5,
+    unityHousesBuilt: 2,
+    satisfactionRate: 96,
+    status: 'GREEN',
+    mttqName: 'Nguyễn Thị Ngọc Hà',
+    mttqPhone: '0988222362',
+    secretaryName: 'Văn Văn Hạnh',
+    secretaryPhone: '0913937075'
+  },
+  {
+    id: 'kp-dh-5',
+    name: 'Định Hòa 5',
+    chiefName: 'Phạm Văn Chí',
+    phone: '0938565172',
+    opinionCount: 9,
+    resolvedCount: 8,
+    poorHouseholds: 2,
+    nearPoorHouseholds: 4,
+    unityHousesBuilt: 2,
+    satisfactionRate: 97,
+    status: 'GREEN',
+    mttqName: 'Nguyễn Thị Ích',
+    mttqPhone: '0786752934',
+    secretaryName: 'Ngô Văn Còn',
+    secretaryPhone: '0947300161'
+  },
+  {
+    id: 'kp-dh-6',
+    name: 'Định Hòa 6',
+    chiefName: 'Lê Văn Hoài',
+    phone: '0919042548',
+    opinionCount: 14,
+    resolvedCount: 13,
+    poorHouseholds: 4,
+    nearPoorHouseholds: 6,
+    unityHousesBuilt: 3,
+    satisfactionRate: 95,
+    status: 'GREEN',
+    mttqName: 'Đặng Thị Huyền Trang',
+    mttqPhone: '0943477286',
+    secretaryName: 'Nguyễn Văn Gợt',
+    secretaryPhone: '0918233944'
+  },
+  {
+    id: 'kp-dh-7',
+    name: 'Định Hòa 7',
+    chiefName: 'Nguyễn Văn Gấm',
+    phone: '0985996979',
+    opinionCount: 7,
+    resolvedCount: 7,
+    poorHouseholds: 1,
+    nearPoorHouseholds: 3,
+    unityHousesBuilt: 1,
+    satisfactionRate: 99,
+    status: 'GREEN',
+    mttqName: 'Lê Thị Bình',
+    mttqPhone: '0983688364',
+    secretaryName: 'Đặng Thị Thúy Loan',
+    secretaryPhone: '0978598394'
+  },
+  {
+    id: 'kp-dh-8',
+    name: 'Định Hòa 8',
+    chiefName: 'Trần Quốc Dương',
+    phone: '0886848586',
+    opinionCount: 11,
+    resolvedCount: 10,
+    poorHouseholds: 3,
+    nearPoorHouseholds: 5,
+    unityHousesBuilt: 2,
+    satisfactionRate: 97,
+    status: 'GREEN',
+    mttqName: 'Phan Văn Hòa',
+    mttqPhone: '0928979677',
+    secretaryName: 'Nguyễn Văn Phụng',
+    secretaryPhone: '0918292777',
+    youthUnionSecretary: 'Nguyễn Quỳnh Như',
+    youthUnionPhone: '0886009795'
+  },
+  {
+    id: 'kp-mh',
+    name: 'Mỹ Hảo',
+    chiefName: 'Ngô Quốc Trung',
+    phone: '0901689828',
+    opinionCount: 9,
+    resolvedCount: 9,
+    poorHouseholds: 2,
+    nearPoorHouseholds: 4,
+    unityHousesBuilt: 2,
+    satisfactionRate: 98,
+    status: 'GREEN',
+    mttqName: 'Nguyễn Cường',
+    mttqPhone: '0989114005',
+    secretaryName: 'Nguyễn Văn Hóa',
+    secretaryPhone: '0946829638',
+    youthUnionSecretary: 'Ngô Thanh Danh',
+    youthUnionPhone: '0797247625',
+    youthUnionDeputy: 'Đinh Hoàng Quốc Thái',
+    youthUnionDeputyPhone: '0704630921'
+  },
+  {
+    id: 'kp-cm-1',
+    name: 'Chánh Mỹ 1',
+    chiefName: 'Đào Thanh Trung',
+    phone: '0919450576',
+    opinionCount: 13,
+    resolvedCount: 12,
+    poorHouseholds: 3,
+    nearPoorHouseholds: 5,
+    unityHousesBuilt: 3,
+    satisfactionRate: 96,
+    status: 'GREEN',
+    mttqName: 'Nguyễn Thị Mỹ Linh',
+    mttqPhone: '0843413153',
+    secretaryName: 'Đặng Mỹ Dung',
+    secretaryPhone: '0909985399',
+    youthUnionSecretary: 'Tống Khánh Linh',
+    youthUnionPhone: '0347411034',
+    youthUnionDeputy: 'Nguyễn Trung Hiếu',
+    youthUnionDeputyPhone: '0373251504'
+  },
+  {
+    id: 'kp-cm-2',
+    name: 'Chánh Mỹ 2',
+    chiefName: 'Nguyễn Minh Triết',
+    phone: '0907008308',
+    opinionCount: 15,
+    resolvedCount: 14,
+    poorHouseholds: 4,
+    nearPoorHouseholds: 6,
+    unityHousesBuilt: 4,
+    satisfactionRate: 95,
+    status: 'GREEN',
+    mttqName: 'Nguyễn Thị Mỹ Châu',
+    mttqPhone: '0834789870',
+    secretaryName: 'Bùi Thị Thu Thảo',
+    secretaryPhone: '0384793839',
+    youthUnionSecretary: 'Trương Hữu Thắng',
+    youthUnionPhone: '0792007892',
+    youthUnionDeputy: 'Bùi Lê Phúc Khang'
+  }
 ];
 
 export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> = ({
@@ -152,7 +553,7 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
           <div>
             <div className="text-xs font-bold text-slate-500 uppercase">Trưởng Ban CTMT</div>
             <div className="text-xl font-black text-slate-900 mt-0.5">
-              12/12 <span className="text-xs font-bold text-blue-600">Phủ kín 100% KP</span>
+              21/21 <span className="text-xs font-bold text-blue-600">Phủ kín 100% KP</span>
             </div>
           </div>
         </div>
@@ -161,7 +562,7 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
       {/* Main Grid & Selected Detail Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Column: 12 Neighborhood Grid (2/3 width) */}
+        {/* Left Column: 21 Neighborhood Grid (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
           
           {/* Controls Bar */}
@@ -185,7 +586,7 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
                   filterStatus === 'ALL' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Tất cả (12)
+                Tất cả (21)
               </button>
               <button
                 onClick={() => setFilterStatus('GREEN')}
@@ -206,7 +607,7 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
             </div>
           </div>
 
-          {/* 12 Neighborhood Cards Grid */}
+          {/* 21 Neighborhood Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
             {filteredList.map((kp) => {
               const isSelected = selectedNeighborhood?.id === kp.id;
@@ -286,18 +687,133 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
               </span>
             </div>
 
-            {/* Front Chief Info Card */}
-            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
-                {selectedNeighborhood.chiefName.charAt(0)}
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <div className="text-[10px] font-bold text-slate-500 uppercase">Trưởng Ban Công tác Mặt trận</div>
-                <div className="font-extrabold text-slate-900 text-xs truncate">{selectedNeighborhood.chiefName}</div>
-                <div className="text-[11px] font-medium text-blue-700 flex items-center gap-1 mt-0.5">
-                  <Phone className="w-3 h-3 text-emerald-600" />
-                  <span>Hotline: {selectedNeighborhood.phone}</span>
-                </div>
+            {/* Executive Committee Contacts Directory */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-extrabold text-slate-950 uppercase tracking-wider flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-blue-600" />
+                <span>Ban Điều hành &amp; Liên hệ Khu phố</span>
+              </h4>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {/* Bí thư Chi bộ */}
+                {selectedNeighborhood.secretaryName && (
+                  <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-between text-xs">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[9px] font-black uppercase text-red-700 tracking-wider">Bí thư Chi bộ</div>
+                      <div className="font-extrabold text-slate-900 truncate">{selectedNeighborhood.secretaryName}</div>
+                      {selectedNeighborhood.secretaryPhone && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{selectedNeighborhood.secretaryPhone}</div>
+                      )}
+                    </div>
+                    {selectedNeighborhood.secretaryPhone && (
+                      <a
+                        href={`tel:${selectedNeighborhood.secretaryPhone}`}
+                        className="p-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors shrink-0"
+                        title="Gọi điện"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Trưởng Ban CTMT */}
+                {selectedNeighborhood.mttqName && (
+                  <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-between text-xs">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[9px] font-black uppercase text-blue-700 tracking-wider">Trưởng Ban Công tác Mặt trận</div>
+                      <div className="font-extrabold text-slate-900 truncate">{selectedNeighborhood.mttqName}</div>
+                      {selectedNeighborhood.mttqPhone && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{selectedNeighborhood.mttqPhone}</div>
+                      )}
+                    </div>
+                    {selectedNeighborhood.mttqPhone && (
+                      <a
+                        href={`tel:${selectedNeighborhood.mttqPhone}`}
+                        className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors shrink-0"
+                        title="Gọi điện"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Trưởng Khu phố */}
+                {selectedNeighborhood.chiefName && (
+                  <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-between text-xs">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[9px] font-black uppercase text-amber-700 tracking-wider">Trưởng Khu phố</div>
+                      <div className="font-extrabold text-slate-900 truncate">{selectedNeighborhood.chiefName}</div>
+                      {selectedNeighborhood.phone && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{selectedNeighborhood.phone}</div>
+                      )}
+                    </div>
+                    {selectedNeighborhood.phone && (
+                      <a
+                        href={`tel:${selectedNeighborhood.phone}`}
+                        className="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg transition-colors shrink-0"
+                        title="Gọi điện"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Bí thư Chi đoàn */}
+                {selectedNeighborhood.youthUnionSecretary && (
+                  <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-between text-xs">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[9px] font-black uppercase text-emerald-700 tracking-wider">Bí thư Chi đoàn</div>
+                      <div className="font-extrabold text-slate-900 truncate">{selectedNeighborhood.youthUnionSecretary}</div>
+                      {selectedNeighborhood.youthUnionPhone && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{selectedNeighborhood.youthUnionPhone}</div>
+                      )}
+                    </div>
+                    {selectedNeighborhood.youthUnionPhone && (
+                      <a
+                        href={`tel:${selectedNeighborhood.youthUnionPhone}`}
+                        className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg transition-colors shrink-0"
+                        title="Gọi điện"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Phó Bí thư Chi đoàn / Chi hội phụ nữ */}
+                {selectedNeighborhood.youthUnionDeputy && (
+                  <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-between text-xs">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[9px] font-black uppercase text-purple-700 tracking-wider">Phó Bí thư Chi đoàn</div>
+                      <div className="font-extrabold text-slate-900 truncate">{selectedNeighborhood.youthUnionDeputy}</div>
+                      {selectedNeighborhood.youthUnionDeputyPhone && (
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{selectedNeighborhood.youthUnionDeputyPhone}</div>
+                      )}
+                    </div>
+                    {selectedNeighborhood.youthUnionDeputyPhone && (
+                      <a
+                        href={`tel:${selectedNeighborhood.youthUnionDeputyPhone}`}
+                        className="p-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors shrink-0"
+                        title="Gọi điện"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Chi hội trưởng LHPN */}
+                {selectedNeighborhood.womenAssociationChief && (
+                  <div className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-between text-xs">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[9px] font-black uppercase text-pink-700 tracking-wider">Chi hội trưởng Phụ nữ</div>
+                      <div className="font-extrabold text-slate-900 truncate">{selectedNeighborhood.womenAssociationChief}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

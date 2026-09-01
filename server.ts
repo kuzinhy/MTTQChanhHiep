@@ -4,7 +4,14 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ override: true });
+
+function filterGoogleDriveLinks(text: string): string {
+  if (!text) return text;
+  // Regex to match google drive urls (including partials, or standard drive URLs)
+  const driveRegex = /https?:\/\/drive\.google\.com\/[^\s)\]]+/gi;
+  return text.replace(driveRegex, '(đường dẫn Google Drive đã được lược bỏ theo quy định bảo mật)');
+}
 
 function getGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -53,7 +60,7 @@ Quy tắc bắt buộc:
 3. Văn phong trang trọng, chuẩn mực hành chính công.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -83,7 +90,7 @@ Thông tin:
 Hãy cấu trúc gồm: Mở đầu kính thưa trang trọng, Đánh giá kết quả đạt được, Bài học & Cảm ơn, Nhiệm vụ hướng tới, Lời kêu gọi thi đua và Kết thúc.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -110,7 +117,7 @@ Khó khăn vướng mắc: ${difficulties}
 Trình bày theo các phần: I. KẾT QUẢ ĐẠT ĐƯỢC (theo các mảng Tuyên truyền, Thi đua an sinh, Giám sát phản biện, Xây dựng tổ chức), II. ĐÁNH GIÁ CHUNG VÀ TỒN TẠI, III. PHƯƠNG HƯỚNG NHIỆM VỤ TRỌNG TÂM.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -138,7 +145,7 @@ Vui lòng đưa ra:
 5. Những điểm cần lưu ý đặc biệt`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -166,7 +173,7 @@ Hãy chỉ ra chi tiết:
 3. Bản văn bản hoàn chỉnh đã sửa lỗi.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -204,7 +211,7 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -232,38 +239,276 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
     }
   });
 
+  // Helper function for local knowledge fallback search when Gemini API is unavailable/invalid
+  const runLocalKnowledgeFallback = (query: string, documentsContext: string, knowledgeNotesContext: string): string => {
+    if (!query || query.trim() === '') {
+      return 'Vui lòng nhập câu hỏi để tôi có thể hỗ trợ tra cứu.';
+    }
+
+    const normalizedQuery = query.toLowerCase().trim();
+
+    // Helper function to clean and normalize text into array of lowercase words without diacritics
+    const cleanAndNormalize = (text: string): string[] => {
+      if (!text) return [];
+      const normalized = text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .trim();
+      return normalized.split(/\s+/).filter(w => w.length >= 2);
+    };
+
+    const queryWords = cleanAndNormalize(normalizedQuery);
+
+    // Helper to calculate phrase-matching score
+    const calculatePhraseScore = (qNormalized: string, targetText: string): number => {
+      if (!targetText) return 0;
+      const targetNormalized = cleanAndNormalize(targetText).join(' ');
+      const targetWords = cleanAndNormalize(targetText);
+      const targetSet = new Set(targetWords);
+      
+      let score = 0;
+      // Word overlap count
+      queryWords.forEach(w => {
+        if (targetSet.has(w)) score += 1;
+      });
+      
+      // Bigram/trigram matching
+      for (let i = 0; i < queryWords.length - 1; i++) {
+        const bigram = `${queryWords[i]} ${queryWords[i+1]}`;
+        if (targetNormalized.includes(bigram)) {
+          score += 3;
+        }
+      }
+      for (let i = 0; i < queryWords.length - 2; i++) {
+        const trigram = `${queryWords[i]} ${queryWords[i+1]} ${queryWords[i+2]}`;
+        if (targetNormalized.includes(trigram)) {
+          score += 5;
+        }
+      }
+      
+      return score;
+    };
+
+    let bestMatch: 'note' | 'doc' | 'none' = 'none';
+    let bestScore = 0;
+    
+    // Best Note Match
+    let matchedQuestion = '';
+    let matchedAnswer = '';
+    
+    // Best Doc Match
+    let matchedCode = '';
+    let matchedTitle = '';
+    let matchedSigner = '';
+    let matchedField = '';
+
+    // 1. Search in Knowledge Notes
+    const notes = knowledgeNotesContext ? knowledgeNotesContext.split('\n\n') : [];
+    for (const note of notes) {
+      const lines = note.split('\n');
+      const questionLine = lines.find(l => l.startsWith('HỎI:'));
+      const answerLine = lines.find(l => l.startsWith('ĐÁP:'));
+      
+      const question = questionLine ? questionLine.replace('HỎI:', '').trim() : '';
+      const answer = answerLine ? answerLine.replace('ĐÁP:', '').trim() : '';
+      
+      if (question && answer) {
+        const score = calculatePhraseScore(normalizedQuery, question);
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = 'note';
+          matchedQuestion = question;
+          matchedAnswer = answer;
+        }
+      }
+    }
+
+    // 2. Search in Official Documents
+    const docLines = documentsContext ? documentsContext.split('\n') : [];
+    for (const line of docLines) {
+      // Expected format: "codeNumber: title [Người ký: signer, Lĩnh vực: field]"
+      const match = line.match(/^(.*?):\s*(.*?)\s*\[Người ký:\s*(.*?),\s*Lĩnh vực:\s*(.*?)\]/);
+      if (match) {
+        const codeNumber = match[1].trim();
+        const title = match[2].trim();
+        const signer = match[3].trim();
+        const field = match[4].trim();
+        
+        const score = calculatePhraseScore(normalizedQuery, title) + (calculatePhraseScore(normalizedQuery, field) * 1.5);
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = 'doc';
+          matchedCode = codeNumber;
+          matchedTitle = title;
+          matchedSigner = signer;
+          matchedField = field;
+        }
+      }
+    }
+
+    // Define fallback greetings or standard MTTQ keywords if score is 0 or very low
+    const greetingKeywords = ['xin chao', 'hello', 'hi', 'chao ban', 'tro ly', 'ai la', 'tro ly ai', 'huong dan', 'huong dan gi'];
+    const hasGreeting = cleanAndNormalize(normalizedQuery).some(w => greetingKeywords.includes(w));
+
+    if (bestMatch === 'note' && bestScore > 2) {
+      return `[Trích Sổ tay Kiến thức Chánh Hiệp]
+Chào bạn! Dựa trên Sổ tay Nghiệp vụ Mặt trận Phường Chánh Hiệp, tôi xin giải đáp thắc mắc của bạn về nội dung: "${matchedQuestion}" như sau:
+
+---
+${matchedAnswer}
+---
+
+*Ghi chú: Nếu cần giải đáp thêm các nghiệp vụ chuyên sâu, bạn có thể gửi câu hỏi trực tiếp cho Cán bộ Mặt trận tại tab Văn phòng Số hoặc liên hệ trực tiếp Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.*`;
+    }
+
+    if (bestMatch === 'doc' && bestScore > 2) {
+      return `[Trích Kho văn bản Chánh Hiệp]
+Chào bạn! Tôi đã tìm thấy văn bản liên quan trực tiếp đến yêu cầu tra cứu của bạn trong Kho văn bản Mặt trận Phường Chánh Hiệp:
+
+- **Số hiệu văn bản**: ${matchedCode}
+- **Tên văn bản**: ${matchedTitle}
+- **Lĩnh vực công tác**: ${matchedField}
+- **Người ký ban hành**: ${matchedSigner}
+
+**Gợi ý xử lý**: Bạn có thể tra cứu toàn văn văn bản này trực tiếp tại mục **Kho văn bản** bằng cách tìm theo số hiệu \`${matchedCode}\` hoặc tiêu đề \`${matchedTitle}\`.
+
+*Hệ thống Mặt trận Tổ quốc Phường Chánh Hiệp luôn công khai minh bạch các chỉ đạo, văn bản pháp luật hành chính để phục vụ cán bộ và nhân dân.*`;
+    }
+
+    if (hasGreeting || normalizedQuery.length < 5) {
+      return `Chào bạn! Tôi là Trợ lý AI thông minh của Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
+
+Tôi luôn sẵn sàng hỗ trợ cán bộ và nhân dân tra cứu:
+1. **Sổ tay Nghiệp vụ**: Các câu hỏi quy trình bầu cử, giám sát, phản biện, ban thanh tra nhân dân, ban giám sát đầu tư cộng đồng.
+2. **Kho văn bản Mặt trận**: Tra cứu các quyết định, kế hoạch chỉ đạo của Ủy ban MTTQ Phường Chánh Hiệp.
+3. **Ý kiến Dân sinh**: Hướng dẫn gửi phản ánh, kiến nghị của bà con lên Ban Thường trực.
+
+Bạn vui lòng nhập câu hỏi cụ thể hơn (ví dụ: "giám sát đầu tư cộng đồng là gì?", "quy định về ban thanh tra nhân dân", hoặc "văn bản về an sinh xã hội") để tôi tìm kiếm chính xác nhất nhé!`;
+    }
+
+    // Default helpful response
+    return `Chào bạn! Tôi là Trợ lý AI của Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.
+
+Đối với nội dung tra cứu của bạn: "${query}", hiện tại hệ thống chưa tìm thấy tài liệu hướng dẫn cụ thể hoặc số hiệu văn bản khớp hoàn toàn trong Sổ tay Kiến thức đã duyệt.
+
+**Gợi ý các kênh hỗ trợ trực tiếp:**
+1. **Tra cứu toàn văn**: Bạn có thể vào mục **Kho văn bản** trên hệ thống để tìm kiếm thêm các tài liệu liên quan bằng từ khóa.
+2. **Gửi Ý kiến Dân sinh**: Nếu đây là một ý kiến phản ánh, kiến nghị dân sinh hoặc đóng góp xây dựng chính quyền, xin vui lòng gửi ý kiến qua mục **Ý kiến Dân sinh** để Ban Thường trực MTTQ Phường tiếp nhận, giải quyết kịp thời.
+3. **Ghi nhận tự động**: Câu hỏi của bạn đã được ghi nhận tự động vào Nhật ký Tra cứu để chuyển Cán bộ Mặt trận chuyên trách bổ sung hướng dẫn chi tiết vào hệ thống trong thời gian sớm nhất.
+
+Cảm ơn bạn đã đồng hành cùng Mặt trận Tổ quốc Phường Chánh Hiệp!`;
+  };
+
+  async function searchDuckDuckGo(searchQuery: string): Promise<Array<{ title: string; snippet: string; link: string }>> {
+    try {
+      const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`;
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+      if (!res.ok) return [];
+      const html = await res.text();
+      const results: Array<{ title: string; snippet: string; link: string }> = [];
+      const parts = html.split('<div class="result results_links results_links_deep web-result');
+      
+      for (let i = 1; i < parts.length && results.length < 4; i++) {
+        const block = parts[i];
+        const urlMatch = block.match(/class="result__a"\s+href="([^"]*)"/) || block.match(/class="result__snippet"\s+href="([^"]*)"/);
+        let link = '';
+        if (urlMatch) {
+          link = urlMatch[1];
+          if (link.includes('uddg=')) {
+            const splitParts = link.split('uddg=');
+            if (splitParts[1]) {
+              link = decodeURIComponent(splitParts[1].split('&')[0]);
+            }
+          }
+          if (link.startsWith('//')) {
+            link = 'https:' + link;
+          }
+        }
+        
+        const titleMatch = block.match(/class="result__a"[^>]*>([\s\S]*?)<\/a>/);
+        let title = '';
+        if (titleMatch) {
+          title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+        }
+        
+        const snippetMatch = block.match(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
+        let snippet = '';
+        if (snippetMatch) {
+          snippet = snippetMatch[1].replace(/<[^>]+>/g, '').trim();
+        }
+        
+        if (title && link) {
+          results.push({ title, snippet, link });
+        }
+      }
+      return results;
+    } catch (err) {
+      console.warn('DuckDuckGo search failed:', err);
+      return [];
+    }
+  }
+
   // AI Route: Tra cứu Kho Tài liệu
   app.post('/api/ai/knowledge-search', async (req: Request, res: Response) => {
     try {
-      const { query, documentsContext } = req.body;
+      const { query, documentsContext, knowledgeNotesContext } = req.body;
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey || apiKey.trim() === '') {
-        return res.json({ 
-          result: `Chào bạn! Trợ lý AI hiện chưa được cấu hình khóa API (GEMINI_API_KEY) trong hệ thống. Vui lòng cấu hình khóa API Gemini hợp lệ hoặc sử dụng tính năng tra cứu văn bản trực tiếp.` 
-        });
+        console.warn('GEMINI_API_KEY is empty, falling back to local knowledge search.');
+        const fallbackResult = runLocalKnowledgeFallback(query, documentsContext, knowledgeNotesContext);
+        return res.json({ result: fallbackResult });
       }
-
+ 
       const ai = new GoogleGenAI({ apiKey });
 
-      const prompt = `Bạn là Trợ lý Tra cứu Kho Dữ liệu Nội bộ MTTQ Phường Chánh Hiệp.
-Dữ liệu kho tài liệu được cấp quyền:
-${documentsContext || 'Dữ liệu các kế hoạch, báo cáo, thông báo năm 2026.'}
+      // Perform real-time internet search as fallback/enrichment
+      const webResults = await searchDuckDuckGo(query);
+      const webSearchContext = webResults && webResults.length > 0
+        ? webResults.map((r, idx) => `[Kết quả Web ${idx + 1}] Tiêu đề: ${r.title}\nTóm tắt: ${r.snippet}\nLiên kết: ${r.link}`).join('\n\n')
+        : 'Không tìm thấy kết quả tra cứu internet liên quan.';
+ 
+      const prompt = `Bạn là Trợ lý Tra cứu Kho Dữ liệu và Hỏi đáp thông minh cho Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
+Lưu ý bảo mật đặc biệt quan trọng: TUYỆT ĐỐI KHÔNG CUNG CẤP, KHÔNG CHIA SẺ, KHÔNG ĐƯA BẤT KỲ ĐƯỜNG LINK LIÊN KẾT GOOGLE DRIVE NÀO TRONG PHẢN HỒI CHO NGƯỜI DÙNG. 
 
-Câu hỏi của cán bộ: "${query}"
+--- KHO VĂN BẢN ĐÃ ĐỒNG BỘ (OFFICIAL DOCUMENTS) ---
+${documentsContext || 'Không có dữ liệu văn bản chỉ đạo nào được nạp.'}
+ 
+--- SỔ TAY KIẾN THỨC VÀ CÂU HỎI THƯỜNG GẶP (CURATED KNOWLEDGE NOTES) ---
+${knowledgeNotesContext || 'Không có sổ tay kiến thức bổ sung.'}
 
-Hãy trả lời chính xác, trung thực dựa trên dữ liệu kho tài liệu trên. Nếu thông tin không có trong kho dữ liệu, hãy nêu rõ "Không tìm thấy thông tin cụ thể trong kho tài liệu được cấp". Trích dẫn tên văn bản/kế hoạch nếu có.`;
-
+--- KẾT QUẢ TRA CỨU INTERNET THỜI GIAN THỰC (LIVE WEB SEARCH RESULTS) ---
+${webSearchContext}
+ 
+--- CÂU HỎI CỦA NGƯỜI DÙNG / CÁN BỘ ---
+"${query}"
+ 
+Quy tắc trả lời bắt buộc:
+1. TRẢ LỜI CỰC KỲ NGẮN GỌN, ĐI THẲNG VÀO TRỌNG TÂM, rõ ràng, không dài dòng giải thích dông dài hay mở đầu sáo rỗng.
+2. Luôn ưu tiên thông tin từ "KHO VĂN BẢN ĐÃ ĐỒNG BỘ" và "SỔ TAY KIẾN THỨC" trước. Nếu không có hoặc cần mở rộng thông tin thời gian thực, hãy kết hợp thông tin từ "KẾT QUẢ TRA CỨU INTERNET".
+3. Bắt buộc PHẢI GHI RÕ NGUỒN cho mọi thông tin cung cấp:
+   - Nếu dùng tài liệu hoặc sổ tay nghiệp vụ: Hãy ghi kèm mã số ký hiệu, tiêu đề của văn bản đó và hướng dẫn cán bộ/người dân truy cập trực tiếp mục "Kho Văn bản & Chính sách" trên Cổng thông tin điện tử của phường để tự tìm kiếm và xem/tải về file gốc đính kèm. TUYỆT ĐỐI KHÔNG ĐƯỢC CHIA SẺ ĐƯỜNG DẪN GOOGLE DRIVE NÀO.
+   - Nếu dùng thông tin tra cứu internet: Ghi rõ nguồn tiêu đề và đính kèm đường dẫn trực tiếp dưới dạng markdown (ví dụ: [Tên Nguồn](Đường dẫn liên kết)).
+4. Nếu cả tài liệu lẫn kết quả internet đều không có thông tin chính xác, hãy trả lời lịch sự: "Tôi chưa tìm thấy thông tin chính xác về nội dung này trong Kho tài liệu Mặt trận Phường Chánh Hiệp hay trên Internet. Câu hỏi của bạn sẽ được chuyển đến cán bộ chuyên môn để cập nhật." Tuyệt đối không tự bịa đặt thông tin nằm ngoài các nguồn dữ liệu được cung cấp.`;
+ 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
-
-      res.json({ result: response.text });
+ 
+      // Sanitize response to strip out any potential Google Drive link
+      const filteredResult = filterGoogleDriveLinks(response.text || '');
+      res.json({ result: filteredResult });
     } catch (error: any) {
-      console.error('Error in /api/ai/knowledge-search:', error);
-      res.json({ 
-        result: `Trợ lý AI đang gặp sự cố kết nối hoặc khóa API không hợp lệ. Bạn có thể tra cứu thông tin trực tiếp tại mục Kho văn bản hoặc gửi Ý kiến Dân sinh.` 
-      });
+      console.error('Error in /api/ai/knowledge-search, falling back to local knowledge search. Error details:', error);
+      const fallbackResult = runLocalKnowledgeFallback(req.body.query, req.body.documentsContext, req.body.knowledgeNotesContext);
+      res.json({ result: fallbackResult });
     }
   });
 
@@ -317,7 +562,7 @@ Hãy phân tích và trả về định dạng JSON thuần hợp lệ (không k
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json'
@@ -355,7 +600,7 @@ Hãy phân tích và trả về kết quả định dạng JSON thuần hợp l�
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json'
@@ -387,7 +632,7 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
 (Lưu ý: Báo cáo chỉ mang tính chất tổng hợp hỗ trợ, cán bộ cần kiểm tra trước khi sử dụng).`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt
       });
 
@@ -400,11 +645,11 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
 
   // =========================================================================
   // GOOGLE DRIVE MONITOR SERVICE & WEBHOOK HOOKS
-  // Monitored Folder: 1TNEc-8JYkF17R44igkinTIZAmFEjSmOL
+  // Monitored Folder: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G
   // =========================================================================
 
-  const GOOGLE_DRIVE_MONITORED_FOLDER_ID = '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL';
-  const GOOGLE_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${GOOGLE_DRIVE_MONITORED_FOLDER_ID}`;
+  const GOOGLE_DRIVE_MONITORED_FOLDER_ID = '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G';
+  const GOOGLE_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${GOOGLE_DRIVE_MONITORED_FOLDER_ID}?hl=vi`;
 
   // In-memory monitor event store
   const driveMonitorEvents: Array<{

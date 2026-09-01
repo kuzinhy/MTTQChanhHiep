@@ -372,7 +372,7 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
                       </div>
                       <div className="truncate">
                         <div className="text-xs font-black text-slate-800 group-hover:text-blue-700 truncate">Quản lý Cán bộ &amp; Thành viên</div>
-                        <div className="text-[10px] text-slate-400 font-normal truncate">Tài khoản &amp; cơ cấu 12 khu phố</div>
+                        <div className="text-[10px] text-slate-400 font-normal truncate">Tài khoản &amp; cơ cấu 21 khu phố</div>
                       </div>
                     </div>
                     <span className="text-[9px] bg-blue-100 text-blue-800 font-black px-1.5 py-0.5 rounded-md shrink-0 ml-1">

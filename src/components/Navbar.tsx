@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
-    { id: 'news', label: 'Tin tức & Tuyên truyền', icon: BookOpen },
+    { id: 'news', label: 'Tin tức địa phương', icon: BookOpen },
     { id: 'documents', label: 'Văn bản - Chính sách', icon: FileText },
     { id: 'competitions', label: 'Hội thi trực tuyến', icon: Award },
     { id: 'opinion', label: 'Gửi ý kiến & Phản ánh', icon: MessageSquareHeart },
