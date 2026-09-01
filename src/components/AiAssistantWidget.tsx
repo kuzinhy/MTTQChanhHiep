@@ -10,11 +10,18 @@ import {
   FileText, 
   HelpCircle,
   Building2,
-  ChevronDown
+  ChevronDown,
+  Activity,
+  Wifi,
+  WifiOff,
+  AlertTriangle,
+  CheckCircle2,
+  Terminal
 } from 'lucide-react';
 import { AppStorageEngine } from '../lib/storage';
 import { CloudDatabase } from '../lib/firestoreService';
-import { getApiUrl, runClientLocalKnowledgeFallback } from '../lib/api';
+import { getApiUrl } from '../lib/api';
+import { queryGeminiWithFallback, SearchTraceLog } from '../lib/geminiClient';
 import { AiChatLog } from '../types';
 
 interface ChatMessage {
@@ -28,6 +35,8 @@ export const AiAssistantWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputQuery, setInputQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [lastTraces, setLastTraces] = useState<SearchTraceLog[]>([]);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -77,23 +86,9 @@ export const AiAssistantWidget: React.FC = () => {
       .join('\n\n');
 
     try {
-
-      const response = await fetch(getApiUrl('/api/ai/knowledge-search'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          query: query.trim(), 
-          documentsContext: docContext,
-          knowledgeNotesContext: notesString 
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Không thể kết nối với dịch vụ Trợ lý AI.');
-      }
-
-      const data = await response.json();
-      const aiReply = data.result || data.answer || data.error || 'Tôi đã tiếp nhận câu hỏi của bạn. Hệ thống đang đồng bộ dữ liệu với Kho văn bản Mặt trận Phường Chánh Hiệp.';
+      console.log('[AI Assistant Widget] Querying integrated Gemini SDK system with fallback layers...');
+      const { text: aiReply, logs } = await queryGeminiWithFallback(query.trim(), docContext, notesString);
+      setLastTraces(logs);
 
       setMessages(prev => [
         ...prev,
@@ -105,55 +100,28 @@ export const AiAssistantWidget: React.FC = () => {
         }
       ]);
 
+      const wasOffline = logs.some(l => l.methodTried === 'OFFLINE_RAG' && l.status === 'SUCCESS');
+
       // Save to chat log database
       const currentStaffUser = AppStorageEngine.getCurrentUser();
       const newLog: AiChatLog = {
-        id: 'chat-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+        id: (wasOffline ? 'chat-offline-' : 'chat-') + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
         query: query.trim(),
         response: aiReply,
         timestamp: new Date().toISOString(),
         userId: currentStaffUser?.id,
-        userName: currentStaffUser?.fullname || 'Người dân Phường Chánh Hiệp',
+        userName: currentStaffUser?.fullname || 'Người dân Phường Chánh Hiệp' + (wasOffline ? ' (Ngoại tuyến)' : ''),
         isStaff: !!currentStaffUser,
-        category: 'Hỏi đáp nhân dân'
+        category: wasOffline ? 'Hỏi đáp nhân dân (Ngoại tuyến)' : 'Hỏi đáp nhân dân'
       };
 
       // Sync locally and trigger cloud save
       const currentChats = AppStorageEngine.getAiChats() || [];
       AppStorageEngine.saveAiChats([newLog, ...currentChats]);
-      CloudDatabase.saveAiChat(newLog);
+      CloudDatabase.saveAiChat(newLog).catch(e => console.warn('Background sync error:', e));
 
     } catch (err: any) {
-      console.warn('[AI Assistant Widget] Connection error, activating local RAG fallback:', err);
-      const fallbackReply = runClientLocalKnowledgeFallback(query.trim(), docContext, notesString);
-
-      setMessages(prev => [
-        ...prev,
-        {
-          id: 'ai-fallback-' + Date.now(),
-          sender: 'ai',
-          text: fallbackReply,
-          timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
-
-      // Save to chat log database for history tracking
-      const currentStaffUser = AppStorageEngine.getCurrentUser();
-      const newLog: AiChatLog = {
-        id: 'chat-offline-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
-        query: query.trim(),
-        response: fallbackReply,
-        timestamp: new Date().toISOString(),
-        userId: currentStaffUser?.id,
-        userName: currentStaffUser?.fullname || 'Người dân Phường Chánh Hiệp (Ngoại tuyến)',
-        isStaff: !!currentStaffUser,
-        category: 'Hỏi đáp nhân dân (Ngoại tuyến)'
-      };
-
-      const currentChats = AppStorageEngine.getAiChats() || [];
-      AppStorageEngine.saveAiChats([newLog, ...currentChats]);
-      // Attempt silent background sync
-      CloudDatabase.saveAiChat(newLog).catch(e => console.log('Silent offline chat log save failed:', e));
+      console.error('[AI Assistant Widget] Critical execution boundary error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -201,12 +169,23 @@ export const AiAssistantWidget: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setShowDiagnostics(!showDiagnostics)}
+                title="Chẩn đoán kết nối AI"
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  showDiagnostics ? 'text-amber-400 bg-white/15' : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Terminal className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Quick Prompts Bar */}
@@ -225,6 +204,67 @@ export const AiAssistantWidget: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {/* Diagnostics Panel */}
+          {showDiagnostics && (
+            <div className="bg-slate-950 text-emerald-400 font-mono p-3 text-[10px] space-y-2 border-b border-slate-800 max-h-[220px] overflow-y-auto shrink-0 select-text">
+              <div className="flex items-center justify-between text-slate-400 border-b border-slate-800 pb-1.5 mb-1.5">
+                <span className="font-bold flex items-center gap-1">
+                  <Terminal className="w-3.5 h-3.5 text-amber-400" />
+                  NHẬT KÝ KẾT NỐI SẢN XUẤT (VERCEL)
+                </span>
+                <button 
+                  onClick={() => setLastTraces([])}
+                  className="text-[9px] hover:text-white underline cursor-pointer"
+                >
+                  Xóa log
+                </button>
+              </div>
+
+              {lastTraces.length === 0 ? (
+                <div className="text-slate-500 italic py-2">
+                  Chưa có cuộc gọi AI nào được kích hoạt trong phiên này. Hãy gửi một câu hỏi để xem chi tiết chẩn đoán kết nối.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {lastTraces.map((trace, idx) => (
+                    <div key={idx} className="border-b border-slate-900 pb-2 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        {trace.status === 'SUCCESS' ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        ) : (
+                          <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                        )}
+                        <span className="text-amber-300">[{trace.methodTried}]</span>
+                        <span className={trace.status === 'SUCCESS' ? 'text-emerald-400' : 'text-red-400'}>
+                          {trace.status} ({trace.durationMs}ms)
+                        </span>
+                      </div>
+                      <div className="text-slate-400 mt-0.5">
+                        <span className="text-slate-500">Thời gian:</span> {new Date(trace.timestamp).toLocaleTimeString()} | 
+                        <span className="text-slate-500"> Mạng:</span> {trace.networkOnline ? 'ONLINE' : 'OFFLINE'}
+                      </div>
+                      <div className="text-slate-300 mt-1 pl-2 border-l border-slate-800 break-words font-sans text-[11px]">
+                        <span className="font-mono text-[9px] text-slate-500 block">Nội dung hỏi:</span>
+                        "{trace.query}"
+                      </div>
+                      {trace.errorDetails && (
+                        <div className="text-red-400 mt-1.5 bg-red-950/40 p-1.5 rounded-lg border border-red-900/30 font-sans text-[9px] whitespace-pre-wrap break-all select-all">
+                          <span className="font-mono font-bold text-red-300 block">CHI TIẾT LỖI PRODUCTION:</span>
+                          {trace.errorDetails}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <div className="text-[9px] text-slate-500 border-t border-slate-900 pt-1.5 flex flex-col gap-0.5">
+                <div>• Đường dẫn API: <span className="text-slate-400 break-all">{getApiUrl('/api/ai/knowledge-search')}</span></div>
+                <div>• Client SDK Support: <span className="text-amber-500 font-bold">{(import.meta as any).env?.VITE_GEMINI_API_KEY ? 'YES' : 'NO (Sử dụng API Server)'}</span></div>
+              </div>
+            </div>
+          )}
 
           {/* Messages Area */}
           <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-slate-50/60 text-xs">
