@@ -29,7 +29,7 @@ import {
   Edit
 } from 'lucide-react';
 import { AiChatLog, KnowledgeNote, StaffUser } from '../../types';
-import { getApiUrl } from '../../lib/api';
+import { getApiUrl, runClientLocalKnowledgeFallback } from '../../lib/api';
 
 interface AiAssistantViewProps {
   documentsContext?: string;
@@ -251,11 +251,11 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
       const aiResult = data.result || data.error;
       setResult(aiResult);
 
-      if (onSaveAiChat) {
+      if (onSaveAiChat && aiResult) {
         const newLog: AiChatLog = {
           id: 'chat-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
           query: q,
-          response: aiResult || 'Không nhận được câu trả lời.',
+          response: aiResult,
           timestamp: new Date().toISOString(),
           userId: currentStaffUser?.id,
           userName: currentStaffUser?.fullname,
@@ -265,7 +265,26 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
         onSaveAiChat(newLog);
       }
     } catch (err: any) {
-      setResult('Lỗi kết nối API AI: ' + err.message);
+      console.warn('[AI Assistant View] Connection error, activating local RAG fallback:', err);
+      const fallbackReply = runClientLocalKnowledgeFallback(q, documentsContext || '', (knowledgeNotes || [])
+        .filter(n => n.status === 'APPROVED')
+        .map(n => `HỎI: ${n.question}\nĐÁP: ${n.answer}`)
+        .join('\n\n'));
+      setResult(fallbackReply);
+
+      if (onSaveAiChat) {
+        const newLog: AiChatLog = {
+          id: 'chat-offline-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+          query: q,
+          response: fallbackReply,
+          timestamp: new Date().toISOString(),
+          userId: currentStaffUser?.id,
+          userName: currentStaffUser?.fullname,
+          isStaff: true,
+          category: 'Tra cứu (Ngoại tuyến)'
+        };
+        onSaveAiChat(newLog);
+      }
     } finally {
       setLoading(false);
     }

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { AppStorageEngine } from '../lib/storage';
 import { CloudDatabase } from '../lib/firestoreService';
-import { getApiUrl } from '../lib/api';
+import { getApiUrl, runClientLocalKnowledgeFallback } from '../lib/api';
 import { AiChatLog } from '../types';
 
 interface ChatMessage {
@@ -64,18 +64,19 @@ export const AiAssistantWidget: React.FC = () => {
     if (!textToSend) setInputQuery('');
     setIsLoading(true);
 
-    try {
-      // Gather RAG context from local storage cache
-      const docs = AppStorageEngine.getDocuments() || [];
-      const docContext = docs
-        .map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`)
-        .join('\n');
+    // Gather RAG context from local storage cache
+    const docs = AppStorageEngine.getDocuments() || [];
+    const docContext = docs
+      .map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`)
+      .join('\n');
 
-      const notes = AppStorageEngine.getKnowledgeNotes() || [];
-      const notesString = notes
-        .filter(n => n.status === 'APPROVED')
-        .map(n => `HỎI: ${n.question}\nĐÁP: ${n.answer}`)
-        .join('\n\n');
+    const notes = AppStorageEngine.getKnowledgeNotes() || [];
+    const notesString = notes
+      .filter(n => n.status === 'APPROVED')
+      .map(n => `HỎI: ${n.question}\nĐÁP: ${n.answer}`)
+      .join('\n\n');
+
+    try {
 
       const response = await fetch(getApiUrl('/api/ai/knowledge-search'), {
         method: 'POST',
@@ -123,15 +124,36 @@ export const AiAssistantWidget: React.FC = () => {
       CloudDatabase.saveAiChat(newLog);
 
     } catch (err: any) {
+      console.warn('[AI Assistant Widget] Connection error, activating local RAG fallback:', err);
+      const fallbackReply = runClientLocalKnowledgeFallback(query.trim(), docContext, notesString);
+
       setMessages(prev => [
         ...prev,
         {
-          id: 'ai-err-' + Date.now(),
+          id: 'ai-fallback-' + Date.now(),
           sender: 'ai',
-          text: 'Rất tiếc, đã có sự cố kết nối với Trợ lý AI. Vui lòng thử lại sau giây lát hoặc gửi Ý kiến Dân sinh trực tiếp.',
+          text: fallbackReply,
           timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+
+      // Save to chat log database for history tracking
+      const currentStaffUser = AppStorageEngine.getCurrentUser();
+      const newLog: AiChatLog = {
+        id: 'chat-offline-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+        query: query.trim(),
+        response: fallbackReply,
+        timestamp: new Date().toISOString(),
+        userId: currentStaffUser?.id,
+        userName: currentStaffUser?.fullname || 'Người dân Phường Chánh Hiệp (Ngoại tuyến)',
+        isStaff: !!currentStaffUser,
+        category: 'Hỏi đáp nhân dân (Ngoại tuyến)'
+      };
+
+      const currentChats = AppStorageEngine.getAiChats() || [];
+      AppStorageEngine.saveAiChats([newLog, ...currentChats]);
+      // Attempt silent background sync
+      CloudDatabase.saveAiChat(newLog).catch(e => console.log('Silent offline chat log save failed:', e));
     } finally {
       setIsLoading(false);
     }
