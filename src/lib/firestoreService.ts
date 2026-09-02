@@ -151,7 +151,17 @@ class CloudSyncService {
             .map(d => ({ ...(d.data() as OfficialDocument), id: d.id }))
             .filter(d => d && d.id && !demoIds.has(d.id));
 
-          const sorted = sortDocumentsNewestFirst(remoteDocs);
+          const docMap = new Map<string, OfficialDocument>();
+          INITIAL_DOCUMENTS.forEach(d => {
+            if (d && d.id) docMap.set(d.id, d);
+          });
+          remoteDocs.forEach(d => {
+            if (d && d.id) {
+              docMap.set(d.id, { ...(docMap.get(d.id) || {}), ...d });
+            }
+          });
+
+          const sorted = sortDocumentsNewestFirst(Array.from(docMap.values()));
           AppStorageEngine.saveDocuments(sorted);
           callbacks.onDocumentsUpdate?.(sorted);
         }, (err) => {
@@ -382,7 +392,7 @@ class CloudSyncService {
 
       const articlesSnap = await getDocs(collection(db, FirestoreCollections.ARTICLES));
       if (articlesSnap.empty) {
-        console.log('[Firestore] Database is empty. Seeding initial data to Firebase Cloud Firestore (mttqphuongchanhhiep-279e1)...');
+        console.log('[Firestore] Database is empty. Seeding initial data to Firebase Cloud Firestore...');
         
         // Batch seed articles
         const initialArticles = AppStorageEngine.getArticles();

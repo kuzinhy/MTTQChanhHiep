@@ -216,7 +216,7 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
                   <div>
                     <h4 className="font-extrabold text-amber-950 text-xs">Cần thêm tên miền vào Firebase Console</h4>
                     <p className="text-amber-800 text-[11px] mt-0.5 leading-relaxed">
-                      Google OAuth yêu cầu cấp quyền cho tên miền máy chủ này trong mục <b>Authorized domains</b> của dự án Firebase <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[10px]">mttqphuongchanhhiep-279e1</code>.
+                      Google OAuth yêu cầu cấp quyền cho tên miền máy chủ này trong mục <b>Authorized domains</b> của dự án Firebase Console.
                     </p>
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
                 <div className="text-[10.5px] text-amber-900 bg-amber-100/70 p-2.5 rounded-xl space-y-1">
                   <p className="font-bold">Các bước thực hiện trên Firebase Console:</p>
                   <ol className="list-decimal list-inside space-y-0.5 text-amber-800">
-                    <li>Truy cập <b>console.firebase.google.com</b> &gt; Chọn dự án <b>mttqphuongchanhhiep-279e1</b></li>
+                    <li>Truy cập <b>console.firebase.google.com</b> &gt; Chọn dự án Firebase của bạn</li>
                     <li>Vào <b>Authentication</b> &gt; Tab <b>Settings</b> &gt; <b>Authorized domains</b></li>
                     <li>Bấm <b>Add domain</b> &gt; Dán tên miền trên và nhấn <b>Add</b></li>
                   </ol>

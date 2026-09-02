@@ -614,7 +614,7 @@ export default function App() {
     } else if (res.isPermissionError) {
       handleTriggerSystemToast(
         'Cần mở quyền Firestore', 
-        'Dự án Firebase mttqphuongchanhhiep-279e1 đang cấu hình giới hạn quyền ghi. Hãy vào Firebase Console > Firestore Database > Rules và chọn Publish: allow read, write: if true;'
+        'Dự án Firebase đang cấu hình giới hạn quyền ghi. Hãy vào Firebase Console > Firestore Database > Rules và chọn Publish: allow read, write: if true;'
       );
     } else {
       handleTriggerSystemToast('Lỗi đồng bộ', 'Không thể hoàn tất kết nối với Firebase. Vui lòng kiểm tra lại kết nối mạng.');

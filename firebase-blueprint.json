@@ -169,6 +169,30 @@
         "timestamp": { "type": "string" }
       },
       "required": ["userId", "action", "timestamp"]
+    },
+    "analytics_stats": {
+      "title": "Analytics Stats",
+      "description": "Real-time visitor counts and active online visitors",
+      "type": "object",
+      "properties": {
+        "totalVisits": { "type": "number" },
+        "todayVisits": { "type": "number" },
+        "monthVisits": { "type": "number" },
+        "lastDate": { "type": "string" },
+        "lastMonth": { "type": "string" }
+      },
+      "required": ["totalVisits"]
+    },
+    "active_visitors": {
+      "title": "Active Visitors",
+      "description": "Heartbeat timestamps for calculating real-time active online visitors",
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string" },
+        "lastActive": { "type": "string" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["sessionId", "lastActive"]
     }
   }
 }

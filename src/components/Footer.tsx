@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Phone, Mail, ExternalLink, ShieldCheck, Globe, Zap, Users, Activity, Scale, Info } from 'lucide-react';
+import { MapPin, Phone, Mail, ExternalLink, ShieldCheck, Globe, Zap, Users, Activity, Scale, Info, BarChart2 } from 'lucide-react';
 import { VisitorTrackerEngine, VisitorStats } from '../lib/visitorTracker';
+import { VisitorStatsModal } from './VisitorStatsModal';
 
 export const Footer: React.FC<{
   onSelectTab?: (tab: string) => void;
 }> = ({ onSelectTab }) => {
   const [onlineCount, setOnlineCount] = useState<number>(() => VisitorTrackerEngine.getOnlineCount());
   const [stats, setStats] = useState<VisitorStats>(() => VisitorTrackerEngine.getStats());
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   useEffect(() => {
     VisitorTrackerEngine.init();
@@ -144,7 +146,11 @@ export const Footer: React.FC<{
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-[10px] text-blue-100 shadow-sm">
+          <button
+            onClick={() => setIsStatsModalOpen(true)}
+            title="Bấm để xem báo cáo thống kê lưu lượng chi tiết"
+            className="w-full group flex flex-col sm:flex-row items-center justify-between gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 hover:border-cyan-400/50 text-[10px] text-blue-100 shadow-sm transition-all cursor-pointer text-left"
+          >
             <span className="flex items-center gap-1.5 font-semibold">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -152,11 +158,12 @@ export const Footer: React.FC<{
               </span>
               <span>Trực tuyến: <strong className="text-white font-black text-xs">{onlineCount}</strong></span>
             </span>
-            <span className="font-semibold flex items-center gap-1">
+            <span className="font-semibold flex items-center gap-1 group-hover:text-cyan-300 transition-colors">
               <Activity className="w-3 h-3 text-cyan-300" />
               <span>Lượt truy cập: <strong className="text-cyan-300 font-black text-xs">{stats.totalVisits.toLocaleString('vi-VN')}</strong></span>
+              <BarChart2 className="w-3 h-3 text-cyan-400 opacity-75 group-hover:opacity-100 ml-0.5" />
             </span>
-          </div>
+          </button>
         </div>
 
       </div>
@@ -164,6 +171,14 @@ export const Footer: React.FC<{
       <div className="bg-slate-950 py-3.5 px-4 border-t border-blue-900 text-center text-[11px] text-blue-200 font-semibold">
         &copy; 2026 Bản quyền thuộc về Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, Thành phố Hồ Chí Minh.
       </div>
+
+      {/* Visitor Analytics Modal */}
+      <VisitorStatsModal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+        onlineCount={onlineCount}
+        stats={stats}
+      />
     </footer>
   );
 };

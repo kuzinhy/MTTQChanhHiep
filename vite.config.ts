@@ -20,6 +20,7 @@ export default defineConfig(() => {
           theme_color: '#1d4ed8',
           background_color: '#f8fafc',
           display: 'standalone',
+          orientation: 'portrait-primary',
           start_url: '/',
           scope: '/',
           icons: [
@@ -35,6 +36,12 @@ export default defineConfig(() => {
               type: 'image/svg+xml',
               purpose: 'any',
             },
+            {
+              src: '/icon.svg',
+              sizes: '512x512',
+              type: 'image/svg+xml',
+              purpose: 'maskable',
+            },
           ],
         },
         devOptions: {
@@ -42,7 +49,12 @@ export default defineConfig(() => {
           type: 'module',
         },
         workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          navigateFallback: '/index.html',
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
         },
       }),
     ],

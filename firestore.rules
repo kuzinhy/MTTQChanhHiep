@@ -39,8 +39,20 @@ service cloud.firestore {
       allow create, read: if true;
       allow update, delete: if isAuthenticated() || true;
     }
+
+    // 4. Thống kê truy cập & Người dùng online thời gian thực
+    match /analytics_stats/{docId} {
+      allow read, write: if true;
+      match /{allSubcollections=**} {
+        allow read, write: if true;
+      }
+    }
+
+    match /active_visitors/{sessionId} {
+      allow read, write: if true;
+    }
     
-    // 4. Mặc định các collection nội bộ
+    // 5. Mặc định các collection nội bộ
     match /{document=**} {
       allow read, write: if true;
     }

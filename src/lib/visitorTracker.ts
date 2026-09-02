@@ -1,198 +1,229 @@
-/**
- * Real-time Visitor & Active Online Session Tracker
- * Lưu trữ chính xác số lượt truy cập thực tế và đếm số phiên trực tuyến thời gian thực
- * Không tạo số ảo - Dữ liệu thực từ bộ nhớ và phiên hoạt động
- */
-
-const STORAGE_KEYS = {
-  VISITOR_STATS: 'mttq_chanhhiep_visit_stats_v2',
-  HEARTBEAT_MAP: 'mttq_chanhhiep_active_heartbeats_v2',
-  SESSION_VISITED: 'mttq_chanhhiep_session_flag_v2',
-};
+import {
+  incrementVisitorCount,
+  updateActiveVisitorPresence,
+  removeActiveVisitorPresence,
+  subscribeToFirebaseAnalytics
+} from './firebaseAnalytics';
 
 export interface VisitorStats {
   totalVisits: number;
   todayVisits: number;
+  monthVisits: number;
   lastVisitDate: string;
   lastVisitTime: string;
+  serverTime?: string;
+  hourlyTraffic?: Record<string, number>;
 }
 
-// Generate unique ID for this browser tab
-const TAB_ID = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+// Unique session identifier for this tab/window session
+const getSessionId = (): string => {
+  if (typeof window === 'undefined') return 'server_session';
+  let sid = sessionStorage.getItem('mttq_chanhhiep_analytics_sid');
+  if (!sid) {
+    sid = 'sid_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+    sessionStorage.setItem('mttq_chanhhiep_analytics_sid', sid);
+  }
+  return sid;
+};
+
+// Local storage fallback key
+const STORAGE_KEY_CACHE = 'mttq_chanhhiep_visitor_stats_cache_v4';
 
 export class VisitorTrackerEngine {
   private static listeners: Array<(count: number) => void> = [];
   private static statsListeners: Array<(stats: VisitorStats) => void> = [];
   private static heartbeatInterval: any = null;
+  private static firebaseUnsub: (() => void) | null = null;
   private static isInitialized = false;
 
+  private static currentOnlineCount = 1;
+  private static currentStats: VisitorStats = {
+    totalVisits: 1,
+    todayVisits: 1,
+    monthVisits: 1,
+    lastVisitDate: new Date().toISOString().split('T')[0],
+    lastVisitTime: new Date().toLocaleTimeString('vi-VN'),
+  };
+
   /**
-   * Khởi tạo theo dõi: Ghi nhận 1 lượt truy cập thực và bắt đầu nhịp tim đếm trực tuyến
+   * Khởi tạo máy đếm: Cập nhật Firebase Firestore & Bắt đầu nhịp tim Timestamp 30s
    */
   public static init(): void {
     if (this.isInitialized) return;
     this.isInitialized = true;
 
-    // Ghi nhận lượt truy cập
-    this.recordPageVisit();
+    // Load cached stats from localStorage if available for immediate UI rendering
+    this.loadFromCache();
 
-    // Khởi động nhịp tim phiên hoạt động (Heartbeat) - 8s định kỳ tránh giật lag
-    this.sendHeartbeat();
-    this.heartbeatInterval = setInterval(() => {
-      this.sendHeartbeat();
-    }, 8000);
+    const sessionId = getSessionId();
 
-    // Lắng nghe sự kiện Storage giữa các tab
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', (e) => {
-        if (e.key === STORAGE_KEYS.HEARTBEAT_MAP) {
-          this.notifyOnlineCount();
-        }
-        if (e.key === STORAGE_KEYS.VISITOR_STATS) {
+    // Check if this is a brand new session visit
+    const isRecordedInSession = sessionStorage.getItem('mttq_chanhhiep_analytics_visit_recorded');
+    const isNewSession = !isRecordedInSession;
+
+    if (isNewSession) {
+      sessionStorage.setItem('mttq_chanhhiep_analytics_visit_recorded', 'true');
+      // Tăng lượt truy cập trong Firebase collection 'analytics_stats'
+      incrementVisitorCount().then((fbStats) => {
+        if (fbStats) {
+          this.currentStats = {
+            ...this.currentStats,
+            totalVisits: fbStats.totalVisits,
+            todayVisits: fbStats.todayVisits,
+            monthVisits: fbStats.monthVisits,
+            lastVisitDate: fbStats.lastDate,
+          };
           this.notifyStats();
         }
       });
-
-      // Dọn dẹp nhịp tim khi đóng tab
-      window.addEventListener('beforeunload', () => {
-        this.removeHeartbeat();
-      });
-      window.addEventListener('unload', () => {
-        this.removeHeartbeat();
-      });
     }
-  }
 
-  /**
-   * Ghi nhận lượt truy cập thực tế vào bộ nhớ (localStorage)
-   */
-  public static recordPageVisit(): VisitorStats {
-    try {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const nowTimeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      
-      const raw = localStorage.getItem(STORAGE_KEYS.VISITOR_STATS);
-      let stats: VisitorStats;
+    // Cập nhật 'active_visitors' Firestore ngay lập tức
+    updateActiveVisitorPresence(sessionId);
 
-      if (raw) {
-        stats = JSON.parse(raw);
-        // Kiểm tra xem đã tính trong phiên này chưa (sessionStorage) để tránh tăng ảo khi re-render nội bộ
-        const hasSessionVisited = sessionStorage.getItem(STORAGE_KEYS.SESSION_VISITED);
-        if (!hasSessionVisited) {
-          stats.totalVisits = (stats.totalVisits || 0) + 1;
-          if (stats.lastVisitDate === todayStr) {
-            stats.todayVisits = (stats.todayVisits || 0) + 1;
-          } else {
-            stats.todayVisits = 1;
-            stats.lastVisitDate = todayStr;
-          }
-          stats.lastVisitTime = nowTimeStr;
-          sessionStorage.setItem(STORAGE_KEYS.SESSION_VISITED, 'true');
-          localStorage.setItem(STORAGE_KEYS.VISITOR_STATS, JSON.stringify(stats));
-        }
-      } else {
-        // Lần đầu tiên chạy
-        stats = {
-          totalVisits: 1,
-          todayVisits: 1,
-          lastVisitDate: todayStr,
-          lastVisitTime: nowTimeStr
+    // Chu kỳ 30 giây: Cập nhật timestamp 'active_visitors' theo đúng yêu cầu
+    this.heartbeatInterval = setInterval(() => {
+      updateActiveVisitorPresence(sessionId);
+      this.sendHeartbeatToExpressServer();
+    }, 30000); // 30s timestamp update
+
+    // Đăng ký nhận thông tin Real-time Snapshot từ Firebase Firestore
+    this.firebaseUnsub = subscribeToFirebaseAnalytics(
+      (fbStats) => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const nowTimeStr = new Date().toLocaleTimeString('vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+
+        this.currentStats = {
+          totalVisits: fbStats.totalVisits || this.currentStats.totalVisits,
+          todayVisits: fbStats.todayVisits || this.currentStats.todayVisits,
+          monthVisits: fbStats.monthVisits || this.currentStats.monthVisits,
+          lastVisitDate: fbStats.lastDate || todayStr,
+          lastVisitTime: nowTimeStr,
         };
-        sessionStorage.setItem(STORAGE_KEYS.SESSION_VISITED, 'true');
-        localStorage.setItem(STORAGE_KEYS.VISITOR_STATS, JSON.stringify(stats));
+        this.saveToCache();
+        this.notifyStats();
+      },
+      (onlineCount) => {
+        this.currentOnlineCount = Math.max(1, onlineCount);
+        this.saveToCache();
+        this.notifyOnlineCount();
       }
+    );
 
-      this.notifyStats();
-      return stats;
-    } catch (err) {
-      console.warn('Lỗi ghi nhận lượt truy cập:', err);
-      return {
-        totalVisits: 1,
-        todayVisits: 1,
-        lastVisitDate: new Date().toISOString().split('T')[0],
-        lastVisitTime: new Date().toLocaleTimeString('vi-VN')
-      };
+    // Đồng bộ thêm với Express Backend server
+    this.sendVisitToExpressServer(isNewSession);
+
+    // Event handlers khi rời trang / thay đổi tab
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        removeActiveVisitorPresence(sessionId);
+        this.sendUnloadToExpressServer();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          updateActiveVisitorPresence(sessionId);
+        }
+      });
     }
   }
 
   /**
-   * Lấy số liệu thống kê lượt truy cập hiện tại từ bộ nhớ
+   * Tải số liệu từ cache bộ nhớ máy
    */
-  public static getStats(): VisitorStats {
+  private static loadFromCache(): void {
     try {
-      const raw = localStorage.getItem(STORAGE_KEYS.VISITOR_STATS);
+      const raw = localStorage.getItem(STORAGE_KEY_CACHE);
       if (raw) {
-        return JSON.parse(raw);
+        const cached = JSON.parse(raw);
+        if (cached.stats) {
+          this.currentStats = cached.stats;
+        }
+        if (cached.onlineCount) {
+          this.currentOnlineCount = cached.onlineCount;
+        }
       }
     } catch (e) {
       // ignore
     }
-    return {
-      totalVisits: 1,
-      todayVisits: 1,
-      lastVisitDate: new Date().toISOString().split('T')[0],
-      lastVisitTime: new Date().toLocaleTimeString('vi-VN')
-    };
   }
 
   /**
-   * Gửi nhịp tim (Heartbeat) báo hiệu tab này đang trực tuyến
+   * Lưu số liệu vào cache cục bộ
    */
-  private static sendHeartbeat(): void {
+  private static saveToCache(): void {
     try {
-      const now = Date.now();
-      const raw = localStorage.getItem(STORAGE_KEYS.HEARTBEAT_MAP);
-      let map: Record<string, number> = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        STORAGE_KEY_CACHE,
+        JSON.stringify({
+          stats: this.currentStats,
+          onlineCount: this.currentOnlineCount,
+          updatedAt: Date.now(),
+        })
+      );
+    } catch (e) {
+      // ignore
+    }
+  }
 
-      // Cập nhật tab hiện tại
-      map[TAB_ID] = now;
-
-      // Dọn dẹp các tab đã tắt quá 6 giây
-      const cleanedMap: Record<string, number> = {};
-      for (const [id, time] of Object.entries(map)) {
-        if (now - time < 6000) {
-          cleanedMap[id] = time;
-        }
-      }
-
-      localStorage.setItem(STORAGE_KEYS.HEARTBEAT_MAP, JSON.stringify(cleanedMap));
-      this.notifyOnlineCount();
+  private static async sendVisitToExpressServer(isNewSession: boolean): Promise<void> {
+    try {
+      await fetch('/api/analytics/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: getSessionId(),
+          isNewSession,
+          currentPage: window.location.pathname || 'HOME',
+        }),
+      });
     } catch (err) {
+      // ignore fallback
+    }
+  }
+
+  private static async sendHeartbeatToExpressServer(): Promise<void> {
+    try {
+      await fetch('/api/analytics/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: getSessionId(),
+          currentPage: window.location.pathname || 'HOME',
+        }),
+      });
+    } catch (err) {
+      // ignore fallback
+    }
+  }
+
+  private static sendUnloadToExpressServer(): void {
+    try {
+      const payload = JSON.stringify({ sessionId: getSessionId() });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/analytics/heartbeat', payload);
+      }
+    } catch (e) {
       // ignore
     }
   }
 
   /**
-   * Xóa tab khỏi danh sách khi đóng tab
-   */
-  private static removeHeartbeat(): void {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEYS.HEARTBEAT_MAP);
-      if (raw) {
-        const map: Record<string, number> = JSON.parse(raw);
-        delete map[TAB_ID];
-        localStorage.setItem(STORAGE_KEYS.HEARTBEAT_MAP, JSON.stringify(map));
-      }
-    } catch (err) {
-      // ignore
-    }
-  }
-
-  /**
-   * Lấy số lượng người dùng / tab đang trực tuyến thực tế
+   * Lấy số người đang online thời gian thực
    */
   public static getOnlineCount(): number {
-    try {
-      const now = Date.now();
-      const raw = localStorage.getItem(STORAGE_KEYS.HEARTBEAT_MAP);
-      if (!raw) return 1;
+    return this.currentOnlineCount;
+  }
 
-      const map: Record<string, number> = JSON.parse(raw);
-      const activeTabs = Object.values(map).filter(time => now - time < 6000);
-      return Math.max(1, activeTabs.length);
-    } catch (e) {
-      return 1;
-    }
+  /**
+   * Lấy thống kê lượt truy cập
+   */
+  public static getStats(): VisitorStats {
+    return this.currentStats;
   }
 
   /**
@@ -203,7 +234,7 @@ export class VisitorTrackerEngine {
     callback(this.getOnlineCount());
 
     return () => {
-      this.listeners = this.listeners.filter(cb => cb !== callback);
+      this.listeners = this.listeners.filter((cb) => cb !== callback);
     };
   }
 
@@ -215,21 +246,25 @@ export class VisitorTrackerEngine {
     callback(this.getStats());
 
     return () => {
-      this.statsListeners = this.statsListeners.filter(cb => cb !== callback);
+      this.statsListeners = this.statsListeners.filter((cb) => cb !== callback);
     };
   }
 
   private static notifyOnlineCount(): void {
     const count = this.getOnlineCount();
-    this.listeners.forEach(cb => {
-      try { cb(count); } catch (e) {}
+    this.listeners.forEach((cb) => {
+      try {
+        cb(count);
+      } catch (e) {}
     });
   }
 
   private static notifyStats(): void {
     const stats = this.getStats();
-    this.statsListeners.forEach(cb => {
-      try { cb(stats); } catch (e) {}
+    this.statsListeners.forEach((cb) => {
+      try {
+        cb(stats);
+      } catch (e) {}
     });
   }
 }

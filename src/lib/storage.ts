@@ -143,8 +143,16 @@ export const AppStorageEngine = {
   getDocuments: (): OfficialDocument[] => {
     const raw = loadInitialData(STORAGE_KEYS.DOCUMENTS, INITIAL_DOCUMENTS);
     const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
-    const filtered = (raw || []).filter(d => d && d.id && !demoIds.has(d.id));
-    return sortDocumentsNewestFirst(filtered);
+    const docMap = new Map<string, OfficialDocument>();
+    INITIAL_DOCUMENTS.forEach(d => {
+      if (d && d.id) docMap.set(d.id, d);
+    });
+    (raw || []).forEach(d => {
+      if (d && d.id && !demoIds.has(d.id)) {
+        docMap.set(d.id, { ...(docMap.get(d.id) || {}), ...d });
+      }
+    });
+    return sortDocumentsNewestFirst(Array.from(docMap.values()));
   },
   saveDocuments: (documents: OfficialDocument[]) => {
     const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);

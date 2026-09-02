@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { aiWorkspaceRouter } from './server/aiWorkspaceRouter';
+import { analyticsRouter } from './server/analyticsRouter';
 
 dotenv.config({ override: true });
 
@@ -38,6 +39,9 @@ async function startServer() {
 
   // MTTQ AI Workspace API Router (16 Professional Tools)
   app.use('/api/ai/workspace', aiWorkspaceRouter);
+
+  // Analytics & Active Presence Traffic Counter API Router
+  app.use('/api/analytics', analyticsRouter);
 
   // API Health Check
   app.get('/api/health', (_req: Request, res: Response) => {
