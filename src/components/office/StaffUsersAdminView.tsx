@@ -46,6 +46,7 @@ interface StaffUsersAdminViewProps {
   onAddUser?: (user: StaffUser) => void;
   onUpdateUser?: (user: StaffUser) => void;
   onDeleteUser?: (id: string) => void;
+  onOpenDigitalDirectory?: () => void;
 }
 
 const AVATAR_PRESETS = [
@@ -95,7 +96,8 @@ export const StaffUsersAdminView: React.FC<StaffUsersAdminViewProps> = ({
   onToggleUserActive,
   onAddUser,
   onUpdateUser,
-  onDeleteUser
+  onDeleteUser,
+  onOpenDigitalDirectory
 }) => {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
@@ -472,13 +474,25 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
           </div>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="px-4 py-2.5 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:brightness-105 text-slate-900 font-black text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all active:scale-95 shrink-0 border border-amber-200 cursor-pointer"
-        >
-          <UserPlus className="w-4 h-4 text-slate-950" />
-          <span>Thêm Cán Bộ Mới</span>
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {onOpenDigitalDirectory && (
+            <button
+              onClick={onOpenDigitalDirectory}
+              className="px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 shrink-0 border border-white/40 cursor-pointer backdrop-blur-xs"
+            >
+              <Phone className="w-4 h-4 text-amber-300" />
+              <span>Danh Bạ Số Cán Bộ</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleOpenAdd}
+            className="px-4 py-2.5 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:brightness-105 text-slate-900 font-black text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all active:scale-95 shrink-0 border border-amber-200 cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4 text-slate-950" />
+            <span>Thêm Cán Bộ Mới</span>
+          </button>
+        </div>
       </div>
 
       {/* Metric Cards */}

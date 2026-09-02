@@ -168,15 +168,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
                 {current.summary}
               </p>
 
-              <div className="mt-4 flex items-center gap-3 flex-wrap">
-                <button
-                  onClick={() => onSelectArticle(current)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
-                >
-                  <span>Xem chi tiết bài viết</span>
-                  <ArrowRight className="w-4 h-4 text-white" />
-                </button>
-                {current.originalUrl && (
+              {current.originalUrl && (
+                <div className="mt-4 flex items-center gap-3 flex-wrap">
                   <a
                     href={current.originalUrl}
                     target="_blank"
@@ -187,8 +180,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
                     <span>Xem trên Facebook</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
-                )}
-              </div>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

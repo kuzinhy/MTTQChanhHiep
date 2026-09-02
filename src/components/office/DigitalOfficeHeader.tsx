@@ -23,7 +23,8 @@ import {
   RefreshCw,
   Menu,
   BellRing,
-  Check
+  Check,
+  Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getRoleBadgeStyle, getRoleLabel } from '../../lib/rbac';
@@ -46,6 +47,7 @@ interface DigitalOfficeHeaderProps {
   onTriggerSimulatedDocApproval?: () => void;
   onForceCloudSync?: () => void;
   onToggleMobileSidebar?: () => void;
+  onOpenDigitalDirectory?: () => void;
 }
 
 export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
@@ -63,7 +65,8 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
   onTriggerSimulatedOpinion,
   onTriggerSimulatedDocApproval,
   onForceCloudSync,
-  onToggleMobileSidebar
+  onToggleMobileSidebar,
+  onOpenDigitalDirectory
 }) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -420,6 +423,27 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
                     </div>
                     <span className="text-[9px] bg-blue-100 text-blue-800 font-black px-1.5 py-0.5 rounded-md shrink-0 ml-1">
                       QUẢN TRỊ
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      if (onOpenDigitalDirectory) onOpenDigitalDirectory();
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl font-bold transition-colors cursor-pointer text-left group"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0">
+                        <Phone className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="truncate">
+                        <div className="text-xs font-black text-slate-800 group-hover:text-emerald-700 truncate">Danh bạ số Cán bộ &amp; 21 Khu phố</div>
+                        <div className="text-[10px] text-slate-400 font-normal truncate">Tra cứu SĐT Thường trực &amp; Trưởng Ban CTMT</div>
+                      </div>
+                    </div>
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 font-black px-1.5 py-0.5 rounded-md shrink-0 ml-1">
+                      DANH BẠ
                     </span>
                   </button>
 

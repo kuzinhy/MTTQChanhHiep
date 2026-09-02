@@ -111,15 +111,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white animate-pulse" />
             </button>
 
-            {/* Digital Directory Button */}
-            <button
-              onClick={onOpenDigitalDirectory}
-              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition cursor-pointer"
-              title="Danh bạ số Cán bộ & 21 Khu phố"
-            >
-              <Phone className="w-3.5 h-3.5 text-amber-300" />
-              <span>Danh bạ</span>
-            </button>
 
             {/* Volunteer Signup */}
             <button

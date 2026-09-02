@@ -1017,6 +1017,7 @@ export default function App() {
                   onGoToPortal={() => setCurrentSpace('PORTAL')}
                   onForceCloudSync={handleForceCloudSync}
                   onToggleMobileSidebar={() => setIsMobileOfficeSidebarOpen(true)}
+                  onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
                   onLogout={async () => {
                     try {
                       await signOut(auth);
@@ -1348,6 +1349,7 @@ export default function App() {
                           CloudDatabase.deleteStaffUser(id);
                           handleTriggerSystemToast('Đã xóa cán bộ', 'Tài khoản cán bộ đã được xóa khỏi hệ thống.');
                         }}
+                        onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
                       />
                     )}
 

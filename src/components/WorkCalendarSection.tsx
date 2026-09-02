@@ -10,7 +10,8 @@ import {
   Trash2, 
   X,
   Users,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 
 interface WorkCalendarSectionProps {
@@ -79,6 +80,7 @@ export const WorkCalendarSection: React.FC<WorkCalendarSectionProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'ADD' | 'EDIT'>('ADD');
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<WorkEvent | null>(null);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -293,7 +295,7 @@ export const WorkCalendarSection: React.FC<WorkCalendarSectionProps> = ({
                   )}
                   {onDeleteEvent && (
                     <button
-                      onClick={() => onDeleteEvent(evt.id)}
+                      onClick={() => setDeleteConfirmEvent(evt)}
                       className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] rounded-lg border border-rose-200 transition-all cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -448,6 +450,49 @@ export const WorkCalendarSection: React.FC<WorkCalendarSectionProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmEvent && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-150">
+            <div className="flex items-center gap-3 text-rose-600 border-b border-rose-100 pb-3">
+              <div className="p-2.5 bg-rose-100 rounded-2xl">
+                <AlertTriangle className="w-6 h-6 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">Xác nhận xóa Lịch công tác</h3>
+                <p className="text-xs text-slate-500 font-medium">Hành động này sẽ loại bỏ sự kiện khỏi hệ thống</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+              <div className="font-black text-slate-800">{deleteConfirmEvent.title}</div>
+              <div className="text-slate-500 font-semibold">{deleteConfirmEvent.startTime} | {deleteConfirmEvent.location}</div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmEvent(null)}
+                className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 text-xs cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onDeleteEvent && deleteConfirmEvent) {
+                    onDeleteEvent(deleteConfirmEvent.id);
+                  }
+                  setDeleteConfirmEvent(null);
+                }}
+                className="px-5 py-2 bg-rose-600 text-white font-extrabold rounded-xl hover:bg-rose-700 shadow-xs text-xs cursor-pointer"
+              >
+                Xác nhận Xóa
+              </button>
+            </div>
           </div>
         </div>
       )}
