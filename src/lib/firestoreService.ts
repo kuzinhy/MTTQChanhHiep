@@ -104,6 +104,8 @@ class CloudSyncService {
       onAuditLogsUpdate?: (logs: AuditLog[]) => void;
       onAiChatsUpdate?: (chats: AiChatLog[]) => void;
       onKnowledgeNotesUpdate?: (notes: KnowledgeNote[]) => void;
+      onSubmissionsUpdate?: (subs: CompetitionSubmission[]) => void;
+      onDriveFilesUpdate?: (files: DriveFileItem[]) => void;
     }
   ) {
     if (this.isInitialized) return;
@@ -152,19 +154,7 @@ class CloudSyncService {
             .map(d => ({ ...(d.data() as OfficialDocument), id: d.id }))
             .filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id));
 
-          const docMap = new Map<string, OfficialDocument>();
-          INITIAL_DOCUMENTS.forEach(d => {
-            if (d && d.id && !deletedIds.has(d.id)) {
-              docMap.set(d.id, d);
-            }
-          });
-          remoteDocs.forEach(d => {
-            if (d && d.id && !deletedIds.has(d.id)) {
-              docMap.set(d.id, { ...(docMap.get(d.id) || {}), ...d });
-            }
-          });
-
-          const sorted = sortDocumentsNewestFirst(Array.from(docMap.values()));
+          const sorted = sortDocumentsNewestFirst(remoteDocs);
           AppStorageEngine.saveDocuments(sorted);
           callbacks.onDocumentsUpdate?.(sorted);
         }, (err) => {
@@ -192,9 +182,10 @@ class CloudSyncService {
       // Competitions Listener
       if (callbacks.onCompetitionsUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.COMPETITIONS), (snapshot) => {
+          const deletedIds = AppStorageEngine.getDeletedCompIds();
           const remoteComps: Competition[] = snapshot.docs
             .map(d => ({ ...(d.data() as Competition), id: d.id }))
-            .filter(c => c && c.id);
+            .filter(c => c && c.id && !deletedIds.has(c.id));
           
           const sorted = sortCompetitionsNewestFirst(remoteComps);
           AppStorageEngine.saveCompetitions(sorted);
@@ -227,24 +218,42 @@ class CloudSyncService {
           const remoteEvents: WorkEvent[] = snapshot.docs
             .map(d => ({ ...(d.data() as WorkEvent), id: d.id }))
             .filter(e => e && e.id && !deletedIds.has(e.id));
-          
-          const eventMap = new Map<string, WorkEvent>();
-          INITIAL_EVENTS.forEach(e => {
-            if (e && e.id && !deletedIds.has(e.id)) {
-              eventMap.set(e.id, e);
-            }
-          });
-          remoteEvents.forEach(e => {
-            if (e && e.id && !deletedIds.has(e.id)) {
-              eventMap.set(e.id, { ...(eventMap.get(e.id) || {}), ...e });
-            }
-          });
 
-          const sorted = sortEventsNewestFirst(Array.from(eventMap.values()));
+          const sorted = sortEventsNewestFirst(remoteEvents);
           AppStorageEngine.saveEvents(sorted);
           callbacks.onEventsUpdate?.(sorted);
         }, (err) => {
           console.warn('[Firestore] Events sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
+      // Submissions Listener
+      if (callbacks.onSubmissionsUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.SUBMISSIONS), (snapshot) => {
+          const remoteSubs: CompetitionSubmission[] = snapshot.docs
+            .map(d => ({ ...(d.data() as CompetitionSubmission), id: d.id }))
+            .filter(s => s && s.id);
+          
+          AppStorageEngine.saveSubmissions(remoteSubs);
+          callbacks.onSubmissionsUpdate?.(remoteSubs);
+        }, (err) => {
+          console.warn('[Firestore] Submissions sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
+      // Drive Files Listener
+      if (callbacks.onDriveFilesUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.DRIVE_FILES), (snapshot) => {
+          const remoteFiles: DriveFileItem[] = snapshot.docs
+            .map(d => ({ ...(d.data() as DriveFileItem), id: d.id }))
+            .filter(f => f && f.id);
+          
+          AppStorageEngine.saveDriveFiles(remoteFiles);
+          callbacks.onDriveFilesUpdate?.(remoteFiles);
+        }, (err) => {
+          console.warn('[Firestore] Drive Files sync error:', err);
         });
         this.syncListeners.push(unsub);
       }
@@ -388,16 +397,9 @@ class CloudSyncService {
     }
   }
 
-  // Seed Firestore only if never initialized before or ensure all initial competitions exist
+  // Seed Firestore only if never initialized before
   private async ensureSeedData() {
     try {
-      // Always ensure all initial competitions exist in Firestore
-      const initialComps = AppStorageEngine.getCompetitions();
-      for (const comp of initialComps) {
-        const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
-        await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });
-      }
-
       const stateDocRef = doc(db, 'settings', 'app_state');
       const stateDocSnap = await getDoc(stateDocRef);
 
@@ -432,6 +434,7 @@ class CloudSyncService {
         }
 
         // Batch seed competitions
+        const initialComps = AppStorageEngine.getCompetitions();
         for (const comp of initialComps) {
           const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
           await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });
@@ -592,6 +595,54 @@ class CloudSyncService {
     }
   }
 
+  async deleteCompetition(compId: string): Promise<void> {
+    try {
+      AppStorageEngine.recordDeletedCompId(compId);
+      const compDoc = doc(db, FirestoreCollections.COMPETITIONS, compId);
+      await deleteDoc(compDoc);
+    } catch (err) {
+      console.error('[Firestore] Error deleting competition:', err);
+    }
+  }
+
+  // Submissions
+  async saveSubmission(sub: CompetitionSubmission): Promise<void> {
+    try {
+      const sDoc = doc(db, FirestoreCollections.SUBMISSIONS, sub.id);
+      await setDoc(sDoc, cleanFirestoreData(sub), { merge: true });
+    } catch (err) {
+      console.error('[Firestore] Error saving submission:', err);
+    }
+  }
+
+  async deleteSubmission(subId: string): Promise<void> {
+    try {
+      const sDoc = doc(db, FirestoreCollections.SUBMISSIONS, subId);
+      await deleteDoc(sDoc);
+    } catch (err) {
+      console.error('[Firestore] Error deleting submission:', err);
+    }
+  }
+
+  // Drive Files
+  async saveDriveFile(file: DriveFileItem): Promise<void> {
+    try {
+      const fDoc = doc(db, FirestoreCollections.DRIVE_FILES, file.id);
+      await setDoc(fDoc, cleanFirestoreData(file), { merge: true });
+    } catch (err) {
+      console.error('[Firestore] Error saving drive file:', err);
+    }
+  }
+
+  async deleteDriveFile(fileId: string): Promise<void> {
+    try {
+      const fDoc = doc(db, FirestoreCollections.DRIVE_FILES, fileId);
+      await deleteDoc(fDoc);
+    } catch (err) {
+      console.error('[Firestore] Error deleting drive file:', err);
+    }
+  }
+
   // Tasks
   async saveTask(task: Task): Promise<void> {
     try {
@@ -738,6 +789,16 @@ class CloudSyncService {
         AppStorageEngine.saveCompetitions(sortCompetitionsNewestFirst(compsSnap.docs.map(d => ({ ...(d.data() as Competition), id: d.id }))));
       }
 
+      const subsSnap = await getDocs(collection(db, FirestoreCollections.SUBMISSIONS));
+      if (!subsSnap.empty) {
+        AppStorageEngine.saveSubmissions(subsSnap.docs.map(d => ({ ...(d.data() as CompetitionSubmission), id: d.id })));
+      }
+
+      const driveSnap = await getDocs(collection(db, FirestoreCollections.DRIVE_FILES));
+      if (!driveSnap.empty) {
+        AppStorageEngine.saveDriveFiles(driveSnap.docs.map(d => ({ ...(d.data() as DriveFileItem), id: d.id })));
+      }
+
       const chatsSnap = await getDocs(collection(db, FirestoreCollections.AI_CHATS));
       if (!chatsSnap.empty) {
         const remoteChats = chatsSnap.docs.map(d => ({ ...(d.data() as AiChatLog), id: d.id }));
@@ -766,7 +827,7 @@ class CloudSyncService {
       const pushCollection = async <T extends { id: string }>(collName: string, items: T[]) => {
         for (const item of items) {
           try {
-            await setDoc(doc(db, collName, item.id), item, { merge: true });
+            await setDoc(doc(db, collName, item.id), cleanFirestoreData(item), { merge: true });
           } catch (err: any) {
             if (err?.code === 'permission-denied' || (err?.message && err.message.includes('permission'))) {
               hasPermissionError = true;
@@ -784,6 +845,9 @@ class CloudSyncService {
       await pushCollection(FirestoreCollections.NOTES, AppStorageEngine.getNotes());
       await pushCollection(FirestoreCollections.COMPETITIONS, AppStorageEngine.getCompetitions());
       await pushCollection(FirestoreCollections.STAFF_USERS, AppStorageEngine.getStaffUsers());
+      await pushCollection(FirestoreCollections.SUBMISSIONS, AppStorageEngine.getSubmissions());
+      await pushCollection(FirestoreCollections.DRIVE_FILES, AppStorageEngine.getDriveFiles());
+      await pushCollection(FirestoreCollections.AUDIT_LOGS, AppStorageEngine.getAuditLogs());
 
       if (hasPermissionError) {
         return { 

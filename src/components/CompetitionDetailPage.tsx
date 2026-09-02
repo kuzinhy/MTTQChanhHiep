@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Competition, CompetitionSubmission } from '../types';
+import { CompetitionBanner } from './CompetitionBanner';
 import { 
   ArrowLeft, 
   Trophy, 
@@ -272,28 +273,16 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
       </div>
 
       {/* Banner Card */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-950 border border-blue-800 text-white shadow-md">
-        <div className="relative h-48 sm:h-64 w-full">
-          <img
-            src={competition.bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1200'}
-            alt={competition.title}
-            className="w-full h-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-blue-950 via-blue-950/70 to-transparent" />
-          
-          <div className="absolute bottom-0 inset-x-0 p-6 sm:p-8 space-y-2">
-            <span className="px-3 py-1 bg-cyan-400 text-blue-950 font-black text-xs rounded-xl uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5" />
-              {competition.type === 'TRIVIA' ? 'Hội thi Trắc nghiệm Trực tuyến' : 'Cuộc thi Viết Cảm nhận'}
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">
-              {competition.title}
-            </h1>
-            <p className="text-xs sm:text-sm text-blue-100/90 max-w-3xl leading-relaxed font-medium">
-              {competition.description}
-            </p>
-          </div>
-        </div>
+      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md">
+        <CompetitionBanner
+          bannerUrl={competition.bannerUrl}
+          title={competition.title}
+          type={competition.type}
+          status={competition.status}
+          isYouthCompetition={competition.isYouthCompetition}
+          className="h-56 sm:h-64"
+          showOverlayBadges={true}
+        />
       </div>
 
       {/* TRIVIA WORKSPACE */}

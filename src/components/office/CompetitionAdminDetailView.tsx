@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Competition, CompetitionQuestion, CompetitionSubmission, ScoringCriterion } from '../../types';
+import { CompetitionBanner, BANNER_PRESET_THEMES, BANNER_IMAGE_PRESETS } from '../CompetitionBanner';
 import { 
   uploadFileToGoogleDrive, 
   DEFAULT_DRIVE_FOLDER_ID, 
@@ -448,48 +449,143 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
               />
             </div>
 
-            {/* Media Picker & Banner Google Drive Upload */}
-            <div className="space-y-3 md:col-span-2 bg-slate-50 p-6 rounded-2xl border border-slate-200">
-              <label className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
-                <span>Banner / Hình minh họa hội thi (Google Drive Sync)</span>
-                <a href={DEFAULT_DRIVE_FOLDER_URL} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs font-bold">
-                  📂 Mở thư mục Google Drive
-                </a>
-              </label>
-
-              <input
-                type="text"
-                value={compData.bannerUrl || ''}
-                onChange={(e) => setCompData({ ...compData, bannerUrl: e.target.value })}
-                placeholder="https://... hoặc link hình ảnh trực tiếp"
-                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
-              />
-
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && setBannerFile(e.target.files[0])}
-                  className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
-                />
-                {bannerFile && (
-                  <button
-                    type="button"
-                    onClick={handleUploadBannerToDrive}
-                    disabled={isUploadingBanner}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
-                  >
-                    <Upload className="w-4 h-4" />
-                    <span>{isUploadingBanner ? 'Đang tải lên Drive...' : 'Tải lên Google Drive'}</span>
-                  </button>
-                )}
+            {/* Media Picker & Banner Theme Presets */}
+            <div className="space-y-4 md:col-span-2 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+              <div className="space-y-1">
+                <label className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center justify-between">
+                  <span>Banner / Hình minh họa hội thi</span>
+                  <a href={DEFAULT_DRIVE_FOLDER_URL} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs font-bold">
+                    📂 Mở thư mục Google Drive
+                  </a>
+                </label>
+                <p className="text-xs text-slate-500">
+                  Tích chọn ảnh bìa từ Thư viện Ảnh Bàn giao hoặc các mẫu Vector / Gradient có sẵn bên dưới, hoặc tải tệp/nhập liên kết hình ảnh trực tiếp.
+                </p>
               </div>
 
-              {compData.bannerUrl && (
-                <div className="mt-3 relative h-48 w-full max-w-xl rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-sm">
-                  <img src={compData.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
+              {/* Real Image Presets Library */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    Thư viện 4 Ảnh Bìa Hội Thi Thực Tế (Bản Cung Cấp):
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-500">Nhấp vào hình ảnh để chọn</span>
                 </div>
-              )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {BANNER_IMAGE_PRESETS.map((preset) => {
+                    const isSelected = compData.bannerUrl === preset.url;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setCompData({ ...compData, bannerUrl: preset.url })}
+                        className={`group relative rounded-2xl border overflow-hidden text-left transition-all cursor-pointer flex flex-col ${
+                          isSelected
+                            ? 'border-blue-600 ring-2 ring-blue-500/30 shadow-md'
+                            : 'border-slate-200 bg-white hover:border-slate-400 hover:shadow-sm'
+                        }`}
+                      >
+                        <div className="relative h-28 w-full bg-slate-900 overflow-hidden">
+                          <img
+                            src={preset.url}
+                            alt={preset.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-[1px] flex items-center justify-center">
+                              <span className="bg-blue-600 text-white font-black text-xs px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Đang chọn
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2.5 bg-white space-y-0.5">
+                          <div className="font-bold text-slate-900 text-xs truncate">{preset.name}</div>
+                          <p className="text-[10px] text-slate-500 line-clamp-1">{preset.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Theme Presets Picker */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-700">Thư viện Banner Vector / Gradient Chủ đề:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {BANNER_PRESET_THEMES.map((theme) => {
+                    const isSelected = compData.bannerUrl === theme.id;
+                    return (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => setCompData({ ...compData, bannerUrl: theme.id })}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-50/80 ring-2 ring-blue-500/20 shadow-xs'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className="font-extrabold text-slate-900 text-xs truncate">{theme.name}</span>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />}
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1">{theme.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Image URL or Upload */}
+              <div className="space-y-2 pt-2 border-t border-slate-200/80">
+                <label className="text-xs font-bold text-slate-700">Hoặc nhập link ảnh trực tiếp / Tải tệp lên Google Drive:</label>
+                <input
+                  type="text"
+                  value={compData.bannerUrl || ''}
+                  onChange={(e) => setCompData({ ...compData, bannerUrl: e.target.value })}
+                  placeholder="https://... hoặc theme:red-flag"
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+                />
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files?.[0] && setBannerFile(e.target.files[0])}
+                    className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                  />
+                  {bannerFile && (
+                    <button
+                      type="button"
+                      onClick={handleUploadBannerToDrive}
+                      disabled={isUploadingBanner}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs disabled:opacity-50 cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>{isUploadingBanner ? 'Đang tải lên Drive...' : 'Tải lên Google Drive'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Banner Live Preview */}
+              <div className="mt-3 space-y-1.5">
+                <span className="text-xs font-bold text-slate-700">Xem trước hiển thị Banner hội thi:</span>
+                <div className="relative h-48 w-full max-w-2xl rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                  <CompetitionBanner
+                    bannerUrl={compData.bannerUrl}
+                    title={compData.title}
+                    type={compData.type}
+                    status={compData.status}
+                    isYouthCompetition={compData.isYouthCompetition}
+                    className="h-full"
+                    showOverlayBadges={true}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </form>

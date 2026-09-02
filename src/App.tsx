@@ -154,6 +154,8 @@ export default function App() {
       onAuditLogsUpdate: (logs) => setAuditLogs(logs),
       onAiChatsUpdate: (chats) => setAiChats(chats),
       onKnowledgeNotesUpdate: (notes) => setKnowledgeNotes(notes),
+      onSubmissionsUpdate: (subs) => setSubmissions(subs),
+      onDriveFilesUpdate: (files) => setDriveFiles(files),
     });
   }, []);
 
@@ -603,6 +605,8 @@ export default function App() {
       AppStorageEngine.saveCompetitions(next);
       return next;
     });
+    CloudDatabase.deleteCompetition(compId);
+    handleTriggerSystemToast('Đã xóa cuộc thi', 'Đã xóa hội thi khỏi hệ thống và đồng bộ trực tuyến.');
   };
 
   const handleAddEvent = (ev: WorkEvent) => {
@@ -659,7 +663,8 @@ export default function App() {
       AppStorageEngine.saveSubmissions(next);
       return next;
     });
-    handleTriggerSystemToast('Đã ghi nhận bài thi', `Bài dự thi của ${sub.participantName} đã được nộp và lưu trữ.`);
+    CloudDatabase.saveSubmission(sub);
+    handleTriggerSystemToast('Đã ghi nhận bài thi', `Bài dự thi của ${sub.participantName} đã được nộp và lưu trữ trực tuyến.`);
   };
 
   return (
@@ -1259,11 +1264,15 @@ export default function App() {
                           submissions={submissions}
                           onGradeSubmission={(id, score, comment) => {
                             setSubmissions(prev => {
+                              const target = prev.find(s => s.id === id);
+                              if (target) {
+                                CloudDatabase.saveSubmission({ ...target, score, adminComment: comment, status: 'GRADED' });
+                              }
                               const next = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' } : s);
                               AppStorageEngine.saveSubmissions(next);
                               return next;
                             });
-                            handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ.');
+                            handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ trực tuyến.');
                           }}
                           onShowToast={handleTriggerSystemToast}
                         />
@@ -1276,11 +1285,15 @@ export default function App() {
                           onDeleteCompetition={handleDeleteCompetition}
                           onGradeSubmission={(id, score, comment) => {
                             setSubmissions(prev => {
+                              const target = prev.find(s => s.id === id);
+                              if (target) {
+                                CloudDatabase.saveSubmission({ ...target, score, adminComment: comment, status: 'GRADED' });
+                              }
                               const next = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' } : s);
                               AppStorageEngine.saveSubmissions(next);
                               return next;
                             });
-                            handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ.');
+                            handleTriggerSystemToast('Đã chấm điểm bài thi', 'Điểm và nhận xét bài thi đã được lưu trữ trực tuyến.');
                           }}
                           onSelectCompetitionDetail={(id) => setActiveCompetitionId(id)}
                           onRestoreDefaultBanners={handleRestoreDefaultBanners}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Competition, CompetitionSubmission } from '../../types';
+import { CompetitionBanner, BANNER_PRESET_THEMES } from '../CompetitionBanner';
 import { 
   Award, 
   Users, 
@@ -183,29 +184,15 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
           {competitions.map((comp) => (
             <div key={comp.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
-                <div className="relative h-48 w-full bg-slate-900">
-                  <img
-                    src={comp.bannerUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800'}
-                    alt={comp.title}
-                    className="w-full h-full object-cover opacity-85"
-                  />
-                  <div className="absolute top-3 left-3 flex items-center gap-2">
-                    <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md text-white shadow-xs ${
-                      comp.status === 'OPEN' || comp.status === 'ONGOING' ? 'bg-emerald-600' :
-                      comp.status === 'DRAFT' ? 'bg-amber-600' : 'bg-slate-700'
-                    }`}>
-                      {comp.status === 'OPEN' || comp.status === 'ONGOING' ? 'Đang diễn ra' :
-                       comp.status === 'DRAFT' ? 'Bản nháp' : 'Đã kết thúc'}
-                    </span>
-                    <span className="bg-slate-900/95 backdrop-blur-xs text-amber-300 text-[10px] font-bold px-2 py-1 rounded-md border border-slate-700">
-                      {comp.type === 'TRIVIA' ? 'Trắc nghiệm' : comp.type === 'WRITING' ? 'Bài viết' : 'Hỗn hợp'}
-                    </span>
-                  </div>
-
-                  <span className="absolute bottom-3 right-3 bg-blue-900/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-md">
-                    {comp.totalQuestions || 10} câu hỏi &bull; {comp.timeLimitMinutes || 15} phút
-                  </span>
-                </div>
+                <CompetitionBanner
+                  bannerUrl={comp.bannerUrl}
+                  title={comp.title}
+                  type={comp.type}
+                  status={comp.status}
+                  isYouthCompetition={comp.isYouthCompetition}
+                  className="h-48"
+                  showOverlayBadges={true}
+                />
 
                 <div className="p-5 space-y-3">
                   <h3 className="font-black text-slate-900 text-base leading-snug">{comp.title}</h3>

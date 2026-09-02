@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Competition } from '../types';
 import { sortCompetitionsNewestFirst } from '../lib/dateUtils';
 import { Award, Timer, FileEdit, HelpCircle, Trophy } from 'lucide-react';
+import { CompetitionBanner } from './CompetitionBanner';
 
 interface CompetitionsSectionProps {
   competitions: Competition[];
@@ -33,21 +34,15 @@ export const CompetitionsSection: React.FC<CompetitionsSectionProps> = ({
         {sortedComps.map((comp) => (
           <div key={comp.id} className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
             <div>
-              <div className="relative h-44 w-full bg-slate-900">
-                <img
-                  src={comp.bannerUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800'}
-                  alt={comp.title}
-                  className="w-full h-full object-cover opacity-80"
-                />
-                <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-2.5 py-1 rounded-md text-white ${
-                  comp.status === 'ONGOING' ? 'bg-emerald-600' : 'bg-slate-600'
-                }`}>
-                  {comp.status === 'ONGOING' ? 'Đang diễn ra' : 'Đã kết thúc'}
-                </span>
-                <span className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur-xs text-blue-400 text-[11px] font-bold px-2.5 py-1 rounded-md border border-slate-700">
-                  {comp.type === 'TRIVIA' ? 'Trắc nghiệm trực tuyến' : 'Cuộc thi viết'}
-                </span>
-              </div>
+              <CompetitionBanner
+                bannerUrl={comp.bannerUrl}
+                title={comp.title}
+                type={comp.type}
+                status={comp.status}
+                isYouthCompetition={comp.isYouthCompetition}
+                className="h-44"
+                showOverlayBadges={true}
+              />
 
               <div className="p-5 space-y-3">
                 <h3 className="font-bold text-slate-900 text-base leading-snug">
