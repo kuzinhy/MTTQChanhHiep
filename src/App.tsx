@@ -56,7 +56,7 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -543,6 +543,7 @@ export default function App() {
   };
 
   const handleDeleteDocument = async (docId: string) => {
+    AppStorageEngine.recordDeletedDocId(docId);
     setDocuments(prev => {
       const next = prev.filter(d => d.id !== docId);
       AppStorageEngine.saveDocuments(next);
@@ -602,6 +603,37 @@ export default function App() {
       AppStorageEngine.saveCompetitions(next);
       return next;
     });
+  };
+
+  const handleAddEvent = (ev: WorkEvent) => {
+    setEvents(prev => {
+      const next = [ev, ...prev];
+      AppStorageEngine.saveEvents(next);
+      return next;
+    });
+    CloudDatabase.saveEvent(ev);
+    handleTriggerSystemToast('Đã lưu lịch công tác', `Lịch sự kiện "${ev.title}" đã được đăng ký thành công.`);
+  };
+
+  const handleUpdateEvent = (ev: WorkEvent) => {
+    setEvents(prev => {
+      const next = prev.map(e => e.id === ev.id ? ev : e);
+      AppStorageEngine.saveEvents(next);
+      return next;
+    });
+    CloudDatabase.saveEvent(ev);
+    handleTriggerSystemToast('Đã cập nhật lịch', `Đã cập nhật thông tin sự kiện "${ev.title}".`);
+  };
+
+  const handleDeleteEvent = (eventId: string) => {
+    AppStorageEngine.recordDeletedEventId(eventId);
+    setEvents(prev => {
+      const next = prev.filter(e => e.id !== eventId);
+      AppStorageEngine.saveEvents(next);
+      return next;
+    });
+    CloudDatabase.deleteEvent(eventId);
+    handleTriggerSystemToast('Đã xóa lịch', 'Đã xóa lịch công tác khỏi hệ thống.');
   };
 
   const handleForceCloudSync = async () => {
@@ -806,7 +838,12 @@ export default function App() {
                         onSelectArticle={(art) => setSelectedArticle(art)}
                         onGoToOpinion={() => setPortalTab('opinion')}
                       />
-                      <WorkCalendarSection events={events} />
+                      <WorkCalendarSection 
+                        events={events} 
+                        onAddEvent={handleAddEvent}
+                        onUpdateEvent={handleUpdateEvent}
+                        onDeleteEvent={handleDeleteEvent}
+                      />
                       <DocumentsSection
                         documents={documents}
                         onSelectDocument={(doc) => setSelectedDocument(doc)}
@@ -1165,15 +1202,9 @@ export default function App() {
                     {officeView === 'calendar' && (
                       <WorkCalendarView
                         events={events}
-                        onAddEvent={(ev) => {
-                          setEvents(prev => {
-                            const next = [ev, ...prev];
-                            AppStorageEngine.saveEvents(next);
-                            return next;
-                          });
-                          CloudDatabase.saveEvent(ev);
-                          handleTriggerSystemToast('Đã lưu lịch công tác', `Lịch sự kiện "${ev.title}" đã được lưu trữ.`);
-                        }}
+                        onAddEvent={handleAddEvent}
+                        onUpdateEvent={handleUpdateEvent}
+                        onDeleteEvent={handleDeleteEvent}
                       />
                     )}
 

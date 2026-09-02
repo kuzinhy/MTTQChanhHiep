@@ -139,6 +139,7 @@ class CloudSyncService {
       if (callbacks.onDocumentsUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.DOCUMENTS), (snapshot) => {
           const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
+          const deletedIds = AppStorageEngine.getDeletedDocIds();
 
           // Purge demo documents from Firestore Cloud if present
           snapshot.docs.forEach(d => {
@@ -149,14 +150,16 @@ class CloudSyncService {
 
           const remoteDocs: OfficialDocument[] = snapshot.docs
             .map(d => ({ ...(d.data() as OfficialDocument), id: d.id }))
-            .filter(d => d && d.id && !demoIds.has(d.id));
+            .filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id));
 
           const docMap = new Map<string, OfficialDocument>();
           INITIAL_DOCUMENTS.forEach(d => {
-            if (d && d.id) docMap.set(d.id, d);
+            if (d && d.id && !deletedIds.has(d.id)) {
+              docMap.set(d.id, d);
+            }
           });
           remoteDocs.forEach(d => {
-            if (d && d.id) {
+            if (d && d.id && !deletedIds.has(d.id)) {
               docMap.set(d.id, { ...(docMap.get(d.id) || {}), ...d });
             }
           });
@@ -220,11 +223,24 @@ class CloudSyncService {
       // Events Listener
       if (callbacks.onEventsUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.EVENTS), (snapshot) => {
+          const deletedIds = AppStorageEngine.getDeletedEventIds();
           const remoteEvents: WorkEvent[] = snapshot.docs
             .map(d => ({ ...(d.data() as WorkEvent), id: d.id }))
-            .filter(e => e && e.id);
+            .filter(e => e && e.id && !deletedIds.has(e.id));
           
-          const sorted = sortEventsNewestFirst(remoteEvents);
+          const eventMap = new Map<string, WorkEvent>();
+          INITIAL_EVENTS.forEach(e => {
+            if (e && e.id && !deletedIds.has(e.id)) {
+              eventMap.set(e.id, e);
+            }
+          });
+          remoteEvents.forEach(e => {
+            if (e && e.id && !deletedIds.has(e.id)) {
+              eventMap.set(e.id, { ...(eventMap.get(e.id) || {}), ...e });
+            }
+          });
+
+          const sorted = sortEventsNewestFirst(Array.from(eventMap.values()));
           AppStorageEngine.saveEvents(sorted);
           callbacks.onEventsUpdate?.(sorted);
         }, (err) => {
@@ -537,6 +553,7 @@ class CloudSyncService {
 
   async deleteDocument(docId: string): Promise<boolean> {
     try {
+      AppStorageEngine.recordDeletedDocId(docId);
       const dDoc = doc(db, FirestoreCollections.DOCUMENTS, docId);
       await deleteDoc(dDoc);
       return true;
@@ -606,6 +623,7 @@ class CloudSyncService {
 
   async deleteEvent(eventId: string): Promise<void> {
     try {
+      AppStorageEngine.recordDeletedEventId(eventId);
       const evDoc = doc(db, FirestoreCollections.EVENTS, eventId);
       await deleteDoc(evDoc);
     } catch (err) {

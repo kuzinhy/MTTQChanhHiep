@@ -1,19 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1d4ed8" />
-      <stop offset="50%" stop-color="#4338ca" />
-      <stop offset="100%" stop-color="#0284c7" />
+    <!-- Red gradient background -->
+    <radialGradient id="redBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ee2624" />
+      <stop offset="75%" stop-color="#cc1a18" />
+      <stop offset="100%" stop-color="#880000" />
+    </radialGradient>
+    <!-- Gold gradient -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff59d" />
+      <stop offset="35%" stop-color="#fbc02d" />
+      <stop offset="100%" stop-color="#f57f17" />
     </linearGradient>
-    <linearGradient id="star" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fde047" />
-      <stop offset="100%" stop-color="#eab308" />
+    <linearGradient id="goldLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffff8d" />
+      <stop offset="50%" stop-color="#ffee58" />
+      <stop offset="100%" stop-color="#f57c00" />
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="128" fill="url(#bg)" />
-  <circle cx="256" cy="256" r="180" fill="none" stroke="#ffffff" stroke-width="12" stroke-dasharray="8 8" opacity="0.4" />
-  <!-- Star symbol for MTTQ -->
-  <polygon points="256,110 295,210 400,210 315,275 348,380 256,315 164,380 197,275 112,210 217,210" fill="url(#star)" />
-  <!-- Text overlay -->
-  <text x="256" y="440" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-weight="900" font-size="36" letter-spacing="2">MTTQ CHÁNH HIỆP</text>
+
+  <!-- Outer Circle Base -->
+  <circle cx="256" cy="256" r="248" fill="url(#gold)" />
+  <circle cx="256" cy="256" r="236" fill="#770000" />
+  <circle cx="256" cy="256" r="230" fill="url(#redBg)" />
+
+  <!-- Outer Gold Border Rings -->
+  <circle cx="256" cy="256" r="224" fill="none" stroke="url(#gold)" stroke-width="5" />
+  <circle cx="256" cy="256" r="162" fill="none" stroke="url(#gold)" stroke-width="4" />
+
+  <!-- Radiating Sunburst Rays (12 Points) -->
+  <g fill="url(#gold)" opacity="0.95">
+    <polygon points="256,36 266,135 246,135" />
+    <polygon points="256,476 266,377 246,377" />
+    <polygon points="36,256 135,266 135,246" />
+    <polygon points="476,256 377,266 377,246" />
+    
+    <polygon points="101,101 171,181 155,165" />
+    <polygon points="411,411 341,331 357,347" />
+    <polygon points="411,101 331,171 347,155" />
+    <polygon points="101,411 181,341 165,357" />
+
+    <polygon points="146,55 200,147 183,137" />
+    <polygon points="366,457 312,365 329,375" />
+    <polygon points="366,55 312,147 329,137" />
+    <polygon points="146,457 200,365 183,375" />
+  </g>
+
+  <!-- Arc Text for MTTQ -->
+  <path id="textArcTop" d="M 82,256 A 174,174 0 1,1 430,256" fill="none" />
+  <text font-family="'Segoe UI', Arial, sans-serif" font-weight="900" font-size="26" fill="url(#goldLight)" letter-spacing="2.5" text-anchor="middle">
+    <textPath href="#textArcTop" startOffset="50%">MẶT TRẬN TỔ QUỐC VIỆT NAM</textPath>
+  </text>
+
+  <!-- Inner Gold Disc Base -->
+  <circle cx="256" cy="256" r="148" fill="url(#redBg)" stroke="url(#gold)" stroke-width="6" />
+
+  <!-- Stylized Lotus Base Garland -->
+  <path d="M 130,280 C 150,380 362,380 382,280 C 342,340 170,340 130,280 Z" fill="url(#gold)" />
+  <path d="M 170,310 C 210,360 302,360 342,310 C 310,340 202,340 170,310 Z" fill="#ffff8d" />
+
+  <!-- Central Gold Star -->
+  <polygon points="256,128 286,210 372,210 302,260 329,342 256,292 183,342 210,260 140,210 226,210" fill="url(#goldLight)" stroke="#f57f17" stroke-width="2.5" />
 </svg>

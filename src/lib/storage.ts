@@ -39,10 +39,13 @@ import {
 const STORAGE_KEYS = {
   ARTICLES: 'mttq_chanhhiep_articles_v2',
   DOCUMENTS: 'mttq_chanhhiep_documents_v2',
+  DELETED_DOCS: 'mttq_chanhhiep_deleted_docs_v2',
   COMPETITIONS: 'mttq_chanhhiep_competitions_v2',
+  DELETED_COMPS: 'mttq_chanhhiep_deleted_comps_v2',
   OPINIONS: 'mttq_chanhhiep_opinions_v2',
   TASKS: 'mttq_chanhhiep_tasks_v2',
   EVENTS: 'mttq_chanhhiep_events_v2',
+  DELETED_EVENTS: 'mttq_chanhhiep_deleted_events_v2',
   NOTES: 'mttq_chanhhiep_notes_v2',
   TEMPLATES: 'mttq_chanhhiep_templates_v2',
   SUBMISSIONS: 'mttq_chanhhiep_submissions_v2',
@@ -140,15 +143,41 @@ export const AppStorageEngine = {
     saveStorageData(STORAGE_KEYS.ARTICLES, sortArticlesNewestFirst(filtered));
   },
 
+  getDeletedDocIds: (): Set<string> => {
+    const raw = loadInitialData<string[]>(STORAGE_KEYS.DELETED_DOCS, []);
+    return new Set(raw || []);
+  },
+  recordDeletedDocId: (id: string) => {
+    if (!id) return;
+    const current = AppStorageEngine.getDeletedDocIds();
+    current.add(id);
+    saveStorageData(STORAGE_KEYS.DELETED_DOCS, Array.from(current));
+  },
+
+  getDeletedCompIds: (): Set<string> => {
+    const raw = loadInitialData<string[]>(STORAGE_KEYS.DELETED_COMPS, []);
+    return new Set(raw || []);
+  },
+  recordDeletedCompId: (id: string) => {
+    if (!id) return;
+    const current = AppStorageEngine.getDeletedCompIds();
+    current.add(id);
+    saveStorageData(STORAGE_KEYS.DELETED_COMPS, Array.from(current));
+  },
+
   getDocuments: (): OfficialDocument[] => {
     const raw = loadInitialData(STORAGE_KEYS.DOCUMENTS, INITIAL_DOCUMENTS);
     const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
+    const deletedIds = AppStorageEngine.getDeletedDocIds();
+
     const docMap = new Map<string, OfficialDocument>();
     INITIAL_DOCUMENTS.forEach(d => {
-      if (d && d.id) docMap.set(d.id, d);
+      if (d && d.id && !deletedIds.has(d.id)) {
+        docMap.set(d.id, d);
+      }
     });
     (raw || []).forEach(d => {
-      if (d && d.id && !demoIds.has(d.id)) {
+      if (d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id)) {
         docMap.set(d.id, { ...(docMap.get(d.id) || {}), ...d });
       }
     });
@@ -156,23 +185,33 @@ export const AppStorageEngine = {
   },
   saveDocuments: (documents: OfficialDocument[]) => {
     const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
-    const filtered = (documents || []).filter(d => d && d.id && !demoIds.has(d.id));
+    const deletedIds = AppStorageEngine.getDeletedDocIds();
+    
+    // Check if any existing documents were omitted (deleted)
+    const currentDocs = loadInitialData<OfficialDocument[]>(STORAGE_KEYS.DOCUMENTS, []);
+    const newDocIds = new Set((documents || []).map(d => d?.id).filter(Boolean));
+    (currentDocs || []).forEach(d => {
+      if (d && d.id && !newDocIds.has(d.id)) {
+        AppStorageEngine.recordDeletedDocId(d.id);
+      }
+    });
+
+    const filtered = (documents || []).filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id));
     saveStorageData(STORAGE_KEYS.DOCUMENTS, sortDocumentsNewestFirst(filtered));
   },
 
   getCompetitions: (): Competition[] => {
     const raw = loadInitialData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
-    // Ensure all INITIAL_COMPETITIONS are present
+    const deletedIds = AppStorageEngine.getDeletedCompIds();
     const compMap = new Map<string, Competition>();
     INITIAL_COMPETITIONS.forEach(c => {
-      if (c && c.id) compMap.set(c.id, c);
+      if (c && c.id && !deletedIds.has(c.id)) compMap.set(c.id, c);
     });
     (raw || []).forEach(c => {
-      if (c && c.id) {
+      if (c && c.id && !deletedIds.has(c.id)) {
         if (!compMap.has(c.id)) {
           compMap.set(c.id, c);
         } else {
-          // Update with latest seed content if questions or rules are updated
           const existing = compMap.get(c.id)!;
           compMap.set(c.id, {
             ...existing,
@@ -187,7 +226,16 @@ export const AppStorageEngine = {
     return sortCompetitionsNewestFirst(Array.from(compMap.values()));
   },
   saveCompetitions: (competitions: Competition[]) => {
-    const filtered = (competitions || []).filter(c => c && c.id);
+    const deletedIds = AppStorageEngine.getDeletedCompIds();
+    const currentComps = loadInitialData<Competition[]>(STORAGE_KEYS.COMPETITIONS, []);
+    const newCompIds = new Set((competitions || []).map(c => c?.id).filter(Boolean));
+    (currentComps || []).forEach(c => {
+      if (c && c.id && !newCompIds.has(c.id)) {
+        AppStorageEngine.recordDeletedCompId(c.id);
+      }
+    });
+
+    const filtered = (competitions || []).filter(c => c && c.id && !deletedIds.has(c.id));
     saveStorageData(STORAGE_KEYS.COMPETITIONS, sortCompetitionsNewestFirst(filtered));
   },
 
@@ -210,14 +258,45 @@ export const AppStorageEngine = {
     saveStorageData(STORAGE_KEYS.TASKS, filtered);
   },
 
+  getDeletedEventIds: (): Set<string> => {
+    const raw = loadInitialData<string[]>(STORAGE_KEYS.DELETED_EVENTS, []);
+    return new Set(raw || []);
+  },
+  recordDeletedEventId: (id: string) => {
+    if (!id) return;
+    const current = AppStorageEngine.getDeletedEventIds();
+    current.add(id);
+    saveStorageData(STORAGE_KEYS.DELETED_EVENTS, Array.from(current));
+  },
+
   getEvents: (): WorkEvent[] => {
     const raw = loadInitialData(STORAGE_KEYS.EVENTS, INITIAL_EVENTS);
-    const filtered = (raw || []).filter(e => e && e.id);
-    return sortEventsNewestFirst(filtered);
+    const deletedIds = AppStorageEngine.getDeletedEventIds();
+    const eventMap = new Map<string, WorkEvent>();
+    INITIAL_EVENTS.forEach(e => {
+      if (e && e.id && !deletedIds.has(e.id)) {
+        eventMap.set(e.id, e);
+      }
+    });
+    (raw || []).forEach(e => {
+      if (e && e.id && !deletedIds.has(e.id)) {
+        eventMap.set(e.id, { ...(eventMap.get(e.id) || {}), ...e });
+      }
+    });
+    return sortEventsNewestFirst(Array.from(eventMap.values()));
   },
   saveEvents: (events: WorkEvent[]) => {
-    const filtered = (events || []).filter(e => e && e.id);
-    saveStorageData(STORAGE_KEYS.EVENTS, filtered);
+    const deletedIds = AppStorageEngine.getDeletedEventIds();
+    const currentEvs = loadInitialData<WorkEvent[]>(STORAGE_KEYS.EVENTS, []);
+    const newEvIds = new Set((events || []).map(e => e?.id).filter(Boolean));
+    (currentEvs || []).forEach(e => {
+      if (e && e.id && !newEvIds.has(e.id)) {
+        AppStorageEngine.recordDeletedEventId(e.id);
+      }
+    });
+
+    const filtered = (events || []).filter(e => e && e.id && !deletedIds.has(e.id));
+    saveStorageData(STORAGE_KEYS.EVENTS, sortEventsNewestFirst(filtered));
   },
 
   getNotes: (): Note[] => {
