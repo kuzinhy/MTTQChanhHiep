@@ -16,6 +16,8 @@ import {
   Building2,
   HeartHandshake
 } from 'lucide-react';
+import { PublicOpinion, OpinionStatus } from '../../types';
+import { PendingOpinionsSummaryWidget } from './PendingOpinionsSummaryWidget';
 
 interface AnalyticsDashboardViewProps {
   articlesCount: number;
@@ -23,6 +25,9 @@ interface AnalyticsDashboardViewProps {
   opinionsCount: number;
   tasksCount: number;
   completedTasksCount: number;
+  opinions?: PublicOpinion[];
+  onNavigateToOpinions?: () => void;
+  onUpdateOpinionStatus?: (id: string, status: OpinionStatus, responseText?: string) => void;
 }
 
 export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
@@ -30,7 +35,10 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
   documentsCount,
   opinionsCount,
   tasksCount,
-  completedTasksCount
+  completedTasksCount,
+  opinions = [],
+  onNavigateToOpinions,
+  onUpdateOpinionStatus
 }) => {
   const completionRate = tasksCount > 0 ? Math.round((completedTasksCount / tasksCount) * 100) : 100;
   const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
@@ -134,6 +142,13 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
           </p>
         </div>
       </div>
+
+      {/* PENDING OPINIONS SUMMARY WIDGET - DAILY WORKLOAD */}
+      <PendingOpinionsSummaryWidget
+        opinions={opinions}
+        onNavigateToOpinions={onNavigateToOpinions}
+        onUpdateOpinionStatus={onUpdateOpinionStatus}
+      />
 
       {/* AI Report Card Overlay (If generated) */}
       {aiReportGenerated && (

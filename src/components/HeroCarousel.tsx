@@ -10,9 +10,10 @@ interface HeroCarouselProps {
   onSelectArticle: (article: Article) => void;
 }
 
-export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles, onSelectArticle }) => {
+export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSelectArticle }) => {
   const featured = useMemo(() => {
-    const pub = articles.filter(a => a.isFeatured || a.status === 'Published');
+    const safeArticles = Array.isArray(articles) ? articles : [];
+    const pub = safeArticles.filter(a => a && (a.isFeatured || a.status === 'Published'));
     return sortArticlesNewestFirst(pub);
   }, [articles]);
   const [currentIndex, setCurrentIndex] = useState(0);

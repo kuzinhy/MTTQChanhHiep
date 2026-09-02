@@ -99,6 +99,23 @@ Các kiến nghị sau giám sát đều được chính quyền địa phương
 
 export const INITIAL_DOCUMENTS: OfficialDocument[] = [
   {
+    id: 'seed-doc-qd-207',
+    codeNumber: '207/QĐ-MTTW-BTT',
+    title: 'Quyết định Ban hành Quy định về thể loại, thẩm quyền ban hành, thể thức và kỹ thuật trình bày văn bản của Ủy ban Mặt trận Tổ quốc Việt Nam các cấp',
+    docType: 'Quyết định',
+    issuer: 'Ban Thường trực Ủy ban Trung ương MTTQ Việt Nam',
+    issueDate: '2025-08-29',
+    effectiveDate: '2025-08-29',
+    signer: 'Phó Chủ tịch - Tổng Thư ký Nguyễn Thị Thu Hà',
+    field: 'Thể thức văn bản Mặt trận',
+    summary: 'Quyết định số 207/QĐ-MTTW-BTT ban hành Quy định chuẩn hóa về 25 thể loại văn bản chính, 5 thể loại văn bản hành chính khác, thẩm quyền ban hành của 4 cấp Mặt trận (Trung ương, Cấp tỉnh, Cấp xã, Ban Công tác Mặt trận khu dân cư) và quy định chi tiết kỹ thuật trình bày văn bản chuẩn hóa toàn hệ thống.',
+    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    fileName: '207_QD-MTTW-BTT_TheThucVanBanMTTQ.pdf',
+    fileSize: '3.2 MB',
+    isPublic: true
+  },
+  {
     id: 'seed-doc-1',
     codeNumber: '08/KH-MTTQ',
     title: 'Kế hoạch tổ chức các hoạt động tuyên truyền và triển khai nhiệm vụ trọng tâm công tác Mặt trận năm 2026',
@@ -109,7 +126,10 @@ export const INITIAL_DOCUMENTS: OfficialDocument[] = [
     signer: 'Chủ tịch Nguyễn Văn An',
     field: 'Công tác Mặt trận',
     summary: 'Kế hoạch tổng thể định hướng các hoạt động tuyên truyền, vận động nhân dân và phong trào thi đua yêu nước năm 2026 của Ủy ban MTTQ phường Chánh Hiệp.',
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    fileName: '08_KH-MTTQ_KeHoachCongTac2026.pdf',
+    fileSize: '1.4 MB',
     isPublic: true
   },
   {
@@ -123,7 +143,10 @@ export const INITIAL_DOCUMENTS: OfficialDocument[] = [
     signer: 'Phó Chủ tịch Trần Thị Mai',
     field: 'Thanh tra nhân dân',
     summary: 'Quy định chức năng, nhiệm vụ, quyền hạn và chế độ làm việc của Ban Thanh tra nhân dân phường trong công tác giám sát đầu tư công và thực thi pháp luật.',
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    fileName: '15_QD-MTTQ_QuyCheThanhTraNhanDan.pdf',
+    fileSize: '1.8 MB',
     isPublic: true
   },
   {
@@ -137,7 +160,10 @@ export const INITIAL_DOCUMENTS: OfficialDocument[] = [
     signer: 'Chủ tịch Nguyễn Văn An',
     field: 'Đô thị văn minh',
     summary: 'Hướng dẫn chi tiết các bước triển khai phiếu lấy ý kiến đánh giá của hộ gia đình đối với các tiêu chí xây dựng đô thị văn minh trên địa bàn các khu phố.',
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    fileName: '42_HD-MTTQ_HuongDanLayYKIenHaiLong.pdf',
+    fileSize: '2.1 MB',
     isPublic: true
   },
   {
@@ -151,7 +177,10 @@ export const INITIAL_DOCUMENTS: OfficialDocument[] = [
     signer: 'Văn phòng HĐND-UBND-MTTQ',
     field: 'Tiếp công dân',
     summary: 'Lịch tiếp dân hàng tuần và hàng tháng để lắng nghe, tiếp nhận các ý kiến phản ánh, kiến nghị chính đáng của nhân dân.',
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
+    fileName: '109_TB-UBND_TiepCongDanDinhKy.pdf',
+    fileSize: '950 KB',
     isPublic: true
   }
 ];

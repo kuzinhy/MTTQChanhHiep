@@ -54,6 +54,7 @@ import { canAccessView } from './lib/rbac';
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
 import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck } from 'lucide-react';
+import { browserNotificationService } from './lib/browserNotifications';
 
 export default function App() {
   // Navigation & Space State
@@ -195,14 +196,24 @@ export default function App() {
   };
 
   const handleTriggerSystemToast = (title: string, message: string) => {
-    const newToast: ToastMessage = {
-      id: 'toast-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
-      type: 'SYSTEM',
-      title,
-      message,
-      timestamp: 'Vừa xong'
-    };
-    setToasts(prev => [newToast, ...prev].slice(0, 4));
+    setToasts(prev => {
+      // Prevent duplicate notifications with the same message or related content within active toasts
+      const isDuplicate = prev.some(t => {
+        if (t.title === title && t.message === message) return true;
+        if (t.message && message && (t.message.includes(message) || message.includes(t.message))) return true;
+        return false;
+      });
+      if (isDuplicate) return prev;
+
+      const newToast: ToastMessage = {
+        id: 'toast-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+        type: 'SYSTEM',
+        title,
+        message,
+        timestamp: 'Vừa xong'
+      };
+      return [newToast, ...prev].slice(0, 4);
+    });
   };
 
   const handleRefreshAllData = () => {
@@ -237,6 +248,16 @@ export default function App() {
       }
     };
     setToasts(prev => [newToast, ...prev].slice(0, 4));
+
+    // Browser Native Web Push Notification (works when tab is hidden/in background)
+    browserNotificationService.sendNotification({
+      title: `[MTTQ CHÁNH HIỆP] Ý kiến dân sinh mới: ${opinion.topic}`,
+      body: `Địa bàn: ${opinion.neighborhood || 'Toàn phường'} - "${opinion.content.substring(0, 100)}..."`,
+      tag: `opinion-${opinion.id}`,
+      onClick: () => {
+        handleNavigateFromToast('opinions');
+      }
+    });
   };
 
   const handleTriggerDocApprovalToast = (doc: OfficialDocument | { codeNumber: string; title: string; docType: string; signer?: string }) => {
@@ -255,6 +276,16 @@ export default function App() {
       }
     };
     setToasts(prev => [newToast, ...prev].slice(0, 4));
+
+    // Browser Native Web Push Notification (works when tab is hidden/in background)
+    browserNotificationService.sendNotification({
+      title: `[MTTQ CHÁNH HIỆP] Cần phê duyệt văn bản: ${doc.codeNumber}`,
+      body: `"${doc.title}" - Trình duyệt bởi ${doc.signer || 'Cán bộ cơ quan'}`,
+      tag: `doc-${doc.codeNumber}`,
+      onClick: () => {
+        handleNavigateFromToast('cms');
+      }
+    });
   };
 
   const handleNavigateFromToast = (targetView: string) => {
@@ -640,6 +671,11 @@ export default function App() {
               ) : selectedDocument ? (
                 <DocumentDetailPage
                   document={selectedDocument}
+                  allDocuments={documents}
+                  onSelectDocument={(doc) => {
+                    setSelectedDocument(doc);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   onBack={() => setSelectedDocument(null)}
                   onDownload={(doc) => {
                     handleTriggerSystemToast('Tải văn bản chính thức', `Hệ thống đang chuẩn bị tệp và tải xuống văn bản số ${doc.codeNumber}...`);
@@ -828,6 +864,37 @@ export default function App() {
               </div>
               <Footer />
             </motion.div>
+          ) : officeView === 'ai_assistant' ? (
+            <motion.div
+              key="ai-assistant-fullscreen-space"
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="h-screen w-screen overflow-hidden bg-slate-950"
+            >
+              <AiAssistantView
+                documentsContext={documents.map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`).join('\n')}
+                opinionsContext={opinions}
+                aiChats={aiChats}
+                knowledgeNotes={knowledgeNotes}
+                currentStaffUser={currentStaffUser}
+                onBackToOffice={() => setOfficeView('dashboard')}
+                onSaveAiChat={async (chat) => {
+                  setAiChats(prev => [chat, ...prev]);
+                  CloudDatabase.saveAiChat(chat);
+                }}
+                onSaveKnowledgeNote={async (note) => {
+                  setKnowledgeNotes(prev => [note, ...prev]);
+                  CloudDatabase.saveKnowledgeNote(note);
+                }}
+                onDeleteKnowledgeNote={async (id) => {
+                  setKnowledgeNotes(prev => prev.filter(n => n.id !== id));
+                  CloudDatabase.deleteKnowledgeNote(id);
+                }}
+                onShowToast={handleTriggerSystemToast}
+              />
+            </motion.div>
           ) : (
             <motion.div 
               key="office-dashboard-space"
@@ -911,11 +978,14 @@ export default function App() {
                   >
                     {officeView === 'dashboard' && (
                       <AnalyticsDashboardView
-                        articlesCount={articles.length}
-                        documentsCount={documents.length}
-                        opinionsCount={opinions.length}
-                        tasksCount={tasks.length}
-                        completedTasksCount={tasks.filter(t => t.status === 'DONE').length}
+                        articlesCount={(articles || []).length}
+                        documentsCount={(documents || []).length}
+                        opinionsCount={(opinions || []).length}
+                        tasksCount={(tasks || []).length}
+                        completedTasksCount={(tasks || []).filter(t => t && t.status === 'DONE').length}
+                        opinions={opinions || []}
+                        onNavigateToOpinions={() => setOfficeView('opinions')}
+                        onUpdateOpinionStatus={handleUpdateOpinionStatus}
                       />
                     )}
 
@@ -1196,11 +1266,14 @@ export default function App() {
 
                     {officeView === 'analytics' && (
                       <AnalyticsDashboardView
-                        articlesCount={articles.length}
-                        documentsCount={documents.length}
-                        opinionsCount={opinions.length}
-                        tasksCount={tasks.length}
-                        completedTasksCount={tasks.filter(t => t.status === 'DONE').length}
+                        articlesCount={(articles || []).length}
+                        documentsCount={(documents || []).length}
+                        opinionsCount={(opinions || []).length}
+                        tasksCount={(tasks || []).length}
+                        completedTasksCount={(tasks || []).filter(t => t && t.status === 'DONE').length}
+                        opinions={opinions || []}
+                        onNavigateToOpinions={() => setOfficeView('opinions')}
+                        onUpdateOpinionStatus={handleUpdateOpinionStatus}
                       />
                     )}
 

@@ -57,6 +57,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: 'MỚI' },
     { id: 'tasks', label: 'Quản lý Công việc', icon: CheckSquare },
     { id: 'calendar', label: 'Lịch công tác Phường', icon: Calendar },
+    { id: 'ai_assistant', label: 'Trợ lý tham mưu MTTQ', icon: Sparkles, badge: 'AI' },
   ];
 
   // 2. NHÓM QUẢN TRỊ WEB (Gom gọn dạng Accordion xổ dọc)
@@ -68,10 +69,8 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     { id: 'templates', label: 'Mẫu Văn bản MTTQ', icon: FileCheck, badge: 'BIỂU MẪU' },
   ];
 
-  // 3. NHÓM CÔNG CỤ HỖ TRỢ
-  const systemAndToolsItems: SidebarItem[] = [
-    { id: 'ai_assistant', label: 'Trợ lý AI Tham mưu', icon: Sparkles, badge: 'HOT' },
-  ];
+  // 3. NHÓM CÔNG CỤ HỖ TRỢ KHÁC (nếu có)
+  const systemAndToolsItems: SidebarItem[] = [];
 
   const webViewIds = ['cms', 'cms_articles', 'cms_documents', 'competitions_admin', 'opinions', 'templates'];
   const isCurrentViewWeb = webViewIds.includes(currentView);
@@ -299,59 +298,61 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
           </div>
         </div>
 
-        {/* NHÓM 3: CÔNG CỤ HỖ TRỢ */}
-        <div className="space-y-1">
-          <h3 className="px-3 text-[10px] font-extrabold text-blue-900/60 uppercase tracking-wider">
-            CÔNG CỤ HỖ TRỢ
-          </h3>
-          
-          {systemAndToolsItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentView === item.id;
-            const isAllowed = canAccessView(userRole, item.id);
+        {/* NHÓM 3: CÔNG CỤ HỖ TRỢ (nếu có) */}
+        {systemAndToolsItems.length > 0 && (
+          <div className="space-y-1">
+            <h3 className="px-3 text-[10px] font-extrabold text-blue-900/60 uppercase tracking-wider">
+              CÔNG CỤ HỖ TRỢ
+            </h3>
+            
+            {systemAndToolsItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+              const isAllowed = canAccessView(userRole, item.id);
 
-            return (
-              <motion.button
-                key={item.id}
-                whileHover={{ x: isAllowed ? 3 : 0 }}
-                whileTap={{ scale: isAllowed ? 0.98 : 1 }}
-                onClick={() => {
-                  if (isAllowed) setCurrentView(item.id);
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer relative ${
-                  isActive 
-                    ? 'text-white font-extrabold shadow-md' 
-                    : isAllowed 
-                      ? 'text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 font-semibold' 
-                      : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
-                }`}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="active-main-tab-indicator"
-                    className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-xl border border-blue-400 shadow-md"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <div className="flex items-center gap-2.5 relative z-10">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
-                </div>
-                
-                <div className="flex items-center gap-1 relative z-10">
-                  {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
-                  {item.badge && isAllowed && (
-                    <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${
-                      isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-blue-100 text-blue-800 border border-blue-200'
-                    }`}>
-                      {item.badge}
-                    </span>
+              return (
+                <motion.button
+                  key={item.id}
+                  whileHover={{ x: isAllowed ? 3 : 0 }}
+                  whileTap={{ scale: isAllowed ? 0.98 : 1 }}
+                  onClick={() => {
+                    if (isAllowed) setCurrentView(item.id);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer relative ${
+                    isActive 
+                      ? 'text-white font-extrabold shadow-md' 
+                      : isAllowed 
+                        ? 'text-slate-700 hover:bg-blue-50/80 hover:text-blue-700 font-semibold' 
+                        : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-main-tab-indicator"
+                      className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-xl border border-blue-400 shadow-md"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
                   )}
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
+                  <div className="flex items-center gap-2.5 relative z-10">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 relative z-10">
+                    {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
+                    {item.badge && isAllowed && (
+                      <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${
+                        isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-blue-100 text-blue-800 border border-blue-200'
+                      }`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
 
       </div>
     </aside>

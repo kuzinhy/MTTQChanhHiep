@@ -11,9 +11,12 @@ import {
   Clock, 
   MapPin, 
   ShieldAlert, 
-  ExternalLink 
+  ExternalLink,
+  BellRing,
+  Volume2
 } from 'lucide-react';
 import { ToastMessage } from '../types';
+import { browserNotificationService } from '../lib/browserNotifications';
 
 interface ToastContainerProps {
   toasts: ToastMessage[];
@@ -26,8 +29,86 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   onDismiss,
   onNavigateToView
 }) => {
+  const [permissionStatus, setPermissionStatus] = useState<string>(
+    browserNotificationService.getPermissionStatus()
+  );
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check permission status
+    const status = browserNotificationService.getPermissionStatus();
+    setPermissionStatus(status);
+    
+    // Check if user previously dismissed banner
+    const dismissed = localStorage.getItem('mttq_notif_prompt_dismissed');
+    if (status === 'default' && !dismissed) {
+      // Delay showing banner slightly for smooth UX
+      const timer = setTimeout(() => {
+        setShowPermissionPrompt(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleEnableNotifications = async () => {
+    const result = await browserNotificationService.requestPermission();
+    setPermissionStatus(result);
+    setShowPermissionPrompt(false);
+  };
+
+  const handleDismissPermissionPrompt = () => {
+    setShowPermissionPrompt(false);
+    localStorage.setItem('mttq_notif_prompt_dismissed', 'true');
+  };
+
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-3 max-w-sm sm:max-w-md w-full px-4 pointer-events-none select-none">
+      {/* Browser Notification Permission Banner Prompt */}
+      <AnimatePresence>
+        {showPermissionPrompt && permissionStatus === 'default' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="pointer-events-auto bg-slate-900/95 text-white p-4 rounded-2xl shadow-2xl border border-amber-400/40 backdrop-blur-md relative overflow-hidden"
+          >
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-amber-500/20 text-amber-300 rounded-xl shrink-0 border border-amber-400/30">
+                <BellRing className="w-5 h-5 animate-bounce" />
+              </div>
+              <div className="space-y-1.5 flex-1 pr-4">
+                <h4 className="text-xs font-black text-amber-300 uppercase tracking-wide">
+                  Bật Thông báo Đẩy Hệ thống (Web Push)
+                </h4>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Nhận ngay thông báo trên máy tính/điện thoại khi có <strong>Ý kiến dân sinh mới</strong> hoặc <strong>Văn bản chờ phê duyệt</strong> kể cả khi bạn đang mở tab khác.
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    onClick={handleEnableNotifications}
+                    className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <span>Cho phép nhận thông báo</span>
+                  </button>
+                  <button
+                    onClick={handleDismissPermissionPrompt}
+                    className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-slate-300 font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
+                  >
+                    Để sau
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={handleDismissPermissionPrompt}
+                className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors absolute top-3 right-3 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="popLayout">
         {toasts.map((toast) => (
           <ToastItem

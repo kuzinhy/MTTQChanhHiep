@@ -69,9 +69,11 @@ export const WorkCalendarSection: React.FC<WorkCalendarSectionProps> = ({ events
 
   const categories = ['Tất cả', 'Giao ban', 'Tiếp dân', 'Giám sát', 'Hội nghị'];
 
+  const safeEvents = Array.isArray(events) && events.length > 0 ? events : DEFAULT_EVENTS;
+
   const filteredEvents = selectedFilter === 'Tất cả'
-    ? events
-    : events.filter(e => e.category === selectedFilter);
+    ? safeEvents
+    : safeEvents.filter(e => e && e.category === selectedFilter);
 
   return (
     <section className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-xs space-y-6">

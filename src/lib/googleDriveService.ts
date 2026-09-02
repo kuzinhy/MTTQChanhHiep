@@ -228,6 +228,116 @@ export async function uploadFileToGoogleDrive(
 }
 
 /**
+ * Extracts the file ID or folder ID from various Google Drive / Docs URLs
+ */
+export function extractGoogleDriveFileId(urlOrId: string | undefined | null): string {
+  if (!urlOrId) return '';
+  const trimmed = urlOrId.trim();
+
+  // If it's already just an ID (alphanumeric, dashes, underscores, length 20+)
+  if (/^[a-zA-Z0-9_-]{20,50}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Matches /file/d/{id}, /folders/{id}, /document/d/{id}, /spreadsheets/d/{id}, /presentation/d/{id}
+  const pathMatch = trimmed.match(/\/(?:file\/d|folders|document\/d|spreadsheets\/d|presentation\/d)\/([a-zA-Z0-9_-]+)/);
+  if (pathMatch && pathMatch[1]) {
+    return pathMatch[1];
+  }
+
+  // Matches id={id} in query params (e.g. uc?id=... or open?id=...)
+  const queryMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (queryMatch && queryMatch[1]) {
+    return queryMatch[1];
+  }
+
+  return '';
+}
+
+/**
+ * Converts any Google Drive or document link into a direct iframe embed preview URL
+ */
+export function getGoogleDrivePreviewEmbedUrl(urlOrId: string | undefined | null): string {
+  if (!urlOrId) return '';
+  const trimmed = urlOrId.trim();
+
+  // Special case: Google Docs, Sheets, Slides
+  if (trimmed.includes('docs.google.com/document/d/')) {
+    const fileId = extractGoogleDriveFileId(trimmed);
+    return `https://docs.google.com/document/d/${fileId}/preview`;
+  }
+  if (trimmed.includes('docs.google.com/spreadsheets/d/')) {
+    const fileId = extractGoogleDriveFileId(trimmed);
+    return `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+  }
+  if (trimmed.includes('docs.google.com/presentation/d/')) {
+    const fileId = extractGoogleDriveFileId(trimmed);
+    return `https://docs.google.com/presentation/d/${fileId}/preview`;
+  }
+
+  // Standard Google Drive file
+  const fileId = extractGoogleDriveFileId(trimmed);
+  if (fileId) {
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+
+  // If it's a generic web PDF or file URL
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    if (trimmed.endsWith('.pdf')) {
+      return `https://docs.google.com/viewer?url=${encodeURIComponent(trimmed)}&embedded=true`;
+    }
+    return trimmed;
+  }
+
+  return trimmed;
+}
+
+/**
+ * Returns the standard Google Drive View URL (to open in a new browser tab)
+ */
+export function getGoogleDriveViewUrl(urlOrId: string | undefined | null): string {
+  if (!urlOrId) return '';
+  const trimmed = urlOrId.trim();
+  const fileId = extractGoogleDriveFileId(trimmed);
+  if (fileId) {
+    return `https://drive.google.com/file/d/${fileId}/view?usp=sharing`;
+  }
+  return trimmed;
+}
+
+/**
+ * Returns the secure application proxy URL or direct source for streaming the PDF binary
+ */
+export function getGoogleDrivePdfProxyUrl(urlOrId: string | undefined | null): string {
+  if (!urlOrId) return '';
+  const trimmed = urlOrId.trim();
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+    return trimmed;
+  }
+  const fileId = extractGoogleDriveFileId(trimmed);
+  if (fileId) {
+    return `/api/drive/pdf-proxy?id=${encodeURIComponent(fileId)}`;
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return `/api/drive/pdf-proxy?url=${encodeURIComponent(trimmed)}`;
+  }
+  return '';
+}
+
+/**
+ * Returns a direct download URL for the file from Google Drive
+ */
+export function getGoogleDriveDirectDownloadUrl(urlOrId: string | undefined | null): string {
+  if (!urlOrId) return '';
+  const trimmed = urlOrId.trim();
+  const fileId = extractGoogleDriveFileId(trimmed);
+  if (fileId) {
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  }
+  return trimmed;
+}
+
+/**
  * Converts a Google Drive share link, view link, or file ID into a direct embeddable image URL
  */
 export function getGoogleDriveDirectImageUrl(urlOrId: string | undefined | null): string {
@@ -236,9 +346,10 @@ export function getGoogleDriveDirectImageUrl(urlOrId: string | undefined | null)
 
   // Extract file ID from google drive URLs if applicable
   // e.g. https://drive.google.com/file/d/1ABCXYZ/view or https://drive.google.com/uc?id=1ABCXYZ
-  const fileIdMatch = urlOrId.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || urlOrId.match(/id=([a-zA-Z0-9_-]+)/);
-  if (fileIdMatch && fileIdMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}`;
+  const fileId = extractGoogleDriveFileId(urlOrId);
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
   }
   return urlOrId;
 }
+

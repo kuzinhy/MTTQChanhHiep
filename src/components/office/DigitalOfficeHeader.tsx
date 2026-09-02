@@ -21,11 +21,14 @@ import {
   ShieldAlert,
   Cloud,
   RefreshCw,
-  Menu
+  Menu,
+  BellRing,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getRoleBadgeStyle, getRoleLabel } from '../../lib/rbac';
 import { UserRole } from '../../types';
+import { browserNotificationService } from '../../lib/browserNotifications';
 
 interface DigitalOfficeHeaderProps {
   staffName: string;
@@ -189,6 +192,46 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
                   <span className="text-[10px] text-blue-700 font-semibold cursor-pointer hover:underline">
                     Đánh dấu đã đọc
                   </span>
+                </div>
+
+                {/* Web Notification Permission Control Widget */}
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg">
+                      <BellRing className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-black text-slate-800 flex items-center gap-1">
+                        <span>Thông báo đẩy Web</span>
+                        {browserNotificationService.getPermissionStatus() === 'granted' ? (
+                          <span className="inline-flex items-center text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded-xs border border-emerald-200">
+                            <Check className="w-2.5 h-2.5 mr-0.5" /> Đã bật
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-xs border border-amber-200">
+                            Chưa bật
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[9px] text-slate-500">
+                        Nhận báo động khi có ý kiến &amp; văn bản ngoài tab
+                      </p>
+                    </div>
+                  </div>
+
+                  {browserNotificationService.getPermissionStatus() !== 'granted' && (
+                    <button
+                      onClick={async () => {
+                        await browserNotificationService.requestPermission();
+                        // Force update state
+                        setNotificationsOpen(false);
+                        setTimeout(() => setNotificationsOpen(true), 100);
+                      }}
+                      className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] rounded-lg transition-colors cursor-pointer shrink-0"
+                    >
+                      Bật ngay
+                    </button>
+                  )}
                 </div>
 
                 {/* Simulation Quick Trigger Buttons */}

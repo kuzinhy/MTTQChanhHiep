@@ -373,3 +373,147 @@ export interface KnowledgeNote {
   approvedAt?: string;
 }
 
+// =========================================================================
+// TRUNG TÂM TRỢ LÝ THAM MƯU MTTQ - AI WORKSPACE TYPES
+// =========================================================================
+
+export type AiToolGroup = 
+  | 'group1_draft_proofread' // NHÓM 01 – SOẠN THẢO & KIỂM TRA VĂN BẢN
+  | 'group2_report_advisory'  // NHÓM 02 – BÁO CÁO & THAM MƯU
+  | 'group3_conference_event' // NHÓM 03 – HỘI NGHỊ, SỰ KIỆN & PHÁT BIỂU
+  | 'group4_mttq_specialized' // NHÓM 04 – CÔNG CỤ NGHIỆP VỤ MTTQ
+  | 'group5_smart_utilities'; // NHÓM 05 – CÔNG CỤ THÔNG MINH BỔ SUNG
+
+export type AiToolId =
+  | 'proofread'           // 1. Kiểm tra & Hoàn thiện văn bản
+  | 'draft_doc'           // 2. Trợ lý soạn thảo văn bản (Wizard)
+  | 'report'              // 3. Trợ lý soạn báo cáo
+  | 'advisory'            // 4. Trợ lý tham mưu
+  | 'summarize'           // 5. Tóm tắt văn bản (4 chế độ)
+  | 'extract_tasks'       // 6. Đọc văn bản → Trích xuất nhiệm vụ
+  | 'speech'              // 7. Trợ lý soạn bài phát biểu
+  | 'conference'          // 8. Trợ lý hội nghị – sự kiện
+  | 'meeting_minutes'     // 9. Trợ lý biên bản cuộc họp
+  | 'supervision_critique'// 10. Trợ lý Giám sát & Phản biện
+  | 'public_opinion'      // 11. Trợ lý Nắm bắt ý kiến nhân dân
+  | 'propaganda'          // 12. Trợ lý Tuyên truyền
+  | 'compare_docs'        // 13. So sánh hai văn bản
+  | 'qa_document'         // 14. Hỏi – Đáp trên tài liệu
+  | 'work_plan'           // 15. Trợ lý Lập kế hoạch công tác
+  | 'checklist';          // 16. Trợ lý Checklist
+
+export interface AiToolMetadata {
+  id: AiToolId;
+  name: string;
+  shortDesc: string;
+  group: AiToolGroup;
+  iconName: string;
+  badge?: string;
+  tags: string[];
+  suggestedPrompts?: string[];
+}
+
+export type AiDocumentStatus = 'draft' | 'refining' | 'pending_approval' | 'completed' | 'archived';
+
+export interface AiDocumentVersion {
+  id: string;
+  documentId: string;
+  versionNumber: number;
+  label: string; // V1, V2...
+  title: string;
+  content: string;
+  savedBy: string;
+  changeSummary?: string;
+  createdAt: string;
+}
+
+export interface AiDocumentSourceFile {
+  id: string;
+  name: string;
+  size?: string;
+  type?: string;
+  textContent?: string;
+  uploadedAt: string;
+}
+
+export interface AiCitation {
+  source: string;
+  snippet?: string;
+  location?: string;
+}
+
+export interface AiDocument {
+  id: string;
+  title: string;
+  toolId: AiToolId;
+  group: AiToolGroup;
+  content: string;
+  originalContent?: string;
+  ownerId: string;
+  ownerName: string;
+  status: AiDocumentStatus;
+  version: number;
+  versions?: AiDocumentVersion[];
+  dossierId?: string;
+  dossierName?: string;
+  sourceFiles?: AiDocumentSourceFile[];
+  citations?: AiCitation[];
+  metadata?: Record<string, any>;
+  isFavorite?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiDossier {
+  id: string;
+  title: string;
+  description: string;
+  eventDate?: string;
+  location?: string;
+  status: 'active' | 'completed' | 'archived';
+  documentsCount: number;
+  documentIds?: string[];
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiTemplate {
+  id: string;
+  name: string;
+  category: string;
+  documentType: string;
+  description: string;
+  structure: string;
+  defaultPrompt: string;
+  isDefault?: boolean;
+  isActive: boolean;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface AiAuditLog {
+  id: string;
+  userId: string;
+  userName: string;
+  toolId: AiToolId;
+  toolName: string;
+  documentTitle: string;
+  action: 'GENERATE' | 'EDIT' | 'EXPORT' | 'RESTORE_VERSION' | 'PROOFREAD' | 'ANALYZE' | 'CREATE_TASK';
+  status: 'SUCCESS' | 'ERROR';
+  details?: string;
+  timestamp: string;
+}
+
+export interface WorkspaceContextData {
+  eventName?: string;
+  eventTime?: string;
+  eventLocation?: string;
+  targetAudience?: string;
+  keyObjectives?: string;
+  unitLeading?: string;
+  unitCoordinating?: string;
+  activeDossierId?: string;
+  activeDossierTitle?: string;
+}
+

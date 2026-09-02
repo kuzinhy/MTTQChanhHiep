@@ -740,6 +740,58 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             </form>
           </div>
 
+          {/* BROWSER NOTIFICATION SETTINGS BOX */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-600" />
+                <span>Cấu hình Thông báo Đẩy Web (Desktop Push Notification)</span>
+              </h2>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+              }`}>
+                {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'
+                  ? '● ĐÃ KÍCH HOẠT'
+                  : '○ CHƯA CẤP QUYỀN'}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Tích hợp <strong>Web Push Notification API</strong> giúp cán bộ nhận được cảnh báo tức thì ngay trên góc màn hình desktop/laptop hoặc thanh thông báo điện thoại khi có <strong>Ý kiến dân sinh mới</strong> hoặc <strong>Văn bản chờ lãnh đạo phê duyệt</strong>, ngay cả khi đang chuyển qua tab làm việc khác hoặc thu nhỏ trình duyệt.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              <div className="text-xs">
+                <span className="font-black text-slate-800">Trạng thái quyền trình duyệt: </span>
+                <span className="font-mono font-bold text-blue-700">
+                  {typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'Không hỗ trợ'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (typeof window !== 'undefined' && 'Notification' in window) {
+                      const res = await Notification.requestPermission();
+                      if (res === 'granted') {
+                        new Notification('MTTQ Phường Chánh Hiệp', {
+                          body: 'Chúc mừng! Bạn đã bật thành công thông báo đẩy trên thiết bị này.',
+                          icon: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=120'
+                        });
+                      }
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  Yêu cầu Cấp quyền / Thử nghiệm
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* Right Column: Advanced Avatar Selection (5 cols) */}

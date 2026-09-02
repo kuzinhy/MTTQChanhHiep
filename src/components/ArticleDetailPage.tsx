@@ -49,7 +49,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   const [commentName, setCommentName] = useState('');
   const [commentSubmitted, setCommentSubmitted] = useState(false);
 
-  const safeArticles: Article[] = allArticles || articles || [];
+  const safeArticles: Article[] = Array.isArray(allArticles) ? allArticles : (Array.isArray(articles) ? articles : []);
 
   // Scroll to top when article changes
   useEffect(() => {
@@ -58,13 +58,14 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
 
   // Related articles in same category
   const relatedArticles = safeArticles
-    .filter(a => a.id !== article.id && (a.category === article.category || a.neighborhood === article.neighborhood))
+    .filter(a => a && a.id !== article.id && (a.category === article.category || a.neighborhood === article.neighborhood))
     .slice(0, 4);
 
   // Popular articles
   const popularArticles = [...safeArticles]
-    .sort((a, b) => b.views - a.views)
-    .filter(a => a.id !== article.id)
+    .filter(Boolean)
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .filter(a => a && a.id !== article.id)
     .slice(0, 4);
 
   const handleShareCopy = () => {

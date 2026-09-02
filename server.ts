@@ -4,6 +4,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { aiWorkspaceRouter } from './server/aiWorkspaceRouter';
 
 dotenv.config({ override: true });
 
@@ -34,6 +35,9 @@ async function startServer() {
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+  // MTTQ AI Workspace API Router (16 Professional Tools)
+  app.use('/api/ai/workspace', aiWorkspaceRouter);
 
   // API Health Check
   app.get('/api/health', (_req: Request, res: Response) => {
@@ -194,13 +198,14 @@ Hãy chỉ ra chi tiết:
   // AI Route: Tự động trích xuất metadata tệp văn bản (Số hiệu, Trích yếu, Loại, Ngày ban hành, Người ký)
   app.post('/api/ai/extract-document-meta', async (req: Request, res: Response) => {
     try {
-      const { fileName, textContent } = req.body;
+      const { fileName, textContent, driveUrl } = req.body;
       const ai = getGeminiClient();
 
       const prompt = `Bạn là Trợ lý AI chuyên gia phân tích văn bản hành chính nhà nước, Mặt trận Tổ quốc Việt Nam, UBND, HĐND.
-Nhiệm vụ: Phân tích tên tệp và nội dung văn bản dưới đây để trích xuất đầy đủ các thuộc tính hành chính theo định dạng JSON.
+Nhiệm vụ: Phân tích tên tệp, liên kết Drive và nội dung văn bản dưới đây để trích xuất đầy đủ các thuộc tính hành chính theo định dạng JSON.
 
 Tên tệp văn bản: ${fileName || 'Chưa cung cấp'}
+Liên kết Google Drive (nếu có): ${driveUrl || 'Không có'}
 Nội dung / Trích đoạn văn bản:
 """
 ${textContent || ''}
@@ -457,7 +462,9 @@ Hãy nhập nội dung hoặc câu hỏi bạn cần tra cứu cụ thể.`;
         ? webResults.map((r, idx) => `[Kết quả Web ${idx + 1}] Tiêu đề: ${r.title}\nTóm tắt: ${r.snippet}\nLiên kết: ${r.link}`).join('\n\n')
         : 'Không tìm thấy kết quả tra cứu internet liên quan.';
  
-      const prompt = `Bạn là Trợ lý Tra cứu Kho Dữ liệu và Hỏi đáp thông minh cho Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
+      const prompt = `Bạn là một Cán bộ Nhà nước chuyên nghiệp, có chuyên môn nghiệp vụ cao thuộc Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một. 
+Người dân hoặc cán bộ địa phương gửi câu hỏi đến bạn. Vai trò của bạn là trả lời mọi câu hỏi một cách thông minh, đúng trọng tâm và thể hiện đúng phong thái của một cán bộ nhà nước hiểu biết, lịch thiệp, tận tụy và chuyên nghiệp.
+
 Lưu ý bảo mật đặc biệt quan trọng: TUYỆT ĐỐI KHÔNG CUNG CẤP, KHÔNG CHIA SẺ, KHÔNG ĐƯA BẤT KỲ ĐƯỜNG LINK LIÊN KẾT GOOGLE DRIVE NÀO TRONG PHẢN HỒI CHO NGƯỜI DÙNG. 
 
 --- KHO VĂN BẢN ĐÃ ĐỒNG BỘ (OFFICIAL DOCUMENTS) ---
@@ -468,16 +475,15 @@ ${knowledgeNotesContext || 'Không có sổ tay kiến thức bổ sung.'}
 
 --- KẾT QUẢ TRA CỨU INTERNET THỜI GIAN THỰC (LIVE WEB SEARCH RESULTS) ---
 ${webSearchContext}
- 
---- CÂU HỎI CỦA NGƯỜI DÙNG / CÁN BỘ ---
+  
+--- CÂU HỎI CỦA NGƯỜI DÙNG / CÂN BỘ ---
 "${query}"
  
 Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đúng trọng tâm:
-1. TRẢ LỜI CỰC KỲ THÔNG MINH, ĐI THẲNG VÀO TRỌNG TÂM của câu hỏi. Trình bày thông tin ngắn gọn, súc tích và dễ hiểu nhất.
-2. TUYỆT ĐỐI KHÔNG TỰ ĐỘNG THÊM phần gợi ý xử lý hay đề xuất các kênh liên hệ/hỗ trợ khác (như gửi Ý kiến Dân sinh, Văn phòng Số, v.v.) trừ khi người dùng chủ động hỏi về chúng.
-3. KHÔNG chào hỏi rườm rà hay mở đầu/kết thúc sáo rỗng. Hãy trả lời trực tiếp nội dung chính xác.
-4. GHI RÕ NGUỒN trích dẫn (số hiệu văn bản, điều khoản hoặc tiêu đề) nếu thông tin được lấy từ các văn bản cụ thể. Đối với thông tin internet, trích dẫn liên kết dạng markdown [Tên Nguồn](Đường dẫn liên kết). Không cung cấp link Google Drive.
-5. Nếu không tìm thấy thông tin phù hợp, chỉ trả lời ngắn gọn: "Hiện tại hệ thống chưa tìm thấy thông tin cụ thể hoặc văn bản khớp với câu hỏi của bạn trong Kho dữ liệu Mặt trận."`;
+1. ĐÓNG VAI CÁN BỘ NHÀ NƯỚC CHUYÊN NGHIỆP: Hãy sử dụng trí tuệ, tư duy sắc bén và kiến thức luật pháp, chính trị, nghiệp vụ hành chính công, chính sách đại đoàn kết dân tộc của bạn để giải thích và trả lời bất kỳ câu hỏi nào của người dân một cách rõ ràng và thấu đáo nhất.
+2. KHÔNG CHỈ HẠN CHẾ TRONG KHO DỮ LIỆU: Ưu tiên tham chiếu các tài liệu trong "KHO VĂN BẢN ĐÃ ĐỒNG BỘ" và "SỔ TAY KIẾN THỨC" nếu có thông tin khớp trực tiếp. Đối với các câu hỏi chung, câu hỏi nghiệp vụ, chính sách nhà nước, đời sống hay câu hỏi mang tính giao tiếp thông thường, TUYỆT ĐỐI KHÔNG trả lời theo kiểu máy móc "Không tìm thấy thông tin trong kho dữ liệu". Hãy dùng "bộ não" chuyên nghiệp, kiến thức hành chính và nghiệp vụ của một cán bộ để hỗ trợ trả lời trọn vẹn, chính xác nhất.
+3. ĐÚNG TRỌNG TÂM, THÔNG MINH, SÚC TÍCH: Đi thẳng vào câu trả lời, trình bày khoa học, ngắn gọn, dễ hiểu. KHÔNG chào hỏi rườm rà sáo rỗng. KHÔNG tự động thêm các gợi ý liên kết khác hay hướng dẫn liên hệ phụ (như "gửi Ý kiến Dân sinh", gọi điện, v.v.) trừ khi người dùng chủ động hỏi về chúng.
+4. GHI RÕ NGUỒN TRÍCH DẪN: Nếu sử dụng văn bản pháp lý cụ thể từ kho tài liệu, hãy chỉ rõ số hiệu văn bản/điều khoản. Đối với thông tin internet, trích dẫn liên kết dạng markdown [Tên Nguồn](Đường dẫn liên kết). Tuyệt đối không cung cấp link Google Drive.`;
  
       const response = await ai.models.generateContent({
         model: 'gemini-3.5-flash',
@@ -827,6 +833,146 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
         fileName: req.body?.fileName || 'TaiLieu.dat',
         webViewLink: `https://drive.google.com/drive/folders/${req.body?.folderId || '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL'}`
       });
+    }
+  });
+
+  // 6. GET & OPTIONS /api/drive/pdf-proxy - Secure Streaming Proxy for Google Drive PDFs & Docs with Service Account Authentication
+  app.options('/api/drive/pdf-proxy', (_req: Request, res: Response) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Range, X-Requested-With');
+    res.status(200).end();
+  });
+
+  app.get('/api/drive/pdf-proxy', async (req: Request, res: Response) => {
+    try {
+      const rawUrlOrId = (req.query.url as string) || (req.query.id as string) || '';
+      if (!rawUrlOrId) {
+        return res.status(400).send('Missing file URL or ID parameter.');
+      }
+
+      let fileId = '';
+      const trimmed = rawUrlOrId.trim();
+
+      // Extract file ID
+      if (/^[a-zA-Z0-9_-]{20,50}$/.test(trimmed)) {
+        fileId = trimmed;
+      } else {
+        const pathMatch = trimmed.match(/\/(?:file\/d|folders|document\/d|spreadsheets\/d|presentation\/d)\/([a-zA-Z0-9_-]+)/);
+        if (pathMatch && pathMatch[1]) {
+          fileId = pathMatch[1];
+        } else {
+          const queryMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+          if (queryMatch && queryMatch[1]) {
+            fileId = queryMatch[1];
+          }
+        }
+      }
+
+      let successfulBuffer: Buffer | null = null;
+      let contentType = 'application/pdf';
+
+      let downloadUrls: string[] = [];
+
+      if (trimmed.includes('docs.google.com/document/d/')) {
+        downloadUrls = [
+          `https://docs.google.com/document/d/${fileId}/export?format=pdf`,
+          `https://drive.google.com/uc?export=download&id=${fileId}`
+        ];
+      } else if (trimmed.includes('docs.google.com/spreadsheets/d/')) {
+        downloadUrls = [
+          `https://docs.google.com/spreadsheets/d/${fileId}/export?format=pdf`,
+          `https://drive.google.com/uc?export=download&id=${fileId}`
+        ];
+      } else if (trimmed.includes('docs.google.com/presentation/d/')) {
+        downloadUrls = [
+          `https://docs.google.com/presentation/d/${fileId}/export?format=pdf`,
+          `https://drive.google.com/uc?export=download&id=${fileId}`
+        ];
+      } else if (fileId) {
+        downloadUrls = [
+          `https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0`,
+          `https://drive.google.com/uc?export=download&id=${fileId}`,
+          `https://docs.google.com/uc?export=download&id=${fileId}`
+        ];
+      } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        downloadUrls = [trimmed];
+      }
+
+        for (const targetUrl of downloadUrls) {
+          try {
+            const response = await fetch(targetUrl, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+              },
+              redirect: 'follow'
+            });
+
+            if (!response.ok) continue;
+
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            // Check if response is actually a PDF
+            const responseType = response.headers.get('content-type') || '';
+            const isPdfHeader = buffer.length > 4 && buffer.toString('utf-8', 0, 5).startsWith('%PDF');
+
+            if (isPdfHeader || responseType.includes('application/pdf') || responseType.includes('application/octet-stream')) {
+              successfulBuffer = buffer;
+              contentType = 'application/pdf';
+              break;
+            }
+
+            // If it returned HTML with a confirm token for large downloads:
+            const text = buffer.toString('utf-8', 0, 3000);
+            if (text.includes('confirm=') || text.includes('drive.usercontent.google.com')) {
+              const confirmMatch = text.match(/href="([^"]*confirm=[^"]*)"/) || text.match(/action="([^"]*)"/);
+              if (confirmMatch && confirmMatch[1]) {
+                let confirmUrl = confirmMatch[1].replace(/&amp;/g, '&');
+                if (confirmUrl.startsWith('/')) {
+                  confirmUrl = 'https://drive.google.com' + confirmUrl;
+                }
+                const confirmRes = await fetch(confirmUrl, {
+                  headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                  },
+                  redirect: 'follow'
+                });
+                if (confirmRes.ok) {
+                  const confBuf = Buffer.from(await confirmRes.arrayBuffer());
+                  if (confBuf.length > 4 && confBuf.toString('utf-8', 0, 5).startsWith('%PDF')) {
+                    successfulBuffer = confBuf;
+                    contentType = 'application/pdf';
+                    break;
+                  }
+                }
+              }
+            }
+          } catch (fetchErr) {
+            console.warn(`[PDF Proxy] Attempt to fetch ${targetUrl} failed:`, fetchErr);
+          }
+        }
+
+      if (!successfulBuffer) {
+        // Fallback: If we couldn't fetch directly (e.g. private file requiring cookies),
+        // redirect to Google Drive's own viewer or return a 302
+        if (fileId) {
+          return res.redirect(`https://drive.google.com/file/d/${fileId}/preview`);
+        }
+        return res.status(404).send('Không thể tải dữ liệu PDF từ liên kết được cung cấp.');
+      }
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', 'inline; filename="tai_lieu_mat_tran.pdf"');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Range, X-Requested-With');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Content-Length', successfulBuffer.length);
+      return res.end(successfulBuffer);
+    } catch (err: any) {
+      console.error('[PDF Proxy Error]:', err);
+      res.status(500).send('Lỗi khi tải dữ liệu tài liệu từ máy chủ proxy.');
     }
   });
 

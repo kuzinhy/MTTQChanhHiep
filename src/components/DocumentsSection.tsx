@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { OfficialDocument, DocType } from '../types';
 import { sortDocumentsNewestFirst } from '../lib/dateUtils';
-import { FileText, Search, Download, Calendar, Building2, UserCheck, ShieldCheck, Filter, FileSpreadsheet } from 'lucide-react';
+import { getGoogleDriveDirectDownloadUrl } from '../lib/googleDriveService';
+import { FileText, Search, Download, Calendar, Building2, UserCheck, ShieldCheck, Filter, FileSpreadsheet, Eye } from 'lucide-react';
 
 interface DocumentsSectionProps {
   documents: OfficialDocument[];
@@ -39,9 +40,10 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, o
   }, [sortedAllDocs, searchTerm, selectedType]);
 
   const handleDownload = (doc: OfficialDocument) => {
-    const targetUrl = doc.fileUrl || doc.driveUrl;
+    const targetUrl = doc.driveUrl || doc.fileUrl;
     if (targetUrl) {
-      window.open(targetUrl, '_blank');
+      const directUrl = getGoogleDriveDirectDownloadUrl(targetUrl);
+      window.open(directUrl || targetUrl, '_blank');
     }
   };
 

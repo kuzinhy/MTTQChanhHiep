@@ -1,6 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import { uploadFileToGoogleDrive, DEFAULT_DRIVE_FOLDER_ID, DEFAULT_DRIVE_FOLDER_URL, getAppsScriptUrl, saveAppsScriptUrl, getGoogleDriveDirectImageUrl } from '../../lib/googleDriveService';
+import { 
+  uploadFileToGoogleDrive, 
+  DEFAULT_DRIVE_FOLDER_ID, 
+  DEFAULT_DRIVE_FOLDER_URL, 
+  getAppsScriptUrl, 
+  saveAppsScriptUrl, 
+  getGoogleDriveDirectImageUrl,
+  getGoogleDrivePreviewEmbedUrl,
+  getGoogleDriveDirectDownloadUrl,
+  extractGoogleDriveFileId,
+  getGoogleDriveViewUrl,
+  getGoogleDrivePdfProxyUrl
+} from '../../lib/googleDriveService';
 import { getApiUrl } from '../../lib/api';
+import { SecurePdfViewer } from '../SecurePdfViewer';
 import { AdminAnalyticsView } from './AdminAnalyticsView';
 import { 
   Article, 
@@ -62,7 +75,9 @@ import {
   CloudUpload,
   FileCheck,
   Paperclip,
-  Loader2
+  Loader2,
+  Link2,
+  Clipboard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppStorageEngine } from '../../lib/storage';
@@ -227,6 +242,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const [docSelectedFile, setDocSelectedFile] = useState<File | null>(null);
   const [docIsUploading, setDocIsUploading] = useState<boolean>(false);
   const [docUploadSuccess, setDocUploadSuccess] = useState<boolean>(false);
+  const [docAttachMode, setDocAttachMode] = useState<'file' | 'drive'>('file');
+  const [previewDriveLink, setPreviewDriveLink] = useState<string | null>(null);
 
   // Duplicate Content Detection Logic for Articles
   const duplicateArticleMatch = useMemo(() => {
@@ -352,6 +369,82 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       console.warn('AI Doc extract warning:', err);
     } finally {
       setIsExtractingDocMeta(false);
+    }
+  };
+
+  // Helper to extract AI Metadata from Google Drive Link
+  const extractMetaFromDriveUrl = async (urlToParse?: string) => {
+    const targetUrl = (urlToParse || docDriveUrl).trim();
+    if (!targetUrl) {
+      showErrorBanner('Vui lòng dán liên kết Google Drive trước khi trích xuất.');
+      return;
+    }
+    const fileId = extractGoogleDriveFileId(targetUrl);
+    setIsExtractingDocMeta(true);
+    try {
+      const response = await fetch(getApiUrl('/api/ai/extract-document-meta'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          fileName: `Google Drive Doc (${fileId || 'document'})`, 
+          textContent: `Liên kết Google Drive: ${targetUrl}. Tệp văn bản hành chính được ban hành bởi Mặt trận Tổ quốc hoặc cơ quan nhà nước.`,
+          driveUrl: targetUrl
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success && data.data) {
+        const meta = data.data;
+        if (meta.codeNumber) setDocCode(meta.codeNumber);
+        if (meta.title) setDocTitle(meta.title);
+        if (meta.docType && DOC_TYPES.includes(meta.docType as any)) setDocType(meta.docType as any);
+        if (meta.field) setDocField(meta.field);
+        if (meta.signer) setDocSigner(meta.signer);
+        if (meta.summary) setDocSummary(meta.summary);
+        if (meta.issueDate) setDocIssueDate(meta.issueDate);
+        showSuccessBanner(`✨ AI đã bóc tách từ Google Drive: Số ${meta.codeNumber || 'văn bản'} - Trích yếu: "${meta.title || 'Văn bản'}"`);
+      } else {
+        showSuccessBanner(`Đã nhận diện liên kết Google Drive (ID: ${fileId || 'hợp lệ'}). Hãy điền thêm Số hiệu & Trích yếu.`);
+      }
+    } catch (err) {
+      console.warn('AI Doc Drive extract warning:', err);
+      showSuccessBanner(`Đã nhận diện liên kết Google Drive (ID: ${fileId || 'hợp lệ'}).`);
+    } finally {
+      setIsExtractingDocMeta(false);
+    }
+  };
+
+  // Handler for manual Google Drive URL change
+  const handleDriveUrlChange = (val: string) => {
+    setDocDriveUrl(val);
+    const trimmed = val.trim();
+    if (trimmed) {
+      const fileId = extractGoogleDriveFileId(trimmed);
+      if (fileId) {
+        setDocFileUrl(trimmed);
+        if (!docFileName) setDocFileName(`Tệp Google Drive [${fileId.substring(0, 8)}...]`);
+        if (!docFileSize) setDocFileSize('Google Drive Cloud');
+        setDocUploadSuccess(true);
+      }
+    }
+  };
+
+  // Handler to paste Google Drive link from clipboard
+  const handlePasteDriveUrlFromClipboard = async () => {
+    try {
+      if (!navigator.clipboard) {
+        showErrorBanner('Trình duyệt chưa hỗ trợ đọc clipboard tự động. Vui lòng nhấn Ctrl+V để dán.');
+        return;
+      }
+      const text = await navigator.clipboard.readText();
+      const trimmed = (text || '').trim();
+      if (trimmed) {
+        handleDriveUrlChange(trimmed);
+        showSuccessBanner('Đã dán liên kết Google Drive từ bộ nhớ tạm!');
+      } else {
+        showErrorBanner('Bộ nhớ tạm (Clipboard) đang trống.');
+      }
+    } catch {
+      showErrorBanner('Không thể truy cập Clipboard. Hãy nhấn Ctrl+V trực tiếp vào ô nhập.');
     }
   };
 
@@ -647,7 +740,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         driveFolderUrl: artDriveFolderUrl.trim() || DEFAULT_DRIVE_FOLDER_URL
       };
       onUpdateArticle(updated);
-      showSuccessBanner(`Đã lưu cập nhật bài viết: "${updated.title}"`);
     } else {
       const newArt: Article = {
         id: 'art-' + Date.now(),
@@ -671,7 +763,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         views: 1
       };
       onAddArticle(newArt);
-      showSuccessBanner(`Đã xuất bản bài viết mới kèm tệp Google Drive: "${newArt.title}"`);
     }
 
     setIsArticleModalOpen(false);
@@ -682,7 +773,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const handleConfirmDeleteArticle = () => {
     if (!articleToDelete) return;
     onDeleteArticle(articleToDelete.id);
-    showSuccessBanner(`Đã xóa bài viết "${articleToDelete.title}" khỏi hệ thống.`);
     setArticleToDelete(null);
   };
 
@@ -704,6 +794,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setDocSelectedFile(null);
     setDocIsUploading(false);
     setDocUploadSuccess(false);
+    setDocAttachMode('file');
+    setPreviewDriveLink(null);
   };
 
   // Open Edit Document
@@ -723,7 +815,9 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setDocDriveUrl(doc.driveUrl || DEFAULT_DRIVE_FOLDER_URL);
     setDocSelectedFile(null);
     setDocIsUploading(false);
-    setDocUploadSuccess(!!(doc.driveUrl && doc.driveUrl.includes('drive.google.com/file')));
+    const hasDrive = !!(doc.driveUrl && (doc.driveUrl.includes('drive.google.com') || doc.driveUrl.includes('docs.google.com')));
+    setDocUploadSuccess(hasDrive);
+    setDocAttachMode(hasDrive ? 'drive' : 'file');
     setIsDocModalOpen(true);
   };
 
@@ -735,17 +829,20 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       setDocFileName(file.name);
       const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
       setDocFileSize(sizeMb === '0.00' ? `${(file.size / 1024).toFixed(1)} KB` : `${sizeMb} MB`);
-      setDocUploadSuccess(false);
+      setDocUploadSuccess(true);
 
-      if (file.size > 100 * 1024) {
+      // Read as Data URL or Object URL for instantaneous viewing in browser
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setDocFileUrl(reader.result);
+        }
+      };
+      reader.onerror = () => {
         setDocFileUrl(URL.createObjectURL(file));
-      } else {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') setDocFileUrl(reader.result);
-        };
-        reader.readAsDataURL(file);
-      }
+      };
+      reader.readAsDataURL(file);
+
       showSuccessBanner(`Đã nhận tệp văn bản "${file.name}". AI đang tự động phân tích & gán thông số văn bản...`);
       // Trigger AI metadata extraction automatically
       extractMetaFromDocFile(file);
@@ -795,7 +892,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         driveUrl: docDriveUrl || editingDoc.driveUrl
       };
       onUpdateDocument(updated);
-      showSuccessBanner(`Đã lưu cập nhật văn bản "${updated.codeNumber}"`);
     } else {
       const newDoc: OfficialDocument = {
         id: 'doc-' + Date.now(),
@@ -814,7 +910,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         driveUrl: docDriveUrl || 'https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL'
       };
       onAddDocument(newDoc);
-      showSuccessBanner(`Đã ban hành văn bản mới "${newDoc.codeNumber}"`);
     }
 
     resetDocForm();
@@ -825,7 +920,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const handleConfirmDeleteDoc = () => {
     if (!docToDelete) return;
     onDeleteDocument(docToDelete.id);
-    showSuccessBanner(`Đã xóa văn bản ${docToDelete.codeNumber} khỏi cơ sở dữ liệu.`);
     setDocToDelete(null);
   };
 
@@ -874,7 +968,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         totalQuestions: compTotalQuestions
       };
       if (onUpdateCompetition) onUpdateCompetition(updated);
-      showSuccessBanner(`Đã cập nhật hội thi: "${updated.title}"`);
     } else {
       const newComp: Competition = {
         id: 'comp-' + Date.now(),
@@ -888,7 +981,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         totalQuestions: compTotalQuestions
       };
       if (onAddCompetition) onAddCompetition(newComp);
-      showSuccessBanner(`Đã tạo hội thi mới: "${newComp.title}"`);
     }
 
     setIsCompModalOpen(false);
@@ -899,7 +991,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const handleConfirmDeleteComp = () => {
     if (!compToDelete) return;
     if (onDeleteCompetition) onDeleteCompetition(compToDelete.id);
-    showSuccessBanner(`Đã xóa hội thi "${compToDelete.title}".`);
     setCompToDelete(null);
   };
 
@@ -909,7 +1000,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     if (!respondingOpinion || !opinionReplyText.trim()) return;
     if (onUpdateOpinionStatus) {
       onUpdateOpinionStatus(respondingOpinion.id, opinionTargetStatus, opinionReplyText.trim());
-      showSuccessBanner(`Đã lưu và xuất bản câu trả lời cho ý kiến ${respondingOpinion.receiptCode}.`);
     }
     setRespondingOpinion(null);
     setOpinionReplyText('');
@@ -2130,62 +2220,200 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
               {/* Form Body - 2 Columns */}
               <form onSubmit={handleSaveDocument} className="flex-1 overflow-y-auto space-y-4 pr-1">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* LEFT COLUMN: FILE UPLOAD & METADATA (5/12) */}
+                  {/* LEFT COLUMN: FILE ATTACHMENT / GOOGLE DRIVE LINK & METADATA (5/12) */}
                   <div className="lg:col-span-5 space-y-4">
-                    {/* PROMINENT FILE UPLOAD & AI AUTO-EXTRACT AT TOP */}
-                    <div className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/70 border border-emerald-300 rounded-2xl space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <label className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
-                          <Sparkles className="w-4 h-4 text-emerald-600 animate-pulse" />
-                          <span>Kéo hoặc Tải tệp văn bản lên (AI Tự động bóc tách)</span>
-                        </label>
-                        <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded-full">AI Gemini 2.5 Flash</span>
-                      </div>
-
-                      {/* Drag and Drop Zone */}
-                      <div className="relative border-2 border-dashed border-emerald-400 hover:border-emerald-600 bg-white/90 p-4 rounded-xl text-center transition-all cursor-pointer group">
-                        <input
-                          type="file"
-                          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
-                          onChange={handleDocFileUpload}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        />
-                        <div className="flex flex-col items-center justify-center space-y-1.5">
-                          <div className="p-3 bg-emerald-100 text-emerald-700 rounded-2xl group-hover:scale-110 transition-transform">
-                            <Upload className="w-6 h-6" />
-                          </div>
-                          <p className="text-xs font-black text-slate-800">
-                            {docFileName ? `Tệp đã chọn: ${docFileName}` : 'Kéo thả tệp vào đây hoặc Bấm để chọn tệp văn bản'}
-                          </p>
-                          <p className="text-[11px] text-slate-500 font-medium">
-                            Hỗ trợ PDF, Word (.docx), TXT. Tự động trích xuất Số hiệu, Ngày ban hành, Trích yếu & Người ký.
-                          </p>
+                    {/* PROMINENT TABBED ATTACHMENT BOX: LOCAL FILE UPLOAD OR GOOGLE DRIVE LINK */}
+                    <div className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/70 border border-emerald-300 rounded-2xl space-y-3 shadow-2xs">
+                      {/* Header with Mode Switcher */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1 bg-white/90 p-1 rounded-xl border border-emerald-200 shadow-xs">
+                          <button
+                            type="button"
+                            onClick={() => setDocAttachMode('file')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                              docAttachMode === 'file'
+                                ? 'bg-emerald-700 text-white shadow-xs'
+                                : 'text-slate-600 hover:text-emerald-800 hover:bg-emerald-50'
+                            }`}
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Tải tệp từ máy</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDocAttachMode('drive')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                              docAttachMode === 'drive'
+                                ? 'bg-emerald-700 text-white shadow-xs'
+                                : 'text-slate-600 hover:text-emerald-800 hover:bg-emerald-50'
+                            }`}
+                          >
+                            <HardDrive className="w-3.5 h-3.5 text-emerald-300" />
+                            <span>Chèn Link Google Drive</span>
+                          </button>
                         </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded-full flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-emerald-700" /> AI Gemini 2.5
+                        </span>
                       </div>
 
-                      {/* AI Extracting Status Indicator */}
-                      {isExtractingDocMeta && (
-                        <div className="p-2.5 bg-white rounded-xl border border-emerald-300 flex items-center gap-2 text-xs font-bold text-emerald-900 shadow-2xs">
-                          <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
-                          <span>🤖 AI Gemini đang đọc nội dung tệp & trích xuất dữ liệu...</span>
+                      {/* MODE 1: LOCAL FILE DROPZONE */}
+                      {docAttachMode === 'file' && (
+                        <div className="space-y-3">
+                          <div className="relative border-2 border-dashed border-emerald-400 hover:border-emerald-600 bg-white/90 p-4 rounded-xl text-center transition-all cursor-pointer group">
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                              onChange={handleDocFileUpload}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            />
+                            <div className="flex flex-col items-center justify-center space-y-1.5">
+                              <div className="p-3 bg-emerald-100 text-emerald-700 rounded-2xl group-hover:scale-110 transition-transform">
+                                <Upload className="w-6 h-6" />
+                              </div>
+                              <p className="text-xs font-black text-slate-800">
+                                {docFileName ? `Tệp đã chọn: ${docFileName}` : 'Kéo thả tệp vào đây hoặc Bấm để chọn tệp văn bản'}
+                              </p>
+                              <p className="text-[11px] text-slate-500 font-medium">
+                                Hỗ trợ PDF, Word (.docx), TXT. Tự động trích xuất Số hiệu, Ngày ban hành, Trích yếu & Người ký.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* AI Extracting Status Indicator */}
+                          {isExtractingDocMeta && (
+                            <div className="p-2.5 bg-white rounded-xl border border-emerald-300 flex items-center gap-2 text-xs font-bold text-emerald-900 shadow-2xs">
+                              <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                              <span>🤖 AI Gemini đang đọc nội dung tệp & trích xuất dữ liệu...</span>
+                            </div>
+                          )}
+
+                          {docFileName && (
+                            <div className="p-3 bg-white rounded-xl border border-emerald-300 flex items-center justify-between text-xs gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Paperclip className="w-4 h-4 text-emerald-700 shrink-0" />
+                                <span className="font-bold text-slate-900 truncate">{docFileName} ({docFileSize || 'Đã tải'})</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleUploadDocFileToDrive}
+                                disabled={docIsUploading || docUploadSuccess}
+                                className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-[11px] flex items-center gap-1 disabled:opacity-50 cursor-pointer shrink-0"
+                              >
+                                {docIsUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HardDrive className="w-3.5 h-3.5" />}
+                                <span>{docUploadSuccess ? 'Đã lưu trên Drive' : 'Lưu lên Google Drive'}</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      {docFileName && (
-                        <div className="p-3 bg-white rounded-xl border border-emerald-300 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Paperclip className="w-4 h-4 text-emerald-700 shrink-0" />
-                            <span className="font-bold text-slate-900 truncate">{docFileName} ({docFileSize || 'Đã tải'})</span>
+                      {/* MODE 2: GOOGLE DRIVE LINK INSERTION */}
+                      {docAttachMode === 'drive' && (
+                        <div className="space-y-3">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-black text-emerald-950 flex items-center justify-between">
+                              <span className="flex items-center gap-1.5">
+                                <Link2 className="w-3.5 h-3.5 text-emerald-700" />
+                                Dán liên kết tệp Google Drive:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handlePasteDriveUrlFromClipboard}
+                                className="text-[11px] text-emerald-800 hover:text-emerald-950 font-bold flex items-center gap-1 bg-emerald-200/80 hover:bg-emerald-200 px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                              >
+                                <Clipboard className="w-3 h-3" />
+                                <span>Dán từ Clipboard</span>
+                              </button>
+                            </label>
+
+                            <div className="relative">
+                              <input
+                                type="url"
+                                placeholder="https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing"
+                                value={docDriveUrl}
+                                onChange={(e) => handleDriveUrlChange(e.target.value)}
+                                className="w-full text-xs pl-8 pr-8 py-2.5 bg-white border-2 border-emerald-300 focus:border-emerald-600 rounded-xl font-mono text-slate-800 outline-hidden focus:ring-2 focus:ring-emerald-500"
+                              />
+                              <HardDrive className="w-4 h-4 text-emerald-600 absolute left-2.5 top-3" />
+                              {docDriveUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDriveUrlChange('')}
+                                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 rounded-full"
+                                  title="Xóa link"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={handleUploadDocFileToDrive}
-                            disabled={docIsUploading || docUploadSuccess}
-                            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-[11px] flex items-center gap-1 disabled:opacity-50 cursor-pointer shrink-0"
-                          >
-                            {docIsUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HardDrive className="w-3.5 h-3.5" />}
-                            <span>{docUploadSuccess ? 'Đã lưu trên Drive' : 'Lưu lên Google Drive'}</span>
-                          </button>
+
+                          {/* Drive URL Detection & Live Inspector Card */}
+                          {extractGoogleDriveFileId(docDriveUrl) ? (
+                            <div className="p-3 bg-white rounded-xl border-2 border-emerald-300 shadow-2xs space-y-2">
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-900">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                  <span>Đã nhận diện tệp Google Drive</span>
+                                </span>
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md border border-emerald-200">
+                                  ID: {extractGoogleDriveFileId(docDriveUrl)}
+                                </span>
+                              </div>
+
+                              {/* Action Buttons for Drive File */}
+                              <div className="flex items-center gap-2 pt-1 flex-wrap">
+                                <a
+                                  href={getGoogleDriveViewUrl(extractGoogleDriveFileId(docDriveUrl) || '') || docDriveUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+                                >
+                                  <ExternalLink className="w-3 h-3 text-emerald-700" />
+                                  <span>Mở trên Drive</span>
+                                </a>
+
+                                <button
+                                  type="button"
+                                  onClick={() => extractMetaFromDriveUrl(docDriveUrl)}
+                                  disabled={isExtractingDocMeta}
+                                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 shadow-2xs"
+                                >
+                                  {isExtractingDocMeta ? (
+                                    <>
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                      <span>AI đang bóc tách...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="w-3 h-3 text-emerald-200" />
+                                      <span>AI Trích xuất thông tin</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-3 bg-white/80 rounded-xl border border-emerald-200 text-[11px] text-slate-600 space-y-1">
+                              <p className="font-bold text-emerald-950 flex items-center gap-1">
+                                💡 Hướng dẫn chèn link Google Drive nhanh:
+                              </p>
+                              <ol className="list-decimal pl-4 space-y-0.5 text-slate-600">
+                                <li>Mở tệp văn bản trên Google Drive của bạn.</li>
+                                <li>Bấm nút <strong>Chia sẻ (Share)</strong> &rarr; Đổi quyền thành <strong>"Bất kỳ ai có đường liên kết"</strong>.</li>
+                                <li>Bấm <strong>Sao chép liên kết</strong> rồi dán vào ô trên.</li>
+                              </ol>
+                            </div>
+                          )}
+
+                          {/* AI Extraction Progress */}
+                          {isExtractingDocMeta && (
+                            <div className="p-2.5 bg-white rounded-xl border border-emerald-300 flex items-center gap-2 text-xs font-bold text-emerald-900 shadow-2xs">
+                              <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                              <span>🤖 AI Gemini đang đọc nội dung tệp Drive & điền thông tin văn bản...</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -2315,23 +2543,33 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                       />
                     </div>
 
-                    {/* Drive Status Badge Footer inside Right Column */}
-                    {docDriveUrl && (
-                      <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs font-medium text-emerald-950">
-                        <span className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span>Liên kết Google Drive:</span>
-                        </span>
-                        <a
-                          href={docDriveUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono text-emerald-700 font-bold hover:underline truncate max-w-[300px]"
-                        >
-                          {docDriveUrl}
-                        </a>
+                    {/* Google Drive / Document URL Input */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-black text-slate-800">
+                          Liên kết Google Drive hoặc đường dẫn PDF (tùy chọn)
+                        </label>
+                        {extractGoogleDriveFileId(docDriveUrl) && (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Đã kết nối Google Drive
+                          </span>
+                        )}
                       </div>
-                    )}
+                      <div className="relative">
+                        <input
+                          type="url"
+                          placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                          value={docDriveUrl}
+                          onChange={(e) => handleDriveUrlChange(e.target.value)}
+                          className="w-full text-xs pl-8 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono outline-hidden focus:ring-2 focus:ring-blue-600 focus:bg-white"
+                        />
+                        <HardDrive className="w-4 h-4 text-slate-400 absolute left-2.5 top-3" />
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+                        <span>💡</span>
+                        <span>Chọn quyền <strong>"Bất kỳ ai có đường liên kết"</strong> trên Google Drive để cán bộ và nhân dân có thể xem toàn văn trực tuyến.</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -2758,47 +2996,22 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   </div>
                 )}
 
-                {/* Google Drive View/Download Card */}
-                <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-2xl text-slate-900 font-sans space-y-4">
-                  <div className="flex items-start gap-3.5">
-                    <div className="p-3 bg-blue-100 text-blue-700 rounded-xl shadow-xs shrink-0">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="font-black text-sm text-blue-900 uppercase tracking-wide">
-                        Văn bản đính kèm chính thức (Google Drive)
-                      </h4>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Tài liệu đã được đăng tải và quản lý chính thức trên tài khoản Google Drive. Bạn có thể mở trực tiếp để xem toàn văn hoặc tải về máy của mình.
-                      </p>
-                    </div>
+                {/* Embedded Viewer with Secure PDF.js / Proxy */}
+                {(previewDoc.driveUrl || previewDoc.fileUrl) && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      <span>Xem trước tài liệu toàn văn</span>
+                    </h4>
+
+                    <SecurePdfViewer
+                      fileUrl={previewDoc.fileUrl}
+                      driveUrl={previewDoc.driveUrl}
+                      title={previewDoc.title}
+                      height="520px"
+                    />
                   </div>
-                  
-                  <div className="flex flex-wrap gap-2.5 pt-1.5">
-                    {previewDoc.driveUrl && (
-                      <a
-                        href={previewDoc.driveUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer no-underline"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>Xem trực tiếp trên Google Drive</span>
-                      </a>
-                    )}
-                    {previewDoc.fileUrl && (
-                      <a
-                        href={previewDoc.fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer no-underline"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>Tải file đính kèm trực tiếp</span>
-                      </a>
-                    )}
-                  </div>
-                </div>
+                )}
 
               </div>
 
