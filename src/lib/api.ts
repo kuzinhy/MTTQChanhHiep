@@ -128,7 +128,7 @@ export function runClientLocalKnowledgeFallback(query: string, documentsContext:
   }
 
   if (hasGreeting || normalizedQuery.length < 5) {
-    return `Chào bạn! Tôi là Trợ lý AI của Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
+    return `Chào bạn! Tôi là Trợ lý AI của Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, TP. Hồ Chí Minh.
 
 Tôi hỗ trợ tra cứu:
 1. Sổ tay Nghiệp vụ Mặt trận (Quy trình bầu cử, giám sát, phản biện, thanh tra nhân dân).

@@ -18,6 +18,15 @@ import { CompetitionDetailPage } from './components/CompetitionDetailPage';
 import { StaffLoginPage } from './components/StaffLoginPage';
 import { WorkCalendarSection } from './components/WorkCalendarSection';
 import { AiAssistantWidget } from './components/AiAssistantWidget';
+import { SupervisionSection } from './components/SupervisionSection';
+import { MemberOrganizationsSection } from './components/MemberOrganizationsSection';
+import { SurveysSection } from './components/SurveysSection';
+import { AboutSection } from './components/AboutSection';
+import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
+import { InitiativesSection } from './components/InitiativesSection';
+import { VolunteerRegistrationModal } from './components/VolunteerRegistrationModal';
+import { DigitalDirectoryModal } from './components/DigitalDirectoryModal';
+import { NotificationCenterModal } from './components/NotificationCenterModal';
 
 import { DigitalOfficeSidebar } from './components/office/DigitalOfficeSidebar';
 import { DigitalOfficeHeader } from './components/office/DigitalOfficeHeader';
@@ -32,6 +41,8 @@ import { PersonalNotesView } from './components/office/PersonalNotesView';
 import { DocumentTemplatesView } from './components/office/DocumentTemplatesView';
 import { CompetitionsAdminView } from './components/office/CompetitionsAdminView';
 import { CompetitionAdminDetailView } from './components/office/CompetitionAdminDetailView';
+import { QuestionBankAdminView } from './components/office/QuestionBankAdminView';
+import { SurveysAdminView } from './components/office/SurveysAdminView';
 import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
 import { UserProfileView } from './components/office/UserProfileView';
@@ -70,6 +81,11 @@ export default function App() {
   const [activeCompetitionId, setActiveCompetitionId] = useState<string | null>(null);
   const [showStaffLoginPage, setShowStaffLoginPage] = useState(false);
   const [isMobileOfficeSidebarOpen, setIsMobileOfficeSidebarOpen] = useState(false);
+
+  // New Modal States for Extended Features
+  const [isVolunteerModalOpen, setIsVolunteerModalOpen] = useState(false);
+  const [isDirectoryModalOpen, setIsDirectoryModalOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
 
   const handleSelectPortalTab = (tab: string) => {
     setPortalTab(tab);
@@ -642,6 +658,9 @@ export default function App() {
                   setShowStaffLoginPage(true);
                 }
               }}
+              onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
+              onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
+              onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
             />
 
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-10">
@@ -795,6 +814,9 @@ export default function App() {
                     </>
                   )}
 
+                  {portalTab === 'about' && (
+                    <AboutSection onGoToTab={(tab) => handleSelectPortalTab(tab)} />
+                  )}
                   {portalTab === 'news' && (
                     <NewsSection
                       articles={articles}
@@ -809,20 +831,39 @@ export default function App() {
                       onSelectDocument={(doc) => setSelectedDocument(doc)}
                     />
                   )}
+                  {portalTab === 'supervision' && (
+                    <SupervisionSection onSelectDocument={(doc) => setSelectedDocument(doc)} />
+                  )}
                   {portalTab === 'competitions' && (
                     <CompetitionsSection
                       competitions={competitions}
                       onSelectCompetition={(comp) => setSelectedCompetition(comp)}
                     />
                   )}
+                  {portalTab === 'initiatives' && (
+                    <InitiativesSection />
+                  )}
+                  {portalTab === 'surveys' && (
+                    <SurveysSection
+                      onSurveySubmitted={() => {
+                        handleTriggerSystemToast('Đã gửi phiếu khảo sát', 'Cảm ơn Ông/Bà đã tham gia đóng góp ý kiến xây dựng chính quyền phường.');
+                      }}
+                    />
+                  )}
                   {portalTab === 'opinion' && (
                     <OpinionFormSection opinions={opinions} onSubmitOpinion={handleAddOpinion} />
+                  )}
+                  {portalTab === 'organizations' && (
+                    <MemberOrganizationsSection onSelectArticleTopic={(topic) => handleSelectPortalTab('news')} />
+                  )}
+                  {portalTab === 'privacy' && (
+                    <PrivacyPolicyPage onBack={() => handleSelectPortalTab('home')} />
                   )}
                 </>
               )}
             </main>
 
-            <Footer />
+            <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
             <AiAssistantWidget />
           </motion.div>
         ) : (
@@ -862,7 +903,10 @@ export default function App() {
                   />
                 </div>
               </div>
-              <Footer />
+              <Footer onSelectTab={(tab) => {
+                setCurrentSpace('PORTAL');
+                handleSelectPortalTab(tab);
+              }} />
             </motion.div>
           ) : officeView === 'ai_assistant' ? (
             <motion.div
@@ -1212,6 +1256,18 @@ export default function App() {
                       )
                     )}
 
+                    {officeView === 'question_banks' && (
+                      <QuestionBankAdminView
+                        onTriggerToast={handleTriggerSystemToast}
+                      />
+                    )}
+
+                    {officeView === 'surveys_admin' && (
+                      <SurveysAdminView
+                        onTriggerToast={handleTriggerSystemToast}
+                      />
+                    )}
+
                     {officeView === 'users' && (
                       <StaffUsersAdminView
                         staffUsers={staffUsers}
@@ -1334,6 +1390,33 @@ export default function App() {
         toasts={toasts}
         onDismiss={handleDismissToast}
         onNavigateToView={handleNavigateFromToast}
+      />
+
+      {/* EXTENDED FEATURE MODALS */}
+      <VolunteerRegistrationModal
+        isOpen={isVolunteerModalOpen}
+        onClose={() => setIsVolunteerModalOpen(false)}
+        onSuccess={(title, msg) => handleTriggerSystemToast(title, msg)}
+      />
+
+      <DigitalDirectoryModal
+        isOpen={isDirectoryModalOpen}
+        onClose={() => setIsDirectoryModalOpen(false)}
+      />
+
+      <NotificationCenterModal
+        isOpen={isNotificationCenterOpen}
+        onClose={() => setIsNotificationCenterOpen(false)}
+        onNavigate={(v) => {
+          setIsNotificationCenterOpen(false);
+          if (v === 'opinions') {
+            setCurrentSpace('OFFICE');
+            setOfficeView('opinions');
+          } else {
+            setCurrentSpace('PORTAL');
+            setPortalTab(v);
+          }
+        }}
       />
     </div>
   );

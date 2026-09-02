@@ -793,3 +793,148 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     timestamp: '2026-08-28 10:12'
   }
 ];
+
+export const INITIAL_MEMBER_ORGANIZATIONS: import('../types').MemberOrganization[] = [
+  {
+    id: 'org-dtn',
+    slug: 'doan-thanh-nien',
+    name: 'Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp',
+    shortName: 'Đoàn Thanh niên',
+    description: 'Tổ chức chính trị - xã hội của thanh niên Việt Nam, cánh tay đắc lực và lực lượng hậu bị tin cậy của Đảng tại địa bàn phường Chánh Hiệp.',
+    leaderName: 'Nguyễn Văn Đạt',
+    leaderPosition: 'Bí thư Đoàn Phường',
+    phone: '0274.3822.112',
+    email: 'doanthanhnien.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=1200',
+    activeMembersCount: 450,
+    programsCount: 18,
+    createdAt: '2026-01-01'
+  },
+  {
+    id: 'org-lhph',
+    slug: 'hoi-lien-hiep-phu-nu',
+    name: 'Hội Liên hiệp Phụ nữ Phường Chánh Hiệp',
+    shortName: 'Hội Phụ nữ',
+    description: 'Tổ chức đại diện cho quyền và lợi ích hợp pháp, chính đáng của các tầng lớp phụ nữ, phát động phong trào "Xây dựng gia đình 5 không, 3 sạch".',
+    leaderName: 'Võ Thị Bích Loan',
+    leaderPosition: 'Chủ tịch Hội Phụ nữ',
+    phone: '0274.3822.113',
+    email: 'hoiphunu.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=1200',
+    activeMembersCount: 1280,
+    programsCount: 24,
+    createdAt: '2026-01-01'
+  },
+  {
+    id: 'org-ccb',
+    slug: 'hoi-cuu-chien-binh',
+    name: 'Hội Cựu chiến binh Phường Chánh Hiệp',
+    shortName: 'Hội Cựu chiến binh',
+    description: 'Tổ chức của các cựu chiến binh, phát huy bản chất truyền thống "Bộ đội Cụ Hồ", gương mẫu đi đầu trong các phong trào tự quản khu phố.',
+    leaderName: 'Đặng Quốc Hùng',
+    leaderPosition: 'Chủ tịch Hội Cựu chiến binh',
+    phone: '0274.3822.114',
+    email: 'cuuchienbinh.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1526976668912-1a811878dd37?auto=format&fit=crop&q=80&w=1200',
+    activeMembersCount: 320,
+    programsCount: 12,
+    createdAt: '2026-01-01'
+  },
+  {
+    id: 'org-nct',
+    slug: 'hoi-nguoi-cao-tuoi',
+    name: 'Hội Người cao tuổi Phường Chánh Hiệp',
+    shortName: 'Hội Người cao tuổi',
+    description: 'Tổ chức tập hợp người cao tuổi địa phương, thực hiện phong trào "Tuổi cao - Gương sáng", tích cực tham gia xây dựng đời sống văn hóa khu dân cư.',
+    leaderName: 'Lê Văn Chính',
+    leaderPosition: 'Chủ tịch Hội NCT',
+    phone: '0274.3822.115',
+    email: 'nguoicaotuoi.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=1200',
+    activeMembersCount: 890,
+    programsCount: 15,
+    createdAt: '2026-01-01'
+  },
+  {
+    id: 'org-ctd',
+    slug: 'hoi-chu-thap-do',
+    name: 'Hội Chữ thập đỏ Phường Chánh Hiệp',
+    shortName: 'Hội Chữ thập đỏ',
+    description: 'Tổ chức nhân đạo nòng cốt, trợ giúp nhân đạo, cứu trợ khẩn cấp, khám chữa bệnh nhân đạo và vận động hiến máu tình nguyện.',
+    leaderName: 'Hoàng Thị Mai',
+    leaderPosition: 'Chủ tịch Hội Chữ thập đỏ',
+    phone: '0274.3822.116',
+    email: 'chuthapdo.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&q=80&w=1200',
+    activeMembersCount: 210,
+    programsCount: 30,
+    createdAt: '2026-01-01'
+  }
+];
+
+export const INITIAL_QUESTION_BANKS: import('../types').QuestionBankCollection[] = [
+  {
+    id: 'qb-1',
+    title: 'Ngân hàng câu hỏi Lịch sử Mặt trận Dân tộc Thống nhất Việt Nam',
+    description: 'Tổng hợp 120 câu hỏi trắc nghiệm về truyền thống 96 năm vẻ vang của MTTQ Việt Nam (1930 - 2026).',
+    topic: 'Truyền thống MTTQ',
+    totalQuestions: 120,
+    status: 'ACTIVE',
+    createdBy: 'Trần Thị Hoa',
+    createdAt: '2026-08-01',
+    updatedAt: '2026-08-25'
+  },
+  {
+    id: 'qb-2',
+    title: 'Ngân hàng câu hỏi Luật MTTQ Việt Nam & Quy chế Dân chủ cơ sở',
+    description: '80 câu hỏi trọng tâm về quyền và nghĩa vụ công dân, công tác giám sát phản biện xã hội theo Luật Thực hiện dân chủ ở cơ sở 2022.',
+    topic: 'Pháp luật & Dân chủ',
+    totalQuestions: 80,
+    status: 'ACTIVE',
+    createdBy: 'Trần Văn Nam',
+    createdAt: '2026-08-10',
+    updatedAt: '2026-08-28'
+  }
+];
+
+export const INITIAL_SURVEYS: import('../types').PublicSurvey[] = [
+  {
+    id: 'survey-1',
+    slug: 'khao-sat-su-hai-long-dich-vu-cong-2026',
+    title: 'Khảo sát sự hài lòng của người dân đối với dịch vụ hành chính công Phường Chánh Hiệp năm 2026',
+    description: 'Nhằm nâng cao chất lượng phục vụ và mức độ hài lòng của công dân tại bộ phận Tiếp nhận và Trả kết quả UBND Phường Chánh Hiệp.',
+    targetAudience: 'Toàn thể nhân dân trên địa bàn 21 khu phố phường Chánh Hiệp',
+    startDate: '2026-08-01',
+    endDate: '2026-09-30',
+    status: 'OPEN',
+    totalResponses: 384,
+    createdBy: 'Ban Giám sát MTTQ',
+    createdAt: '2026-08-01',
+    questions: [
+      {
+        id: 'sq-1',
+        questionText: 'Thái độ phục vụ và tinh thần trách nhiệm của cán bộ, công chức khi tiếp nhận hồ sơ:',
+        type: 'RATING',
+        required: true
+      },
+      {
+        id: 'sq-2',
+        questionText: 'Thời gian giải quyết thủ tục hành chính so với giấy hẹn:',
+        type: 'SINGLE',
+        options: ['Trước hẹn', 'Đúng hẹn', 'Trễ hẹn có thông báo', 'Trễ hẹn không thông báo'],
+        required: true
+      },
+      {
+        id: 'sq-3',
+        questionText: 'Đóng góp ý kiến hoặc phản ánh cụ thể để nâng cao chất lượng phục vụ của chính quyền:',
+        type: 'TEXT',
+        required: false
+      }
+    ]
+  }
+];

@@ -57,7 +57,7 @@ const DEFAULT_EVENTS: WorkEvent[] = [
     startTime: '2026-09-04T08:00',
     endTime: '2026-09-04T11:00',
     location: 'Hội trường Lớn - UBND Phường Chánh Hiệp',
-    chair: 'Báo cáo viên Thành ủy TP. Thủ Dầu Một',
+    chair: 'Báo cáo viên Thành ủy TP. Hồ Chí Minh',
     participants: 'Toàn thể Cán bộ Mặt trận, Đoàn thể Phường & 21 Khu phố',
     content: 'Tập huấn kỹ năng khai thác Cổng thông tin điện tử & phần mềm quản lý văn bản số.',
     category: 'Hội nghị'
@@ -76,7 +76,7 @@ export const WorkCalendarSection: React.FC<WorkCalendarSectionProps> = ({ events
     : safeEvents.filter(e => e && e.category === selectedFilter);
 
   return (
-    <section className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-xs space-y-6">
+    <section className="bg-white rounded-3xl p-5 sm:p-7 border-2 border-blue-200/90 shadow-sm space-y-6">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div className="flex items-center gap-3">
@@ -131,7 +131,7 @@ export const WorkCalendarSection: React.FC<WorkCalendarSectionProps> = ({ events
           return (
             <div
               key={evt.id}
-              className="p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-2xl border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition-all space-y-3 group"
+              className="p-4 sm:p-5 bg-white rounded-2xl border-2 border-blue-200 hover:border-blue-500 shadow-xs hover:shadow-md transition-all space-y-3 group"
             >
               {/* Event Badge & Date */}
               <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">

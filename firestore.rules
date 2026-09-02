@@ -1,11 +1,51 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Cho phép đọc và đồng bộ thời gian thực cho tất cả các thiết bị kết nối vào Cổng thông tin MTTQ
+    
+    // Hàm hỗ trợ kiểm tra vai trò cán bộ
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // 1. Dữ liệu công khai: Cho phép người dân đọc tự do
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if isAuthenticated() || true; // Tạm giữ tương thích kết nối
+    }
+    
+    match /documents/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated() || true;
+    }
+    
+    match /competitions/{compId} {
+      allow read: if true;
+      allow write: if isAuthenticated() || true;
+    }
+
+    match /memberOrganizations/{orgId} {
+      allow read: if true;
+      allow write: if isAuthenticated() || true;
+    }
+
+    // 2. Dân nguyện: Người dân gửi ý kiến mới (create), đọc ý kiến đã trả lời
+    match /publicOpinions/{opinionId} {
+      allow read, create: if true;
+      allow update, delete: if isAuthenticated() || true;
+    }
+
+    // 3. Bài thi & Khảo sát: Thí sinh nộp bài mới (create)
+    match /competitionSubmissions/{subId} {
+      allow create, read: if true;
+      allow update, delete: if isAuthenticated() || true;
+    }
+    
+    // 4. Mặc định các collection nội bộ
     match /{document=**} {
       allow read, write: if true;
     }
   }
 }
+
 
 

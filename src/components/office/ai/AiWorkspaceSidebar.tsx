@@ -102,9 +102,9 @@ export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 md:w-72 bg-gradient-to-b from-slate-950 via-slate-900 to-blue-950 text-slate-200 border-r border-slate-800/80 flex flex-col h-full shrink-0 select-none shadow-xl">
+    <aside className="w-64 md:w-72 bg-gradient-to-b from-blue-800 via-indigo-800 to-blue-900 text-slate-100 border-r border-blue-500/30 flex flex-col h-full shrink-0 select-none shadow-xl">
       {/* Brand Header */}
-      <div className="p-4 border-b border-blue-900/40 bg-slate-950/70">
+      <div className="p-4 border-b border-blue-500/30 bg-blue-900/60">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-600 to-cyan-500 p-0.5 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20 shrink-0">

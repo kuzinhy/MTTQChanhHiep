@@ -3,9 +3,15 @@ export type UserRole =
   | 'CONTRIBUTOR' 
   | 'STAFF' 
   | 'EDITOR' 
+  | 'REVIEWER'
+  | 'PUBLISHER'
+  | 'CONTEST_MANAGER'
+  | 'FEEDBACK_OFFICER'
+  | 'ORGANIZATION_ADMIN'
   | 'MANAGER' 
   | 'ADMIN' 
-  | 'SUPER_ADMIN';
+  | 'SUPER_ADMIN'
+  | 'MTTQ_ADMIN';
 
 export interface StaffUser {
   id: string;
@@ -516,4 +522,75 @@ export interface WorkspaceContextData {
   activeDossierId?: string;
   activeDossierTitle?: string;
 }
+
+// =========================================================================
+// MÔ HÌNH DỮ LIỆU BỔ TRỢ QUY HOẠCH MTTQ SỐ (PHASE 1)
+// =========================================================================
+
+export interface BankQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswerIndex: number;
+  explanation?: string;
+  topic: string;
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  category: string;
+  tags?: string[];
+  status: 'ACTIVE' | 'ARCHIVED';
+  createdBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface QuestionBankCollection {
+  id: string;
+  title: string;
+  description: string;
+  topic: string;
+  totalQuestions: number;
+  status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MemberOrganization {
+  id: string;
+  slug: string;
+  name: string; // e.g., 'Đoàn TNCS Hồ Chí Minh', 'Hội Liên hiệp Phụ nữ'
+  shortName: string;
+  description: string;
+  leaderName: string;
+  leaderPosition: string;
+  phone: string;
+  email: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  activeMembersCount?: number;
+  programsCount?: number;
+  createdAt: string;
+}
+
+export interface PublicSurvey {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  targetAudience?: string;
+  startDate: string;
+  endDate: string;
+  status: 'OPEN' | 'CLOSED' | 'DRAFT';
+  questions: {
+    id: string;
+    questionText: string;
+    type: 'SINGLE' | 'MULTIPLE' | 'TEXT' | 'RATING';
+    options?: string[];
+    required: boolean;
+  }[];
+  totalResponses: number;
+  createdBy: string;
+  createdAt: string;
+}
+
 

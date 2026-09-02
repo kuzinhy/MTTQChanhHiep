@@ -52,14 +52,14 @@ export const WorkCalendarView: React.FC<WorkCalendarViewProps> = ({ events, onAd
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-xs border border-stone-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl shadow-xs border border-slate-200">
         <div>
-          <div className="flex items-center gap-2 text-red-800 font-bold text-xs uppercase tracking-wider">
-            <CalendarIcon className="w-4 h-4 text-amber-600" />
+          <div className="flex items-center gap-2 text-blue-800 font-extrabold text-xs uppercase tracking-wider">
+            <CalendarIcon className="w-4 h-4 text-blue-600" />
             <span>LỊCH CÔNG TÁC BAN THƯỜNG TRỰC</span>
           </div>
-          <h1 className="text-xl font-black text-stone-900 mt-1">Lịch Làm Việc &amp; Sự Kiện Mặt Trận</h1>
-          <p className="text-xs text-stone-500 mt-0.5">Theo dõi, đăng ký và phân công lịch họp, đi cơ sở của Lãnh đạo MTTQ Ward</p>
+          <h1 className="text-xl font-black text-slate-900 mt-1">Lịch Làm Việc &amp; Sự Kiện Mặt Trận</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Theo dõi, đăng ký và phân công lịch họp, đi cơ sở của Lãnh đạo MTTQ Ward</p>
         </div>
 
         <div className="flex items-center gap-2">

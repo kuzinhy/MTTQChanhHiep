@@ -206,7 +206,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                 />
               </div>
               <p className="text-[11px] text-slate-500 italic text-center">
-                Hình ảnh hoạt động thực tế tại Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
+                Hình ảnh hoạt động thực tế tại Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Hồ Chí Minh.
               </p>
             </div>
           )}

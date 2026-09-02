@@ -21,9 +21,11 @@ import {
   Settings,
   HelpCircle,
   Globe,
-  RotateCcw
+  RotateCcw,
+  HardDrive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { QuestionBankAdminView } from './QuestionBankAdminView';
 
 interface CompetitionsAdminViewProps {
   competitions: Competition[];
@@ -34,6 +36,7 @@ interface CompetitionsAdminViewProps {
   onGradeSubmission?: (id: string, score: number, comment: string) => void;
   onSelectCompetitionDetail: (id: string) => void;
   onRestoreDefaultBanners?: () => void;
+  onTriggerToast?: (title: string, message: string) => void;
 }
 
 export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
@@ -44,9 +47,10 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
   onDeleteCompetition,
   onGradeSubmission,
   onSelectCompetitionDetail,
-  onRestoreDefaultBanners
+  onRestoreDefaultBanners,
+  onTriggerToast
 }) => {
-  const [activeTab, setActiveTab] = useState<'LIST' | 'SUBMISSIONS'>('LIST');
+  const [activeTab, setActiveTab] = useState<'LIST' | 'SUBMISSIONS' | 'QUESTION_BANK'>('LIST');
   
   // 6-Step Creation Wizard State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -124,7 +128,7 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl">
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl flex-wrap">
             <button
               onClick={() => setActiveTab('LIST')}
               className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
@@ -140,6 +144,15 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
               }`}
             >
               Tất cả Bài dự thi ({submissions.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('QUESTION_BANK')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'QUESTION_BANK' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <HardDrive className="w-3.5 h-3.5" />
+              <span>Ngân hàng Đề &amp; Câu hỏi</span>
             </button>
           </div>
 
@@ -284,6 +297,13 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* QUESTION BANK TAB */}
+      {activeTab === 'QUESTION_BANK' && (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-2 sm:p-4">
+          <QuestionBankAdminView onTriggerToast={onTriggerToast} />
         </div>
       )}
 

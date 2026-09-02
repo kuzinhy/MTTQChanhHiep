@@ -123,7 +123,7 @@ export const PendingOpinionsSummaryWidget: React.FC<PendingOpinionsSummaryWidget
   return (
     <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
       {/* Header section with energetic gradient accent */}
-      <div className="p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-700 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30 flex items-center justify-center">

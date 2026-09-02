@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mttq-chanhhiep.binhduong.gov.vn/sitemap.xml

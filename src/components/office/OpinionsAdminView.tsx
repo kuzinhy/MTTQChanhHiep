@@ -38,32 +38,32 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-stone-900 flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-red-800" />
-            <span>HỘM THƯ NẮM BẮT DƯ LUẬN XÃ HỘI</span>
+          <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
+            <MessageSquare className="w-6 h-6 text-blue-600" />
+            <span>HÒM THƯ NẮM BẮT DƯ LUẬN XÃ HỘI</span>
           </h1>
-          <p className="text-xs text-stone-500">Tiếp nhận, xử lý và phản hồi ý kiến phản ánh của nhân dân 21 Khu phố</p>
+          <p className="text-xs text-slate-500 mt-0.5">Tiếp nhận, xử lý và phản hồi ý kiến phản ánh của nhân dân 21 Khu phố</p>
         </div>
 
         <button
           onClick={onOpenAiSummary}
-          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-red-950 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 shrink-0"
+          className="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 text-amber-300" />
           <span>Tạo Báo cáo AI Dư luận</span>
         </button>
       </div>
 
       {/* Filter and Stats Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-stone-700">Lọc theo trạng thái:</span>
+          <span className="font-bold text-slate-700">Lọc theo trạng thái:</span>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="text-xs px-3 py-1.5 border border-stone-300 rounded-lg outline-hidden"
+            className="text-xs px-3 py-1.5 border border-slate-300 rounded-lg outline-hidden focus:ring-2 focus:ring-blue-600"
           >
             <option value="ALL">Tất cả ({opinions.length})</option>
             <option value="NEW">Mới gửi</option>
@@ -72,30 +72,30 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
           </select>
         </div>
 
-        <div className="text-stone-500 font-medium">
+        <div className="text-slate-500 font-bold">
           Hiển thị {filteredOpinions.length} phản ánh
         </div>
       </div>
 
       {/* Opinions List Table */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-2xs overflow-hidden">
-        <div className="divide-y divide-stone-100">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="divide-y divide-slate-100">
           {filteredOpinions.map((op) => (
-            <div key={op.id} className="p-5 hover:bg-amber-50/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+            <div key={op.id} className="p-5 hover:bg-blue-50/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
               <div className="space-y-1.5 max-w-3xl">
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-red-900">{op.receiptCode}</span>
+                  <span className="font-extrabold text-blue-900">{op.receiptCode}</span>
                   {getStatusBadge(op.status)}
-                  <span className="bg-stone-100 text-stone-700 font-semibold px-2 py-0.5 rounded-md text-[10px]">
+                  <span className="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-md text-[10px]">
                     {op.topic}
                   </span>
-                  <span className="text-stone-400">• {op.neighborhood}</span>
+                  <span className="text-slate-400 font-medium">• {op.neighborhood}</span>
                 </div>
 
-                <p className="font-medium text-stone-800 leading-relaxed text-sm">{op.content}</p>
+                <p className="font-medium text-slate-800 leading-relaxed text-sm">{op.content}</p>
 
-                <div className="flex items-center gap-4 text-stone-400 text-[11px] pt-1">
-                  <span>Người gửi: <strong className="text-stone-700">{op.isAnonymous ? 'Ẩn danh' : op.fullname || 'Người dân'}</strong></span>
+                <div className="flex items-center gap-4 text-slate-400 text-[11px] pt-1">
+                  <span>Người gửi: <strong className="text-slate-700">{op.isAnonymous ? 'Ẩn danh' : op.fullname || 'Người dân'}</strong></span>
                   <span>Thời gian: {op.createdAt}</span>
                 </div>
 
@@ -113,7 +113,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                     setSelectedOpinion(op);
                     setResponseText(op.adminResponse || '');
                   }}
-                  className="px-3.5 py-2 bg-stone-900 hover:bg-stone-800 text-amber-300 font-bold rounded-xl transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer"
                 >
                   Xử lý &amp; Phản hồi
                 </button>

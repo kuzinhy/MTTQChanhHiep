@@ -645,7 +645,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
             </h3>
           </div>
           <span className="text-xs text-slate-500 font-semibold">
-            Chánh Hiệp, TP. Thủ Dầu Một
+            Chánh Hiệp, TP. Hồ Chí Minh
           </span>
         </div>
 

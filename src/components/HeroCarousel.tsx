@@ -107,7 +107,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
 
   return (
     <div 
-      className="relative rounded-3xl overflow-hidden shadow-lg bg-gradient-to-br from-blue-950 via-blue-900 to-sky-900 border border-sky-400/30 text-white my-6 group"
+      className="relative rounded-3xl overflow-hidden shadow-lg bg-gradient-to-br from-blue-800 via-indigo-700 to-sky-800 border border-sky-400/30 text-white my-6 group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -128,8 +128,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
               alt={current.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
-            {/* Bottom-only Deep Blue Gradient Overlay (Under 1/2 height, focused at foot area for crisp text readability) */}
-            <div className="absolute inset-x-0 bottom-0 h-36 sm:h-44 bg-gradient-to-t from-blue-950/95 via-blue-950/70 via-blue-900/25 to-transparent pointer-events-none" />
+            {/* Bottom-only Deep Blue Gradient Overlay */}
+            <div className="absolute inset-x-0 bottom-0 h-36 sm:h-44 bg-gradient-to-t from-blue-900/95 via-blue-900/70 via-blue-800/25 to-transparent pointer-events-none" />
           </motion.div>
         </AnimatePresence>
 
@@ -147,12 +147,12 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
                 <span className={`text-xs font-black px-3 py-1 rounded-lg uppercase tracking-wider shadow-sm ${getCategoryBadgeStyle(current.category)}`}>
                   {current.category}
                 </span>
-                <span className="text-slate-200 text-xs flex items-center gap-1 font-semibold bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-blue-400/30">
-                  <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-slate-100 text-xs flex items-center gap-1 font-semibold bg-blue-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-blue-400/30">
+                  <Calendar className="w-3.5 h-3.5 text-blue-300" />
                   {current.publishDate}
                 </span>
-                <span className="text-slate-200 text-xs flex items-center gap-1 font-semibold bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-blue-400/30">
-                  <Eye className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-slate-100 text-xs flex items-center gap-1 font-semibold bg-blue-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-blue-400/30">
+                  <Eye className="w-3.5 h-3.5 text-blue-300" />
                   {current.views} lượt xem
                 </span>
               </div>
@@ -164,7 +164,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
                 {current.title}
               </h2>
 
-              <p className="text-slate-200 text-xs sm:text-sm mt-2 line-clamp-2 leading-relaxed max-w-3xl opacity-90">
+              <p className="text-slate-100 text-xs sm:text-sm mt-2 line-clamp-2 leading-relaxed max-w-3xl opacity-90">
                 {current.summary}
               </p>
 
@@ -182,7 +182,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900/80 hover:bg-blue-900/90 text-blue-200 hover:text-white border border-blue-400/40 backdrop-blur-md font-bold text-xs rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-900/80 hover:bg-blue-800/90 text-blue-100 hover:text-white border border-blue-400/40 backdrop-blur-md font-bold text-xs rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
                   >
                     <span>Xem trên Facebook</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -195,7 +195,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
 
         {/* Navigation Controls */}
         {featured.length > 1 && (
-          <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-blue-400/30 shadow-md">
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-blue-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-blue-400/30 shadow-md">
             <button
               onClick={handlePrev}
               title="Bài trước"

@@ -49,7 +49,8 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
       return;
     }
 
-    const code = 'PA-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    const randomDigits = String(Math.floor(100000 + Math.random() * 900000));
+    const code = 'DN-' + new Date().getFullYear() + '-' + randomDigits;
 
     const newOpinion: PublicOpinion = {
       id: 'op-' + Date.now(),
@@ -315,6 +316,35 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
             <p className="text-[11px] text-slate-300 leading-relaxed">
               Ý kiến phản ánh của công dân được bảo mật tuyệt đối. Dữ liệu tổng hợp chỉ sử dụng cho mục đích cải thiện đời sống nhân dân và nâng cao chất lượng hoạt động của MTTQ Phường Chánh Hiệp.
             </p>
+          </div>
+
+          {/* Citizen Satisfaction Survey Widget */}
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-xs space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-blue-600 text-white rounded-xl shadow-xs">
+                <CheckCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-900 uppercase">Đánh Giá Mức Độ Hài Lòng</h4>
+                <p className="text-[10px] text-slate-500">Khảo sát chất lượng phục vụ của cán bộ MTTQ</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-white rounded-xl border border-blue-100 text-center space-y-2">
+              <span className="text-[11px] font-extrabold text-blue-900 block">Ông/Bà hài lòng ở mức độ nào?</span>
+              <div className="flex items-center justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => alert(`Cảm ơn Ông/Bà đã đánh giá ${star}/5 sao chất lượng phục vụ!`)}
+                    className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-500 font-black text-xs border border-amber-200 transition cursor-pointer"
+                  >
+                    ⭐ {star}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
