@@ -67,10 +67,11 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
     { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
     { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
+    { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
     { id: 'templates', label: 'Mẫu Văn bản MTTQ', icon: FileCheck, badge: 'BIỂU MẪU' },
   ];
 
-  const webViewIds = ['cms', 'cms_articles', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'templates'];
+  const webViewIds = ['cms', 'cms_articles', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'templates', 'member_orgs_admin'];
   const isCurrentViewWeb = webViewIds.includes(currentView);
 
   // Accordion state for "Quản trị web"
@@ -209,7 +210,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                 <div className="text-left">
                   <div className="text-xs font-black tracking-tight leading-none">Nghiệp vụ Mặt trận</div>
                   <div className={`text-[9px] mt-0.5 ${isCurrentViewWeb ? 'text-blue-100' : 'text-blue-700 font-medium'}`}>
-                    6 chuyên mục tác nghiệp
+                    7 chuyên mục tác nghiệp
                   </div>
                 </div>
               </div>
@@ -218,7 +219,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
                   isCurrentViewWeb ? 'bg-amber-400 text-slate-950 font-black' : 'bg-blue-200/80 text-blue-900'
                 }`}>
-                  6 MỤC
+                  7 MỤC
                 </span>
                 <motion.div
                   animate={{ rotate: isWebMenuOpen ? 180 : 0 }}

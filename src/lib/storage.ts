@@ -10,7 +10,8 @@ import {
   INITIAL_TEMPLATES, 
   INITIAL_DRIVE_FILES, 
   INITIAL_STAFF_USERS, 
-  INITIAL_AUDIT_LOGS 
+  INITIAL_AUDIT_LOGS,
+  INITIAL_MEMBER_ORGANIZATIONS
 } from '../data/seedData';
 import { 
   Article, 
@@ -26,7 +27,8 @@ import {
   StaffUser, 
   AuditLog,
   AiChatLog,
-  KnowledgeNote
+  KnowledgeNote,
+  MemberOrganization
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -55,7 +57,8 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'mttq_chanhhiep_current_user_v2',
   LAST_BACKUP_TIME: 'mttq_chanhhiep_last_backup_time',
   AI_CHATS: 'mttq_chanhhiep_ai_chats_v2',
-  KNOWLEDGE_NOTES: 'mttq_chanhhiep_knowledge_notes_v2'
+  KNOWLEDGE_NOTES: 'mttq_chanhhiep_knowledge_notes_v2',
+  MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v2'
 };
 
 // In-Memory Storage Cache to prevent redundant serialization & disk writes
@@ -367,6 +370,24 @@ export const AppStorageEngine = {
     saveStorageData(STORAGE_KEYS.KNOWLEDGE_NOTES, notes || []);
   },
 
+  getMemberOrganizations: (): MemberOrganization[] => {
+    const raw = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, INITIAL_MEMBER_ORGANIZATIONS);
+    const orgMap = new Map<string, MemberOrganization>();
+    INITIAL_MEMBER_ORGANIZATIONS.forEach(o => {
+      if (o && o.id) orgMap.set(o.id, o);
+    });
+    (raw || []).forEach(o => {
+      if (o && o.id) {
+        orgMap.set(o.id, { ...(orgMap.get(o.id) || {}), ...o });
+      }
+    });
+    return Array.from(orgMap.values());
+  },
+  saveMemberOrganizations: (orgs: MemberOrganization[]) => {
+    const filtered = (orgs || []).filter(o => o && o.id);
+    saveStorageData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, filtered);
+  },
+
   getCurrentUser: (): StaffUser | null => {
     try {
       return loadInitialData<StaffUser | null>(STORAGE_KEYS.CURRENT_USER, null);
@@ -402,6 +423,7 @@ export const AppStorageEngine = {
         submissions: AppStorageEngine.getSubmissions(),
         driveFiles: AppStorageEngine.getDriveFiles(),
         staffUsers: AppStorageEngine.getStaffUsers(),
+        memberOrganizations: AppStorageEngine.getMemberOrganizations(),
         auditLogs: AppStorageEngine.getAuditLogs(),
         currentUser: AppStorageEngine.getCurrentUser()
       }
@@ -435,6 +457,7 @@ export const AppStorageEngine = {
       if (data.submissions) AppStorageEngine.saveSubmissions(data.submissions);
       if (data.driveFiles) AppStorageEngine.saveDriveFiles(data.driveFiles);
       if (data.staffUsers) AppStorageEngine.saveStaffUsers(data.staffUsers);
+      if (data.memberOrganizations) AppStorageEngine.saveMemberOrganizations(data.memberOrganizations);
       if (data.auditLogs) AppStorageEngine.saveAuditLogs(data.auditLogs);
       if (data.currentUser) AppStorageEngine.saveCurrentUser(data.currentUser);
 

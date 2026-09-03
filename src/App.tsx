@@ -44,6 +44,7 @@ import { CompetitionAdminDetailView } from './components/office/CompetitionAdmin
 import { QuestionBankAdminView } from './components/office/QuestionBankAdminView';
 import { SurveysAdminView } from './components/office/SurveysAdminView';
 import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
+import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
@@ -56,7 +57,7 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent, MemberOrganization } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -123,6 +124,7 @@ export default function App() {
   const [notes, setNotes] = useState(() => AppStorageEngine.getNotes());
   const [templates] = useState(INITIAL_TEMPLATES);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>(() => AppStorageEngine.getStaffUsers());
+  const [memberOrganizations, setMemberOrganizations] = useState<MemberOrganization[]>(() => AppStorageEngine.getMemberOrganizations());
   const [aiChats, setAiChats] = useState<AiChatLog[]>(() => AppStorageEngine.getAiChats());
   const [knowledgeNotes, setKnowledgeNotes] = useState<KnowledgeNote[]>(() => AppStorageEngine.getKnowledgeNotes());
 
@@ -170,6 +172,7 @@ export default function App() {
   useEffect(() => { AppStorageEngine.saveSubmissions(submissions); }, [submissions]);
   useEffect(() => { AppStorageEngine.saveDriveFiles(driveFiles); }, [driveFiles]);
   useEffect(() => { AppStorageEngine.saveStaffUsers(staffUsers); }, [staffUsers]);
+  useEffect(() => { AppStorageEngine.saveMemberOrganizations(memberOrganizations); }, [memberOrganizations]);
   useEffect(() => { AppStorageEngine.saveAuditLogs(auditLogs); }, [auditLogs]);
   useEffect(() => { AppStorageEngine.saveCurrentUser(currentStaffUser); }, [currentStaffUser]);
   useEffect(() => { AppStorageEngine.saveAiChats(aiChats); }, [aiChats]);
@@ -896,7 +899,10 @@ export default function App() {
                     <OpinionFormSection opinions={opinions} onSubmitOpinion={handleAddOpinion} />
                   )}
                   {portalTab === 'organizations' && (
-                    <MemberOrganizationsSection onSelectArticleTopic={(topic) => handleSelectPortalTab('news')} />
+                    <MemberOrganizationsSection 
+                      organizations={memberOrganizations} 
+                      onSelectArticleTopic={(topic) => handleSelectPortalTab('news')} 
+                    />
                   )}
                   {portalTab === 'privacy' && (
                     <PrivacyPolicyPage onBack={() => handleSelectPortalTab('home')} />
@@ -1310,6 +1316,17 @@ export default function App() {
                     {officeView === 'surveys_admin' && (
                       <SurveysAdminView
                         onTriggerToast={handleTriggerSystemToast}
+                      />
+                    )}
+
+                    {officeView === 'member_orgs_admin' && (
+                      <MemberOrganizationsAdminView
+                        organizations={memberOrganizations}
+                        onSaveOrganizations={(orgs) => {
+                          setMemberOrganizations(orgs);
+                          AppStorageEngine.saveMemberOrganizations(orgs);
+                        }}
+                        onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Thất bại' : 'Thông báo', msg)}
                       />
                     )}
 
