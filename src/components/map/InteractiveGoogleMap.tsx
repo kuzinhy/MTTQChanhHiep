@@ -38,6 +38,17 @@ interface InteractiveGoogleMapProps {
   onOpenNeighborhoodModal: (nh: NeighborhoodGIS) => void;
 }
 
+// Helper function to safely escape HTML special characters
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   locations,
   neighborhoods,
@@ -278,7 +289,7 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
                 ? 'bg-blue-600 text-white border-blue-300 ring-2 ring-blue-400/50 shadow-blue-500/30'
                 : 'bg-white text-slate-800 border-slate-300 backdrop-blur-sm group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-400'
             }">
-              ${loc.name}
+              ${escapeHtml(loc.name)}
             </div>
           </div>
         `,
@@ -291,68 +302,140 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 
       // Build Rich Interactive InfoWindow Popup
       const directionsUrl = generateGoogleMapsDirectionsUrl(loc.latitude, loc.longitude);
-      
+      const phoneNum = loc.phone?.trim();
+      const openingHoursStr = loc.opening_hours?.trim() || '07:30 - 11:30 | 13:30 - 17:00 (Thứ 2 - Thứ 6)';
+      const safeCategoryName = escapeHtml(cat?.name?.split('&')[0]?.trim() || 'Cơ sở');
+      const safeNeighborhoodName = loc.neighborhood_name ? escapeHtml(loc.neighborhood_name) : '';
+      const safeName = escapeHtml(loc.name);
+      const safeAddress = escapeHtml(loc.address);
+      const safeHours = escapeHtml(openingHoursStr);
+      const safePhone = phoneNum ? escapeHtml(phoneNum) : '';
+      const safeEmail = loc.email ? escapeHtml(loc.email.trim()) : '';
+      const safeDesc = loc.description ? escapeHtml(loc.description.trim()) : '';
+
       const popupContent = `
-        <div class="p-1 font-sans max-w-[270px] space-y-2 text-slate-800">
-          <div class="flex items-center gap-1.5">
-            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-red-100 text-red-800">
-              ${cat?.name?.split('&')[0]?.trim() || 'Cơ sở'}
-            </span>
-            ${loc.neighborhood_name ? `<span class="text-[9px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">${loc.neighborhood_name}</span>` : ''}
+        <div class="p-1.5 font-sans w-[270px] sm:w-[290px] space-y-2 text-slate-800">
+          <!-- Header Badges -->
+          <div class="flex items-center justify-between gap-1 flex-wrap">
+            <div class="flex items-center gap-1 flex-wrap">
+              <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">
+                ${safeCategoryName}
+              </span>
+              ${safeNeighborhoodName ? `<span class="text-[9px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 border border-slate-200">${safeNeighborhoodName}</span>` : ''}
+            </div>
+            ${loc.is_featured ? '<span class="text-[9px] font-black bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-200">★ Trọng điểm</span>' : ''}
           </div>
 
-          <h3 class="font-black text-xs text-slate-900 leading-snug line-clamp-2">
-            ${loc.name}
+          <!-- Location Name -->
+          <h3 class="font-black text-xs sm:text-sm text-slate-900 leading-snug">
+            ${safeName}
           </h3>
 
-          <p class="text-[11px] text-slate-600 leading-relaxed">
-            📍 ${loc.address}
-          </p>
+          <!-- Address -->
+          <div class="text-[11px] text-slate-600 flex items-start gap-1 leading-snug">
+            <span class="shrink-0">📍</span>
+            <span class="line-clamp-2">${safeAddress}</span>
+          </div>
 
-          ${loc.phone ? `
-            <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-              📞 <a href="tel:${loc.phone}" class="text-blue-700 hover:underline">${loc.phone}</a>
+          <!-- Rich Information Grid: Hours & Phone -->
+          <div class="space-y-1.5 pt-1.5 border-t border-slate-100">
+            <!-- Operating Hours Card -->
+            <div class="p-1.5 rounded-lg bg-emerald-50/90 border border-emerald-200/90 text-[10.5px]">
+              <div class="font-black text-emerald-900 flex items-center gap-1">
+                <span>🕒</span>
+                <span>Giờ làm việc / Mở cửa:</span>
+              </div>
+              <div class="text-emerald-950 font-bold pl-4 mt-0.5">
+                ${safeHours}
+              </div>
+            </div>
+
+            <!-- Contact Phone Number & Email -->
+            <div class="p-1.5 rounded-lg bg-blue-50/90 border border-blue-200/90 text-[10.5px] space-y-0.5">
+              <div class="font-black text-blue-900 flex items-center justify-between gap-1">
+                <span class="flex items-center gap-1">
+                  <span>📞</span>
+                  <span>SĐT liên hệ:</span>
+                </span>
+                ${safePhone ? `<a href="tel:${safePhone}" class="text-blue-700 font-extrabold hover:underline">${safePhone}</a>` : '<span class="text-slate-500 font-normal">Đang cập nhật</span>'}
+              </div>
+              ${safeEmail ? `
+                <div class="text-blue-800 font-medium pl-4 truncate text-[10px]">
+                  ✉️ <a href="mailto:${safeEmail}" class="hover:underline">${safeEmail}</a>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          ${safeDesc ? `
+            <div class="bg-amber-50/80 border border-amber-200/80 rounded-lg p-1.5 text-[10px] text-amber-950 font-medium line-clamp-2">
+              ℹ️ ${safeDesc}
             </div>
           ` : ''}
 
-          ${loc.description ? `
-            <div class="bg-orange-50 border border-orange-200 rounded-lg p-1.5 text-[10px] text-orange-900 font-semibold line-clamp-2">
-              ℹ️ ${loc.description}
-            </div>
-          ` : ''}
+          <!-- Direct Action Buttons Bar -->
+          <div class="pt-2 border-t border-slate-200 grid grid-cols-3 gap-1">
+            ${phoneNum ? `
+              <a 
+                href="tel:${phoneNum}" 
+                class="px-2 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black flex items-center justify-center gap-1 transition-colors shadow-xs"
+                title="Gọi điện liên hệ trực tiếp"
+              >
+                <span>📞</span>
+                <span>Liên hệ</span>
+              </a>
+            ` : `
+              <button 
+                id="btn-detail-direct-${loc.id}"
+                class="px-2 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                title="Xem thông tin liên hệ"
+              >
+                <span>📞</span>
+                <span>Liên hệ</span>
+              </button>
+            `}
 
-          <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
             <a 
               href="${directionsUrl}" 
               target="_blank" 
               rel="noopener noreferrer"
-              class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black inline-flex items-center gap-1 transition-colors shadow-xs"
+              class="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black flex items-center justify-center gap-1 transition-colors shadow-xs"
+              title="Chỉ đường Google Maps"
             >
+              <span>🧭</span>
               <span>Chỉ đường</span>
-              <span>↗</span>
             </a>
 
             <button 
               id="btn-detail-${loc.id}"
-              class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-black transition-colors"
+              class="px-2 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-black flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              title="Xem chi tiết đầy đủ"
             >
-              Xem chi tiết
+              <span>👁️</span>
+              <span>Chi tiết</span>
             </button>
           </div>
         </div>
       `;
 
-      marker.bindPopup(popupContent, { maxWidth: 300, className: 'modern-leaflet-popup' });
+      marker.bindPopup(popupContent, { maxWidth: 320, className: 'modern-leaflet-popup' });
 
       marker.on('click', () => {
         onSelectLocation(loc);
       });
 
       marker.on('popupopen', () => {
-        // Wire up popup detail click handler
+        // Wire up popup detail click handlers
         const btn = document.getElementById(`btn-detail-${loc.id}`);
         if (btn) {
           btn.onclick = () => {
+            onOpenDetailModal(loc);
+          };
+        }
+
+        const btnDirect = document.getElementById(`btn-detail-direct-${loc.id}`);
+        if (btnDirect) {
+          btnDirect.onclick = () => {
             onOpenDetailModal(loc);
           };
         }

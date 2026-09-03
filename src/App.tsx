@@ -1141,7 +1141,7 @@ export default function App() {
                   )}
 
                   {portalTab === 'map' && (
-                    <DigitalCommunityMap />
+                    <DigitalCommunityMap currentStaffUser={currentStaffUser} />
                   )}
 
                   {portalTab === 'about' && (

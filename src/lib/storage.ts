@@ -15,6 +15,8 @@ import {
   INITIAL_AREAS,
   INITIAL_ORGANIZATIONS
 } from '../data/seedData';
+import { INITIAL_MAP_LOCATIONS } from '../data/mapSeedData';
+import { MapLocation } from '../data/mapSchema';
 import { 
   Article, 
   OfficialDocument, 
@@ -66,6 +68,7 @@ const STORAGE_KEYS = {
   LAST_BACKUP_TIME: 'mttq_chanhhiep_last_backup_time',
   AI_CHATS: 'mttq_chanhhiep_ai_chats_v2',
   KNOWLEDGE_NOTES: 'mttq_chanhhiep_knowledge_notes_v2',
+  MAP_LOCATIONS: 'mttq_chanhhiep_map_locations_v2',
   MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v4',
   AREAS: 'mttq_chanhhiep_areas_v3',
   ORGANIZATIONS: 'mttq_chanhhiep_organizations_v4',
@@ -379,6 +382,17 @@ export const AppStorageEngine = {
   },
   saveKnowledgeNotes: (notes: KnowledgeNote[]) => {
     saveStorageData(STORAGE_KEYS.KNOWLEDGE_NOTES, notes || []);
+  },
+
+  getMapLocations: (): MapLocation[] => {
+    return loadInitialData(STORAGE_KEYS.MAP_LOCATIONS, INITIAL_MAP_LOCATIONS);
+  },
+  saveMapLocations: (locations: MapLocation[]) => {
+    saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, locations || []);
+  },
+  resetMapLocationsToSeed: (): MapLocation[] => {
+    saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, INITIAL_MAP_LOCATIONS);
+    return INITIAL_MAP_LOCATIONS;
   },
 
   // ==========================================
