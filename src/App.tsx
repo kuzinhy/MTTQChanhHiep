@@ -1132,11 +1132,6 @@ export default function App() {
                         onSelectArticle={(art) => handleSelectArticle(art)}
                         onGoToOpinion={() => handleSelectPortalTab('opinion')}
                       />
-                      <MemberOrganizationsSection 
-                        organizations={memberOrganizations} 
-                        onSelectArticleTopic={() => handleSelectPortalTab('news')} 
-                        onNavigateTab={(tab) => handleSelectPortalTab(tab)}
-                      />
                       <WorkCalendarSection 
                         events={events} 
                         onAddEvent={handleAddEvent}
