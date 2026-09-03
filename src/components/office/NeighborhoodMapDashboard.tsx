@@ -14,9 +14,12 @@ import {
   Building2, 
   Sparkles,
   MessageSquare,
-  ChevronRight
+  ChevronRight,
+  Navigation,
+  Compass
 } from 'lucide-react';
 import { PublicOpinion, NeighborhoodStats } from '../../types';
+import { DigitalCommunityMap } from '../map/DigitalCommunityMap';
 
 interface NeighborhoodMapDashboardProps {
   opinions: PublicOpinion[];
@@ -455,6 +458,7 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<NeighborhoodStats | null>(INITIAL_NEIGHBORHOODS[2]); // default KP3
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [activeTab, setActiveTab] = useState<'MAP' | 'LIST'>('MAP');
 
   // Filtered list
   const filteredList = INITIAL_NEIGHBORHOODS.filter(kp => {
@@ -559,8 +563,40 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
         </div>
       </div>
 
-      {/* Main Grid & Selected Detail Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* View Switcher Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <button
+          onClick={() => setActiveTab('MAP')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'MAP'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Navigation className="w-3.5 h-3.5 text-amber-300" />
+          <span>Bản đồ Số GIS &amp; Địa điểm An sinh (21 KP)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('LIST')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'LIST'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Building2 className="w-3.5 h-3.5" />
+          <span>Danh sách Hồ sơ &amp; Chỉ số An sinh 21 Khu phố</span>
+        </button>
+      </div>
+
+      {activeTab === 'MAP' ? (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 overflow-hidden">
+          <DigitalCommunityMap />
+        </div>
+      ) : (
+        /* Main Grid & Selected Detail Section */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column: 21 Neighborhood Grid (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
@@ -867,6 +903,7 @@ export const NeighborhoodMapDashboard: React.FC<NeighborhoodMapDashboardProps> =
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

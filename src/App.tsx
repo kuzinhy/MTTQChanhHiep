@@ -24,6 +24,8 @@ import { SurveysSection } from './components/SurveysSection';
 import { AboutSection } from './components/AboutSection';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { InitiativesSection } from './components/InitiativesSection';
+import { DigitalCommunityMap } from './components/map/DigitalCommunityMap';
+import { DigitalMapSection } from './components/map/DigitalMapSection';
 import { VolunteerRegistrationModal } from './components/VolunteerRegistrationModal';
 import { DigitalDirectoryModal } from './components/DigitalDirectoryModal';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
@@ -72,6 +74,7 @@ import { browserNotificationService } from './lib/browserNotifications';
 
 export const VALID_PORTAL_TABS = [
   'home',
+  'map',
   'about',
   'news',
   'documents',
@@ -110,6 +113,8 @@ export const PORTAL_HASH_TO_TAB: Record<string, string> = {
   '': 'home',
   '/': 'home',
   '/trang-chu': 'home',
+  '/ban-do-so': 'map',
+  '/bando': 'map',
   '/gioi-thieu': 'about',
   '/tin-tuc': 'news',
   '/van-ban': 'documents',
@@ -125,6 +130,7 @@ export const PORTAL_HASH_TO_TAB: Record<string, string> = {
 
 export const TAB_TO_HASH: Record<string, string> = {
   home: '#/trang-chu',
+  map: '#/ban-do-so',
   about: '#/gioi-thieu',
   news: '#/tin-tuc',
   documents: '#/van-ban',
@@ -1105,6 +1111,11 @@ export default function App() {
 
                       <HeroCarousel articles={articles} onSelectArticle={(art) => handleSelectArticle(art)} />
 
+                      <DigitalMapSection
+                        onNavigateToMap={() => handleSelectPortalTab('map')}
+                        onSelectNeighborhood={() => handleSelectPortalTab('map')}
+                      />
+
                       <NewsSection
                         articles={articles}
                         searchQuery={searchQuery}
@@ -1127,6 +1138,10 @@ export default function App() {
                         onSelectDocument={(doc) => handleSelectDocument(doc)}
                       />
                     </>
+                  )}
+
+                  {portalTab === 'map' && (
+                    <DigitalCommunityMap />
                   )}
 
                   {portalTab === 'about' && (

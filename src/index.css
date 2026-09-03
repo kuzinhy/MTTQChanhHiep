@@ -226,3 +226,32 @@
 .animate-vertical-loop:hover {
   animation-play-state: paused;
 }
+
+/* Modern Leaflet Map & InfoWindow Styles */
+.leaflet-popup-content-wrapper {
+  border-radius: 1rem !important;
+  padding: 0.25rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0.5rem !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+}
+
+.nh-label-marker, .custom-google-pin, .user-gps-marker, .leaflet-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Ensure default Leaflet marker images, if any are instantiated, render professional vector-based blue iconography */
+img.leaflet-marker-icon {
+  content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%232563EB' d='M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z'/%3E%3C/svg%3E") !important;
+  filter: drop-shadow(0px 4px 6px rgba(37, 99, 235, 0.4)) !important;
+}
+

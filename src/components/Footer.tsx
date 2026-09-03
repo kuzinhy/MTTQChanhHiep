@@ -87,6 +87,15 @@ export const Footer: React.FC<{
           <ul className="space-y-2 text-blue-100">
             <li>
               <button 
+                onClick={() => onSelectTab && onSelectTab('map')}
+                className="hover:text-cyan-300 flex items-center gap-1.5 transition-colors font-medium cursor-pointer text-amber-300"
+              >
+                <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                <span>Bản đồ số An sinh (21 Khu phố)</span>
+              </button>
+            </li>
+            <li>
+              <button 
                 onClick={() => onSelectTab && onSelectTab('about')}
                 className="hover:text-cyan-300 flex items-center gap-1.5 transition-colors font-medium cursor-pointer"
               >

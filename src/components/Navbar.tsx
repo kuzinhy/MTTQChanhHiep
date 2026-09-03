@@ -18,7 +18,8 @@ import {
   Star,
   Bell,
   Phone,
-  Lightbulb
+  Lightbulb,
+  MapPin
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -52,6 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
+    { id: 'map', label: 'Bản đồ số', icon: MapPin },
     { id: 'about', label: 'Giới thiệu', icon: Info },
     { id: 'news', label: 'Tin tức - Sự kiện', icon: BookOpen },
     { id: 'supervision', label: 'Giám sát & Phản biện', icon: Scale },
