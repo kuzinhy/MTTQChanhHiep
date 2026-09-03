@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { getOfficialCadreAvatarSvg } from '../../utils/officialImages';
 import { 
   MemberOrganization, 
   Area 
@@ -533,7 +534,7 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
             <div className="bg-gradient-to-r from-blue-800 to-indigo-800 px-6 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img 
-                  src={selectedPillarOrg.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300'} 
+                  src={selectedPillarOrg.avatarUrl || getOfficialCadreAvatarSvg(selectedPillarOrg.name, selectedPillarOrg.shortName)} 
                   alt={selectedPillarOrg.name} 
                   className="w-10 h-10 rounded-xl object-cover border border-white/20 shrink-0"
                 />

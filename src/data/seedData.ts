@@ -15,178 +15,11 @@ import {
   Organization,
   MemberOrganization
 } from '../types';
+import { ARTICLE_BANNERS, getOfficialCadreAvatarSvg } from '../utils/officialImages';
 
-export const INITIAL_ARTICLES: Article[] = [
-  {
-    id: 'seed-art-1',
-    title: 'Phường Chánh Hiệp đẩy mạnh phong trào thi đua "Toàn dân đoàn kết xây dựng đô thị văn minh"',
-    slug: 'phuong-chanh-hiep-day-manh-phong-trao-thi-dua',
-    summary: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp phối hợp cùng các ban ngành đoàn thể phát động đợt thi đua cao điểm với nhiều công trình phần việc thiết thực chào mừng đại hội đảng bộ các cấp.',
-    content: `Ủy ban MTTQ Việt Nam phường Chánh Hiệp vừa phối hợp với UBND phường và các tổ chức chính trị - xã hội tổ chức lễ phát động phong trào thi đua "Toàn dân đoàn kết xây dựng đô thị văn minh, sáng - xanh - sạch - đẹp - an toàn".
+export const INITIAL_ARTICLES: Article[] = [];
 
-Trong thời gian tới, Ủy ban MTTQ phường sẽ tập trung triển khai các nhiệm vụ trọng tâm:
-1. Vận động nhân dân chỉnh trang đô thị, không lấn chiếm lòng đường vỉa hè, giữ gìn vệ sinh môi trường tại các khu phố.
-2. Nhân rộng các mô hình tự quản, camera an ninh phòng chống tội phạm tại các khu dân cư.
-3. Thực hiện tốt công tác an sinh xã hội, chăm lo gia đình chính sách, hộ nghèo và cận nghèo trên địa bàn phường.
-
-Phong trào đã nhận được sự hưởng ứng nồng nhiệt từ đông đảo bà con nhân dân các khu phố, khẳng định vai trò cốt lõi của khối đại đoàn kết toàn dân tộc tại cơ sở.`,
-    category: 'Phong trào thi đua',
-    authorName: 'Ban Tuyên giáo MTTQ',
-    publishDate: '2026-08-30 08:30',
-    featuredImage: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=1200',
-    views: 1250,
-    tags: ['Đô thị văn minh', 'Thi đua yêu nước', 'Mặt trận Chánh Hiệp'],
-    status: 'Published',
-    isFeatured: true
-  },
-  {
-    id: 'seed-art-2',
-    title: 'Học tập và làm theo tư tưởng, đạo đức, phong cách Hồ Chí Minh về tinh thần đại đoàn kết',
-    slug: 'hoc-tap-va-lam-theo-tu-tuong-dao-duc-ho-chi-minh',
-    summary: 'Không gian văn hóa Hồ Chí Minh tại cơ quan Ủy ban MTTQ phường Chánh Hiệp tiếp tục là điểm sinh hoạt chính trị sâu rộng, lan tỏa những giá trị nhân văn sâu sắc.',
-    content: `Thực hiện Chỉ thị 05-CT/TW của Bộ Chính trị, Ủy ban MTTQ Việt Nam phường Chánh Hiệp đã xây dựng và đưa vào hoạt động Không gian văn hóa Hồ Chí Minh với nhiều tư liệu quý về cuộc đời, sự nghiệp của Chủ tịch Hồ Chí Minh và lịch sử Mặt trận Dân tộc Thống nhất Việt Nam.
-
-Không gian trưng bày các chuyên đề:
-- Tư tưởng Hồ Chí Minh về đại đoàn kết toàn dân tộc.
-- Các mô hình "Dân vận khéo" tiêu biểu tại cơ sở.
-- Sổ vàng ghi nhận những tấm gương người tốt việc tốt trong phong trào từ thiện nhân đạo.
-
-Đây là nơi sinh hoạt định kỳ của các ban công tác mặt trận khu phố, qua đó bồi dưỡng lý tưởng cách mạng, khơi dậy tinh thần trách nhiệm trong đội ngũ cán bộ Mặt trận và nhân dân.`,
-    category: 'Học tập và làm theo Bác',
-    authorName: 'Văn phòng MTTQ',
-    publishDate: '2026-08-28 14:15',
-    featuredImage: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb9?auto=format&fit=crop&q=80&w=1200',
-    views: 980,
-    tags: ['Học tập làm theo Bác', 'Đại đoàn kết', 'Văn hóa'],
-    status: 'Published',
-    isFeatured: false
-  },
-  {
-    id: 'seed-art-3',
-    title: 'Ủy ban MTTQ phường thăm hỏi và trao nhà Đại đoàn kết cho hộ gia đình khó khăn',
-    slug: 'trao-nha-dai-doan-ket-cho-ho-kho-khan',
-    summary: 'Hoạt động thiết thực chăm lo nhà ở cho người nghèo, giúp các hộ gia đình an cư lạc nghiệp, vươn lên ổn định cuộc sống.',
-    content: `Sáng ngày 26/08, Ủy ban MTTQ Việt Nam phường Chánh Hiệp đã tổ chức lễ bàn giao nhà "Đại đoàn kết" cho gia đình có hoàn cảnh đặc biệt khó khăn về nhà ở trên địa bàn khu phố.
-
-Đại diện Thường trực MTTQ phường chúc mừng gia đình và trao tặng những phần quà thiết thực phục vụ sinh hoạt. Căn nhà được xây dựng kiên cố với tổng kinh phí hỗ trợ từ quỹ "Vì người nghèo" và sự đóng góp của các mạnh thường quân, thể hiện tinh thần "tương thân tương ái", "không để ai bỏ lại phía sau" của cộng đồng.`,
-    category: 'An sinh xã hội',
-    authorName: 'Ban Phong trào',
-    publishDate: '2026-08-26 10:00',
-    featuredImage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1200',
-    views: 1420,
-    tags: ['An sinh xã hội', 'Nhà Đại đoàn kết', 'Vì người nghèo'],
-    status: 'Published',
-    isFeatured: true
-  },
-  {
-    id: 'seed-art-4',
-    title: 'Công tác giám sát và phản biện xã hội của Mặt trận Tổ quốc tại cơ sở năm 2026',
-    slug: 'cong-tac-giam-sat-va-phan-bien-xa-hoi',
-    summary: 'Phát huy quyền làm chủ của nhân dân thông qua các hoạt động giám sát đầu tư cộng hòa, giải quyết khiếu nại tố cáo và góp ý xây dựng chính quyền.',
-    content: `Trong 8 tháng đầu năm 2026, Ủy ban MTTQ Việt Nam phường Chánh Hiệp đã chủ trì và phối hợp triển khai nhiều nội dung giám sát quan trọng:
-- Giám sát việc thực hiện các chính sách an sinh xã hội, hỗ trợ người lao động và đối tượng chính sách.
-- Giám sát công tác tiếp công dân và giải quyết thủ tục hành chính tại bộ phận một cửa UBND phường.
-- Tổ chức các hội nghị phản biện xã hội đối với các đồ án quy hoạch chỉnh trang đô thị và dự án đầu tư công trình phúc lợi trên địa bàn.
-
-Các kiến nghị sau giám sát đều được chính quyền địa phương tiếp thu và chỉ đạo giải quyết kịp thời, củng cố niềm tin vững chắc của nhân dân đối với Đảng và chính quyền.`,
-    category: 'Giám sát - Phản biện',
-    authorName: 'Ban Dân chủ - Pháp luật',
-    publishDate: '2026-08-22 09:00',
-    featuredImage: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80&w=1200',
-    views: 890,
-    tags: ['Giám sát phản biện', 'Dân chủ cơ sở', 'Xây dựng chính quyền'],
-    status: 'Published',
-    isFeatured: false
-  }
-];
-
-export const INITIAL_DOCUMENTS: OfficialDocument[] = [
-  {
-    id: 'seed-doc-qd-207',
-    codeNumber: '207/QĐ-MTTW-BTT',
-    title: 'Quyết định Ban hành Quy định về thể loại, thẩm quyền ban hành, thể thức và kỹ thuật trình bày văn bản của Ủy ban Mặt trận Tổ quốc Việt Nam các cấp',
-    docType: 'Quyết định',
-    issuer: 'Ban Thường trực Ủy ban Trung ương MTTQ Việt Nam',
-    issueDate: '2025-08-29',
-    effectiveDate: '2025-08-29',
-    signer: 'Phó Chủ tịch - Tổng Thư ký Nguyễn Thị Thu Hà',
-    field: 'Thể thức văn bản Mặt trận',
-    summary: 'Quyết định số 207/QĐ-MTTW-BTT ban hành Quy định chuẩn hóa về 25 thể loại văn bản chính, 5 thể loại văn bản hành chính khác, thẩm quyền ban hành của 4 cấp Mặt trận (Trung ương, Cấp tỉnh, Cấp xã, Ban Công tác Mặt trận khu dân cư) và quy định chi tiết kỹ thuật trình bày văn bản chuẩn hóa toàn hệ thống.',
-    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    fileName: '207_QD-MTTW-BTT_TheThucVanBanMTTQ.pdf',
-    fileSize: '3.2 MB',
-    isPublic: true
-  },
-  {
-    id: 'seed-doc-1',
-    codeNumber: '08/KH-MTTQ',
-    title: 'Kế hoạch tổ chức các hoạt động tuyên truyền và triển khai nhiệm vụ trọng tâm công tác Mặt trận năm 2026',
-    docType: 'Kế hoạch',
-    issuer: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
-    issueDate: '2026-01-15',
-    effectiveDate: '2026-01-20',
-    signer: 'Chủ tịch Nguyễn Văn An',
-    field: 'Công tác Mặt trận',
-    summary: 'Kế hoạch tổng thể định hướng các hoạt động tuyên truyền, vận động nhân dân và phong trào thi đua yêu nước năm 2026 của Ủy ban MTTQ phường Chánh Hiệp.',
-    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    fileName: '08_KH-MTTQ_KeHoachCongTac2026.pdf',
-    fileSize: '1.4 MB',
-    isPublic: true
-  },
-  {
-    id: 'seed-doc-2',
-    codeNumber: '15/QĐ-MTTQ',
-    title: 'Quyết định ban hành Quy chế hoạt động của Ban Thanh tra nhân dân phường Chánh Hiệp nhiệm kỳ 2024 - 2026',
-    docType: 'Quyết định',
-    issuer: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
-    issueDate: '2026-03-10',
-    effectiveDate: '2026-03-15',
-    signer: 'Phó Chủ tịch Trần Thị Mai',
-    field: 'Thanh tra nhân dân',
-    summary: 'Quy định chức năng, nhiệm vụ, quyền hạn và chế độ làm việc của Ban Thanh tra nhân dân phường trong công tác giám sát đầu tư công và thực thi pháp luật.',
-    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    fileName: '15_QD-MTTQ_QuyCheThanhTraNhanDan.pdf',
-    fileSize: '1.8 MB',
-    isPublic: true
-  },
-  {
-    id: 'seed-doc-3',
-    codeNumber: '42/HD-MTTQ',
-    title: 'Hướng dẫn quy trình lấy ý kiến sự hài lòng của người dân đối với kết quả xây dựng đô thị văn minh',
-    docType: 'Hướng dẫn',
-    issuer: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
-    issueDate: '2026-05-20',
-    effectiveDate: '2026-05-25',
-    signer: 'Chủ tịch Nguyễn Văn An',
-    field: 'Đô thị văn minh',
-    summary: 'Hướng dẫn chi tiết các bước triển khai phiếu lấy ý kiến đánh giá của hộ gia đình đối với các tiêu chí xây dựng đô thị văn minh trên địa bàn các khu phố.',
-    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    fileName: '42_HD-MTTQ_HuongDanLayYKIenHaiLong.pdf',
-    fileSize: '2.1 MB',
-    isPublic: true
-  },
-  {
-    id: 'seed-doc-4',
-    codeNumber: '109/TB-UBND',
-    title: 'Thông báo lịch tiếp công dân định kỳ của Thường trực HĐND - UBND - Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
-    docType: 'Thông báo',
-    issuer: 'UBND - Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
-    issueDate: '2026-08-01',
-    effectiveDate: '2026-08-01',
-    signer: 'Văn phòng HĐND-UBND-MTTQ',
-    field: 'Tiếp công dân',
-    summary: 'Lịch tiếp dân hàng tuần và hàng tháng để lắng nghe, tiếp nhận các ý kiến phản ánh, kiến nghị chính đáng của nhân dân.',
-    fileUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    driveUrl: 'https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing',
-    fileName: '109_TB-UBND_TiepCongDanDinhKy.pdf',
-    fileSize: '950 KB',
-    isPublic: true
-  }
-];
+export const INITIAL_DOCUMENTS: OfficialDocument[] = [];
 
 export const INITIAL_COMPETITIONS: Competition[] = [
   {
@@ -1135,7 +968,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     fullname: 'Nguyễn Huy',
     position: 'Trưởng Ban Thường trực MTTQ',
     department: 'Ban Thường trực',
-    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300',
+    avatar: getOfficialCadreAvatarSvg('Nguyễn Huy', 'Trưởng Ban Thường trực'),
     phone: '0908.681.988',
     bio: 'Chủ tịch / Trưởng Ban Thường trực Ủy ban Mặt trận Tổ quốc Việt Nam phường Chánh Hiệp - Chỉ đạo điều hành toàn bộ công tác Mặt trận và Văn phòng số.',
     role: 'SUPER_ADMIN',
@@ -1149,7 +982,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     fullname: 'Bùi Văn Huy',
     position: 'Phó Chủ tịch MTTQ',
     department: 'Ban Thường trực',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
+    avatar: getOfficialCadreAvatarSvg('Bùi Văn Huy', 'Phó Chủ tịch'),
     phone: '0907.123.456',
     bio: 'Phó Chủ tịch Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.',
     role: 'ADMIN',
@@ -1163,7 +996,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     fullname: 'Trần Văn Nam',
     position: 'Ủy viên Thường trực',
     department: 'Bộ phận Văn phòng - Giám sát',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    avatar: getOfficialCadreAvatarSvg('Trần Văn Nam', 'Ủy viên Thường trực'),
     role: 'MANAGER',
     permissions: ['manage_tasks', 'manage_cms', 'manage_opinions'],
     active: true,
@@ -1175,7 +1008,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     fullname: 'Lê Thị Thu Thảo',
     position: 'Cán bộ Tuyên giáo - Thi đua',
     department: 'Bộ phận Tuyên giáo',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300',
+    avatar: getOfficialCadreAvatarSvg('Lê Thị Thu Thảo', 'Cán bộ Tuyên giáo'),
     role: 'EDITOR',
     permissions: ['write_articles', 'manage_competitions'],
     active: true,
@@ -1977,8 +1810,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Hội LHTN',
     phone: '0274.3822.121',
     email: 'hoilhtn.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Lê Hoàng Phong', 'Chủ tịch Hội LHTN'),
+    bannerUrl: ARTICLE_BANNERS.thidua,
     displayOrder: 3,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2016,8 +1849,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Hội Phụ nữ',
     phone: '0274.3822.113',
     email: 'hoiphunu.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Võ Thị Bích Loan', 'Chủ tịch Hội Phụ nữ'),
+    bannerUrl: ARTICLE_BANNERS.hoctapbac,
     displayOrder: 3,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2055,8 +1888,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Hội Cựu chiến binh',
     phone: '0274.3822.114',
     email: 'cuuchienbinh.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1526976668912-1a811878dd37?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Đặng Quốc Hùng', 'Chủ tịch CCB'),
+    bannerUrl: ARTICLE_BANNERS.thidua,
     displayOrder: 4,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2094,8 +1927,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Công đoàn Cơ sở',
     phone: '0274.3822.117',
     email: 'congdoan.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Huỳnh Văn Nghĩa', 'Chủ tịch Công đoàn'),
+    bannerUrl: ARTICLE_BANNERS.giamsat,
     displayOrder: 5,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2133,8 +1966,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Hội NCT',
     phone: '0274.3822.115',
     email: 'nguoicaotuoi.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Lê Văn Chính', 'Chủ tịch Hội NCT'),
+    bannerUrl: ARTICLE_BANNERS.hoctapbac,
     displayOrder: 6,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2172,8 +2005,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Hội Chữ thập đỏ',
     phone: '0274.3822.116',
     email: 'chuthapdo.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Hoàng Thị Mai', 'Chủ tịch Hội CTĐ'),
+    bannerUrl: ARTICLE_BANNERS.ansinh,
     displayOrder: 7,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2211,8 +2044,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Hội Khuyến học',
     phone: '0274.3822.118',
     email: 'khuyenhoc.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Phạm Văn Hưởng', 'Chủ tịch Khuyến học'),
+    bannerUrl: ARTICLE_BANNERS.thidua,
     displayOrder: 8,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2250,8 +2083,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chủ tịch Hội Cựu TNXP',
     phone: '0274.3822.119',
     email: 'cuutnxp.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Nguyễn Văn Tài', 'Chủ tịch TNXP'),
+    bannerUrl: ARTICLE_BANNERS.hoctapbac,
     displayOrder: 9,
     parentId: null,
     areaId: 'area-chanh-hiep',
@@ -2289,8 +2122,8 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     leaderPosition: 'Chi hội trưởng Chi hội Luật gia',
     phone: '0274.3822.120',
     email: 'luatgia.chanhhiep@gmail.com',
-    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300',
-    bannerUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=1200',
+    avatarUrl: getOfficialCadreAvatarSvg('Trần Đình Long', 'Chi hội trưởng Luật gia'),
+    bannerUrl: ARTICLE_BANNERS.giamsat,
     displayOrder: 10,
     parentId: null,
     areaId: 'area-chanh-hiep',

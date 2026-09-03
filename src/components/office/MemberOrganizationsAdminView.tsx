@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { ARTICLE_BANNERS, getOfficialCadreAvatarSvg } from '../../utils/officialImages';
 import { 
   MemberOrganization, 
   MemberOrganizationNode, 
@@ -280,8 +281,8 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
       areaId: parentOrg?.areaId || 'area-chanh-hiep',
       level: prefilledParentId ? 'BRANCH' : 'WARD',
       status: 'ACTIVE',
-      avatarUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300',
-      bannerUrl: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=1200',
+      avatarUrl: getOfficialCadreAvatarSvg('MTTQ', 'Hội viên'),
+      bannerUrl: ARTICLE_BANNERS.default,
       activeMembersCount: prefilledParentId ? 45 : 150,
       branchesCount: prefilledParentId ? 1 : 21,
       neighborhoodsCoveredCount: prefilledParentId ? 1 : 21,
@@ -436,8 +437,8 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
       areaName,
       level: formData.level || 'WARD',
       status: formData.status || 'ACTIVE',
-      avatarUrl: formData.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300',
-      bannerUrl: formData.bannerUrl || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=1200',
+      avatarUrl: formData.avatarUrl || getOfficialCadreAvatarSvg(formData.name || 'MTTQ', formData.shortName || 'Tổ chức'),
+      bannerUrl: formData.bannerUrl || ARTICLE_BANNERS.default,
       activeMembersCount: Number(formData.activeMembersCount) || 0,
       branchesCount: Number(formData.branchesCount) || 21,
       neighborhoodsCoveredCount: Number(formData.neighborhoodsCoveredCount) || 21,
@@ -504,7 +505,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
             {/* Avatar / Logo */}
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
               <img 
-                src={node.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300'} 
+                src={node.avatarUrl || getOfficialCadreAvatarSvg(node.name, node.shortName)} 
                 alt={node.name} 
                 className="w-full h-full object-cover"
               />
@@ -933,7 +934,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
                           <img 
-                            src={org.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300'} 
+                            src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
                             alt={org.name} 
                             className="w-full h-full object-cover"
                           />
@@ -1073,7 +1074,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <img 
-                              src={org.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300'} 
+                              src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
                               alt={org.name} 
                               className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0"
                             />
@@ -1876,7 +1877,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-xs">
                         <img 
-                          src={formData.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300'} 
+                          src={formData.avatarUrl || getOfficialCadreAvatarSvg(formData.name || 'MTTQ', formData.shortName || 'Tổ chức')} 
                           alt="Avatar preview" 
                           className="w-full h-full object-cover" 
                         />
@@ -1917,7 +1918,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                     <label className="text-xs font-bold text-slate-700 block">Ảnh bìa Banner hoạt động</label>
                     <div className="h-24 w-full rounded-xl overflow-hidden bg-slate-200 border border-slate-200 relative">
                       <img 
-                        src={formData.bannerUrl || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=1200'} 
+                        src={formData.bannerUrl || ARTICLE_BANNERS.default} 
                         alt="Banner preview" 
                         className="w-full h-full object-cover" 
                       />

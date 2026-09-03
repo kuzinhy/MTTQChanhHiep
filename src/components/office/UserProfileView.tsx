@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StaffUser } from '../../types';
+import { getOfficialCadreAvatarSvg } from '../../utils/officialImages';
 import { 
   User, 
   Mail, 
@@ -40,37 +41,37 @@ const PROFESSIONAL_AVATARS = [
   {
     id: 'av-1',
     label: 'Chủ tịch MTTQ',
-    url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300'
+    url: getOfficialCadreAvatarSvg('Nguyễn Huy', 'Trưởng Ban Thường trực')
   },
   {
     id: 'av-2',
     label: 'Phó Chủ tịch MTTQ',
-    url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300'
+    url: getOfficialCadreAvatarSvg('Bùi Văn Huy', 'Phó Chủ tịch')
   },
   {
     id: 'av-3',
     label: 'Ủy viên Thường trực',
-    url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=300'
+    url: getOfficialCadreAvatarSvg('Trần Văn Nam', 'Ủy viên Thường trực')
   },
   {
     id: 'av-4',
     label: 'Cán bộ Tuyên giáo',
-    url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=300'
+    url: getOfficialCadreAvatarSvg('Lê Thị Thu Thảo', 'Cán bộ Tuyên giáo')
   },
   {
     id: 'av-5',
     label: 'Trưởng ban CTMT Khu phố',
-    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300'
+    url: getOfficialCadreAvatarSvg('Trần Văn Hùng', 'Trưởng Ban CTMT')
   },
   {
     id: 'av-6',
     label: 'Cán bộ Trẻ Năng động',
-    url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300'
+    url: getOfficialCadreAvatarSvg('Nguyễn Thanh Tùng', 'Chuyên viên Văn phòng')
   },
   {
     id: 'av-7',
     label: 'Nữ Cán bộ Tuyên giáo',
-    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300'
+    url: getOfficialCadreAvatarSvg('Phạm Thị Mai', 'Chuyên viên Tuyên giáo')
   },
   {
     id: 'av-8',
@@ -379,7 +380,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           <div className="relative group">
             <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-white/20 shrink-0 flex items-center justify-center">
               <img
-                src={avatar || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300'}
+                src={avatar || getOfficialCadreAvatarSvg(fullname, position || 'Cán bộ')}
                 alt={fullname}
                 className="w-full h-full object-cover"
               />
@@ -779,7 +780,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       if (res === 'granted') {
                         new Notification('MTTQ Phường Chánh Hiệp', {
                           body: 'Chúc mừng! Bạn đã bật thành công thông báo đẩy trên thiết bị này.',
-                          icon: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=120'
+                          icon: getOfficialCadreAvatarSvg('MTTQ', 'Chánh Hiệp')
                         });
                       }
                     }
@@ -990,7 +991,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     type="url"
                     value={avatar}
                     onChange={(e) => setAvatar(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
+                    placeholder="https://drive.google.com/..."
                     className="w-full text-xs pl-8.5 pr-2.5 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium text-slate-800"
                   />
                 </div>

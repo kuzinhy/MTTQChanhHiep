@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Lock, ShieldAlert, Key, UserMinus, Eye, EyeOff, Loader2, PlayCircle, Clock } from 'lucide-react';
 import { StaffUser, AuditLog } from '../../types';
+import { getOfficialCadreAvatarSvg } from '../../utils/officialImages';
 import { auth } from '../../lib/firebase';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { CloudDatabase } from '../../lib/firestoreService';
@@ -333,7 +334,7 @@ export const SessionLockScreen: React.FC<SessionLockScreenProps> = ({
                 {/* Locked user card profile */}
                 <div className="w-full p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-center gap-3">
                   <img
-                    src={currentUser.avatar || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300'}
+                    src={currentUser.avatar || getOfficialCadreAvatarSvg(currentUser.fullname, currentUser.position)}
                     alt="avatar"
                     className="w-11 h-11 rounded-xl object-cover shrink-0 border border-slate-200"
                     referrerPolicy="no-referrer"

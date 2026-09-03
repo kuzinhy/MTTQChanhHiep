@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Article } from '../types';
 import { sortArticlesNewestFirst } from '../lib/dateUtils';
 import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
+import { ARTICLE_BANNERS } from '../utils/officialImages';
 import { 
   Calendar, 
   Eye, 
@@ -318,7 +319,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
             >
               <div className="relative h-64 sm:h-80 md:h-[360px] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
                 <img
-                  src={getGoogleDriveDirectImageUrl(mainHero.featuredImage) || 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&q=80&w=1200'}
+                  src={getGoogleDriveDirectImageUrl(mainHero.featuredImage) || ARTICLE_BANNERS.default}
                   alt={mainHero.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -392,7 +393,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                     >
                       <div className="w-20 h-16 sm:w-24 sm:h-18 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80 relative shadow-2xs">
                         <img
-                          src={getGoogleDriveDirectImageUrl(item.featuredImage) || 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&q=80&w=400'}
+                          src={getGoogleDriveDirectImageUrl(item.featuredImage) || ARTICLE_BANNERS.default}
                           alt={item.title}
                           className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
                         />
@@ -497,7 +498,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               {/* CLEAR IMAGE CONTAINER */}
               <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-slate-100">
                 <img
-                  src={getGoogleDriveDirectImageUrl(article.featuredImage) || 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&q=80&w=800'}
+                  src={getGoogleDriveDirectImageUrl(article.featuredImage) || ARTICLE_BANNERS.default}
                   alt={article.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -598,7 +599,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                 <div className="space-y-3">
                   <div className="h-36 rounded-xl overflow-hidden bg-rose-100 border border-rose-200 relative">
                     <img
-                      src={getGoogleDriveDirectImageUrl(item.featuredImage) || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=600'}
+                      src={getGoogleDriveDirectImageUrl(item.featuredImage) || ARTICLE_BANNERS.hoctapbac}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

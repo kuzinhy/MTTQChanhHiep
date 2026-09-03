@@ -15,6 +15,7 @@ import {
 import { getApiUrl } from '../../lib/api';
 import { SecurePdfViewer } from '../SecurePdfViewer';
 import { AdminAnalyticsView } from './AdminAnalyticsView';
+import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
   Article, 
   OfficialDocument, 
@@ -106,12 +107,12 @@ interface CmsAdminViewProps {
 }
 
 const DEFAULT_IMAGE_PRESETS = [
-  { label: 'Hội nghị MTTQ', url: 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&q=80&w=800' },
-  { label: 'Chăm lo An sinh', url: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&q=80&w=800' },
-  { label: 'Không gian Bác Hồ', url: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=800' },
-  { label: 'Chuyển đổi số', url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800' },
-  { label: 'Khu phố Dân cư', url: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800' },
-  { label: 'Đoàn kết Dân tộc', url: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb0?auto=format&fit=crop&q=80&w=800' },
+  { label: 'Hội nghị MTTQ', url: ARTICLE_BANNERS.thidua },
+  { label: 'Chăm lo An sinh', url: ARTICLE_BANNERS.ansinh },
+  { label: 'Không gian Bác Hồ', url: ARTICLE_BANNERS.hoctapbac },
+  { label: 'Giám sát Phản biện', url: ARTICLE_BANNERS.giamsat },
+  { label: 'Khu phố Dân cư', url: ARTICLE_BANNERS.default },
+  { label: 'Đoàn kết Dân tộc', url: ARTICLE_BANNERS.thidua },
 ];
 
 const ARTICLE_CATEGORIES: ArticleCategory[] = [

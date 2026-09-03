@@ -493,101 +493,13 @@ class CloudSyncService {
     }
   }
 
-  // Seed Firestore only if never initialized before
+  // Seed Firestore only if never initialized before - Disabled auto-seeding to respect strict zero-demo policy
   private async ensureSeedData() {
     try {
       const stateDocRef = doc(db, 'settings', 'app_state');
       const stateDocSnap = await getDoc(stateDocRef);
 
-      if (stateDocSnap.exists() && stateDocSnap.data()?.isSeeded) {
-        // Already initialized and seeded before. Firestore is master source of truth.
-        return;
-      }
-
-      const articlesSnap = await getDocs(collection(db, FirestoreCollections.ARTICLES));
-      if (articlesSnap.empty) {
-        console.log('[Firestore] Database is empty. Seeding initial data to Firebase Cloud Firestore...');
-        
-        // Batch seed articles
-        const initialArticles = AppStorageEngine.getArticles();
-        for (const art of initialArticles) {
-          const artDoc = doc(db, FirestoreCollections.ARTICLES, art.id);
-          await setDoc(artDoc, cleanFirestoreData(art), { merge: true });
-        }
-
-        // Batch seed documents
-        const initialDocs = AppStorageEngine.getDocuments();
-        for (const docItem of initialDocs) {
-          const dDoc = doc(db, FirestoreCollections.DOCUMENTS, docItem.id);
-          await setDoc(dDoc, cleanFirestoreData(docItem), { merge: true });
-        }
-
-        // Batch seed public opinions
-        const initialOpinions = AppStorageEngine.getOpinions();
-        for (const op of initialOpinions) {
-          const opDoc = doc(db, FirestoreCollections.OPINIONS, op.id);
-          await setDoc(opDoc, cleanFirestoreData(op), { merge: true });
-        }
-
-        // Batch seed competitions
-        const initialComps = AppStorageEngine.getCompetitions();
-        for (const comp of initialComps) {
-          const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
-          await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });
-        }
-
-        // Batch seed staff
-        const initialStaff = AppStorageEngine.getStaffUsers();
-        for (const st of initialStaff) {
-          const stDoc = doc(db, FirestoreCollections.STAFF_USERS, st.id);
-          await setDoc(stDoc, cleanFirestoreData(st), { merge: true });
-        }
-
-        // Batch seed tasks
-        const initialTasks = AppStorageEngine.getTasks();
-        for (const t of initialTasks) {
-          const tDoc = doc(db, FirestoreCollections.TASKS, t.id);
-          await setDoc(tDoc, cleanFirestoreData(t), { merge: true });
-        }
-
-        // Batch seed events
-        const initialEvents = AppStorageEngine.getEvents();
-        for (const ev of initialEvents) {
-          const evDoc = doc(db, FirestoreCollections.EVENTS, ev.id);
-          await setDoc(evDoc, cleanFirestoreData(ev), { merge: true });
-        }
-
-        // Batch seed member organizations
-        const initialOrgs = AppStorageEngine.getMemberOrganizations();
-        for (const org of initialOrgs) {
-          const orgDoc = doc(db, FirestoreCollections.MEMBER_ORGANIZATIONS, org.id);
-          await setDoc(orgDoc, cleanFirestoreData(org), { merge: true });
-        }
-
-        // Batch seed areas
-        const initialAreas = AppStorageEngine.getAreas();
-        for (const area of initialAreas) {
-          const aDoc = doc(db, FirestoreCollections.AREAS, area.id);
-          await setDoc(aDoc, cleanFirestoreData(area), { merge: true });
-        }
-
-        // Batch seed organizations
-        const initialPoliticsOrgs = AppStorageEngine.getOrganizations();
-        for (const o of initialPoliticsOrgs) {
-          const oDoc = doc(db, FirestoreCollections.ORGANIZATIONS, o.id);
-          await setDoc(oDoc, cleanFirestoreData(o), { merge: true });
-        }
-
-        // Mark as seeded so future deletions are never resurrected
-        await setDoc(stateDocRef, cleanFirestoreData({
-          isSeeded: true,
-          seededAt: new Date().toISOString(),
-          app: 'MTTQ Phường Chánh Hiệp'
-        }), { merge: true });
-
-        console.log('[Firestore] Seed complete. Cloud database is ready and active!');
-      } else {
-        // Mark as seeded
+      if (!stateDocSnap.exists()) {
         await setDoc(stateDocRef, cleanFirestoreData({
           isSeeded: true,
           seededAt: new Date().toISOString(),

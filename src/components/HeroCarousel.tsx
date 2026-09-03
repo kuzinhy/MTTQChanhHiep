@@ -4,6 +4,7 @@ import { Calendar, ChevronLeft, ChevronRight, Eye, ArrowRight, ExternalLink } fr
 import { motion, AnimatePresence } from 'motion/react';
 import { sortArticlesNewestFirst } from '../lib/dateUtils';
 import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
+import { ARTICLE_BANNERS } from '../utils/officialImages';
 
 interface HeroCarouselProps {
   articles: Article[];
@@ -124,7 +125,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
             className="absolute inset-0 w-full h-full"
           >
             <img
-              src={getGoogleDriveDirectImageUrl(current.featuredImage) || 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&q=80&w=1200'}
+              src={getGoogleDriveDirectImageUrl(current.featuredImage) || ARTICLE_BANNERS.default}
               alt={current.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />

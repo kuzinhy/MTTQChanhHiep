@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Article } from '../types';
 import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
+import { ARTICLE_BANNERS } from '../utils/officialImages';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -428,7 +429,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                   >
                     <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
                       <img
-                        src={getGoogleDriveDirectImageUrl(rel.featuredImage) || 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&q=80&w=300'}
+                        src={getGoogleDriveDirectImageUrl(rel.featuredImage) || ARTICLE_BANNERS.default}
                         alt={rel.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />

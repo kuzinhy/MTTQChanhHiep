@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getOfficialCadreAvatarSvg } from '../utils/officialImages';
 import { 
   Users, 
   Phone, 
@@ -216,11 +217,11 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
                 <div className="flex items-start gap-3.5">
                   <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-xs p-1 flex items-center justify-center">
                     <img 
-                      src={org.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300'} 
+                      src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
                       alt={org.name} 
                       className="w-full h-full object-contain rounded-xl"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300';
+                        e.currentTarget.src = getOfficialCadreAvatarSvg(org.name, org.shortName);
                       }}
                     />
                   </div>
@@ -279,7 +280,7 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
                 alt={selectedOrg.name} 
                 className="w-full h-full object-cover rounded-xl"
                 onError={(e) => {
-                  e.currentTarget.src = selectedOrg.avatarUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=300';
+                  e.currentTarget.src = selectedOrg.avatarUrl || getOfficialCadreAvatarSvg(selectedOrg.name, selectedOrg.shortName);
                 }}
               />
             </div>

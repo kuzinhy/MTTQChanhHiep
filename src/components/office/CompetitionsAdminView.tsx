@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Competition, CompetitionSubmission } from '../../types';
 import { CompetitionBanner, BANNER_PRESET_THEMES } from '../CompetitionBanner';
+import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
   Award, 
   Users, 
@@ -63,7 +64,7 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
   const [wTitle, setWTitle] = useState('');
   const [wType, setWType] = useState<'TRIVIA' | 'WRITING' | 'MIXED'>('TRIVIA');
   const [wDesc, setWDesc] = useState('');
-  const [wBanner, setWBanner] = useState('https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=1200');
+  const [wBanner, setWBanner] = useState(ARTICLE_BANNERS.thidua);
   const [wStartDate, setWStartDate] = useState(new Date().toISOString().substring(0, 10));
   const [wEndDate, setWEndDate] = useState('2026-12-31');
   const [wRules, setWRules] = useState('1. Đối tượng tham gia: Toàn thể cán bộ, công chức, đoàn viên hội viên và nhân dân trên địa bàn phường Chánh Hiệp.\n2. Nội dung: Tìm hiểu kiến thức lịch sử, nghị quyết và các phong trào thi đua yêu nước.');

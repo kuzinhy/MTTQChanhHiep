@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { StaffUser, UserRole } from '../../types';
+import { getOfficialCadreAvatarSvg } from '../../utils/officialImages';
 import { 
   Users, 
   Shield, 
@@ -50,12 +51,12 @@ interface StaffUsersAdminViewProps {
 }
 
 const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300',
-  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300',
-  'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=300',
+  getOfficialCadreAvatarSvg('Chủ tịch', 'MTTQ'),
+  getOfficialCadreAvatarSvg('Phó Chủ tịch', 'MTTQ'),
+  getOfficialCadreAvatarSvg('Ủy viên', 'Thường trực'),
+  getOfficialCadreAvatarSvg('Cán bộ', 'Tuyên giáo'),
+  getOfficialCadreAvatarSvg('Trưởng ban', 'Khu phố'),
+  getOfficialCadreAvatarSvg('Chuyên viên', 'Văn phòng'),
   'https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png'
 ];
 

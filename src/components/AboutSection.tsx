@@ -14,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getOfficialCadreAvatarSvg } from '../utils/officialImages';
 
 export const AboutSection: React.FC<{
   onGoToTab?: (tab: string) => void;
@@ -79,7 +80,7 @@ export const AboutSection: React.FC<{
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300" alt="Chủ tịch MTTQ" className="w-full h-full object-cover" />
+              <img src={getOfficialCadreAvatarSvg('Trần Thị Hoa', 'Chủ tịch MTTQ')} alt="Chủ tịch MTTQ" className="w-full h-full object-cover" />
             </div>
             <div className="text-center">
               <div className="font-black text-xs text-slate-900">Trần Thị Hoa</div>
@@ -89,7 +90,7 @@ export const AboutSection: React.FC<{
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300" alt="Phó Chủ tịch MTTQ" className="w-full h-full object-cover" />
+              <img src={getOfficialCadreAvatarSvg('Nguyễn Văn Hùng', 'Phó Chủ tịch')} alt="Phó Chủ tịch MTTQ" className="w-full h-full object-cover" />
             </div>
             <div className="text-center">
               <div className="font-black text-xs text-slate-900">Nguyễn Văn Hùng</div>
@@ -99,7 +100,7 @@ export const AboutSection: React.FC<{
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300" alt="Ủy viên Thường trực" className="w-full h-full object-cover" />
+              <img src={getOfficialCadreAvatarSvg('Trần Văn Nam', 'Ủy viên Thường trực')} alt="Ủy viên Thường trực" className="w-full h-full object-cover" />
             </div>
             <div className="text-center">
               <div className="font-black text-xs text-slate-900">Trần Văn Nam</div>
@@ -109,7 +110,7 @@ export const AboutSection: React.FC<{
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300" alt="Cán bộ Tuyên giáo" className="w-full h-full object-cover" />
+              <img src={getOfficialCadreAvatarSvg('Lê Thị Thu Thảo', 'Cán bộ Tuyên giáo')} alt="Cán bộ Tuyên giáo" className="w-full h-full object-cover" />
             </div>
             <div className="text-center">
               <div className="font-black text-xs text-slate-900">Lê Thị Thu Thảo</div>
