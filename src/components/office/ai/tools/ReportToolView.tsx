@@ -39,7 +39,7 @@ export const ReportToolView: React.FC<ReportToolViewProps> = ({
   const [reportTitle, setReportTitle] = useState('Báo cáo Kết quả công tác Mặt trận Tháng 08/2026');
   const [rawNotes, setRawNotes] = useState(`- Đã tổ chức 21 cuộc tiếp xúc cử tri tại 21 khu phố, ghi nhận 45 ý kiến.
 - Vận động Quỹ Vì người nghèo được 120 triệu đồng.
-- Bàn giao 01 căn nhà Đại đoàn kết cho hộ bà Nguyễn Thị Lan (Khu phố 4).
+- Bàn giao 01 căn nhà Đại đoàn kết cho hộ bà Nguyễn Thị Lan (Tương Bình Hiệp 4).
 - Phối hợp UBND dọn dẹp vệ sinh môi trường tuyến rạch Chánh Hiệp.
 - Giám sát việc thực hiện chế độ trợ cấp xã hội cho 85 đối tượng bảo trợ.`);
   const [outlineText, setOutlineText] = useState(`I. KẾT QUẢ ĐẠT ĐƯỢC

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Competition, CompetitionSubmission } from '../types';
 import { CompetitionBanner } from './CompetitionBanner';
+import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
 import { 
   ArrowLeft, 
   Trophy, 
@@ -11,16 +12,10 @@ import {
   CheckCircle2, 
   ChevronRight, 
   User, 
-  MapPin, 
   ShieldCheck, 
   HelpCircle,
-  Clock,
   Sparkles,
-  Download,
-  Share2,
-  QrCode,
-  RotateCcw,
-  AlertTriangle,
+  AlertTriangle, 
   BookmarkCheck
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -33,22 +28,25 @@ interface CompetitionDetailPageProps {
   onBack: () => void;
 }
 
+interface NormalizedQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+}
+
 export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
   competition,
-  neighborhoods = [
-    'Tương Bình Hiệp 1', 'Tương Bình Hiệp 2', 'Tương Bình Hiệp 3', 'Tương Bình Hiệp 4', 'Tương Bình Hiệp 5', 'Tương Bình Hiệp 6', 'Tương Bình Hiệp 7',
-    'Hiệp An 7', 'Hiệp An 8', 'Hiệp An 9',
-    'Định Hòa 1', 'Định Hòa 2', 'Định Hòa 3', 'Định Hòa 4', 'Định Hòa 5', 'Định Hòa 6', 'Định Hòa 7', 'Định Hòa 8',
-    'Mỹ Hảo',
-    'Chánh Mỹ 1', 'Chánh Mỹ 2'
-  ],
+  neighborhoods = OFFICIAL_NEIGHBORHOOD_NAMES,
+  triviaQuestions,
   onAddSubmission,
   onBack,
 }) => {
   // Candidate form states
   const [participantName, setParticipantName] = useState('');
   const [phone, setPhone] = useState('');
-  const [neighborhood, setNeighborhood] = useState(neighborhoods[0] || 'Khu phố 1');
+  const [neighborhood, setNeighborhood] = useState(neighborhoods[0] || OFFICIAL_NEIGHBORHOOD_NAMES[0]);
   const [submissionId, setSubmissionId] = useState('');
   
   // Quiz states
@@ -56,8 +54,9 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: number }>({});
   const [flaggedQuestions, setFlaggedQuestions] = useState<{ [key: string]: boolean }>({});
   const [quizResult, setQuizResult] = useState<{ score: number; total: number; correctCount: number; completionTime: string } | null>(null);
-  const [timeLeftSeconds, setTimeLeftSeconds] = useState((competition.timeLimitMinutes || 15) * 60);
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState((competition?.timeLimitMinutes || 15) * 60);
   const [showCertificate, setShowCertificate] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Essay states
   const [essayText, setEssayText] = useState('');
@@ -66,39 +65,27 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
 
   const certRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [competition.id]);
+  const attemptStorageKey = `mttq_quiz_attempt_${competition?.id || 'unknown'}`;
 
-  // Anti-cheat / warn on unload if test is ongoing
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (quizStarted && !quizResult) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [quizStarted, quizResult]);
+  if (!competition) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center">
+          <Award className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900">Không Tìm Thấy Hội Thi</h2>
+        <p className="text-xs text-slate-600">Hội thi trực tuyến bạn đang tìm kiếm không tồn tại hoặc đã kết thúc thời hạn dự thi.</p>
+        <button
+          onClick={onBack}
+          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+        >
+          Quay lại danh sách Hội thi
+        </button>
+      </div>
+    );
+  }
 
-  // Timer effect for quiz
-  useEffect(() => {
-    if (!quizStarted || quizResult) return;
-    const interval = setInterval(() => {
-      setTimeLeftSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          handleAutoSubmitQuiz();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [quizStarted, quizResult]);
-
-  const defaultTriviaQuestions = [
+  const defaultTriviaQuestions: NormalizedQuestion[] = useMemo(() => [
     {
       id: 'q1',
       question: 'Ngày truyền thống Mặt trận Tổ quốc Việt Nam là ngày tháng năm nào?',
@@ -134,9 +121,140 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
       options: ['Cấp Khu phố / Ấp / Tổ dân phố', 'Cấp Tỉnh / Thành phố', 'Cấp Trung ương', 'Cấp Bộ'],
       correctAnswer: 0
     }
-  ];
+  ], []);
 
-  const activeQuestions = defaultTriviaQuestions;
+  // Normalize questions from competition.questions or triviaQuestions or fallback
+  const activeQuestions = useMemo<NormalizedQuestion[]>(() => {
+    if (competition.questions && competition.questions.length > 0) {
+      return competition.questions.map((q: any, idx: number) => {
+        let optionsList: string[] = [];
+        let correctIdx = 0;
+        if (Array.isArray(q.options)) {
+          optionsList = q.options.map((opt: any, optIdx: number) => {
+            if (typeof opt === 'string') return opt;
+            if (opt && typeof opt === 'object') {
+              if (opt.isCorrect) correctIdx = optIdx;
+              return opt.text || opt.label || String(opt);
+            }
+            return String(opt);
+          });
+          if (typeof q.correctAnswer === 'number') {
+            correctIdx = q.correctAnswer;
+          }
+        }
+        return {
+          id: q.id || `q-${idx + 1}`,
+          question: q.questionText || q.question || 'Câu hỏi trắc nghiệm',
+          options: optionsList.length > 0 ? optionsList : ['Lựa chọn A', 'Lựa chọn B', 'Lựa chọn C', 'Lựa chọn D'],
+          correctAnswer: correctIdx,
+          explanation: q.explanation || ''
+        };
+      });
+    }
+
+    if (Array.isArray(triviaQuestions) && triviaQuestions.length > 0) {
+      const matched = triviaQuestions.filter(q => q.competitionId === competition.id);
+      const source = matched.length > 0 ? matched : triviaQuestions.slice(0, competition.totalQuestions || 5);
+      return source.map((q: any, idx: number) => {
+        let optionsList: string[] = [];
+        let correctIdx = 0;
+        if (Array.isArray(q.options)) {
+          optionsList = q.options.map((opt: any, optIdx: number) => {
+            if (typeof opt === 'string') return opt;
+            if (opt && typeof opt === 'object') {
+              if (opt.isCorrect) correctIdx = optIdx;
+              return opt.text || opt.label || String(opt);
+            }
+            return String(opt);
+          });
+          if (typeof q.correctAnswer === 'number') {
+            correctIdx = q.correctAnswer;
+          }
+        }
+        return {
+          id: q.id || `tq-${idx + 1}`,
+          question: q.questionText || q.question || 'Câu hỏi trắc nghiệm',
+          options: optionsList.length > 0 ? optionsList : ['Lựa chọn A', 'Lựa chọn B', 'Lựa chọn C', 'Lựa chọn D'],
+          correctAnswer: correctIdx,
+          explanation: q.explanation || ''
+        };
+      });
+    }
+
+    return defaultTriviaQuestions;
+  }, [competition, triviaQuestions, defaultTriviaQuestions]);
+
+  // Restore attempt if exists in localStorage
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const savedAttempt = localStorage.getItem(attemptStorageKey);
+      if (savedAttempt) {
+        const parsed = JSON.parse(savedAttempt);
+        const now = Date.now();
+        if (parsed && parsed.expiresAt && parsed.expiresAt > now) {
+          const remainingSec = Math.max(1, Math.floor((parsed.expiresAt - now) / 1000));
+          setParticipantName(parsed.participantName || '');
+          setPhone(parsed.phone || '');
+          setNeighborhood(parsed.neighborhood || neighborhoods[0]);
+          setSubmissionId(parsed.submissionId || '');
+          setUserAnswers(parsed.userAnswers || {});
+          setFlaggedQuestions(parsed.flaggedQuestions || {});
+          setTimeLeftSeconds(remainingSec);
+          setQuizStarted(true);
+        } else {
+          localStorage.removeItem(attemptStorageKey);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to restore quiz attempt:', err);
+    }
+  }, [competition.id, attemptStorageKey, neighborhoods]);
+
+  // Sync ongoing answers to localStorage
+  useEffect(() => {
+    if (!quizStarted || quizResult) return;
+    try {
+      const savedAttempt = localStorage.getItem(attemptStorageKey);
+      if (savedAttempt) {
+        const parsed = JSON.parse(savedAttempt);
+        parsed.userAnswers = userAnswers;
+        parsed.flaggedQuestions = flaggedQuestions;
+        localStorage.setItem(attemptStorageKey, JSON.stringify(parsed));
+      }
+    } catch (e) {
+      console.warn('Failed to sync answers:', e);
+    }
+  }, [userAnswers, flaggedQuestions, quizStarted, quizResult, attemptStorageKey]);
+
+  // Anti-cheat / warn on unload if test is ongoing
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (quizStarted && !quizResult) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [quizStarted, quizResult]);
+
+  // Timer effect for quiz
+  useEffect(() => {
+    if (!quizStarted || quizResult) return;
+    const interval = setInterval(() => {
+      setTimeLeftSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleAutoSubmitQuiz();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [quizStarted, quizResult]);
 
   const handleConfirmStartQuiz = () => {
     setFormError(null);
@@ -149,7 +267,28 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
       setFormError('Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 số!');
       return;
     }
-    setSubmissionId('MTTQ-CH-' + Math.floor(100000 + Math.random() * 900000));
+    const subId = 'MTTQ-CH-' + Math.floor(100000 + Math.random() * 900000);
+    const totalTimeSec = (competition.timeLimitMinutes || 15) * 60;
+    
+    // Save attempt
+    try {
+      const attemptData = {
+        submissionId: subId,
+        participantName: participantName.trim(),
+        phone: phone.trim(),
+        neighborhood,
+        startTime: Date.now(),
+        expiresAt: Date.now() + totalTimeSec * 1000,
+        userAnswers: {},
+        flaggedQuestions: {}
+      };
+      localStorage.setItem(attemptStorageKey, JSON.stringify(attemptData));
+    } catch (e) {
+      console.warn('Could not save attempt:', e);
+    }
+
+    setSubmissionId(subId);
+    setTimeLeftSeconds(totalTimeSec);
     setQuizStarted(true);
   };
 
@@ -158,6 +297,9 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
   };
 
   const handleSubmitQuiz = () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     let correctCount = 0;
     activeQuestions.forEach(q => {
       if (userAnswers[q.id] === q.correctAnswer) {
@@ -165,9 +307,10 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
       }
     });
 
-    const score = Math.round((correctCount / activeQuestions.length) * 100);
+    const totalQ = activeQuestions.length || 1;
+    const score = Math.round((correctCount / totalQ) * 100);
     const timeSpentSec = (competition.timeLimitMinutes || 15) * 60 - timeLeftSeconds;
-    const completionTime = `${Math.floor(timeSpentSec / 60)} phút ${timeSpentSec % 60} giây`;
+    const completionTime = `${Math.floor(Math.max(0, timeSpentSec) / 60)} phút ${Math.max(0, timeSpentSec) % 60} giây`;
 
     setQuizResult({ 
       score, 
@@ -176,12 +319,19 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
       completionTime 
     });
 
+    // Clear attempt storage
+    try {
+      localStorage.removeItem(attemptStorageKey);
+    } catch (e) {
+      console.warn(e);
+    }
+
     const subId = submissionId || 'MTTQ-CH-' + Date.now().toString().slice(-6);
     const newSub: CompetitionSubmission = {
       id: subId,
       competitionId: competition.id,
-      participantName,
-      phone,
+      participantName: participantName.trim(),
+      phone: phone.trim(),
       neighborhood,
       submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       score,
@@ -190,6 +340,7 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
     if (onAddSubmission) {
       onAddSubmission(newSub);
     }
+    setIsSubmitting(false);
   };
 
   const handleSubmitEssay = (e: React.FormEvent) => {
@@ -200,14 +351,20 @@ export const CompetitionDetailPage: React.FC<CompetitionDetailPageProps> = ({
       return;
     }
 
+    const phoneRegex = /^[0-9]{9,11}$/;
+    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+      setFormError('Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 số!');
+      return;
+    }
+
     const subId = 'MTTQ-CH-ESSAY-' + Math.floor(100000 + Math.random() * 900000);
     setSubmissionId(subId);
 
     const newSub: CompetitionSubmission = {
       id: subId,
       competitionId: competition.id,
-      participantName,
-      phone,
+      participantName: participantName.trim(),
+      phone: phone.trim(),
       neighborhood,
       submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       essayText,

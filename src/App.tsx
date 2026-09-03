@@ -27,6 +27,8 @@ import { InitiativesSection } from './components/InitiativesSection';
 import { VolunteerRegistrationModal } from './components/VolunteerRegistrationModal';
 import { DigitalDirectoryModal } from './components/DigitalDirectoryModal';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { NotFoundPage } from './components/NotFoundPage';
+import { OFFICIAL_NEIGHBORHOOD_NAMES } from './data/neighborhoodsList';
 
 import { DigitalOfficeSidebar } from './components/office/DigitalOfficeSidebar';
 import { DigitalOfficeHeader } from './components/office/DigitalOfficeHeader';
@@ -65,8 +67,75 @@ import { VisitorTrackerEngine } from './lib/visitorTracker';
 import { canAccessView } from './lib/rbac';
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
-import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck } from 'lucide-react';
+import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle } from 'lucide-react';
 import { browserNotificationService } from './lib/browserNotifications';
+
+export const VALID_PORTAL_TABS = [
+  'home',
+  'about',
+  'news',
+  'documents',
+  'supervision',
+  'competitions',
+  'initiatives',
+  'surveys',
+  'opinion',
+  'organizations',
+  'privacy'
+];
+
+export const VALID_OFFICE_VIEWS = [
+  'dashboard',
+  'profile',
+  'neighborhood_map',
+  'tasks',
+  'calendar',
+  'ai_assistant',
+  'cms',
+  'cms_articles',
+  'cms_documents',
+  'competitions_admin',
+  'question_banks',
+  'opinions',
+  'surveys_admin',
+  'member_orgs_admin',
+  'templates',
+  'notes',
+  'users',
+  'analytics',
+  'audit_logs'
+];
+
+export const PORTAL_HASH_TO_TAB: Record<string, string> = {
+  '': 'home',
+  '/': 'home',
+  '/trang-chu': 'home',
+  '/gioi-thieu': 'about',
+  '/tin-tuc': 'news',
+  '/van-ban': 'documents',
+  '/giam-sat': 'supervision',
+  '/hoi-thi': 'competitions',
+  '/mo-hinh-hay': 'initiatives',
+  '/khao-sat': 'surveys',
+  '/y-kien-dan-nguyen': 'opinion',
+  '/to-chuc-thanh-vien': 'organizations',
+  '/chinh-sach-bao-mat': 'privacy',
+  '/privacy': 'privacy'
+};
+
+export const TAB_TO_HASH: Record<string, string> = {
+  home: '#/trang-chu',
+  about: '#/gioi-thieu',
+  news: '#/tin-tuc',
+  documents: '#/van-ban',
+  supervision: '#/giam-sat',
+  competitions: '#/hoi-thi',
+  initiatives: '#/mo-hinh-hay',
+  surveys: '#/khao-sat',
+  opinion: '#/y-kien-dan-nguyen',
+  organizations: '#/to-chuc-thanh-vien',
+  privacy: '#/chinh-sach-bao-mat'
+};
 
 export default function App() {
   // Navigation & Space State
@@ -74,6 +143,9 @@ export default function App() {
   const [portalTab, setPortalTab] = useState<string>('home');
   const [officeView, setOfficeView] = useState<string>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // 404 & Invalid Route State
+  const [notFoundRoute, setNotFoundRoute] = useState<{ isNotFound: boolean; attemptedPath?: string; message?: string } | null>(null);
 
   // Full-page Detail & Page View States (no popups)
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -89,11 +161,62 @@ export default function App() {
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
 
   const handleSelectPortalTab = (tab: string) => {
+    setNotFoundRoute(null);
     setPortalTab(tab);
     setSelectedArticle(null);
     setSelectedDocument(null);
     setSelectedCompetition(null);
     setShowStaffLoginPage(false);
+    const targetHash = TAB_TO_HASH[tab] || '#/trang-chu';
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  };
+
+  const handleSelectArticle = (art: Article) => {
+    setNotFoundRoute(null);
+    setSelectedArticle(art);
+    setSelectedDocument(null);
+    setSelectedCompetition(null);
+    window.location.hash = `#/tin-tuc/${encodeURIComponent(art.id)}`;
+  };
+
+  const handleSelectDocument = (doc: OfficialDocument) => {
+    setNotFoundRoute(null);
+    setSelectedDocument(doc);
+    setSelectedArticle(null);
+    setSelectedCompetition(null);
+    window.location.hash = `#/van-ban/${encodeURIComponent(doc.id)}`;
+  };
+
+  const handleSelectCompetition = (comp: Competition) => {
+    setNotFoundRoute(null);
+    setSelectedCompetition(comp);
+    setSelectedArticle(null);
+    setSelectedDocument(null);
+    window.location.hash = `#/hoi-thi/${encodeURIComponent(comp.id)}`;
+  };
+
+  const handleNavigateOfficeView = (view: string) => {
+    let resolvedView = view;
+    // Deduplicate aliased routes
+    if (view === 'analytics') resolvedView = 'dashboard';
+    if (view === 'cms_articles') resolvedView = 'cms';
+    
+    setNotFoundRoute(null);
+    setOfficeView(resolvedView);
+    const targetHash = `#/van-phong-so/${resolvedView}`;
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  };
+
+  const handleBackToPortalList = () => {
+    setSelectedArticle(null);
+    setSelectedDocument(null);
+    setSelectedCompetition(null);
+    setNotFoundRoute(null);
+    window.location.hash = TAB_TO_HASH[portalTab] || '#/trang-chu';
   };
 
   // Toast Notifications State
@@ -185,29 +308,149 @@ export default function App() {
   useEffect(() => { AppStorageEngine.saveAiChats(aiChats); }, [aiChats]);
   useEffect(() => { AppStorageEngine.saveKnowledgeNotes(knowledgeNotes); }, [knowledgeNotes]);
 
-  // Handle Hash Routing for Public Competition Pages (e.g. #/hoi-thi/:id)
+  // Unified Hash-based Router with 404 & Deep Linking
   useEffect(() => {
     const handleHashRouting = () => {
-      const hash = window.location.hash;
-      if (hash.startsWith('#/hoi-thi/')) {
-        const compId = hash.replace('#/hoi-thi/', '');
-        const targetComp = competitions.find(c => c.id === compId);
+      const rawHash = window.location.hash || '';
+      
+      // Default empty or root routes
+      if (!rawHash || rawHash === '#' || rawHash === '#/' || rawHash === '#/trang-chu') {
+        setNotFoundRoute(null);
+        setCurrentSpace('PORTAL');
+        setPortalTab('home');
+        setSelectedArticle(null);
+        setSelectedDocument(null);
+        setSelectedCompetition(null);
+        setShowStaffLoginPage(false);
+        return;
+      }
+
+      // 1. Article detail deep link: #/tin-tuc/:id
+      if (rawHash.startsWith('#/tin-tuc/')) {
+        const artId = decodeURIComponent(rawHash.replace('#/tin-tuc/', '').trim());
+        const targetArt = articles.find(a => a && a.id === artId);
+        setCurrentSpace('PORTAL');
+        setPortalTab('news');
+        setSelectedDocument(null);
+        setSelectedCompetition(null);
+        setShowStaffLoginPage(false);
+        if (targetArt) {
+          setNotFoundRoute(null);
+          setSelectedArticle(targetArt);
+        } else if (articles.length > 0) {
+          setSelectedArticle(null);
+          setNotFoundRoute({
+            isNotFound: true,
+            attemptedPath: rawHash,
+            message: `Không tìm thấy bài viết mang mã định danh "${artId}". Có thể bài viết đã được điều chỉnh hoặc chuyển mục.`
+          });
+        }
+        return;
+      }
+
+      // 2. Document detail deep link: #/van-ban/:id
+      if (rawHash.startsWith('#/van-ban/')) {
+        const docId = decodeURIComponent(rawHash.replace('#/van-ban/', '').trim());
+        const targetDoc = documents.find(d => d && d.id === docId);
+        setCurrentSpace('PORTAL');
+        setPortalTab('documents');
+        setSelectedArticle(null);
+        setSelectedCompetition(null);
+        setShowStaffLoginPage(false);
+        if (targetDoc) {
+          setNotFoundRoute(null);
+          setSelectedDocument(targetDoc);
+        } else if (documents.length > 0) {
+          setSelectedDocument(null);
+          setNotFoundRoute({
+            isNotFound: true,
+            attemptedPath: rawHash,
+            message: `Không tìm thấy văn bản pháp quy mang mã "${docId}". Vui lòng tra cứu tại chuyên mục Văn bản & Chỉ đạo.`
+          });
+        }
+        return;
+      }
+
+      // 3. Competition detail deep link: #/hoi-thi/:id
+      if (rawHash.startsWith('#/hoi-thi/')) {
+        const compId = decodeURIComponent(rawHash.replace('#/hoi-thi/', '').trim());
+        const targetComp = competitions.find(c => c && c.id === compId);
+        setCurrentSpace('PORTAL');
+        setPortalTab('competitions');
+        setSelectedArticle(null);
+        setSelectedDocument(null);
+        setShowStaffLoginPage(false);
         if (targetComp) {
-          setCurrentSpace('PORTAL');
-          setPortalTab('competitions');
+          setNotFoundRoute(null);
           setSelectedCompetition(targetComp);
         } else if (competitions.length > 0) {
-          setCurrentSpace('PORTAL');
-          setPortalTab('competitions');
-          setSelectedCompetition(competitions[0]);
+          setSelectedCompetition(null);
+          setNotFoundRoute({
+            isNotFound: true,
+            attemptedPath: rawHash,
+            message: `Hội thi trực tuyến mang mã "${compId}" không tồn tại hoặc đã kết thúc.`
+          });
         }
+        return;
       }
+
+      // 4. Staff Login route: #/dang-nhap or #/dang-nhap-can-bo
+      if (rawHash === '#/dang-nhap' || rawHash === '#/dang-nhap-can-bo') {
+        setNotFoundRoute(null);
+        setCurrentSpace('PORTAL');
+        setShowStaffLoginPage(true);
+        setSelectedArticle(null);
+        setSelectedDocument(null);
+        setSelectedCompetition(null);
+        return;
+      }
+
+      // 5. Digital Office route: #/van-phong-so or #/van-phong-so/:view
+      if (rawHash === '#/van-phong-so' || rawHash === '#/van-phong-so/dashboard') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView('dashboard');
+        return;
+      }
+
+      if (rawHash.startsWith('#/van-phong-so/')) {
+        const viewPart = rawHash.replace('#/van-phong-so/', '').trim();
+        setCurrentSpace('OFFICE');
+        setNotFoundRoute(null);
+        setOfficeView(viewPart);
+        return;
+      }
+
+      // 6. Standard Portal Tab routes
+      const normalizedPath = rawHash.replace(/^#/, '');
+      if (PORTAL_HASH_TO_TAB[normalizedPath]) {
+        setNotFoundRoute(null);
+        setCurrentSpace('PORTAL');
+        setPortalTab(PORTAL_HASH_TO_TAB[normalizedPath]);
+        setSelectedArticle(null);
+        setSelectedDocument(null);
+        setSelectedCompetition(null);
+        setShowStaffLoginPage(false);
+        return;
+      }
+
+      // 7. Unknown hash -> Show 404
+      setCurrentSpace('PORTAL');
+      setSelectedArticle(null);
+      setSelectedDocument(null);
+      setSelectedCompetition(null);
+      setShowStaffLoginPage(false);
+      setNotFoundRoute({
+        isNotFound: true,
+        attemptedPath: rawHash,
+        message: `Đường dẫn "${rawHash}" không tồn tại hoặc đã thay đổi cấu trúc trên hệ thống.`
+      });
     };
 
     handleHashRouting();
     window.addEventListener('hashchange', handleHashRouting);
     return () => window.removeEventListener('hashchange', handleHashRouting);
-  }, [competitions]);
+  }, [articles, documents, competitions]);
 
   // Scroll to top on tab change
   useEffect(() => {
@@ -331,13 +574,7 @@ export default function App() {
 
   // Simulation Triggers for Testing
   const handleTriggerSimulatedOpinion = () => {
-    const REAL_NEIGHBORHOODS = [
-      'Tương Bình Hiệp 1', 'Tương Bình Hiệp 2', 'Tương Bình Hiệp 3', 'Tương Bình Hiệp 4', 'Tương Bình Hiệp 5', 'Tương Bình Hiệp 6', 'Tương Bình Hiệp 7',
-      'Hiệp An 7', 'Hiệp An 8', 'Hiệp An 9',
-      'Định Hòa 1', 'Định Hòa 2', 'Định Hòa 3', 'Định Hòa 4', 'Định Hòa 5', 'Định Hòa 6', 'Định Hòa 7', 'Định Hòa 8',
-      'Mỹ Hảo',
-      'Chánh Mỹ 1', 'Chánh Mỹ 2'
-    ];
+    const REAL_NEIGHBORHOODS = OFFICIAL_NEIGHBORHOOD_NAMES;
     const randomNb = REAL_NEIGHBORHOODS[Math.floor(Math.random() * REAL_NEIGHBORHOODS.length)];
     const randomTopics: any[] = ['Vấn đề dân sinh', 'Môi trường & Đô thị', 'An sinh xã hội', 'Trật tự an toàn'];
     const selectedTopic = randomTopics[Math.floor(Math.random() * randomTopics.length)];
@@ -711,7 +948,23 @@ export default function App() {
             />
 
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-10">
-              {showStaffLoginPage ? (
+              {notFoundRoute ? (
+                <NotFoundPage
+                  attemptedPath={notFoundRoute.attemptedPath || window.location.hash}
+                  errorMessage={notFoundRoute.message}
+                  onGoHome={() => handleSelectPortalTab('home')}
+                  onNavigateTab={(tab) => handleSelectPortalTab(tab)}
+                  onSearch={(q) => {
+                    setSearchQuery(q);
+                    handleSelectPortalTab('news');
+                  }}
+                  onGoToOffice={() => {
+                    setNotFoundRoute(null);
+                    setCurrentSpace('OFFICE');
+                    window.location.hash = '#/van-phong-so/dashboard';
+                  }}
+                />
+              ) : showStaffLoginPage ? (
                 <StaffLoginPage
                   staffUsers={staffUsers}
                   onLoginSuccess={(user) => {
@@ -719,16 +972,19 @@ export default function App() {
                     setShowStaffLoginPage(false);
                     setCurrentSpace('OFFICE');
                   }}
-                  onBack={() => setShowStaffLoginPage(false)}
+                  onBack={() => {
+                    setShowStaffLoginPage(false);
+                    window.location.hash = TAB_TO_HASH[portalTab] || '#/trang-chu';
+                  }}
                 />
               ) : selectedArticle ? (
                 <ArticleDetailPage
                   article={selectedArticle}
                   allArticles={articles}
                   articles={articles}
-                  onBack={() => setSelectedArticle(null)}
+                  onBack={handleBackToPortalList}
                   onSelectArticle={(art) => {
-                    setSelectedArticle(art);
+                    handleSelectArticle(art);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   onGoToOpinion={() => handleSelectPortalTab('opinion')}
@@ -739,10 +995,10 @@ export default function App() {
                   document={selectedDocument}
                   allDocuments={documents}
                   onSelectDocument={(doc) => {
-                    setSelectedDocument(doc);
+                    handleSelectDocument(doc);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  onBack={() => setSelectedDocument(null)}
+                  onBack={handleBackToPortalList}
                   onDownload={(doc) => {
                     handleTriggerSystemToast('Tải văn bản chính thức', `Hệ thống đang chuẩn bị tệp và tải xuống văn bản số ${doc.codeNumber}...`);
                   }}
@@ -752,7 +1008,7 @@ export default function App() {
                   competition={selectedCompetition}
                   triviaQuestions={INITIAL_TRIVIA_QUESTIONS}
                   onAddSubmission={handleAddSubmission}
-                  onBack={() => setSelectedCompetition(null)}
+                  onBack={handleBackToPortalList}
                 />
               ) : (
                 <>
@@ -823,8 +1079,10 @@ export default function App() {
                           onClick={() => {
                             if (currentStaffUser) {
                               setCurrentSpace('OFFICE');
+                              window.location.hash = '#/van-phong-so/dashboard';
                             } else {
                               setShowStaffLoginPage(true);
+                              window.location.hash = '#/dang-nhap-can-bo';
                             }
                           }}
                           className="bg-gradient-to-br from-emerald-50 via-white to-teal-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-emerald-200/90 shadow-xs"
@@ -845,13 +1103,18 @@ export default function App() {
                         </motion.div>
                       </div>
 
-                      <HeroCarousel articles={articles} onSelectArticle={(art) => setSelectedArticle(art)} />
+                      <HeroCarousel articles={articles} onSelectArticle={(art) => handleSelectArticle(art)} />
 
                       <NewsSection
                         articles={articles}
                         searchQuery={searchQuery}
-                        onSelectArticle={(art) => setSelectedArticle(art)}
-                        onGoToOpinion={() => setPortalTab('opinion')}
+                        onSelectArticle={(art) => handleSelectArticle(art)}
+                        onGoToOpinion={() => handleSelectPortalTab('opinion')}
+                      />
+                      <MemberOrganizationsSection 
+                        organizations={memberOrganizations} 
+                        onSelectArticleTopic={() => handleSelectPortalTab('news')} 
+                        onNavigateTab={(tab) => handleSelectPortalTab(tab)}
                       />
                       <WorkCalendarSection 
                         events={events} 
@@ -861,7 +1124,7 @@ export default function App() {
                       />
                       <DocumentsSection
                         documents={documents}
-                        onSelectDocument={(doc) => setSelectedDocument(doc)}
+                        onSelectDocument={(doc) => handleSelectDocument(doc)}
                       />
                     </>
                   )}
@@ -873,23 +1136,23 @@ export default function App() {
                     <NewsSection
                       articles={articles}
                       searchQuery={searchQuery}
-                      onSelectArticle={(art) => setSelectedArticle(art)}
-                      onGoToOpinion={() => setPortalTab('opinion')}
+                      onSelectArticle={(art) => handleSelectArticle(art)}
+                      onGoToOpinion={() => handleSelectPortalTab('opinion')}
                     />
                   )}
                   {portalTab === 'documents' && (
                     <DocumentsSection
                       documents={documents}
-                      onSelectDocument={(doc) => setSelectedDocument(doc)}
+                      onSelectDocument={(doc) => handleSelectDocument(doc)}
                     />
                   )}
                   {portalTab === 'supervision' && (
-                    <SupervisionSection onSelectDocument={(doc) => setSelectedDocument(doc)} />
+                    <SupervisionSection onSelectDocument={(doc) => handleSelectDocument(doc)} />
                   )}
                   {portalTab === 'competitions' && (
                     <CompetitionsSection
                       competitions={competitions}
-                      onSelectCompetition={(comp) => setSelectedCompetition(comp)}
+                      onSelectCompetition={(comp) => handleSelectCompetition(comp)}
                     />
                   )}
                   {portalTab === 'initiatives' && (
@@ -908,11 +1171,26 @@ export default function App() {
                   {portalTab === 'organizations' && (
                     <MemberOrganizationsSection 
                       organizations={memberOrganizations} 
-                      onSelectArticleTopic={(topic) => handleSelectPortalTab('news')} 
+                      onSelectArticleTopic={() => handleSelectPortalTab('news')} 
+                      onNavigateTab={(tab) => handleSelectPortalTab(tab)}
                     />
                   )}
                   {portalTab === 'privacy' && (
                     <PrivacyPolicyPage onBack={() => handleSelectPortalTab('home')} />
+                  )}
+
+                  {/* Fallback 404 for unknown portal tabs */}
+                  {!VALID_PORTAL_TABS.includes(portalTab) && (
+                    <NotFoundPage
+                      attemptedPath={window.location.hash || portalTab}
+                      errorMessage={`Chuyên mục "${portalTab}" không tồn tại trên Cổng thông tin Mặt trận.`}
+                      onGoHome={() => handleSelectPortalTab('home')}
+                      onNavigateTab={(tab) => handleSelectPortalTab(tab)}
+                      onSearch={(q) => {
+                        setSearchQuery(q);
+                        handleSelectPortalTab('news');
+                      }}
+                    />
                   )}
                 </>
               )}
@@ -1006,13 +1284,17 @@ export default function App() {
               <DigitalOfficeSidebar
                 currentView={officeView}
                 setCurrentView={(view) => {
-                  setOfficeView(view);
+                  handleNavigateOfficeView(view);
                   setIsMobileOfficeSidebarOpen(false);
                 }}
-                onGoToPortal={() => setCurrentSpace('PORTAL')}
+                onGoToPortal={() => {
+                  setCurrentSpace('PORTAL');
+                  window.location.hash = TAB_TO_HASH[portalTab] || '#/trang-chu';
+                }}
                 onLogout={() => {
                   setCurrentStaffUser(null);
                   setCurrentSpace('PORTAL');
+                  window.location.hash = '#/trang-chu';
                 }}
                 staffName={currentStaffUser?.fullname || ''}
                 staffRole={currentStaffUser?.role || ''}
@@ -1029,10 +1311,13 @@ export default function App() {
                   staffRole={currentStaffUser?.role || 'STAFF'}
                   staffEmail={currentStaffUser?.email}
                   staffDepartment={currentStaffUser?.department}
-                  onNavigate={(view) => setOfficeView(view)}
-                  onOpenProfile={() => setOfficeView('profile')}
-                  onOpenAi={() => setOfficeView('ai_assistant')}
-                  onGoToPortal={() => setCurrentSpace('PORTAL')}
+                  onNavigate={(view) => handleNavigateOfficeView(view)}
+                  onOpenProfile={() => handleNavigateOfficeView('profile')}
+                  onOpenAi={() => handleNavigateOfficeView('ai_assistant')}
+                  onGoToPortal={() => {
+                    setCurrentSpace('PORTAL');
+                    window.location.hash = TAB_TO_HASH[portalTab] || '#/trang-chu';
+                  }}
                   onForceCloudSync={handleForceCloudSync}
                   onToggleMobileSidebar={() => setIsMobileOfficeSidebarOpen(true)}
                   onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
@@ -1045,6 +1330,7 @@ export default function App() {
                     setCurrentStaffUser(null);
                     AppStorageEngine.saveCurrentUser(null);
                     setCurrentSpace('PORTAL');
+                    window.location.hash = '#/trang-chu';
                   }}
                   onTriggerSimulatedOpinion={handleTriggerSimulatedOpinion}
                   onTriggerSimulatedDocApproval={handleTriggerSimulatedDocApproval}
@@ -1279,9 +1565,9 @@ export default function App() {
                             setSubmissions(prev => {
                               const target = prev.find(s => s.id === id);
                               if (target) {
-                                CloudDatabase.saveSubmission({ ...target, score, adminComment: comment, status: 'GRADED' });
+                                CloudDatabase.saveSubmission({ ...target, score, adminComment: comment, status: 'GRADED' as const });
                               }
-                              const next = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' } : s);
+                              const next: CompetitionSubmission[] = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' as const } : s);
                               AppStorageEngine.saveSubmissions(next);
                               return next;
                             });
@@ -1300,9 +1586,9 @@ export default function App() {
                             setSubmissions(prev => {
                               const target = prev.find(s => s.id === id);
                               if (target) {
-                                CloudDatabase.saveSubmission({ ...target, score, adminComment: comment, status: 'GRADED' });
+                                CloudDatabase.saveSubmission({ ...target, score, adminComment: comment, status: 'GRADED' as const });
                               }
-                              const next = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' } : s);
+                              const next: CompetitionSubmission[] = prev.map(s => s.id === id ? { ...s, score, adminComment: comment, status: 'GRADED' as const } : s);
                               AppStorageEngine.saveSubmissions(next);
                               return next;
                             });
@@ -1411,12 +1697,42 @@ export default function App() {
                         tasksCount={(tasks || []).length}
                         completedTasksCount={(tasks || []).filter(t => t && t.status === 'DONE').length}
                         opinions={opinions || []}
-                        onNavigateToOpinions={() => setOfficeView('opinions')}
+                        onNavigateToOpinions={() => handleNavigateOfficeView('opinions')}
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
                       />
                     )}
 
                     {officeView === 'audit_logs' && <AuditLogsView logs={auditLogs} />}
+
+                    {/* Office 404 Fallback when view is not recognized */}
+                    {!VALID_OFFICE_VIEWS.includes(officeView) && (
+                      <div className="p-8 max-w-lg mx-auto my-12 bg-white rounded-3xl border border-amber-200 shadow-xl text-center space-y-4">
+                        <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center">
+                          <AlertTriangle className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-lg font-black text-slate-900">Phân Hệ Không Tồn Tại (404)</h3>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          Phân hệ làm việc <span className="font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">{officeView}</span> không tồn tại hoặc đã được gộp phân hệ.
+                        </p>
+                        <div className="flex justify-center gap-3 pt-2">
+                          <button
+                            onClick={() => handleNavigateOfficeView('dashboard')}
+                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                          >
+                            Về Trang Tổng quan
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCurrentSpace('PORTAL');
+                              handleSelectPortalTab('home');
+                            }}
+                            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                          >
+                            Về Cổng Người dân
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 </AnimatePresence>
               )}

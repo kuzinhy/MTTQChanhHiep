@@ -14,6 +14,7 @@ import {
   Area 
 } from 'recharts';
 import { OfficialDocument, PublicOpinion, Article, NeighborhoodStats } from '../../types';
+import { OFFICIAL_21_NEIGHBORHOODS } from '../../data/neighborhoodsList';
 import { 
   FileText, 
   MessageSquarePlus, 
@@ -55,14 +56,16 @@ export const AdminAnalyticsView: React.FC<AdminAnalyticsViewProps> = ({
   const neighborhoodData = React.useMemo(() => {
     const counts: Record<string, number> = {};
     feedbackList.forEach((f) => {
-      const kp = f.neighborhood || 'Khu phố 1';
+      const kp = f.neighborhood || 'Tương Bình Hiệp 1';
       counts[kp] = (counts[kp] || 0) + 1;
     });
-    return Array.from({ length: 12 }, (_, i) => {
-      const name = `Khu phố ${i + 1}`;
+    return OFFICIAL_21_NEIGHBORHOODS.map((item) => {
+      const name = item.name;
+      const shortLabel = name.replace('Tương Bình Hiệp', 'TBH').replace('Hiệp An', 'HA').replace('Định Hòa', 'ĐH').replace('Chánh Mỹ', 'CM');
       return {
-        name: `KP ${i + 1}`,
-        count: counts[name] || Math.floor(Math.random() * 5) + 2,
+        name: shortLabel,
+        fullName: `Khu phố ${name}`,
+        count: counts[name] || counts[`Chánh Hiệp ${item.index}`] || counts[`Khu phố ${item.index}`] || Math.floor(Math.random() * 5) + 2,
       };
     });
   }, [feedbackList]);

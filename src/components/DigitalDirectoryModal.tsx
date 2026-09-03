@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, Mail, Search, MapPin, UserCheck, Shield, ExternalLink, X, Building, MessageCircle } from 'lucide-react';
+import { OFFICIAL_21_NEIGHBORHOODS } from '../data/neighborhoodsList';
 
 interface ContactItem {
   id: string;
@@ -19,27 +20,14 @@ const DIRECTORY_DATA: ContactItem[] = [
   { id: '3', name: 'Lê Hoàng Nam', position: 'Ủy viên BTT - Trưởng Ban Dân nguyện', unit: 'Thường trực MTTQ Phường', phone: '0903.112.233', email: 'namlh.mttq@hochiminhcity.gov.vn', category: 'BOARD' },
 
   // Trưởng Ban Công tác Mặt trận 21 khu phố
-  { id: 'kp_1', name: 'Phan Thanh Phong', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 1 (Tương Bình Hiệp 1)', phone: '0944.029.851', category: 'NEIGHBORHOOD' },
-  { id: 'kp_2', name: 'Lê Minh Trí', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 2 (Tương Bình Hiệp 2)', phone: '0933.410.441', category: 'NEIGHBORHOOD' },
-  { id: 'kp_3', name: 'Lê Trần Quốc Thái', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 3 (Tương Bình Hiệp 3)', phone: '0363.763.231', category: 'NEIGHBORHOOD' },
-  { id: 'kp_4', name: 'Trần Văn An', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 4 (Tương Bình Hiệp 4)', phone: '0948.667.996', category: 'NEIGHBORHOOD' },
-  { id: 'kp_5', name: 'Tiết Tuấn', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 5 (Tương Bình Hiệp 5)', phone: '0987.720.790', category: 'NEIGHBORHOOD' },
-  { id: 'kp_6', name: 'Nguyễn Thị Ánh Tuyết', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 6 (Tương Bình Hiệp 6)', phone: '0706.055.248', category: 'NEIGHBORHOOD' },
-  { id: 'kp_7', name: 'Võ Ngọc Giàu', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 7 (Tương Bình Hiệp 7)', phone: '0888.503.448', category: 'NEIGHBORHOOD' },
-  { id: 'kp_8', name: 'Dương Văn Thọ', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 8 (Hiệp An 7)', phone: '0976.534.508', category: 'NEIGHBORHOOD' },
-  { id: 'kp_9', name: 'Đinh Xuân Phúc', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 9 (Hiệp An 8)', phone: '0928.579.957', category: 'NEIGHBORHOOD' },
-  { id: 'kp_10', name: 'Trần Văn Lợi', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 10 (Hiệp An 9)', phone: '0908.758.565', category: 'NEIGHBORHOOD' },
-  { id: 'kp_11', name: 'Hoàng Thị Xuân Lành', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 11 (Định Hòa 1)', phone: '0977.137.382', category: 'NEIGHBORHOOD' },
-  { id: 'kp_12', name: 'Nguyễn Thanh Phương', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 12 (Định Hòa 2)', phone: '0961.880.602', category: 'NEIGHBORHOOD' },
-  { id: 'kp_13', name: 'Vương Thị Tuyết Mai', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 13 (Định Hòa 3)', phone: '0902.477.692', category: 'NEIGHBORHOOD' },
-  { id: 'kp_14', name: 'Nguyễn Thị Ngọc Hà', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 14 (Định Hòa 4)', phone: '0988.222.362', category: 'NEIGHBORHOOD' },
-  { id: 'kp_15', name: 'Nguyễn Thị Ích', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 15 (Định Hòa 5)', phone: '0786.752.934', category: 'NEIGHBORHOOD' },
-  { id: 'kp_16', name: 'Đặng Thị Huyền Trang', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 16 (Định Hòa 6)', phone: '0943.477.286', category: 'NEIGHBORHOOD' },
-  { id: 'kp_17', name: 'Lê Thị Bình', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 17 (Định Hòa 7)', phone: '0983.688.364', category: 'NEIGHBORHOOD' },
-  { id: 'kp_18', name: 'Phan Văn Hòa', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 18 (Định Hòa 8)', phone: '0928.979.677', category: 'NEIGHBORHOOD' },
-  { id: 'kp_19', name: 'Nguyễn Cường', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 19 (Mỹ Hảo)', phone: '0989.114.005', category: 'NEIGHBORHOOD' },
-  { id: 'kp_20', name: 'Nguyễn Thị Mỹ Linh', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 20 (Chánh Mỹ 1)', phone: '0843.413.153', category: 'NEIGHBORHOOD' },
-  { id: 'kp_21', name: 'Nguyễn Thị Mỹ Châu', position: 'Trưởng Ban Công tác Mặt trận', unit: 'Khu phố 21 (Chánh Mỹ 2)', phone: '0834.789.870', category: 'NEIGHBORHOOD' },
+  ...OFFICIAL_21_NEIGHBORHOODS.map(n => ({
+    id: `kp_${n.index}`,
+    name: n.leaderName,
+    position: n.leaderPosition,
+    unit: `Khu phố ${n.name}`,
+    phone: n.phone,
+    category: 'NEIGHBORHOOD' as const
+  })),
 
   // Tổ chức thành viên
   { id: 'org_1', name: 'Đoàn Thanh niên Phường Chánh Hiệp', position: 'Bí thư Đoàn Phường', unit: 'Đoàn TNCS Hồ Chí Minh', phone: '0274.3822.111', category: 'ORGANIZATION' },

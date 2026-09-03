@@ -17,11 +17,15 @@ import {
 import { aiWorkspaceService } from '../../../lib/aiWorkspaceService';
 
 interface AiCopilotPanelProps {
-  documentTitle: string;
-  documentContent: string;
+  documentTitle?: string;
+  documentContent?: string;
+  activeDocumentTitle?: string;
+  activeDocumentContent?: string;
+  workspaceContext?: any;
   onApplyToDocument?: (textToAppendOrReplace: string) => void;
   isOpen: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
+  onClose?: () => void;
 }
 
 interface ChatMessage {
@@ -34,9 +38,12 @@ interface ChatMessage {
 export const AiCopilotPanel: React.FC<AiCopilotPanelProps> = ({
   documentTitle,
   documentContent,
+  activeDocumentTitle,
+  activeDocumentContent,
   onApplyToDocument,
   isOpen,
-  onToggle
+  onToggle,
+  onClose
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {

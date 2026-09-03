@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PublicOpinion, OpinionTopic } from '../types';
 import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle } from 'lucide-react';
+import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
 
 interface OpinionFormSectionProps {
   opinions: PublicOpinion[];
@@ -10,7 +11,7 @@ interface OpinionFormSectionProps {
 export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions, onSubmitOpinion }) => {
   const [topic, setTopic] = useState<OpinionTopic>('Vấn đề dân sinh');
   const [content, setContent] = useState('');
-  const [neighborhood, setNeighborhood] = useState('Tương Bình Hiệp 1');
+  const [neighborhood, setNeighborhood] = useState(OFFICIAL_NEIGHBORHOOD_NAMES[0]);
   const [fullname, setFullname] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -22,6 +23,8 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [lookupCode, setLookupCode] = useState('');
   const [foundOpinion, setFoundOpinion] = useState<PublicOpinion | null>(null);
   const [lookupAttempted, setLookupAttempted] = useState(false);
+  const [ratedStar, setRatedStar] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const topics: OpinionTopic[] = [
     'Vấn đề dân sinh',
@@ -33,13 +36,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     'Ý kiến đóng góp khác'
   ];
 
-  const neighborhoods = [
-    'Tương Bình Hiệp 1', 'Tương Bình Hiệp 2', 'Tương Bình Hiệp 3', 'Tương Bình Hiệp 4', 'Tương Bình Hiệp 5', 'Tương Bình Hiệp 6', 'Tương Bình Hiệp 7',
-    'Hiệp An 7', 'Hiệp An 8', 'Hiệp An 9',
-    'Định Hòa 1', 'Định Hòa 2', 'Định Hòa 3', 'Định Hòa 4', 'Định Hòa 5', 'Định Hòa 6', 'Định Hòa 7', 'Định Hòa 8',
-    'Mỹ Hảo',
-    'Chánh Mỹ 1', 'Chánh Mỹ 2'
-  ];
+  const neighborhoods = OFFICIAL_NEIGHBORHOOD_NAMES;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +46,17 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
       return;
     }
 
+    if (!isAnonymous && phone.trim()) {
+      const phoneRegex = /^[0-9]{9,11}$/;
+      if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+        setFormError('Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 số!');
+        return;
+      }
+    }
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const randomDigits = String(Math.floor(100000 + Math.random() * 900000));
     const code = 'DN-' + new Date().getFullYear() + '-' + randomDigits;
 
@@ -56,11 +64,11 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
       id: 'op-' + Date.now(),
       receiptCode: code,
       topic,
-      content,
+      content: content.trim(),
       neighborhood,
-      fullname: isAnonymous ? '' : fullname,
-      phone: isAnonymous ? '' : phone,
-      email: isAnonymous ? '' : email,
+      fullname: isAnonymous ? '' : fullname.trim(),
+      phone: isAnonymous ? '' : phone.trim(),
+      email: isAnonymous ? '' : email.trim(),
       isAnonymous,
       status: 'NEW',
       priority: 'NORMAL',
@@ -73,6 +81,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     setFullname('');
     setPhone('');
     setEmail('');
+    setIsSubmitting(false);
   };
 
   const handleLookup = (e: React.FormEvent) => {
@@ -322,7 +331,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
           <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-xs space-y-3">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-blue-600 text-white rounded-xl shadow-xs">
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4 text-white" />
               </div>
               <div>
                 <h4 className="text-xs font-black text-slate-900 uppercase">Đánh Giá Mức Độ Hài Lòng</h4>
@@ -330,20 +339,31 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
               </div>
             </div>
 
-            <div className="p-3 bg-white rounded-xl border border-blue-100 text-center space-y-2">
+            <div className="p-3.5 bg-white rounded-xl border border-blue-100 text-center space-y-2.5">
               <span className="text-[11px] font-extrabold text-blue-900 block">Ông/Bà hài lòng ở mức độ nào?</span>
               <div className="flex items-center justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
-                    onClick={() => alert(`Cảm ơn Ông/Bà đã đánh giá ${star}/5 sao chất lượng phục vụ!`)}
-                    className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-500 font-black text-xs border border-amber-200 transition cursor-pointer"
+                    onClick={() => setRatedStar(star)}
+                    className={`p-1.5 px-2.5 rounded-lg text-xs font-black border transition cursor-pointer flex items-center gap-1 ${
+                      ratedStar === star
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-xs scale-105'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-600 border-amber-200'
+                    }`}
                   >
-                    ⭐ {star}
+                    <span>⭐</span>
+                    <span>{star}</span>
                   </button>
                 ))}
               </div>
+
+              {ratedStar && (
+                <div className="pt-2 border-t border-slate-100 text-[11px] text-emerald-700 font-bold bg-emerald-50/80 p-2 rounded-lg">
+                  Cảm ơn Ông/Bà đã đánh giá {ratedStar}/5 sao chất lượng phục vụ!
+                </div>
+              )}
             </div>
           </div>
         </div>

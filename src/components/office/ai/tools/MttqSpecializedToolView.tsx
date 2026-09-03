@@ -35,11 +35,11 @@ export const MttqSpecializedToolView: React.FC<MttqSpecializedToolViewProps> = (
 
   // Public Opinion states
   const [opinionPeriod, setOpinionPeriod] = useState('Tháng 08/2026');
-  const [rawOpinions, setRawOpinions] = useState(`- Khu phố 3: Tình trạng ngập nước tuyến đường ĐX 04 khi mưa lớn, rác ứ đọng miệng cống.
-- Khu phố 7: Đơn xin cấp số nhà xử lý chậm, người dân phải đi lại nhiều lần.
-- Khu phố 12: Đánh giá cao việc tổ chức tiêm chủng mở rộng tại trạm y tế.
-- Khu phố 18: Kiến nghị lắp đèn chiếu sáng ban đêm tại hẻm 45 đường Lê Chí Dân để phòng chống trộm cắp.
-- Khu phố 21: Ô nhiễm tiếng ồn từ quán karaoke di động vào đêm khuya.`);
+  const [rawOpinions, setRawOpinions] = useState(`- Tương Bình Hiệp 3: Tình trạng ngập nước tuyến đường ĐX 04 khi mưa lớn, rác ứ đọng miệng cống.
+- Tương Bình Hiệp 7: Đơn xin cấp số nhà xử lý chậm, người dân phải đi lại nhiều lần.
+- Định Hòa 2: Đánh giá cao việc tổ chức tiêm chủng mở rộng tại trạm y tế.
+- Định Hòa 8: Kiến nghị lắp đèn chiếu sáng ban đêm tại hẻm 45 đường Lê Chí Dân để phòng chống trộm cắp.
+- Chánh Mỹ 2: Ô nhiễm tiếng ồn từ quán karaoke di động vào đêm khuya.`);
 
   // Propaganda states
   const [propTopic, setPropTopic] = useState('Tuyên truyền Cuộc vận động "Toàn dân đoàn kết xây dựng nông thôn mới, đô thị văn minh" và giữ gìn trật tự đô thị');

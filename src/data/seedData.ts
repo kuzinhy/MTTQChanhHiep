@@ -481,7 +481,7 @@ export const INITIAL_PUBLIC_OPINIONS: PublicOpinion[] = [
     receiptCode: 'PA-2026-0801',
     topic: 'Môi trường & Đô thị',
     content: 'Tuyến đường Chánh Hiệp 08 gần trường tiểu học xuất hiện điểm tập kết rác tự phát gây mất mỹ quan và hôi hám trong giờ tan học. Đề nghị Mặt trận phường vận động khu phố dọn dẹp và gắn biển cấm đổ rác.',
-    neighborhood: 'Khu phố 3',
+    neighborhood: 'Tương Bình Hiệp 3',
     fullname: 'Nguyễn Thanh Tùng',
     phone: '0908123456',
     email: 'tung.nguyen@gmail.com',
@@ -489,7 +489,7 @@ export const INITIAL_PUBLIC_OPINIONS: PublicOpinion[] = [
     status: 'PROCESSING',
     priority: 'HIGH',
     assignedTo: 'Lê Văn Bình (Phó Chủ tịch)',
-    adminResponse: 'Ban Thường trực MTTQ phường đã tiếp nhận và chuyển phản ánh đến UBND phường cùng Ban CTMT Khu phố 3 tổ chức ra quân dọn dẹp trong cuối tuần này.',
+    adminResponse: 'Ban Thường trực MTTQ phường đã tiếp nhận và chuyển phản ánh đến UBND phường cùng Ban CTMT Tương Bình Hiệp 3 tổ chức ra quân dọn dẹp trong cuối tuần này.',
     createdAt: '2026-08-28 09:30',
     tags: ['Rác thải', 'Đô thị văn minh', 'Trường học']
   },
@@ -497,8 +497,8 @@ export const INITIAL_PUBLIC_OPINIONS: PublicOpinion[] = [
     id: 'op-2',
     receiptCode: 'PA-2026-0802',
     topic: 'An sinh xã hội',
-    content: 'Gia đình bà Lê Thị Bích ở hẻm 45 Khu phố 7 thuộc diện người già đơn thân, căn nhà bị dột nặng sau các trận mưa vừa qua. Đề nghị xem xét hỗ trợ kinh phí sửa chữa Nhà Đại đoàn kết.',
-    neighborhood: 'Khu phố 7',
+    content: 'Gia đình bà Lê Thị Bích ở hẻm 45 Tương Bình Hiệp 7 thuộc diện người già đơn thân, căn nhà bị dột nặng sau các trận mưa vừa qua. Đề nghị xem xét hỗ trợ kinh phí sửa chữa Nhà Đại đoàn kết.',
+    neighborhood: 'Tương Bình Hiệp 7',
     fullname: '',
     phone: '',
     email: '',
@@ -514,13 +514,13 @@ export const INITIAL_PUBLIC_OPINIONS: PublicOpinion[] = [
     receiptCode: 'PA-2026-0803',
     topic: 'Vấn đề dân sinh',
     content: 'Hệ thống đèn chiếu sáng công cộng tại đường Chánh Hiệp 22 bị hư hỏng 3 bóng liên tiếp hơn một tuần nay gây nguy hiểm cho người tham gia giao thông ban đêm.',
-    neighborhood: 'Khu phố 5',
+    neighborhood: 'Tương Bình Hiệp 5',
     fullname: 'Phạm Minh Hoàng',
     phone: '0912345678',
     isAnonymous: false,
     status: 'RESOLVED',
     priority: 'NORMAL',
-    assignedTo: 'Ban CTMT Khu phố 5',
+    assignedTo: 'Ban CTMT Tương Bình Hiệp 5',
     adminResponse: 'Đã phối hợp Bộ phận Đô thị UBND phường khắc phục thay mới các bóng đèn hỏng ngày 27/08/2026.',
     createdAt: '2026-08-24 16:45',
     tags: ['Đèn chiếu sáng', 'An toàn giao thông']
@@ -583,9 +583,9 @@ export const INITIAL_EVENTS: WorkEvent[] = [
     title: 'Tiếp xúc cử tri chuyên đề về Công tác Quản lý Đô thị',
     startTime: '2026-09-05T14:00',
     endTime: '2026-09-05T17:00',
-    location: 'Hội trường Văn hóa Khu phố 4',
+    location: 'Hội trường Văn hóa Tương Bình Hiệp 4',
     chair: 'Thường trực HĐND - MTTQ phường',
-    participants: 'Đại biểu HĐND phường, Nhân dân Khu phố 3, 4, 5',
+    participants: 'Đại biểu HĐND phường, Nhân dân Tương Bình Hiệp 3, 4, 5',
     content: 'Lắng nghe ý kiến và kiến nghị nhân dân liên quan đến quy hoạch và thoát nước.',
     category: 'Tiếp xúc cử tri'
   }
@@ -595,13 +595,13 @@ export const INITIAL_NOTES: Note[] = [
   {
     id: 'note-1',
     userId: 'user-admin',
-    title: 'Chuẩn bị nội dung làm việc với Ban CTMT Khu phố 12',
+    title: 'Chuẩn bị nội dung làm việc với Ban CTMT Định Hòa 2',
     content: `- Kiểm tra tiến độ vận động Quỹ "Vì người nghèo" tại khu phố.
 - Nhắc nhở khu phố đẩy mạnh tuyên truyền Cuộc thi trắc nghiệm trực tuyến.
 - Ghi nhận ý kiến về đợt phát quà trung thu cho trẻ em em nghèo.`,
     color: '#fef3c7',
     isPinned: true,
-    tags: ['Khu phố 12', 'Công tác', 'Nhắc việc'],
+    tags: ['Định Hòa 2', 'Công tác', 'Nhắc việc'],
     updatedAt: '2026-08-29 10:20'
   },
   {
@@ -623,65 +623,472 @@ export const INITIAL_TEMPLATES: TemplateDoc[] = [
     id: 'tpl-1',
     title: 'Mẫu Kế hoạch tổ chức Hoạt động phong trào Mặt trận',
     category: 'Kế hoạch',
-    description: 'Khung chuẩn kế hoạch ban hành bởi Ban Thường trực MTTQ phường Chánh Hiệp',
+    description: 'Khung chuẩn kế hoạch phong trào ban hành bởi Ban Thường trực MTTQ phường Chánh Hiệp theo Nghị định 30/2020/NĐ-CP và Quyết định 207/QĐ-MTTW-BTT.',
     content: `ỦY BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP
 BAN THƯỜNG TRỰC
-Số:   /KH-MTTQ-CH
+Số:   /KH-MTTQ-BTT
 
 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập - Tự do - Hạnh phúc
 Chánh Hiệp, ngày   tháng   năm 2026
 
 KẾ HOẠCH
-Về việc [TÊN HOẠT ĐỘNG / PHONG TRÀO]
+Tổ chức [TÊN PHONG TRÀO / HOẠT ĐỘNG TRỌNG TÂM]
+Năm 2026
+
+Thực hiện Chương trình phối hợp và thống nhất hành động năm 2026 của Ủy ban MTTQ Việt Nam phường Chánh Hiệp; Ban Thường trực Ủy ban MTTQ Việt Nam phường xây dựng Kế hoạch tổ chức [Tên hoạt động] với các nội dung cụ thể như sau:
 
 I. MỤC ĐÍCH, YÊU CẦU
 1. Mục đích:
+- Tuyên truyền sâu rộng trong các tầng lớp nhân dân, đoàn viên, hội viên về ý nghĩa và tầm quan trọng của phong trào.
+- Phát huy sức mạnh khối đại đoàn kết toàn dân tộc, khơi dậy tinh thần thi đua yêu nước, sáng tạo tại 21 khu dân cư.
 2. Yêu cầu:
+- Tổ chức đồng bộ, thiết thực, hiệu quả, tiết kiệm, tránh hình thức.
+- Huy động sự tham gia tích cực, tự giác của nhân dân và sự phối hợp chặt chẽ của các tổ chức thành viên.
 
 II. NỘI DUNG VÀ HÌNH THỨC THỰC HIỆN
-1. Nội dung:
-2. Hình thức:
+1. Nội dung trọng tâm:
+- [Nội dung 1: Công tác tuyên truyền, quán triệt]
+- [Nội dung 2: Triển khai các công trình, phần việc cụ thể tại địa bàn khu phố]
+- [Nội dung 3: Vận động nguồn lực xã hội hóa và chăm lo an sinh xã hội]
+2. Hình thức triển khai:
+- Tổ chức lễ phát động, sinh hoạt chuyên đề tại Ban Công tác Mặt trận 21 khu phố.
+- Tuyên truyền qua Cổng thông tin điện tử, nhóm Zalo cộng đồng và hệ thống loa phát thanh.
 
-III. THỜI GIAN VÀ ĐỊA ĐIỂM
-1. Thời gian:
-2. Địa điểm:
+III. THỜI GIAN, ĐỊA ĐIỂM VÀ ĐỐI TƯỢNG
+1. Thời gian: Từ ngày .../.../2026 đến ngày .../.../2026.
+2. Địa điểm: Tại Hội trường UBND phường và 21 Nhà Văn hóa Khu phố.
+3. Đối tượng tham gia: Cán bộ, công chức, đoàn viên, hội viên và toàn thể nhân dân trên địa bàn.
 
-IV. TỔ CHỨC THỰC HIỆN
-1. Ban Thường trực MTTQ phường:
-2. Các tổ chức thành viên:
-3. Ban công tác Mặt trận các khu phố:
+IV. KINH PHÍ THỰC HIỆN
+- Trích từ nguồn kinh phí hoạt động công tác Mặt trận năm 2026 và nguồn vận động xã hội hóa hợp pháp.
+
+V. TỔ CHỨC THỰC HIỆN
+1. Ban Thường trực Ủy ban MTTQ Việt Nam phường:
+- Chủ trì phối hợp với UBND phường và các đoàn thể chính trị - xã hội hướng dẫn, đôn đốc triển khai.
+- Tổng hợp báo cáo kết quả định kỳ lên Thường trực Đảng ủy và Ủy ban MTTQ cấp trên.
+2. Các tổ chức chính trị - xã hội thành viên:
+- Xây dựng kế hoạch phối hợp, chỉ đạo các chi đoàn, chi hội cơ sở tích cực hưởng ứng tham gia.
+3. Ban Công tác Mặt trận 21 Khu phố:
+- Báo cáo Chi ủy Chi bộ khu phố, chủ trì họp Ban CTMT và các đoàn thể khu phố triển khai sâu rộng đến từng tổ dân cư và hộ gia đình.
+
+Nơi nhận:
+- TT. Đảng ủy, HĐND, UBND phường (để b/c);
+- Ban Thường trực MTTQ TP (để b/c);
+- Các đoàn thể thành viên;
+- 21 Ban CTMT Khu phố;
+- Lưu: VT, MTTQ.
 
 TM. BAN THƯỜNG TRỰC
-CHỦ TỊCH`
+CHỦ TỊCH
+(Ký, ghi rõ họ tên và đóng dấu)`
   },
   {
     id: 'tpl-2',
-    title: 'Mẫu Báo cáo Kết quả công tác Mặt trận tháng / quý',
+    title: 'Mẫu Báo cáo Kết quả công tác Mặt trận tháng / quý / 6 tháng / năm',
     category: 'Báo cáo',
-    description: 'Mẫu báo cáo định kỳ đầy đủ các mảng công tác chính',
+    description: 'Mẫu báo cáo toàn diện 5 chương trình hành động của Ủy ban MTTQ cấp cơ sở.',
     content: `ỦY BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP
 BAN THƯỜNG TRỰC
-Số:   /BC-MTTQ-CH
+Số:   /BC-MTTQ-BTT
 
 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
 Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng   năm 2026
 
 BÁO CÁO
-Kết quả công tác Mặt trận [THÁNG/QUÝ] năm 2026
-Phương hướng nhiệm vụ trọng tâm thời gian tới
+Kết quả công tác Mặt trận [THÁNG / QUÝ / NĂM 2026]
+Phương hướng, nhiệm vụ trọng tâm thời gian tới
 
-I. KẾT QUẢ ĐẠT ĐƯỢC
-1. Công tác tuyên truyền, vận động, tập hợp các tầng lớp nhân dân
-2. Thực hiện các cuộc vận động, các phong trào thi đua yêu nước
-3. Công tác giám sát, phản biện xã hội, tham gia xây dựng Đảng, chính quyền
-4. Củng cố tổ chức, nâng cao năng lực hoạt động của hệ thống Mặt trận
+I. TÌNH HÌNH CÁC TẦNG LỚP NHÂN DÂN VÀ KHỐI ĐẠI ĐOÀN KẾT TOÀN DÂN TỘC
+- Tư tưởng, tâm trạng các tầng lớp nhân dân trên địa bàn 21 khu phố ổn định, tin tưởng vào sự lãnh đạo của Đảng và quản lý của Nhà nước.
+- Các vấn đề dân sinh phát sinh được ghi nhận và giải quyết kịp thời qua Cổng tiếp nhận dư luận xã hội.
 
-II. ĐÁNH GIÁ CHUNG, TỒN TẠI VÀ NGUYÊN NHÂN
-1. Ưu điểm:
-2. Hạn chế, tồn tại:
+II. KẾT QUẢ THỰC HIỆN CÁC CHƯƠNG TRÌNH HÀNH ĐỘNG
+1. Nâng cao hiệu quả tuyên truyền, vận động, tập hợp các tầng lớp nhân dân, củng cố và phát huy sức mạnh đại đoàn kết toàn dân tộc:
+- Tổ chức ... buổi sinh hoạt tuyên truyền với ... lượt người tham dự.
+- Vận hành hiệu quả Cổng thông tin điện tử & Không gian văn hóa Hồ Chí Minh trực tuyến.
+2. Động viên các tầng lớp nhân dân thi đua sáng tạo, thực hiện hiệu quả các cuộc vận động, phong trào thi đua:
+- Cuộc vận động "Toàn dân đoàn kết xây dựng nông thôn mới, đô thị văn minh": Đạt ...% hộ gia đình văn hóa.
+- Quỹ "Vì người nghèo": Vận động được ... triệu đồng, chăm lo ... suất quà và sửa chữa ... căn nhà Đại đoàn kết.
+3. Thực hiện dân chủ, đại diện, bảo vệ quyền và lợi ích hợp pháp, chính đáng của nhân dân; giám sát và phản biện xã hội; tham gia xây dựng Đảng và chính quyền vững mạnh:
+- Tổ chức ... hội nghị đối thoại trực tiếp giữa người đứng đầu cấp ủy, chính quyền với nhân dân.
+- Ban Thanh tra nhân dân và Ban Giám sát đầu tư của cộng đồng tiến hành ... cuộc giám sát các công trình dân sinh.
+4. Tăng cường đoàn kết quốc tế, mở rộng hoạt động đối ngoại nhân dân.
+5. Tăng cường củng cố tổ chức, đổi mới nội dung, phương thức, nâng cao hiệu quả hoạt động của MTTQ Việt Nam:
+- Kiện toàn và nâng cao chất lượng hoạt động của 21 Ban Công tác Mặt trận khu phố.
 
-III. NHIỆM VỤ TRỌNG TÂM THỜI GIAN TỚI`
+III. ĐÁNH GIÁ CHUNG VÀ TỒN TẠI HẠN CHẾ
+1. Ưu điểm nổi bật:
+2. Tồn tại, hạn chế và nguyên nhân:
+
+IV. NHIỆM VỤ TRỌNG TÂM THỜI GIAN TỚI
+1. [Nhiệm vụ 1]
+2. [Nhiệm vụ 2]
+3. [Nhiệm vụ 3]
+
+TM. BAN THƯỜNG TRỰC
+CHỦ TỊCH
+(Ký, ghi rõ họ tên và đóng dấu)`
+  },
+  {
+    id: 'tpl-3',
+    title: 'Mẫu Biên bản họp Ban Công tác Mặt trận 21 Khu phố định kỳ',
+    category: 'Biên bản',
+    description: 'Mẫu biên bản họp triển khai nhiệm vụ tháng/quý của Ban Công tác Mặt trận và các chi hội đoàn thể khu phố.',
+    content: `BAN CÔNG TÁC MẶT TRẬN
+KHU PHỐ [TÊN KHU PHỐ]
+---
+Số:   /BB-BCTMT
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng   năm 2026
+
+BIÊN BẢN
+Cuộc họp định kỳ Ban Công tác Mặt trận Khu phố [Tên KP]
+Tháng ... Năm 2026
+
+I. THỜI GIAN VÀ ĐỊA ĐIỂM
+- Thời gian: Vào lúc ... giờ ... phút, ngày ... tháng ... năm 2026.
+- Địa điểm: Văn phòng / Nhà sinh hoạt cộng đồng Khu phố [Tên KP].
+
+II. THÀNH PHẦN THAM DỰ
+1. Chủ trì: Ông/Bà [Họ tên] - Trưởng Ban Công tác Mặt trận khu phố.
+2. Thư ký: Ông/Bà [Họ tên] - Thành viên Ban CTMT (Chi hội trưởng ...).
+3. Thành phần tham dự:
+- Đại diện Chi ủy Chi bộ khu phố: Đ/c [Họ tên] - Bí thư/Phó Bí thư Chi bộ.
+- Trưởng Ban điều hành khu phố: Ông/Bà [Họ tên].
+- Các thành viên Ban CTMT (Bí thư Chi đoàn, Chi hội trưởng Phụ nữ, CCB, Nông dân, Người cao tuổi, Khuyến học, Chữ thập đỏ...).
+- Vắng mặt: ... đ/c (Lý do: ...).
+
+III. NỘI DUNG CUỘC HỌP
+1. Trưởng Ban Công tác Mặt trận đánh giá tình hình hoạt động tháng qua:
+- Tình hình tư tưởng, an ninh trật tự và đời sống nhân dân trong khu phố.
+- Kết quả thực hiện các phong trào thi đua và các cuộc vận động tại khu phố.
+- Tình hình thu - nộp các loại quỹ an sinh (Quỹ "Vì người nghèo", "Đền ơn đáp nghĩa"...).
+2. Triển khai nhiệm vụ trọng tâm tháng tới của Ủy ban MTTQ phường:
+- [Triển khai nhiệm vụ 1: Vận động nhân dân giữ gìn vệ sinh môi trường, tuyến hẻm văn minh]
+- [Triển khai nhiệm vụ 2: Rà soát hộ nghèo, hộ khó khăn cần hỗ trợ]
+- [Triển khai nhiệm vụ 3: Nắm bắt tâm tư, nguyện vọng và ý kiến phản ánh của nhân dân]
+3. Ý kiến thảo luận của các thành viên:
+- Ý kiến Chi hội Phụ nữ: ...
+- Ý kiến Chi hội Cựu chiến binh: ...
+- Ý kiến Chi đoàn Thanh niên: ...
+- Ý kiến của Ban điều hành khu phố: ...
+4. Phát biểu chỉ đạo của Đại diện Chi ủy Chi bộ:
+- Nhất trí với dự thảo đánh giá và phương hướng nhiệm vụ. Đề nghị Ban CTMT tập trung vận động nhân dân giải quyết dứt điểm các vướng mắc tại tổ tự quản số ...
+
+IV. KẾT LUẬN CUỘC HỌP
+- Chủ trì cuộc họp tổng hợp và kết luận các nội dung thống nhất thực hiện:
++ Phân công đ/c ... phụ trách theo dõi tổ dân phố ...
++ Thời gian hoàn thành rà soát: trước ngày .../.../2026.
+
+Biên bản kết thúc vào lúc ... giờ ... cùng ngày, đã được thông qua và toàn thể thành viên dự họp nhất trí 100%.
+
+THƯ KÝ CUỘC HỌP
+(Ký, ghi rõ họ tên)
+
+TM. BAN CÔNG TÁC MẶT TRẬN
+TRƯỞNG BAN
+(Ký, ghi rõ họ tên)`
+  },
+  {
+    id: 'tpl-4',
+    title: 'Mẫu Tờ trình đề nghị hỗ trợ xây dựng / sửa chữa "Nhà Đại đoàn kết"',
+    category: 'Tờ trình',
+    description: 'Tờ trình thẩm định và đề xuất trích Quỹ "Vì người nghèo" hỗ trợ nhà ở cho hộ nghèo, khó khăn.',
+    content: `ỦY BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP
+BAN VẬN ĐỘNG QUỸ "VÌ NGƯỜI NGHÈO"
+Số:   /TTr-BVĐ
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng   năm 2026
+
+TỜ TRÌNH
+Về việc đề nghị phê duyệt kinh phí hỗ trợ [XÂY MỚI / SỬA CHỮA]
+Nhà "Đại đoàn kết" cho hộ nghèo năm 2026
+
+Kính gửi:
+- Ban Thường trực Ủy ban MTTQ Việt Nam Thành phố;
+- Ban Quản lý Quỹ "Vì người nghèo" cấp trên;
+- Thường trực Đảng ủy phường Chánh Hiệp.
+
+Căn cứ Quy chế quản lý và sử dụng Quỹ "Vì người nghèo";
+Căn cứ kết quả khảo sát thực tế và biên bản họp xét duyệt của Ban Công tác Mặt trận Khu phố [Tên KP] ngày .../.../2026;
+
+Ban Thường trực Ủy ban MTTQ Việt Nam - Ban Vận động Quỹ "Vì người nghèo" phường Chánh Hiệp kính trình Ban Thường trực cấp trên xem xét, phê duyệt hỗ trợ kinh phí xây dựng/sửa chữa Nhà "Đại đoàn kết" cho đối tượng sau:
+
+1. THÔNG TIN HỘ GIA ĐÌNH ĐƯỢC ĐỀ NGHỊ HỖ TRỢ
+- Họ và tên chủ hộ: [Họ và tên]      Năm sinh: ...
+- Địa chỉ: Số nhà ..., Tổ ..., Khu phố [Tên KP], phường Chánh Hiệp.
+- Thuộc diện: Hộ nghèo / Hộ cận nghèo / Hộ có hoàn cảnh đặc biệt khó khăn.
+- Tình trạng nhà ở hiện nay: Nhà cấp 4 tường mục nát, mái tôn dột nát, nền trũng thấp ngập úng mùa mưa, có nguy cơ đổ sập mất an toàn.
+
+2. PHƯƠNG ÁN XÂY DỰNG / SỬA CHỮA VÀ KINH PHÍ DỰ KIẾN
+- Quy mô xây dựng/sửa chữa: Nhà cấp 4, diện tích ... m2, tường gạch quét vôi/sơn nước, mái tôn, nền lát gạch men, cửa sắt.
+- Tổng dự toán kinh phí: ... đồng (Bằng chữ: ...).
+Trong đó:
++ Đề nghị Quỹ "Vì người nghèo" hỗ trợ: ... đồng.
++ Nguồn xã hội hóa và mạnh thường quân hỗ trợ: ... đồng.
++ Gia đình, dòng họ đóng góp: ... đồng.
+
+3. THỜI GIAN THỰC HIỆN
+- Dự kiến khởi công: Ngày .../.../2026.
+- Dự kiến bàn giao: Ngày .../.../2026 (Nhân dịp Ngày hội Đại đoàn kết 18/11).
+
+Kính đề nghị Ban Thường trực cấp trên quan tâm xem xét, phê duyệt để địa phương kịp thời triển khai thi công giúp gia đình sớm ổn định cuộc sống.
+
+Nơi nhận:
+- Như trên;
+- Chi bộ & Ban CTMT Khu phố;
+- Lưu: VT, BTT MTTQ.
+
+TM. BAN THƯỜNG TRỰC
+CHỦ TỊCH / TRƯỞNG BAN VẬN ĐỘNG
+(Ký, ghi rõ họ tên và đóng dấu)`
+  },
+  {
+    id: 'tpl-5',
+    title: 'Mẫu Báo cáo Kết quả Giám sát của Ban Thanh tra nhân dân / Ban GSĐTCCĐ',
+    category: 'Báo cáo',
+    description: 'Mẫu báo cáo giám sát công trình công cộng, chính sách an sinh hoặc giải quyết TTHC tại địa bàn.',
+    content: `ỦY BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP
+BAN THANH TRA NHÂN DÂN
+Số:   /BC-BTTND
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng   năm 2026
+
+BÁO CÁO KẾT QUẢ GIÁM SÁT
+Về việc: [TÊN NỘI DUNG HOẶC CÔNG TRÌNH GIÁM SÁT]
+Tại địa bàn Khu phố [Tên KP], phường Chánh Hiệp
+
+Thực hiện Kế hoạch giám sát số .../KH-BTTND ngày .../.../2026 của Ban Thanh tra nhân dân phường Chánh Hiệp;
+Từ ngày .../.../2026 đến ngày .../.../2026, Đoàn giám sát của Ban TTND đã tiến hành giám sát thực tế tại [Địa điểm giám sát]. Nay Ban TTND báo cáo kết quả như sau:
+
+I. ĐỐI TƯỢNG VÀ PHẠM VI GIÁM SÁT
+1. Đối tượng giám sát: [Đơn vị thi công / Bộ phận chuyên môn / Ban điều hành khu phố].
+2. Nội dung giám sát: [Tiến độ, chất lượng thi công công trình nâng cấp hẻm / Thực hiện chính sách hỗ trợ chi trả an sinh xã hội...].
+
+II. KẾT QUẢ GIÁM SÁT THỰC TẾ
+1. Những mặt đạt được:
+- Đơn vị thực hiện cơ bản chấp thuận đúng quy trình, tiến độ và thiết kế đã được phê duyệt.
+- Công khai, minh bạch thông tin tại Nhà văn hóa khu phố để nhân dân cùng giám sát.
+2. Những tồn tại, hạn chế hoặc sai phạm phát hiện (nếu có):
+- [Vấn đề 1: Đơn vị thi công tập kết vật liệu cản trở giao thông sinh hoạt của người dân tại hẻm ...]
+- [Vấn đề 2: Chất lượng đầm nén nền hạ một số đoạn chưa đạt yêu cầu theo phản ánh của nhân dân ...]
+
+III. KIẾN NGHỊ VÀ ĐỀ XUẤT
+Ban Thanh tra nhân dân phường kiến nghị:
+1. Đối với UBND phường: Chỉ đạo bộ phận Địa chính - Đô thị kiểm tra, yêu cầu đơn vị thi công khắc phục ngay các tồn tại nêu trên.
+2. Đối với Đơn vị thực hiện / Ban quản lý dự án: Đẩy nhanh tiến độ hoàn trả mặt bằng, vệ sinh môi trường sau thi công.
+3. Đề nghị Ban Thường trực Ủy ban MTTQ phường theo dõi, đôn đốc việc xử lý kiến nghị sau giám sát.
+
+Nơi nhận:
+- Ban Thường trực MTTQ phường (để b/c);
+- UBND phường Chánh Hiệp (để giải quyết);
+- Ban CTMT Khu phố;
+- Lưu: Hồ sơ giám sát.
+
+TM. BAN THANH TRA NHÂN DÂN
+TRƯỞNG BAN
+(Ký, ghi rõ họ tên)`
+  },
+  {
+    id: 'tpl-6',
+    title: 'Mẫu Kế hoạch tổ chức "Ngày hội Đại đoàn kết toàn dân tộc" 18/11 ở Khu dân cư',
+    category: 'Kế hoạch',
+    description: 'Kế hoạch tổ chức ngày hội 18/11 tại 21 khu dân cư theo hướng dẫn của Ủy ban Trung ương MTTQ Việt Nam.',
+    content: `BAN CÔNG TÁC MẶT TRẬN
+KHU PHỐ [TÊN KHU PHỐ]
+Số:   /KH-BCTMT
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng 10 năm 2026
+
+KẾ HOẠCH
+Tổ chức "Ngày hội Đại đoàn kết toàn dân tộc" ở Khu dân cư
+Kỷ niệm 96 năm Ngày truyền thống MTTQ Việt Nam (18/11/1930 - 18/11/2026)
+
+Thực hiện Hướng dẫn của Ban Thường trực Ủy ban MTTQ Việt Nam phường Chánh Hiệp về việc tổ chức Ngày hội Đại đoàn kết toàn dân tộc năm 2026;
+Được sự chỉ đạo của Chi ủy Chi bộ Khu phố; Ban Công tác Mặt trận phối hợp với Ban Điều hành và các chi hội đoàn thể Khu phố [Tên KP] xây dựng Kế hoạch tổ chức Ngày hội như sau:
+
+I. MỤC ĐÍCH, Ý NGHĨA
+1. Ôn lại truyền thống vẻ vang 96 năm của Mặt trận Tổ quốc Việt Nam và khối đại đoàn kết toàn dân tộc.
+2. Đánh giá kết quả 1 năm thực hiện Cuộc vận động "Toàn dân đoàn kết xây dựng nông thôn mới, đô thị văn minh"; biểu dương các tập thể, hộ gia đình văn hóa tiêu biểu, "Gương sáng Mặt trận".
+3. Tạo không khí vui tươi, đoàn kết, thắt chặt tình làng nghĩa xóm thông qua các hoạt động văn hóa, trò chơi dân gian và Bữa cơm Đại đoàn kết.
+
+II. NỘI DUNG VÀ HÌNH THỨC TỔ CHỨC
+Ngày hội gồm 2 phần chính:
+1. Phần Lễ (Thời lượng khoảng 60 phút):
+- Văn nghệ chào mừng.
+- Chào cờ, tuyên bố lý do, giới thiệu đại biểu.
+- Ôn lại lịch sử và truyền thống Ngày truyền thống MTTQ Việt Nam.
+- Báo cáo kết quả xây dựng khối đại đoàn kết và phong trào thi đua năm 2026 của khu phố.
+- Tọa đàm, phát biểu đóng góp ý kiến của nhân dân xây dựng khu dân cư văn minh.
+- Phát biểu của lãnh đạo cấp trên (Đảng ủy / UBND / MTTQ phường).
+- Biểu dương, khen thưởng các gia đình văn hóa tiêu biểu, cá nhân có thành tích xuất sắc.
+- Phát động đợt thi đua mới và ký kết giao ước thi đua giữa các tổ tự quản.
+2. Phần Hội (Thời lượng 60 - 90 phút):
+- Tổ chức các trò chơi dân gian (kéo co, cờ tướng, đập niêu, bịt mắt bắt vịt...).
+- Gian hàng ẩm thực dân gian / Trưng bày sản phẩm "Dân vận khéo".
+- Tổ chức "Bữa cơm Đại đoàn kết" ấm cúng tại khu dân cư.
+
+III. THỜI GIAN VÀ ĐỊA ĐIỂM
+1. Thời gian: Từ ... giờ ngày ... tháng 11 năm 2026.
+2. Địa điểm: Nhà Văn hóa / Sân thể thao cộng đồng Khu phố [Tên KP].
+
+IV. PHÂN CÔNG NHIỆM VỤ
+1. Trưởng Ban CTMT: Phụ trách chung, xây dựng báo cáo và điều hành phần Lễ.
+2. Ban Điều hành Khu phố: Rà soát danh sách khen thưởng gia đình văn hóa tiêu biểu.
+3. Chi đoàn Thanh niên: Chuẩn bị âm thanh, ánh sáng, dẫn chương trình và điều hành trò chơi phần Hội.
+4. Chi hội Phụ nữ: Phụ trách khánh tiết, tiếp tân và hậu cần Bữa cơm Đại đoàn kết.
+5. Chi hội Cựu chiến binh: Đảm bảo công tác an ninh trật tự, trông giữ xe.
+
+TM. BAN CÔNG TÁC MẶT TRẬN
+TRƯỞNG BAN
+(Ký, ghi rõ họ tên)`
+  },
+  {
+    id: 'tpl-7',
+    title: 'Mẫu Bản Đăng ký Công trình / Mô hình "Dân vận khéo" cấp cơ sở',
+    category: 'Kế hoạch',
+    description: 'Mẫu bản đăng ký mô hình, công trình tự quản vì cộng đồng tại các khu dân cư.',
+    content: `ĐẢNG BỘ PHƯỜNG CHÁNH HIỆP
+KHỐI DÂN VẬN - MẶT TRẬN TỔ QUỐC
+---
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng   năm 2026
+
+BẢN ĐĂNG KÝ
+Mô hình / Công trình "Dân vận khéo" năm 2026
+
+Kính gửi: Khối Dân vận Đảng ủy - Ban Thường trực Ủy ban MTTQ phường Chánh Hiệp.
+
+1. TÊN ĐƠN VỊ ĐĂNG KÝ: Ban Công tác Mặt trận Khu phố [Tên KP]
+2. TÊN MÔ HÌNH / CÔNG TRÌNH: "Tuyến hẻm tự quản Xanh - Sạch - Văn minh - An toàn PCCC"
+3. LĨNH VỰC ĐĂNG KÝ: Xây dựng Đô thị văn minh & Bảo vệ Môi trường.
+
+4. MỤC TIÊU VÀ NỘI DUNG THỰC HIỆN
+a) Mục tiêu:
+- Vận động 100% hộ dân trên tuyến hẻm số ... tự nguyện đóng góp kinh phí và ngày công bê tông hóa/tráng nhựa tuyến hẻm dài ...m.
+- Lắp đặt hệ thống camera an ninh, 10 bình chữa cháy công cộng và trồng 50 chậu hoa cây cảnh trước cửa nhà.
+b) Nội dung và giải pháp:
+- "Khéo tuyên truyền, vận động": Họp từng tổ dân phố lấy ý kiến đồng thuận "Dân biết, dân bàn, dân làm, dân kiểm tra, dân giám sát, dân thụ hưởng".
+- "Khéo huy động nguồn lực": Xã hội hóa 100% kinh phí thực hiện ước tính ... triệu đồng, không dùng ngân sách nhà nước.
+- "Khéo duy trì": Thành lập Tổ tự quản hẻm phụ trách tưới cây, kiểm tra PCCC và vệ sinh hàng tuần.
+
+5. TIẾN ĐỘ THỰC HIỆN
+- Tháng .../2026: Khảo sát, họp dân và thông qua phương án.
+- Tháng .../2026: Triển khai thi công và lắp đặt trang thiết bị.
+- Tháng .../2026: Nghiệm thu, gắn biển công trình chào mừng Ngày hội Đại đoàn kết.
+
+XÁC NHẬN CỦA CHI ỦY CHI BỘ
+BÍ THƯ
+(Ký, ghi rõ họ tên)
+
+ĐẠI DIỆN ĐƠN VỊ ĐĂNG KÝ
+TRƯỞNG BAN CTMT
+(Ký, ghi rõ họ tên)`
+  },
+  {
+    id: 'tpl-8',
+    title: 'Mẫu Quyết định công nhận / kiện toàn Ban Công tác Mặt trận Khu phố',
+    category: 'Quyết định',
+    description: 'Quyết định chuẩn y danh sách Trưởng ban, Phó ban và các thành viên Ban Công tác Mặt trận.',
+    content: `ỦY BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP
+BAN THƯỜNG TRỰC
+Số:   /QĐ-MTTQ-BTT
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng   năm 2026
+
+QUYẾT ĐỊNH
+Về việc kiện toàn / công nhận thành viên Ban Công tác Mặt trận
+Khu phố [Tên KP], phường Chánh Hiệp nhiệm kỳ 2024 - 2029
+
+BAN THƯỜNG TRỰC ỦY BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP
+
+Căn cứ Điều lệ Mặt trận Tổ quốc Việt Nam;
+Căn cứ Thông tri số 25/TT-MTTW-BTT của Ban Thường trực Ủy ban Trung ương MTTQ Việt Nam;
+Xét đề nghị của Chi ủy Chi bộ và Biên bản hiệp thương của Ban Công tác Mặt trận Khu phố [Tên KP] ngày .../.../2026;
+
+QUYẾT ĐỊNH:
+
+Điều 1. Công nhận / Kiện toàn Ban Công tác Mặt trận Khu phố [Tên KP], phường Chánh Hiệp nhiệm kỳ 2024 - 2029 gồm các ông/bà có tên sau:
+1. Ông/Bà: [Họ và tên] - Trưởng ban.
+2. Ông/Bà: [Họ và tên] - Phó Trưởng ban.
+3. Ông/Bà: [Họ và tên] - Thành viên (Chi hội trưởng Phụ nữ).
+4. Ông/Bà: [Họ và tên] - Thành viên (Bí thư Chi đoàn).
+5. Ông/Bà: [Họ và tên] - Thành viên (Chi hội trưởng CCB).
+6. Ông/Bà: [Họ và tên] - Thành viên (Chi hội trưởng Người cao tuổi).
+7. Ông/Bà: [Họ và tên] - Thành viên (Đại diện người có uy tín / tôn giáo).
+
+Điều 2. Ban Công tác Mặt trận Khu phố [Tên KP] có trách nhiệm thực hiện nhiệm vụ, quyền hạn theo đúng quy định của Điều lệ MTTQ Việt Nam và Quy chế hoạt động của Ủy ban MTTQ phường.
+
+Điều 3. Ban Thường trực Ủy ban MTTQ phường, Chi bộ Khu phố, các ban ngành đoàn thể liên quan và các ông/bà có tên tại Điều 1 chịu trách nhiệm thi hành Quyết định này kể từ ngày ký.
+
+Nơi nhận:
+- Thường trực Đảng ủy phường;
+- Chi ủy Chi bộ Khu phố;
+- Như Điều 3;
+- Lưu: VT, MTTQ.
+
+TM. BAN THƯỜNG TRỰC
+CHỦ TỊCH
+(Ký, ghi rõ họ tên và đóng dấu)`
+  },
+  {
+    id: 'tpl-9',
+    title: 'Mẫu Thông báo phân công nhiệm vụ thành viên Ban Công tác Mặt trận khu phố',
+    category: 'Thông báo',
+    description: 'Bản phân công nhiệm vụ cụ thể từng mảng công tác cho các thành viên trong Ban CTMT.',
+    content: `BAN CÔNG TÁC MẶT TRẬN
+KHU PHỐ [TÊN KHU PHỐ]
+Số:   /TB-BCTMT
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+Chánh Hiệp, ngày   tháng   năm 2026
+
+THÔNG BÁO
+Về việc phân công nhiệm vụ các thành viên Ban Công tác Mặt trận
+Khu phố [Tên KP] năm 2026
+
+Căn cứ Quyết định số .../QĐ-MTTQ-BTT của Ban Thường trực Ủy ban MTTQ Việt Nam phường Chánh Hiệp;
+Để đảm bảo thực hiện thắng lợi các chỉ tiêu công tác Mặt trận tại địa bàn khu dân cư, Ban Công tác Mặt trận Khu phố [Tên KP] phân công nhiệm vụ cụ thể như sau:
+
+1. Ông/Bà [Họ tên] - Trưởng Ban CTMT:
+- Phụ trách chung toàn bộ hoạt động của Ban Công tác Mặt trận.
+- Trực tiếp chỉ đạo công tác tuyên truyền, xây dựng khối đại đoàn kết, chủ trì các cuộc họp định kỳ và tiếp xúc cử tri.
+- Phụ trách địa bàn các tổ dân phố: Tổ 1, Tổ 2, Tổ 3.
+
+2. Ông/Bà [Họ tên] - Phó Trưởng Ban CTMT:
+- Giúp Trưởng ban điều hành các công việc khi Trưởng ban vắng mặt.
+- Phụ trách theo dõi công tác an sinh xã hội, vận động Quỹ "Vì người nghèo", quản lý hồ sơ sổ sách.
+- Phụ trách địa bàn các tổ dân phố: Tổ 4, Tổ 5, Tổ 6.
+
+3. Ông/Bà [Họ tên] - Chi hội trưởng Phụ nữ (Thành viên):
+- Phụ trách vận động phong trào "Xây dựng gia đình 5 không 3 sạch", phân loại rác tại nguồn và tổ tiết kiệm vay vốn phụ nữ.
+
+4. Ông/Bà [Họ tên] - Bí thư Chi đoàn (Thành viên):
+- Phụ trách công tác thanh niên xung kích, Chuyển đổi số cộng đồng, hướng dẫn người dân dịch vụ công trực tuyến và phong trào văn hóa thể thao.
+
+5. Ông/Bà [Họ tên] - Chi hội trưởng CCB (Thành viên):
+- Phụ trách công tác tự quản an ninh trật tự, tham gia hòa giải mâu thuẫn cơ sở và giáo dục truyền thống cách mạng cho thế hệ trẻ.
+
+Yêu cầu các thành viên chủ động phối hợp chặt chẽ, định kỳ báo cáo kết quả thực hiện trong cuộc họp giao ban hàng tháng của Ban Công tác Mặt trận.
+
+TM. BAN CÔNG TÁC MẶT TRẬN
+TRƯỞNG BAN
+(Ký, ghi rõ họ tên)`
   }
 ];
 
@@ -815,301 +1222,301 @@ export const INITIAL_AREAS: Area[] = [
   {
     id: 'area-kp-1',
     code: 'KP-01',
-    name: 'Khu phố 1',
+    name: 'Tương Bình Hiệp 1',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 1,
-    description: 'Địa bàn Khu phố 1 (Tương Bình Hiệp 1), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Tương Bình Hiệp 1, phường Chánh Hiệp',
     population: 3120,
     householdsCount: 780,
-    leaderName: 'Trần Thị Tố Như',
+    leaderName: 'Đoàn Thị Bích Vân',
     leaderPhone: '0933742769',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-2',
     code: 'KP-02',
-    name: 'Khu phố 2',
+    name: 'Tương Bình Hiệp 2',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 2,
-    description: 'Địa bàn Khu phố 2 (Tương Bình Hiệp 2), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Tương Bình Hiệp 2, phường Chánh Hiệp',
     population: 2950,
     householdsCount: 720,
-    leaderName: 'Nguyễn Thanh Sơn',
+    leaderName: 'Lê Thị Thanh Loan',
     leaderPhone: '0336749484',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-3',
     code: 'KP-03',
-    name: 'Khu phố 3',
+    name: 'Tương Bình Hiệp 3',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 3,
-    description: 'Địa bàn Khu phố 3 (Tương Bình Hiệp 3), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Tương Bình Hiệp 3, phường Chánh Hiệp',
     population: 3400,
     householdsCount: 840,
-    leaderName: 'Nguyễn Việt Toàn',
+    leaderName: 'Nguyễn Văn An',
     leaderPhone: '0919908008',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-4',
     code: 'KP-04',
-    name: 'Khu phố 4',
+    name: 'Tương Bình Hiệp 4',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 4,
-    description: 'Địa bàn Khu phố 4 (Tương Bình Hiệp 4), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Tương Bình Hiệp 4, phường Chánh Hiệp',
     population: 2800,
     householdsCount: 690,
-    leaderName: 'Lê Duy Khang',
+    leaderName: 'Nguyễn Minh Hoàng',
     leaderPhone: '0358934767',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-5',
     code: 'KP-05',
-    name: 'Khu phố 5',
+    name: 'Tương Bình Hiệp 5',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 5,
-    description: 'Địa bàn Khu phố 5 (Tương Bình Hiệp 5), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Tương Bình Hiệp 5, phường Chánh Hiệp',
     population: 3600,
     householdsCount: 890,
-    leaderName: 'Phạm Thị Tố Mai',
+    leaderName: 'Nguyễn Hoài Tân',
     leaderPhone: '0908739555',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-6',
     code: 'KP-06',
-    name: 'Khu phố 6',
+    name: 'Tương Bình Hiệp 6',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 6,
-    description: 'Địa bàn Khu phố 6 (Tương Bình Hiệp 6), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Tương Bình Hiệp 6, phường Chánh Hiệp',
     population: 3200,
     householdsCount: 760,
-    leaderName: 'Trần Quốc Nghĩa',
+    leaderName: 'Võ Oanh Kiều',
     leaderPhone: '0915337788',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-7',
     code: 'KP-07',
-    name: 'Khu phố 7',
+    name: 'Tương Bình Hiệp 7',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 7,
-    description: 'Địa bàn Khu phố 7 (Tương Bình Hiệp 7), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Tương Bình Hiệp 7, phường Chánh Hiệp',
     population: 3050,
     householdsCount: 750,
-    leaderName: 'Lê Văn Chí',
+    leaderName: 'Trần Minh Khải',
     leaderPhone: '0914919646',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-8',
     code: 'KP-08',
-    name: 'Khu phố 8',
+    name: 'Hiệp An 7',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 8,
-    description: 'Địa bàn Khu phố 8 (Hiệp An 7), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Hiệp An 7, phường Chánh Hiệp',
     population: 3300,
     householdsCount: 810,
-    leaderName: 'Nguyễn Thành Châu',
+    leaderName: 'Nguyễn Thanh Trí',
     leaderPhone: '0965052061',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-9',
     code: 'KP-09',
-    name: 'Khu phố 9',
+    name: 'Hiệp An 8',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 9,
-    description: 'Địa bàn Khu phố 9 (Hiệp An 8), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Hiệp An 8, phường Chánh Hiệp',
     population: 3150,
     householdsCount: 770,
-    leaderName: 'Võ Hoàng Phương',
+    leaderName: 'Phan Tấn Nhân',
     leaderPhone: '0918231463',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-10',
     code: 'KP-10',
-    name: 'Khu phố 10',
+    name: 'Hiệp An 9',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 10,
-    description: 'Địa bàn Khu phố 10 (Hiệp An 9), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Hiệp An 9, phường Chánh Hiệp',
     population: 2900,
     householdsCount: 710,
-    leaderName: 'Lê Phước Hùng',
+    leaderName: 'Nguyễn Nhật Hồng',
     leaderPhone: '0828643979',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-11',
     code: 'KP-11',
-    name: 'Khu phố 11',
+    name: 'Định Hòa 1',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 11,
-    description: 'Địa bàn Khu phố 11 (Định Hòa 1), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 1, phường Chánh Hiệp',
     population: 3350,
     householdsCount: 820,
-    leaderName: 'Phan Hà Như Thủy',
+    leaderName: 'Nguyễn Thanh Vân',
     leaderPhone: '0987933156',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-12',
     code: 'KP-12',
-    name: 'Khu phố 12',
+    name: 'Định Hòa 2',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 12,
-    description: 'Địa bàn Khu phố 12 (Định Hòa 2), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 2, phường Chánh Hiệp',
     population: 3420,
     householdsCount: 835,
-    leaderName: 'Trần Văn Hoàng',
+    leaderName: 'Nguyễn Phượng Hằng',
     leaderPhone: '0918598078',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-13',
     code: 'KP-13',
-    name: 'Khu phố 13',
+    name: 'Định Hòa 3',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 13,
-    description: 'Địa bàn Khu phố 13 (Định Hòa 3), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 3, phường Chánh Hiệp',
     population: 3210,
     householdsCount: 785,
-    leaderName: 'Nguyễn Văn Gu',
+    leaderName: 'Đỗ Thị Tấn',
     leaderPhone: '0785185879',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-14',
     code: 'KP-14',
-    name: 'Khu phố 14',
+    name: 'Định Hòa 4',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 14,
-    description: 'Địa bàn Khu phố 14 (Định Hòa 4), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 4, phường Chánh Hiệp',
     population: 3180,
     householdsCount: 775,
-    leaderName: 'Ngô Quốc Phong',
+    leaderName: 'Văn Văn Hạnh',
     leaderPhone: '0938377151',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-15',
     code: 'KP-15',
-    name: 'Khu phố 15',
+    name: 'Định Hòa 5',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 15,
-    description: 'Địa bàn Khu phố 15 (Định Hòa 5), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 5, phường Chánh Hiệp',
     population: 2980,
     householdsCount: 730,
-    leaderName: 'Phạm Văn Chí',
+    leaderName: 'Ngô Văn Còn',
     leaderPhone: '0938565172',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-16',
     code: 'KP-16',
-    name: 'Khu phố 16',
+    name: 'Định Hòa 6',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 16,
-    description: 'Địa bàn Khu phố 16 (Định Hòa 6), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 6, phường Chánh Hiệp',
     population: 3500,
     householdsCount: 860,
-    leaderName: 'Lê Văn Hoài',
+    leaderName: 'Nguyễn Văn Gọt',
     leaderPhone: '0919042548',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-17',
     code: 'KP-17',
-    name: 'Khu phố 17',
+    name: 'Định Hòa 7',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 17,
-    description: 'Địa bàn Khu phố 17 (Định Hòa 7), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 7, phường Chánh Hiệp',
     population: 2890,
     householdsCount: 710,
-    leaderName: 'Nguyễn Văn Gấm',
+    leaderName: 'Đặng Thị Thúy Loan',
     leaderPhone: '0985996979',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-18',
     code: 'KP-18',
-    name: 'Khu phố 18',
+    name: 'Định Hòa 8',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 18,
-    description: 'Địa bàn Khu phố 18 (Định Hòa 8), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Định Hòa 8, phường Chánh Hiệp',
     population: 3260,
     householdsCount: 800,
-    leaderName: 'Trần Quốc Dương',
+    leaderName: 'Nguyễn Văn Phụng',
     leaderPhone: '0886848586',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-19',
     code: 'KP-19',
-    name: 'Khu phố 19',
+    name: 'Mỹ Hảo',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 19,
-    description: 'Địa bàn Khu phố 19 (Mỹ Hảo), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Mỹ Hảo, phường Chánh Hiệp',
     population: 3340,
     householdsCount: 815,
-    leaderName: 'Ngô Quốc Trung',
+    leaderName: 'Nguyễn Văn Hòa',
     leaderPhone: '0901689828',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-20',
     code: 'KP-20',
-    name: 'Khu phố 20',
+    name: 'Chánh Mỹ 1',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 20,
-    description: 'Địa bàn Khu phố 20 (Chánh Mỹ 1), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Chánh Mỹ 1, phường Chánh Hiệp',
     population: 3450,
     householdsCount: 845,
-    leaderName: 'Đào Thanh Trung',
+    leaderName: 'Đặng Mỹ Dung',
     leaderPhone: '0919450576',
     createdAt: '2026-01-01'
   },
   {
     id: 'area-kp-21',
     code: 'KP-21',
-    name: 'Khu phố 21',
+    name: 'Chánh Mỹ 2',
     type: 'NEIGHBORHOOD',
     parentId: 'area-chanh-hiep',
     order: 21,
-    description: 'Địa bàn Khu phố 21 (Chánh Mỹ 2), phường Chánh Hiệp',
+    description: 'Địa bàn Khu phố Chánh Mỹ 2, phường Chánh Hiệp',
     population: 3600,
     householdsCount: 880,
-    leaderName: 'Nguyễn Minh Triết',
+    leaderName: 'Bùi Thị Thu Thảo',
     leaderPhone: '0907008308',
     createdAt: '2026-01-01'
   }
 ];
 
 export const INITIAL_ORGANIZATIONS: Organization[] = [
-  // Cấp Phường: Đảng bộ, Chính quyền, MTTQ
+  // 1. Đảng ủy Phường
   {
     id: 'org-dang-uy',
     code: 'DU-CH',
@@ -1133,6 +1540,7 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     status: 'ACTIVE',
     createdAt: '2026-01-01'
   },
+  // 2. Ủy ban MTTQ Việt Nam Phường
   {
     id: 'org-mttq-phuong',
     code: 'MTTQ-CH',
@@ -1158,6 +1566,7 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     status: 'ACTIVE',
     createdAt: '2026-01-01'
   },
+  // 3. Ủy ban Nhân dân Phường
   {
     id: 'org-hdnd-ubnd',
     code: 'UBND-CH',
@@ -1173,7 +1582,7 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     leaderPosition: 'Chủ tịch UBND',
     phone: '0274.3822.102',
     email: 'ubnd.chanhhiep@tphcm.gov.vn',
-    address: 'Đường Nguyễn Văn Tiết, Khu phố 2, Phường Chánh Hiệp',
+    address: 'Đường Nguyễn Văn Tiết, Phường Chánh Hiệp',
     description: 'Cơ quan chấp hành của HĐND, cơ quan hành chính nhà nước ở địa phương.',
     membersCount: 36,
     partyMembersCount: 32,
@@ -1181,7 +1590,255 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     status: 'ACTIVE',
     createdAt: '2026-01-01'
   },
-  // Các Ban trực thuộc Ủy ban MTTQ Phường (Hierarchical Children of org-mttq-phuong)
+  // 4. Công an Phường
+  {
+    id: 'org-cong-an',
+    code: 'CA-CH',
+    name: 'Công an Phường Chánh Hiệp',
+    shortName: 'Công an Phường',
+    slug: 'cong-an-phuong-chanh-hiep',
+    type: 'GOVERNMENT',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Trung tá Lê Hoàng Tuấn',
+    leaderPosition: 'Trưởng Công an Phường',
+    phone: '0274.3822.113',
+    email: 'congan.chanhhiep@tphcm.gov.vn',
+    address: 'Trụ sở Công an Phường Chánh Hiệp',
+    description: 'Lực lượng nòng cốt giữ gìn an ninh chính trị và trật tự an toàn xã hội trên địa bàn.',
+    membersCount: 48,
+    partyMembersCount: 45,
+    displayOrder: 4,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 5. Ban Chỉ huy Quân sự Phường
+  {
+    id: 'org-quan-su',
+    code: 'QS-CH',
+    name: 'Ban Chỉ huy Quân sự Phường Chánh Hiệp',
+    shortName: 'Ban CHQS Phường',
+    slug: 'ban-chi-huy-quan-su-phuong-chanh-hiep',
+    type: 'GOVERNMENT',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Đồng chí Huỳnh Văn Dũng',
+    leaderPosition: 'Chỉ huy trưởng Quân sự',
+    phone: '0274.3822.114',
+    email: 'quansu.chanhhiep@tphcm.gov.vn',
+    address: 'Trụ sở Ban CHQS Phường Chánh Hiệp',
+    description: 'Cơ quan tham mưu và tổ chức thực hiện nhiệm vụ quốc phòng, quân sự địa phương.',
+    membersCount: 32,
+    partyMembersCount: 28,
+    displayOrder: 5,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 6. Đoàn TNCS Hồ Chí Minh Phường
+  {
+    id: 'org-doan-tn',
+    code: 'DTN-CH',
+    name: 'Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp',
+    shortName: 'Đoàn Thanh niên Phường',
+    slug: 'doan-tncs-ho-chi-minh-phuong-chanh-hiep',
+    type: 'SOCIO_POLITICAL',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Nguyễn Văn Đạt',
+    leaderPosition: 'Bí thư Đoàn Phường',
+    phone: '0274.3822.112',
+    email: 'doanthanhnien.chanhhiep@gmail.com',
+    avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/02/8758f2ac-9342-47db-8f7f-7a3bcd434c32b7535a4487543751.png',
+    bannerUrl: 'https://sv2.anhsieuviet.com/2026/09/02/775fbdb9-40fc-4b75-979f-7ebf40ecd00fb813d9fe5f77bf4c.png',
+    membersCount: 520,
+    partyMembersCount: 56,
+    displayOrder: 6,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 7. Hội Liên hiệp Phụ nữ Phường
+  {
+    id: 'org-hoi-pn',
+    code: 'HPN-CH',
+    name: 'Hội Liên hiệp Phụ nữ Phường Chánh Hiệp',
+    shortName: 'Hội Phụ nữ Phường',
+    slug: 'hoi-lien-hiep-phu-nu-phuong-chanh-hiep',
+    type: 'SOCIO_POLITICAL',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Võ Thị Bích Loan',
+    leaderPosition: 'Chủ tịch Hội LHPN',
+    phone: '0274.3822.113',
+    email: 'hoiphunu.chanhhiep@gmail.com',
+    membersCount: 1680,
+    partyMembersCount: 88,
+    displayOrder: 7,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 8. Hội Cựu chiến binh Phường
+  {
+    id: 'org-hoi-ccb',
+    code: 'CCB-CH',
+    name: 'Hội Cựu chiến binh Phường Chánh Hiệp',
+    shortName: 'Hội Cựu chiến binh Phường',
+    slug: 'hoi-cuu-chien-binh-phuong-chanh-hiep',
+    type: 'SOCIO_POLITICAL',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Đặng Quốc Hùng',
+    leaderPosition: 'Chủ tịch Hội CCB',
+    phone: '0274.3822.114',
+    email: 'cuuchienbinh.chanhhiep@gmail.com',
+    membersCount: 420,
+    partyMembersCount: 145,
+    displayOrder: 8,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 9. Công đoàn Cơ sở Phường
+  {
+    id: 'org-cong-doan',
+    code: 'CD-CH',
+    name: 'Công đoàn Cơ sở Khối Phường Chánh Hiệp',
+    shortName: 'Công đoàn Phường',
+    slug: 'cong-doan-co-so-phuong-chanh-hiep',
+    type: 'SOCIO_POLITICAL',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Huỳnh Văn Nghĩa',
+    leaderPosition: 'Chủ tịch Công đoàn',
+    phone: '0274.3822.117',
+    email: 'congdoan.chanhhiep@gmail.com',
+    membersCount: 85,
+    partyMembersCount: 42,
+    displayOrder: 9,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 10. Hội Người cao tuổi Phường
+  {
+    id: 'org-hoi-nct',
+    code: 'NCT-CH',
+    name: 'Hội Người cao tuổi Phường Chánh Hiệp',
+    shortName: 'Hội Người cao tuổi Phường',
+    slug: 'hoi-nguoi-cao-tuoi-phuong-chanh-hiep',
+    type: 'ASSOCIATION',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Lê Văn Chính',
+    leaderPosition: 'Chủ tịch Hội NCT',
+    phone: '0274.3822.115',
+    email: 'nguoicaotuoi.chanhhiep@gmail.com',
+    membersCount: 1150,
+    partyMembersCount: 165,
+    displayOrder: 10,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 11. Hội Chữ thập đỏ Phường
+  {
+    id: 'org-hoi-ctd',
+    code: 'CTD-CH',
+    name: 'Hội Chữ thập đỏ Phường Chánh Hiệp',
+    shortName: 'Hội Chữ thập đỏ Phường',
+    slug: 'hoi-chu-thap-do-phuong-chanh-hiep',
+    type: 'ASSOCIATION',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Hoàng Thị Mai',
+    leaderPosition: 'Chủ tịch Hội CTĐ',
+    phone: '0274.3822.116',
+    email: 'chuthapdo.chanhhiep@gmail.com',
+    membersCount: 320,
+    partyMembersCount: 36,
+    displayOrder: 11,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 12. Hội Khuyến học Phường
+  {
+    id: 'org-hoi-kh',
+    code: 'HKH-CH',
+    name: 'Hội Khuyến học Phường Chánh Hiệp',
+    shortName: 'Hội Khuyến học Phường',
+    slug: 'hoi-khuyen-hoc-phuong-chanh-hiep',
+    type: 'ASSOCIATION',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Phạm Văn Hưởng',
+    leaderPosition: 'Chủ tịch Hội Khuyến học',
+    phone: '0274.3822.118',
+    email: 'khuyenhoc.chanhhiep@gmail.com',
+    membersCount: 640,
+    partyMembersCount: 78,
+    displayOrder: 12,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 13. Hội Cựu Thanh niên xung phong Phường
+  {
+    id: 'org-hoi-tnxp',
+    code: 'TNXP-CH',
+    name: 'Hội Cựu Thanh niên xung phong Phường Chánh Hiệp',
+    shortName: 'Hội Cựu TNXP Phường',
+    slug: 'hoi-cuu-thanh-nien-xung-phong-phuong-chanh-hiep',
+    type: 'ASSOCIATION',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'Nguyễn Văn Tài',
+    leaderPosition: 'Chủ tịch Hội Cựu TNXP',
+    phone: '0274.3822.119',
+    email: 'cuutnxp.chanhhiep@gmail.com',
+    membersCount: 96,
+    partyMembersCount: 28,
+    displayOrder: 13,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 14. Chi hội Luật gia Phường
+  {
+    id: 'org-hoi-lg',
+    code: 'HLG-CH',
+    name: 'Chi hội Luật gia Phường Chánh Hiệp',
+    shortName: 'Chi hội Luật gia Phường',
+    slug: 'chi-hoi-luat-gia-phuong-chanh-hiep',
+    type: 'ASSOCIATION',
+    level: 'WARD',
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    leaderName: 'ThS. Luật sư Trần Đình Long',
+    leaderPosition: 'Chi hội trưởng',
+    phone: '0274.3822.120',
+    email: 'luatgia.chanhhiep@gmail.com',
+    membersCount: 28,
+    partyMembersCount: 18,
+    displayOrder: 14,
+    status: 'ACTIVE',
+    createdAt: '2026-01-01'
+  },
+  // 15. Ban Thanh tra Nhân dân
   {
     id: 'org-btt-nd',
     code: 'BTT-ND',
@@ -1200,10 +1857,11 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     description: 'Giám sát việc thực hiện chính sách, pháp luật và quy chế dân chủ cơ sở.',
     membersCount: 11,
     partyMembersCount: 8,
-    displayOrder: 4,
+    displayOrder: 15,
     status: 'ACTIVE',
     createdAt: '2026-01-01'
   },
+  // 16. Ban Giám sát Đầu tư của Cộng đồng
   {
     id: 'org-gs-dtcd',
     code: 'GS-DTCD',
@@ -1222,649 +1880,14 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     description: 'Giám sát các chương trình, dự án đầu tư công trên địa bàn phường.',
     membersCount: 9,
     partyMembersCount: 6,
-    displayOrder: 5,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  // 21 Ban Công tác Mặt trận Khu phố (Trực thuộc MTTQ Phường, gắn với 21 Khu phố Area)
-  {
-    id: 'org-bctmt-kp1',
-    code: 'BCTMT-KP01',
-    name: 'Ban Công tác Mặt trận Khu phố 1',
-    shortName: 'BCTMT Khu phố 1',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-1',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-1',
-    areaName: 'Khu phố 1',
-    leaderName: 'Phan Thanh Phong',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0944029851',
-    email: 'bctmt.kp1.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 1 (Tương Bình Hiệp 1).',
-    membersCount: 7,
-    partyMembersCount: 5,
-    displayOrder: 10,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp2',
-    code: 'BCTMT-KP02',
-    name: 'Ban Công tác Mặt trận Khu phố 2',
-    shortName: 'BCTMT Khu phố 2',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-2',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-2',
-    areaName: 'Khu phố 2',
-    leaderName: 'Lê Minh Trí',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0933410441',
-    email: 'bctmt.kp2.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 2 (Tương Bình Hiệp 2).',
-    membersCount: 8,
-    partyMembersCount: 6,
-    displayOrder: 11,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp3',
-    code: 'BCTMT-KP03',
-    name: 'Ban Công tác Mặt trận Khu phố 3',
-    shortName: 'BCTMT Khu phố 3',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-3',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-3',
-    areaName: 'Khu phố 3',
-    leaderName: 'Lê Trần Quốc Thái',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0363763231',
-    email: 'bctmt.kp3.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 3 (Tương Bình Hiệp 3).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 12,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp4',
-    code: 'BCTMT-KP04',
-    name: 'Ban Công tác Mặt trận Khu phố 4',
-    shortName: 'BCTMT Khu phố 4',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-4',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-4',
-    areaName: 'Khu phố 4',
-    leaderName: 'Trần Văn An',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0948667996',
-    email: 'bctmt.kp4.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 4 (Tương Bình Hiệp 4).',
-    membersCount: 7,
-    partyMembersCount: 5,
-    displayOrder: 13,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp5',
-    code: 'BCTMT-KP05',
-    name: 'Ban Công tác Mặt trận Khu phố 5',
-    shortName: 'BCTMT Khu phố 5',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-5',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-5',
-    areaName: 'Khu phố 5',
-    leaderName: 'Tiết Tuấn',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0987720790',
-    email: 'bctmt.kp5.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 5 (Tương Bình Hiệp 5).',
-    membersCount: 8,
-    partyMembersCount: 5,
-    displayOrder: 14,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp6',
-    code: 'BCTMT-KP06',
-    name: 'Ban Công tác Mặt trận Khu phố 6',
-    shortName: 'BCTMT Khu phố 6',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-6',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-6',
-    areaName: 'Khu phố 6',
-    leaderName: 'Nguyễn Thị Ánh Tuyết',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0706055248',
-    email: 'bctmt.kp6.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 6 (Tương Bình Hiệp 6).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 15,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp7',
-    code: 'BCTMT-KP07',
-    name: 'Ban Công tác Mặt trận Khu phố 7',
-    shortName: 'BCTMT Khu phố 7',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-7',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-7',
-    areaName: 'Khu phố 7',
-    leaderName: 'Võ Ngọc Giàu',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0888503448',
-    email: 'bctmt.kp7.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 7 (Tương Bình Hiệp 7).',
-    membersCount: 8,
-    partyMembersCount: 5,
     displayOrder: 16,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp8',
-    code: 'BCTMT-KP08',
-    name: 'Ban Công tác Mặt trận Khu phố 8',
-    shortName: 'BCTMT Khu phố 8',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-8',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-8',
-    areaName: 'Khu phố 8',
-    leaderName: 'Dương Văn Thọ',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0976534508',
-    email: 'bctmt.kp8.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 8 (Hiệp An 7).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 17,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp9',
-    code: 'BCTMT-KP09',
-    name: 'Ban Công tác Mặt trận Khu phố 9',
-    shortName: 'BCTMT Khu phố 9',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-9',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-9',
-    areaName: 'Khu phố 9',
-    leaderName: 'Đinh Xuân Phúc',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0928579957',
-    email: 'bctmt.kp9.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 9 (Hiệp An 8).',
-    membersCount: 8,
-    partyMembersCount: 5,
-    displayOrder: 18,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp10',
-    code: 'BCTMT-KP10',
-    name: 'Ban Công tác Mặt trận Khu phố 10',
-    shortName: 'BCTMT Khu phố 10',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-10',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-10',
-    areaName: 'Khu phố 10',
-    leaderName: 'Trần Văn Lợi',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0908758565',
-    email: 'bctmt.kp10.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 10 (Hiệp An 9).',
-    membersCount: 7,
-    partyMembersCount: 5,
-    displayOrder: 19,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp11',
-    code: 'BCTMT-KP11',
-    name: 'Ban Công tác Mặt trận Khu phố 11',
-    shortName: 'BCTMT Khu phố 11',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-11',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-11',
-    areaName: 'Khu phố 11',
-    leaderName: 'Hoàng Thị Xuân Lành',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0977137382',
-    email: 'bctmt.kp11.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 11 (Định Hòa 1).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 20,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp12',
-    code: 'BCTMT-KP12',
-    name: 'Ban Công tác Mặt trận Khu phố 12',
-    shortName: 'BCTMT Khu phố 12',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-12',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-12',
-    areaName: 'Khu phố 12',
-    leaderName: 'Nguyễn Thanh Phương',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0961880602',
-    email: 'bctmt.kp12.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 12 (Định Hòa 2).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 21,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp13',
-    code: 'BCTMT-KP13',
-    name: 'Ban Công tác Mặt trận Khu phố 13',
-    shortName: 'BCTMT Khu phố 13',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-13',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-13',
-    areaName: 'Khu phố 13',
-    leaderName: 'Vương Thị Tuyết Mai',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0902477692',
-    email: 'bctmt.kp13.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 13 (Định Hòa 3).',
-    membersCount: 7,
-    partyMembersCount: 5,
-    displayOrder: 22,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp14',
-    code: 'BCTMT-KP14',
-    name: 'Ban Công tác Mặt trận Khu phố 14',
-    shortName: 'BCTMT Khu phố 14',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-14',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-14',
-    areaName: 'Khu phố 14',
-    leaderName: 'Nguyễn Thị Ngọc Hà',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0988222362',
-    email: 'bctmt.kp14.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 14 (Định Hòa 4).',
-    membersCount: 8,
-    partyMembersCount: 6,
-    displayOrder: 23,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp15',
-    code: 'BCTMT-KP15',
-    name: 'Ban Công tác Mặt trận Khu phố 15',
-    shortName: 'BCTMT Khu phố 15',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-15',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-15',
-    areaName: 'Khu phố 15',
-    leaderName: 'Nguyễn Thị Ích',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0786752934',
-    email: 'bctmt.kp15.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 15 (Định Hòa 5).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 24,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp16',
-    code: 'BCTMT-KP16',
-    name: 'Ban Công tác Mặt trận Khu phố 16',
-    shortName: 'BCTMT Khu phố 16',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-16',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-16',
-    areaName: 'Khu phố 16',
-    leaderName: 'Đặng Thị Huyền Trang',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0943477286',
-    email: 'bctmt.kp16.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 16 (Định Hòa 6).',
-    membersCount: 8,
-    partyMembersCount: 5,
-    displayOrder: 25,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp17',
-    code: 'BCTMT-KP17',
-    name: 'Ban Công tác Mặt trận Khu phố 17',
-    shortName: 'BCTMT Khu phố 17',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-17',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-17',
-    areaName: 'Khu phố 17',
-    leaderName: 'Lê Thị Bình',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0983688364',
-    email: 'bctmt.kp17.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 17 (Định Hòa 7).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 26,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp18',
-    code: 'BCTMT-KP18',
-    name: 'Ban Công tác Mặt trận Khu phố 18',
-    shortName: 'BCTMT Khu phố 18',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-18',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-18',
-    areaName: 'Khu phố 18',
-    leaderName: 'Phan Văn Hòa',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0928979677',
-    email: 'bctmt.kp18.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 18 (Định Hòa 8).',
-    membersCount: 8,
-    partyMembersCount: 5,
-    displayOrder: 27,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp19',
-    code: 'BCTMT-KP19',
-    name: 'Ban Công tác Mặt trận Khu phố 19',
-    shortName: 'BCTMT Khu phố 19',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-19',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-19',
-    areaName: 'Khu phố 19',
-    leaderName: 'Nguyễn Cường',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0989114005',
-    email: 'bctmt.kp19.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 19 (Mỹ Hảo).',
-    membersCount: 7,
-    partyMembersCount: 4,
-    displayOrder: 28,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp20',
-    code: 'BCTMT-KP20',
-    name: 'Ban Công tác Mặt trận Khu phố 20',
-    shortName: 'BCTMT Khu phố 20',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-20',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-20',
-    areaName: 'Khu phố 20',
-    leaderName: 'Nguyễn Thị Mỹ Linh',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0843413153',
-    email: 'bctmt.kp20.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 20 (Chánh Mỹ 1).',
-    membersCount: 8,
-    partyMembersCount: 5,
-    displayOrder: 29,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-bctmt-kp21',
-    code: 'BCTMT-KP21',
-    name: 'Ban Công tác Mặt trận Khu phố 21',
-    shortName: 'BCTMT Khu phố 21',
-    slug: 'ban-cong-tac-mat-tran-khu-pho-21',
-    type: 'FATHERLAND_FRONT',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-mttq-phuong',
-    areaId: 'area-kp-21',
-    areaName: 'Khu phố 21',
-    leaderName: 'Nguyễn Thị Mỹ Châu',
-    leaderPosition: 'Trưởng ban CTMT',
-    phone: '0834789870',
-    email: 'bctmt.kp21.chanhhiep@gmail.com',
-    description: 'Tổ chức phối hợp hành động của MTTQ tại địa bàn Khu phố 21 (Chánh Mỹ 2).',
-    membersCount: 8,
-    partyMembersCount: 5,
-    displayOrder: 30,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  // Các Tổ chức Chính trị - Xã hội / Đoàn thể Thành viên
-  {
-    id: 'org-doan-tn',
-    code: 'DTN-CH',
-    name: 'Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp',
-    shortName: 'Đoàn Thanh niên Phường',
-    slug: 'doan-tncs-ho-chi-minh-phuong-chanh-hiep',
-    type: 'SOCIO_POLITICAL',
-    level: 'WARD',
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    leaderName: 'Nguyễn Văn Đạt',
-    leaderPosition: 'Bí thư Đoàn Phường',
-    phone: '0274.3822.112',
-    email: 'doanthanhnien.chanhhiep@gmail.com',
-    avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/02/8758f2ac-9342-47db-8f7f-7a3bcd434c32b7535a4487543751.png',
-    bannerUrl: 'https://sv2.anhsieuviet.com/2026/09/02/775fbdb9-40fc-4b75-979f-7ebf40ecd00fb813d9fe5f77bf4c.png',
-    membersCount: 450,
-    partyMembersCount: 48,
-    displayOrder: 20,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-hoi-pn',
-    code: 'HPN-CH',
-    name: 'Hội Liên hiệp Phụ nữ Phường Chánh Hiệp',
-    shortName: 'Hội Phụ nữ Phường',
-    slug: 'hoi-lien-hiep-phu-nu-phuong-chanh-hiep',
-    type: 'SOCIO_POLITICAL',
-    level: 'WARD',
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    leaderName: 'Võ Thị Bích Loan',
-    leaderPosition: 'Chủ tịch Hội LHPN',
-    phone: '0274.3822.113',
-    email: 'hoiphunu.chanhhiep@gmail.com',
-    membersCount: 1280,
-    partyMembersCount: 72,
-    displayOrder: 21,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-hoi-ccb',
-    code: 'CCB-CH',
-    name: 'Hội Cựu chiến binh Phường Chánh Hiệp',
-    shortName: 'Hội Cựu chiến binh Phường',
-    slug: 'hoi-cuu-chien-binh-phuong-chanh-hiep',
-    type: 'SOCIO_POLITICAL',
-    level: 'WARD',
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    leaderName: 'Đặng Quốc Hùng',
-    leaderPosition: 'Chủ tịch Hội CCB',
-    phone: '0274.3822.114',
-    email: 'cuuchienbinh.chanhhiep@gmail.com',
-    membersCount: 320,
-    partyMembersCount: 115,
-    displayOrder: 22,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-hoi-nct',
-    code: 'NCT-CH',
-    name: 'Hội Người cao tuổi Phường Chánh Hiệp',
-    shortName: 'Hội Người cao tuổi Phường',
-    slug: 'hoi-nguoi-cao-tuoi-phuong-chanh-hiep',
-    type: 'ASSOCIATION',
-    level: 'WARD',
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    leaderName: 'Lê Văn Chính',
-    leaderPosition: 'Chủ tịch Hội NCT',
-    phone: '0274.3822.115',
-    email: 'nguoicaotuoi.chanhhiep@gmail.com',
-    membersCount: 890,
-    partyMembersCount: 140,
-    displayOrder: 23,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-hoi-ctd',
-    code: 'CTD-CH',
-    name: 'Hội Chữ thập đỏ Phường Chánh Hiệp',
-    shortName: 'Hội Chữ thập đỏ Phường',
-    slug: 'hoi-chu-thap-do-phuong-chanh-hiep',
-    type: 'ASSOCIATION',
-    level: 'WARD',
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    leaderName: 'Hoàng Thị Mai',
-    leaderPosition: 'Chủ tịch Hội CTĐ',
-    phone: '0274.3822.116',
-    email: 'chuthapdo.chanhhiep@gmail.com',
-    membersCount: 210,
-    partyMembersCount: 28,
-    displayOrder: 24,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  // Chi đoàn / Chi hội cấp cơ sở trực thuộc Đoàn thể, gắn với Khu phố 1 (Hierarchy Children)
-  {
-    id: 'org-chi-doan-kp1',
-    code: 'CD-KP01',
-    name: 'Chi đoàn TNCS Hồ Chí Minh Khu phố 1',
-    shortName: 'Chi đoàn Khu phố 1',
-    slug: 'chi-doan-khu-pho-1',
-    type: 'BRANCH',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-doan-tn',
-    areaId: 'area-kp-1',
-    areaName: 'Khu phố 1',
-    leaderName: 'Nguyễn Anh Khoa',
-    leaderPosition: 'Bí thư Chi đoàn',
-    phone: '0793515812',
-    email: 'chidoan.kp1.chanhhiep@gmail.com',
-    description: 'Chi đoàn thanh niên cơ sở sinh hoạt tại Khu phố 1.',
-    membersCount: 38,
-    partyMembersCount: 3,
-    displayOrder: 30,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-chi-hoi-pn-kp1',
-    code: 'CHPN-KP01',
-    name: 'Chi hội Phụ nữ Khu phố 1',
-    shortName: 'Chi hội Phụ nữ KP1',
-    slug: 'chi-hoi-phu-nu-khu-pho-1',
-    type: 'BRANCH',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-hoi-pn',
-    areaId: 'area-kp-1',
-    areaName: 'Khu phố 1',
-    leaderName: 'Nguyễn Thị Thu Dung',
-    leaderPosition: 'Chi hội trưởng Phụ nữ',
-    phone: '0933742769',
-    description: 'Chi hội phụ nữ cơ sở tại Khu phố 1.',
-    membersCount: 110,
-    partyMembersCount: 6,
-    displayOrder: 31,
-    status: 'ACTIVE',
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-chi-hoi-ccb-kp1',
-    code: 'CHCCB-KP01',
-    name: 'Chi hội Cựu chiến binh Khu phố 1',
-    shortName: 'Chi hội CCB KP1',
-    slug: 'chi-hoi-cuu-chien-binh-khu-pho-1',
-    type: 'BRANCH',
-    level: 'NEIGHBORHOOD',
-    parentId: 'org-hoi-ccb',
-    areaId: 'area-kp-1',
-    areaName: 'Khu phố 1',
-    leaderName: 'Trần Văn Hưng',
-    leaderPosition: 'Chi hội trưởng CCB',
-    phone: '0912345678',
-    description: 'Chi hội cựu chiến binh cơ sở tại Khu phố 1.',
-    membersCount: 28,
-    partyMembersCount: 12,
-    displayOrder: 32,
     status: 'ACTIVE',
     createdAt: '2026-01-01'
   }
 ];
 
 export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
+  // 1. Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
   {
     id: 'org-mttq',
     code: 'MTTQ-CH',
@@ -1886,7 +1909,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     level: 'WARD',
     status: 'ACTIVE',
     activeMembersCount: 45,
-    branchesCount: 21, // 21 Ban công tác Mặt trận khu phố
+    branchesCount: 21, // 21 Ban công tác Mặt trận tại 21 khu phố
     neighborhoodsCoveredCount: 21,
     femaleMembersCount: 22,
     youthMembersCount: 10,
@@ -1897,19 +1920,20 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     keyProjectsCount: 21,
     establishedYear: '1930',
     featuredAchievements: [
-      'Xây dựng 100% Ban công tác Mặt trận khu phố vững mạnh',
-      'Mô hình "Nối vòng tay lớn - Chăm lo An sinh Xã hội"',
-      'Mô hình "Khu dân cư Tự quản - Khai thác Chuyển đổi số"'
+      'Xây dựng 100% Ban công tác Mặt trận 21 khu phố vững mạnh toàn diện',
+      'Mô hình "Nối vòng tay lớn - Chăm lo An sinh Xã hội và Hộ nghèo"',
+      'Mô hình "Khu dân cư Tự quản - Chuyển đổi số - Đô thị văn minh"'
     ],
     createdAt: '2026-01-01'
   },
+  // 2. Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp
   {
     id: 'org-dtn',
     code: 'DTN-CH',
     slug: 'doan-thanh-nien',
     name: 'Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp',
-    shortName: 'Đoàn Thanh niên',
-    description: 'Tổ chức chính trị - xã hội của thanh niên Việt Nam, cánh tay đắc lực và lực lượng hậu bị tin cậy của Đảng tại địa bàn phường Chánh Hiệp.',
+    shortName: 'Đoàn TNCS Hồ Chí Minh',
+    description: 'Đoàn kết, tập hợp thanh niên, xung kích, sáng tạo, phát triển quê hương, đất nước.',
     leaderName: 'Nguyễn Văn Đạt',
     leaderPosition: 'Bí thư Đoàn Phường',
     phone: '0274.3822.112',
@@ -1935,12 +1959,52 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     keyProjectsCount: 10,
     establishedYear: '1931',
     featuredAchievements: [
-      'Đội hình "Thanh niên xung kích Chuyển đổi số địa phương"',
+      'Đội hình "Thanh niên xung kích Chuyển đổi số địa phương & Hỗ trợ dịch vụ công"',
       'Mô hình "Tuyến đường Thanh niên Tự quản Sáng - Xanh - Sạch - An ninh"',
-      'Chương trình "Nâng bước em đến trường"'
+      'Chương trình "Nâng bước em đến trường & Trao học bổng Trần Văn Ơn"'
     ],
     createdAt: '2026-01-01'
   },
+  // 3. Hội Liên hiệp Thanh niên Việt Nam Phường Chánh Hiệp
+  {
+    id: 'org-lhtn',
+    code: 'LHTN-CH',
+    slug: 'hoi-lien-hiep-thanh-nien',
+    name: 'Hội Liên hiệp Thanh niên Việt Nam Phường Chánh Hiệp',
+    shortName: 'Hội LHTN Việt Nam',
+    description: 'Đoàn kết, tập hợp thanh niên, xây dựng lối sống đẹp, phát triển kinh tế - xã hội.',
+    leaderName: 'Lê Hoàng Phong',
+    leaderPosition: 'Chủ tịch Hội LHTN',
+    phone: '0274.3822.121',
+    email: 'hoilhtn.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=1200',
+    displayOrder: 3,
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    organizationId: 'org-hoi-lhtn',
+    level: 'WARD',
+    status: 'ACTIVE',
+    activeMembersCount: 780,
+    branchesCount: 24, // 21 chi hội khu phố + 3 chi hội trường học & CLB
+    neighborhoodsCoveredCount: 21,
+    femaleMembersCount: 380,
+    youthMembersCount: 780,
+    partyMembersCount: 42,
+    executiveCommitteeMembersCount: 15,
+    gatheringRatio: '86%',
+    programsCount: 18,
+    keyProjectsCount: 8,
+    establishedYear: '1956',
+    featuredAchievements: [
+      'CLB Thắp sáng niềm tin & Hỗ trợ thanh niên khởi nghiệp lập nghiệp',
+      'Đội hình tình nguyện vì cộng đồng "Thanh niên Chánh Hiệp - Triệu trái tim"',
+      'Chương trình "Ngày hội Thầy thuốc trẻ làm theo lời Bác - Khám bệnh miễn phí"'
+    ],
+    createdAt: '2026-01-01'
+  },
+  // 3. Hội Liên hiệp Phụ nữ Phường Chánh Hiệp
   {
     id: 'org-lhph',
     code: 'HPN-CH',
@@ -1973,12 +2037,13 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     keyProjectsCount: 12,
     establishedYear: '1930',
     featuredAchievements: [
-      'Mô hình "Mẹ đỡ đầu - Kết nối yêu thương"',
+      'Mô hình "Mẹ đỡ đầu - Kết nối yêu thương, nuôi dạy trẻ mồ côi"',
       'Phong trào "Gia đình 5 không 3 sạch xây dựng Đô thị văn minh"',
-      'Quỹ "Tương trợ phụ nữ khởi nghiệp và phát triển kinh tế"'
+      'Quỹ "Tương trợ phụ nữ khởi nghiệp và phát triển kinh tế gia đình"'
     ],
     createdAt: '2026-01-01'
   },
+  // 4. Hội Cựu chiến binh Phường Chánh Hiệp
   {
     id: 'org-ccb',
     code: 'CCB-CH',
@@ -2011,12 +2076,52 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     keyProjectsCount: 8,
     establishedYear: '1989',
     featuredAchievements: [
-      'Mô hình "Cựu chiến binh gương mẫu bảo vệ an ninh trật tự"',
-      'Tổ hòa giải cựu chiến binh giải quyết 100% mâu thuẫn cơ sở',
-      'Giáo dục truyền thống cách mạng cho thế hệ trẻ'
+      'Mô hình "Cựu chiến binh gương mẫu bảo vệ an ninh trật tự khu dân cư"',
+      'Tổ hòa giải cựu chiến binh giải quyết 100% mâu thuẫn từ cơ sở',
+      'Giáo dục truyền thống cách mạng cho thế hệ trẻ tại các trường học'
     ],
     createdAt: '2026-01-01'
   },
+  // 5. Công đoàn Cơ sở Phường Chánh Hiệp
+  {
+    id: 'org-congdoan',
+    code: 'CD-CH',
+    slug: 'cong-doan-co-so',
+    name: 'Công đoàn Cơ sở Khối Phường Chánh Hiệp',
+    shortName: 'Công đoàn Phường',
+    description: 'Tổ chức đại diện chăm lo, bảo vệ quyền, lợi ích hợp pháp, chính đáng của cán bộ, công chức, người lao động cơ quan và các đơn vị trực thuộc phường.',
+    leaderName: 'Huỳnh Văn Nghĩa',
+    leaderPosition: 'Chủ tịch Công đoàn Cơ sở',
+    phone: '0274.3822.117',
+    email: 'congdoan.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1200',
+    displayOrder: 5,
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    organizationId: 'org-cong-doan',
+    level: 'WARD',
+    status: 'ACTIVE',
+    activeMembersCount: 85,
+    branchesCount: 6, // 6 tổ công đoàn
+    neighborhoodsCoveredCount: 21,
+    femaleMembersCount: 46,
+    youthMembersCount: 30,
+    partyMembersCount: 42,
+    executiveCommitteeMembersCount: 7,
+    gatheringRatio: '98%',
+    programsCount: 16,
+    keyProjectsCount: 5,
+    establishedYear: '1929',
+    featuredAchievements: [
+      'Phong trào "Lao động giỏi - Lao động sáng tạo, phục vụ nhân dân"',
+      'Xây dựng cơ quan văn hóa, văn minh, công sở số hóa hiện đại',
+      'Chăm lo đời sống, phúc lợi đoàn viên và người lao động khó khăn'
+    ],
+    createdAt: '2026-01-01'
+  },
+  // 6. Hội Người cao tuổi Phường Chánh Hiệp
   {
     id: 'org-nct',
     code: 'NCT-CH',
@@ -2030,7 +2135,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     email: 'nguoicaotuoi.chanhhiep@gmail.com',
     avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=300',
     bannerUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=1200',
-    displayOrder: 5,
+    displayOrder: 6,
     parentId: null,
     areaId: 'area-chanh-hiep',
     areaName: 'Phường Chánh Hiệp',
@@ -2055,6 +2160,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
+  // 7. Hội Chữ thập đỏ Phường Chánh Hiệp
   {
     id: 'org-ctd',
     code: 'CTD-CH',
@@ -2068,7 +2174,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     email: 'chuthapdo.chanhhiep@gmail.com',
     avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300',
     bannerUrl: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&q=80&w=1200',
-    displayOrder: 6,
+    displayOrder: 7,
     parentId: null,
     areaId: 'area-chanh-hiep',
     areaName: 'Phường Chánh Hiệp',
@@ -2093,109 +2199,120 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // Chi hội / Chi đoàn trực thuộc cấp cơ sở (Hierarchical Children with parentId & areaId)
+  // 8. Hội Khuyến học Phường Chánh Hiệp
   {
-    id: 'org-sub-dtn-kp1',
-    code: 'CD-KP01',
-    slug: 'chi-doan-khu-pho-1',
-    name: 'Chi đoàn TNCS Hồ Chí Minh Khu phố 1',
-    shortName: 'Chi đoàn KP1',
-    description: 'Chi đoàn thanh niên phụ trách công tác đoàn và phong trào thanh thiếu nhi tại địa bàn Khu phố 1.',
-    leaderName: 'Nguyễn Anh Khoa',
-    leaderPosition: 'Bí thư Chi đoàn',
-    phone: '0793515812',
-    email: 'chidoan.kp1.chanhhiep@gmail.com',
-    displayOrder: 10,
-    parentId: 'org-dtn', // Trực thuộc Đoàn Phường
-    areaId: 'area-kp-1', // Gắn với Khu phố 1
-    areaName: 'Khu phố 1',
-    organizationId: 'org-chi-doan-kp1',
-    level: 'NEIGHBORHOOD',
+    id: 'org-hkh',
+    code: 'HKH-CH',
+    slug: 'hoi-khuyen-hoc',
+    name: 'Hội Khuyến học Phường Chánh Hiệp',
+    shortName: 'Hội Khuyến học',
+    description: 'Tổ chức xã hội vận động toàn dân học tập, xây dựng "Xã hội học tập", "Gia đình học tập", "Dòng họ học tập", trao học bổng tiếp sức đến trường.',
+    leaderName: 'Phạm Văn Hưởng',
+    leaderPosition: 'Chủ tịch Hội Khuyến học',
+    phone: '0274.3822.118',
+    email: 'khuyenhoc.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=1200',
+    displayOrder: 8,
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    organizationId: 'org-hoi-kh',
+    level: 'WARD',
     status: 'ACTIVE',
-    activeMembersCount: 38,
-    branchesCount: 3, // 3 tổ thanh niên
-    neighborhoodsCoveredCount: 1,
-    femaleMembersCount: 18,
-    youthMembersCount: 38,
-    partyMembersCount: 3,
-    executiveCommitteeMembersCount: 3,
-    gatheringRatio: '85%',
-    programsCount: 6,
-    keyProjectsCount: 2,
-    establishedYear: '1976',
-    featuredAchievements: [
-      'Đội thanh niên chuyển đổi số hỗ trợ người dân cài đặt VNeID tại Khu phố 1',
-      'Tuyến đường thanh niên tự quản sáng xanh sạch đẹp'
-    ],
-    createdAt: '2026-01-01'
-  },
-  {
-    id: 'org-sub-pn-kp1',
-    code: 'CHPN-KP01',
-    slug: 'chi-hoi-phu-nu-khu-pho-1',
-    name: 'Chi hội Phụ nữ Khu phố 1',
-    shortName: 'Chi hội Phụ nữ KP1',
-    description: 'Chi hội đại diện quyền lợi phụ nữ và thúc đẩy bình đẳng giới tại Khu phố 1.',
-    leaderName: 'Nguyễn Thị Thu Dung',
-    leaderPosition: 'Chi hội trưởng Phụ nữ',
-    phone: '0933742769',
-    email: 'hoiphunu.kp1@gmail.com',
-    displayOrder: 11,
-    parentId: 'org-lhph', // Trực thuộc Hội Phụ nữ Phường
-    areaId: 'area-kp-1', // Gắn với Khu phố 1
-    areaName: 'Khu phố 1',
-    organizationId: 'org-chi-hoi-pn-kp1',
-    level: 'NEIGHBORHOOD',
-    status: 'ACTIVE',
-    activeMembersCount: 110,
-    branchesCount: 4, // 4 tổ phụ nữ
-    neighborhoodsCoveredCount: 1,
-    femaleMembersCount: 110,
-    youthMembersCount: 25,
-    partyMembersCount: 6,
-    executiveCommitteeMembersCount: 5,
+    activeMembersCount: 640,
+    branchesCount: 21, // 21 chi hội khuyến học khu phố + ban khuyến học dòng họ
+    neighborhoodsCoveredCount: 21,
+    femaleMembersCount: 340,
+    youthMembersCount: 120,
+    partyMembersCount: 78,
+    executiveCommitteeMembersCount: 15,
     gatheringRatio: '90%',
-    programsCount: 8,
-    keyProjectsCount: 3,
-    establishedYear: '1976',
+    programsCount: 20,
+    keyProjectsCount: 7,
+    establishedYear: '1996',
     featuredAchievements: [
-      'Tổ phụ nữ tiết kiệm và tương trợ vốn',
-      'Mô hình gia đình 5 không 3 sạch tại Khu phố 1'
+      'Quỹ Khuyến học - Khuyến tài Chánh Hiệp trao hơn 300 suất học bổng/năm',
+      'Mô hình 100% khu phố đạt chuẩn "Cộng đồng học tập"',
+      'Phong trào "Nuôi heo đất khuyến học" trong các trường học và khu dân cư'
     ],
     createdAt: '2026-01-01'
   },
+  // 9. Hội Cựu Thanh niên xung phong Phường Chánh Hiệp
   {
-    id: 'org-sub-ccb-kp1',
-    code: 'CHCCB-KP01',
-    slug: 'chi-hoi-cuu-chien-binh-khu-pho-1',
-    name: 'Chi hội Cựu chiến binh Khu phố 1',
-    shortName: 'Chi hội CCB KP1',
-    description: 'Chi hội cựu chiến binh gương mẫu và nòng cốt trong công tác an ninh trật tự tại Khu phố 1.',
-    leaderName: 'Trần Văn Hưng',
-    leaderPosition: 'Chi hội trưởng CCB',
-    phone: '0912345678',
-    email: 'cuuchienbinh.kp1@gmail.com',
-    displayOrder: 12,
-    parentId: 'org-ccb', // Trực thuộc Hội CCB Phường
-    areaId: 'area-kp-1', // Gắn với Khu phố 1
-    areaName: 'Khu phố 1',
-    organizationId: 'org-chi-hoi-ccb-kp1',
-    level: 'NEIGHBORHOOD',
+    id: 'org-tnxp',
+    code: 'TNXP-CH',
+    slug: 'hoi-cuu-thanh-nien-xung-phong',
+    name: 'Hội Cựu Thanh niên xung phong Phường Chánh Hiệp',
+    shortName: 'Hội Cựu TNXP',
+    description: 'Tổ chức tập hợp lực lượng cựu TNXP các thời kỳ, phát huy truyền thống anh hùng, nghĩa tình đồng đội và giáo dục lý tưởng cho thế hệ trẻ.',
+    leaderName: 'Nguyễn Văn Tài',
+    leaderPosition: 'Chủ tịch Hội Cựu TNXP',
+    phone: '0274.3822.119',
+    email: 'cuutnxp.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=1200',
+    displayOrder: 9,
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    organizationId: 'org-hoi-tnxp',
+    level: 'WARD',
+    status: 'ACTIVE',
+    activeMembersCount: 96,
+    branchesCount: 4, // 4 phân hội liên khu phố
+    neighborhoodsCoveredCount: 21,
+    femaleMembersCount: 38,
+    youthMembersCount: 0,
+    partyMembersCount: 28,
+    executiveCommitteeMembersCount: 7,
+    gatheringRatio: '94%',
+    programsCount: 10,
+    keyProjectsCount: 4,
+    establishedYear: '2004',
+    featuredAchievements: [
+      'Phong trào "Nghĩa tình đồng đội - Vì đồng đội TNXP nghèo"',
+      'Hỗ trợ xây dựng và sửa chữa Nhà Tình nghĩa cho hội viên khó khăn',
+      'Biên soạn kỷ yếu truyền thống TNXP địa phương qua các thời kỳ'
+    ],
+    createdAt: '2026-01-01'
+  },
+  // 10. Chi hội Luật gia Phường Chánh Hiệp
+  {
+    id: 'org-luat-gia',
+    code: 'HLG-CH',
+    slug: 'chi-hoi-luat-gia',
+    name: 'Chi hội Luật gia Phường Chánh Hiệp',
+    shortName: 'Chi hội Luật gia',
+    description: 'Tổ chức chính trị - xã hội - nghề nghiệp của giới luật gia, tư vấn pháp luật miễn phí, trợ giúp pháp lý cho người nghèo và tham gia hòa giải cơ sở.',
+    leaderName: 'ThS. Luật sư Trần Đình Long',
+    leaderPosition: 'Chi hội trưởng Chi hội Luật gia',
+    phone: '0274.3822.120',
+    email: 'luatgia.chanhhiep@gmail.com',
+    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300',
+    bannerUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=1200',
+    displayOrder: 10,
+    parentId: null,
+    areaId: 'area-chanh-hiep',
+    areaName: 'Phường Chánh Hiệp',
+    organizationId: 'org-hoi-lg',
+    level: 'WARD',
     status: 'ACTIVE',
     activeMembersCount: 28,
-    branchesCount: 2,
-    neighborhoodsCoveredCount: 1,
-    femaleMembersCount: 4,
-    youthMembersCount: 0,
-    partyMembersCount: 12,
-    executiveCommitteeMembersCount: 3,
-    gatheringRatio: '98%',
-    programsCount: 5,
-    keyProjectsCount: 2,
-    establishedYear: '1989',
+    branchesCount: 1, // Chi hội chuyên môn + 21 tổ tư vấn cộng đồng
+    neighborhoodsCoveredCount: 21,
+    femaleMembersCount: 9,
+    youthMembersCount: 8,
+    partyMembersCount: 18,
+    executiveCommitteeMembersCount: 5,
+    gatheringRatio: '100%',
+    programsCount: 12,
+    keyProjectsCount: 4,
+    establishedYear: '1955',
     featuredAchievements: [
-      'Tổ hòa giải cựu chiến binh cơ sở đạt hiệu quả 100%',
-      'Cựu chiến binh gương mẫu bảo vệ an ninh trật tự khu phố'
+      'Tư vấn pháp lý miễn phí định kỳ hàng tháng cho nhân dân và người lao động',
+      'Phối hợp tổ chức "Ngày Pháp luật Việt Nam" tại 21 khu dân cư',
+      'Tham gia đóng góp ý kiến xây dựng các văn bản quy phạm pháp luật và hòa giải cơ sở'
     ],
     createdAt: '2026-01-01'
   }

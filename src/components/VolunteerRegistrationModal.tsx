@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { HeartHandshake, User, Phone, MapPin, Sparkles, Check, X, ShieldCheck, Send } from 'lucide-react';
+import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
 
 interface VolunteerRegistrationModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
 }) => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [neighborhood, setNeighborhood] = useState('Khu phố 1');
+  const [neighborhood, setNeighborhood] = useState(OFFICIAL_NEIGHBORHOOD_NAMES[0]);
   const [selectedTeams, setSelectedTeams] = useState<string[]>(['An sinh & Cứu trợ']);
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,7 +149,7 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
                   onChange={(e) => setNeighborhood(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 >
-                  {Array.from({ length: 21 }, (_, i) => `Khu phố ${i + 1}`).map((kp) => (
+                  {OFFICIAL_NEIGHBORHOOD_NAMES.map((kp) => (
                     <option key={kp} value={kp}>{kp}</option>
                   ))}
                 </select>

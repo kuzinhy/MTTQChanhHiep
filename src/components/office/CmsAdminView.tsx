@@ -19,6 +19,8 @@ import {
   Article, 
   OfficialDocument, 
   Competition, 
+  CompetitionType,
+  CompetitionStatus,
   PublicOpinion, 
   ArticleCategory, 
   ArticleStatus, 
@@ -469,12 +471,12 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
 
   // Competition Form State
   const [compTitle, setCompTitle] = useState('');
-  const [compType, setCompType] = useState<'TRIVIA' | 'WRITING'>('TRIVIA');
+  const [compType, setCompType] = useState<CompetitionType>('TRIVIA');
   const [compDesc, setCompDesc] = useState('');
   const [compRules, setCompRules] = useState('Dự thi trực tuyến cá nhân, trả lời đầy đủ các câu hỏi theo quy định.');
   const [compStartDate, setCompStartDate] = useState(new Date().toISOString().substring(0, 10));
   const [compEndDate, setCompEndDate] = useState('31/12/2026');
-  const [compStatus, setCompStatus] = useState<'ONGOING' | 'UPCOMING' | 'ENDED'>('ONGOING');
+  const [compStatus, setCompStatus] = useState<CompetitionStatus>('ONGOING');
   const [compTotalQuestions, setCompTotalQuestions] = useState(10);
 
   // Opinions Response Modal
@@ -1707,11 +1709,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                       op.status === 'RESOLVED'
                         ? 'bg-emerald-100 text-emerald-800'
-                        : op.status === 'IN_PROGRESS'
+                        : op.status === 'PROCESSING'
                         ? 'bg-amber-100 text-amber-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {op.status === 'RESOLVED' ? 'Đã phản hồi dứt điểm' : op.status === 'IN_PROGRESS' ? 'Đang xác minh xử lý' : 'Ý kiến mới'}
+                      {op.status === 'RESOLVED' ? 'Đã phản hồi dứt điểm' : op.status === 'PROCESSING' ? 'Đang xác minh xử lý' : 'Ý kiến mới'}
                     </span>
                   </div>
 

@@ -122,7 +122,7 @@ export const AboutSection: React.FC<{
         <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="flex items-center gap-3 text-slate-600 font-medium">
             <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>Số 1240, đường Đại Lộ Bình Dương, khu phố Định Hòa 5, phường Chánh Hiệp, Thành phố Hồ Chí Minh</span>
+            <span>Số 1240, đường Đại Lộ Bình Dương, Khu phố Định Hòa 5, phường Chánh Hiệp, Thành phố Hồ Chí Minh</span>
           </div>
           <div className="flex items-center gap-3 text-slate-600 font-medium">
             <Phone className="w-4 h-4 text-blue-600 shrink-0" />

@@ -297,17 +297,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
           </div>
         </div>
 
-        {/* System Settings & User Hub Quick Status Note */}
-        <div className="p-3 bg-gradient-to-br from-slate-50 to-blue-50/60 rounded-2xl border border-slate-200/80 text-[11px] space-y-1 mt-auto">
-          <div className="flex items-center gap-1.5 text-blue-800 font-extrabold text-[10px] uppercase">
-            <Users className="w-3.5 h-3.5 text-blue-600" />
-            <span>Quản trị &amp; Cài đặt Hệ thống</span>
-          </div>
-          <p className="text-[10px] text-slate-500 leading-tight">
-            Quản lý tài khoản cán bộ, phân quyền RBAC và nhật ký Audit Logs được tích hợp trực tiếp tại menu <strong className="text-slate-700">Tài khoản Cán bộ</strong> (góc phải trên).
-          </p>
-        </div>
-
       </div>
     </aside>
     </>

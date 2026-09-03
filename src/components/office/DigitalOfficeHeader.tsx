@@ -89,7 +89,7 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
   }, []);
 
   const notifications = [
-    { id: 1, title: 'Phản ánh mới từ Khu phố 3 (PA-2026-8812)', time: '5 phút trước', type: 'OPINION' },
+    { id: 1, title: 'Phản ánh mới từ Tương Bình Hiệp 3 (PA-2026-8812)', time: '5 phút trước', type: 'OPINION' },
     { id: 2, title: 'Yêu cầu phê duyệt Kế hoạch 08/KH-MTTQ', time: '20 phút trước', type: 'DOC' },
     { id: 3, title: 'Bài viết Ngày hội ĐĐK đã xuất bản', time: 'Hôm qua', type: 'NEWS' }
   ];

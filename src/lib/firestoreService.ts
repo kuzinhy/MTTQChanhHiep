@@ -374,9 +374,19 @@ class CloudSyncService {
       // Areas Listener
       if (callbacks.onAreasUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.AREAS), (snapshot) => {
+          const validAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
           const remoteAreas: Area[] = snapshot.docs
             .map(d => ({ ...(d.data() as Area), id: d.id }))
-            .filter(a => a && a.id);
+            .filter(a => a && a.id && validAreaIds.has(a.id));
+
+          // Self-heal: purge any legacy areas from Cloud Firestore
+          snapshot.docs.forEach(d => {
+            if (!validAreaIds.has(d.id)) {
+              console.log('[Firestore] Purging obsolete legacy area document:', d.id);
+              deleteDoc(doc(db, FirestoreCollections.AREAS, d.id)).catch(() => {});
+            }
+          });
+
           remoteAreas.sort((a, b) => (a.order || 0) - (b.order || 0));
           AppStorageEngine.saveAreas(remoteAreas);
           callbacks.onAreasUpdate?.(remoteAreas);
@@ -402,11 +412,39 @@ class CloudSyncService {
       }
 
       // 3. Database successfully initialized. Clients will listen to real-time cloud updates.
+      // Purge any legacy 12 khu phố from Cloud Firestore
+      this.purgeLegacyAreas().catch(e => console.warn('Purge legacy areas async:', e));
       // A manual cloud sync is still available via the UI's "Đồng bộ Cloud" button if needed.
 
     } catch (err) {
       console.error('[Firestore] Initialization error:', err);
       this.isConnected = false;
+    }
+  }
+
+  // Purge any legacy 12 khu phố from Cloud Firestore and ensure all 21 new ones exist
+  public async purgeLegacyAreas() {
+    try {
+      const validAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
+      const areasSnap = await getDocs(collection(db, FirestoreCollections.AREAS));
+      for (const d of areasSnap.docs) {
+        if (!validAreaIds.has(d.id)) {
+          console.log('[Firestore] Deleting obsolete legacy area from Cloud:', d.id);
+          try {
+            await deleteDoc(doc(db, FirestoreCollections.AREAS, d.id));
+          } catch {
+            // ignore
+          }
+        }
+      }
+      // Ensure all 21 new areas exist in Cloud Firestore
+      for (const area of INITIAL_AREAS) {
+        const aDoc = doc(db, FirestoreCollections.AREAS, area.id);
+        await setDoc(aDoc, cleanFirestoreData(area), { merge: true });
+      }
+      console.log('[Firestore] Successfully purged legacy areas and synchronized 21 new areas to Cloud');
+    } catch (err) {
+      console.warn('[Firestore] Purge legacy areas error:', err);
     }
   }
 

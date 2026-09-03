@@ -40,7 +40,7 @@ const DEFAULT_EVENTS: WorkEvent[] = [
     endTime: '2026-09-02T11:30',
     location: 'Phòng Tiếp dân - Văn phòng Số MTTQ Phường',
     chair: 'Đ/c Phó Chủ tịch Ủy ban MTTQ Phường',
-    participants: 'Cán bộ trực tiếp dân & Đại diện Nhân dân Khu phố 3, Khu phố 4',
+    participants: 'Cán bộ trực tiếp dân & Đại diện Nhân dân Tương Bình Hiệp 3, Tương Bình Hiệp 4',
     content: 'Tiếp nhận phản ánh của nhân dân về chính sách trợ cấp xã hội, vệ sinh môi trường đô thị.',
     category: 'Tiếp dân'
   },
@@ -49,8 +49,8 @@ const DEFAULT_EVENTS: WorkEvent[] = [
     title: 'Khảo sát tiến độ xây dựng Nhà Đại đoàn kết cho hộ khó khăn',
     startTime: '2026-09-03T14:00',
     endTime: '2026-09-03T16:30',
-    location: 'Tổ 5, Khu phố 8, Phường Chánh Hiệp',
-    chair: 'Đ/c Trưởng Ban Công tác Mặt trận Khu phố 8',
+    location: 'Tổ 5, Khu phố Hiệp An 7, Phường Chánh Hiệp',
+    chair: 'Đ/c Trưởng Ban Công tác Mặt trận Hiệp An 7',
     participants: 'Đoàn khảo sát MTTQ Phường, Đơn vị tài trợ',
     content: 'Kiểm tra thực tế nghiệm thu công trình nhà tình thương cho gia đình chính sách.',
     category: 'Giám sát'

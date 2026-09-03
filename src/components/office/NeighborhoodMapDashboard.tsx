@@ -25,7 +25,7 @@ interface NeighborhoodMapDashboardProps {
 
 export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
   {
-    id: 'kp-tibh-1',
+    id: 'kp-1',
     name: 'Tương Bình Hiệp 1',
     chiefName: 'Trần Thị Tố Như',
     phone: '0933742769',
@@ -36,7 +36,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 98,
     status: 'GREEN',
-    mttqName: 'Phan Thanh Phong',
+    mttqName: 'Đoàn Thị Bích Vân',
     mttqPhone: '0944029851',
     secretaryName: 'Đoàn Thị Bích Vân',
     secretaryPhone: '0919926385',
@@ -47,7 +47,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     womenAssociationChief: 'Nguyễn Thị Thu Dung'
   },
   {
-    id: 'kp-tibh-2',
+    id: 'kp-2',
     name: 'Tương Bình Hiệp 2',
     chiefName: 'Nguyễn Thanh Sơn',
     phone: '0336749484',
@@ -58,7 +58,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 96,
     status: 'GREEN',
-    mttqName: 'Lê Minh Trí',
+    mttqName: 'Lê Thị Thanh Loan',
     mttqPhone: '0933410441',
     secretaryName: 'Lê Thị Thanh Loan',
     secretaryPhone: '0913140999',
@@ -68,7 +68,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0345605902'
   },
   {
-    id: 'kp-tibh-3',
+    id: 'kp-3',
     name: 'Tương Bình Hiệp 3',
     chiefName: 'Nguyễn Việt Toàn',
     phone: '0919908008',
@@ -79,7 +79,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 3,
     satisfactionRate: 94,
     status: 'YELLOW',
-    mttqName: 'Lê Trần Quốc Thái',
+    mttqName: 'Nguyễn Văn An',
     mttqPhone: '0363763231',
     secretaryName: 'Nguyễn Văn An',
     secretaryPhone: '0913163103',
@@ -89,7 +89,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0839520139'
   },
   {
-    id: 'kp-tibh-4',
+    id: 'kp-4',
     name: 'Tương Bình Hiệp 4',
     chiefName: 'Lê Duy Khang',
     phone: '0358934767',
@@ -100,7 +100,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 1,
     satisfactionRate: 100,
     status: 'GREEN',
-    mttqName: 'Trần Văn An',
+    mttqName: 'Nguyễn Minh Hoàng',
     mttqPhone: '0948667996',
     secretaryName: 'Nguyễn Minh Hoàng',
     secretaryPhone: '0918014758',
@@ -110,7 +110,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0364422946'
   },
   {
-    id: 'kp-tibh-5',
+    id: 'kp-5',
     name: 'Tương Bình Hiệp 5',
     chiefName: 'Phạm Thị Tố Mai',
     phone: '0908739555',
@@ -121,7 +121,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 4,
     satisfactionRate: 92,
     status: 'YELLOW',
-    mttqName: 'Tiết Tuấn',
+    mttqName: 'Nguyễn Hoài Tân',
     mttqPhone: '0987720790',
     secretaryName: 'Nguyễn Hoài Tân',
     secretaryPhone: '0969232715',
@@ -131,7 +131,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0928371249'
   },
   {
-    id: 'kp-tibh-6',
+    id: 'kp-6',
     name: 'Tương Bình Hiệp 6',
     chiefName: 'Trần Quốc Nghĩa',
     phone: '0915337788',
@@ -142,7 +142,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 99,
     status: 'GREEN',
-    mttqName: 'Nguyễn Thị Ánh Tuyết',
+    mttqName: 'Võ Oanh Kiều',
     mttqPhone: '0706055248',
     secretaryName: 'Võ Oanh Kiều',
     secretaryPhone: '0369794592',
@@ -152,7 +152,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0886378437'
   },
   {
-    id: 'kp-tibh-7',
+    id: 'kp-7',
     name: 'Tương Bình Hiệp 7',
     chiefName: 'Lê Văn Chí',
     phone: '0914919646',
@@ -163,7 +163,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 3,
     satisfactionRate: 95,
     status: 'GREEN',
-    mttqName: 'Võ Ngọc Giàu',
+    mttqName: 'Trần Minh Khải',
     mttqPhone: '0888503448',
     secretaryName: 'Trần Minh Khải',
     secretaryPhone: '0907401441',
@@ -173,7 +173,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0914107295'
   },
   {
-    id: 'kp-ha-7',
+    id: 'kp-8',
     name: 'Hiệp An 7',
     chiefName: 'Nguyễn Thành Châu',
     phone: '0965052061',
@@ -184,7 +184,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 1,
     satisfactionRate: 98,
     status: 'GREEN',
-    mttqName: 'Dương Văn Thọ',
+    mttqName: 'Nguyễn Thanh Trí',
     mttqPhone: '0976534508',
     secretaryName: 'Nguyễn Thanh Trí',
     secretaryPhone: '0909197497',
@@ -194,7 +194,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0942280700'
   },
   {
-    id: 'kp-ha-8',
+    id: 'kp-9',
     name: 'Hiệp An 8',
     chiefName: 'Võ Hoàng Phương',
     phone: '0918231463',
@@ -205,7 +205,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 97,
     status: 'GREEN',
-    mttqName: 'Đinh Xuân Phúc',
+    mttqName: 'Phan Tấn Nhân',
     mttqPhone: '0928579957',
     secretaryName: 'Phan Tấn Nhân',
     secretaryPhone: '0913107009',
@@ -215,7 +215,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0928579957'
   },
   {
-    id: 'kp-ha-9',
+    id: 'kp-10',
     name: 'Hiệp An 9',
     chiefName: 'Lê Phước Hùng',
     phone: '0828643979',
@@ -226,7 +226,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 3,
     satisfactionRate: 93,
     status: 'YELLOW',
-    mttqName: 'Trần Văn Lợi',
+    mttqName: 'Nguyễn Nhật Hồng',
     mttqPhone: '0908758565',
     secretaryName: 'Nguyễn Nhật Hồng',
     secretaryPhone: '0919447708',
@@ -236,7 +236,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0857950121'
   },
   {
-    id: 'kp-dh-1',
+    id: 'kp-11',
     name: 'Định Hòa 1',
     chiefName: 'Phan Hà Như Thủy',
     phone: '0987933156',
@@ -247,7 +247,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 96,
     status: 'GREEN',
-    mttqName: 'Hoàng Thị Xuân Lành',
+    mttqName: 'Nguyễn Thanh Vân',
     mttqPhone: '0977137382',
     secretaryName: 'Nguyễn Thanh Vân',
     secretaryPhone: '0946692121',
@@ -257,7 +257,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0369306630'
   },
   {
-    id: 'kp-dh-2',
+    id: 'kp-12',
     name: 'Định Hòa 2',
     chiefName: 'Trần Văn Hoàng',
     phone: '0918598078',
@@ -268,7 +268,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 3,
     satisfactionRate: 95,
     status: 'GREEN',
-    mttqName: 'Nguyễn Thanh Phương',
+    mttqName: 'Nguyễn Phượng Hằng',
     mttqPhone: '0961880602',
     secretaryName: 'Nguyễn Phượng Hằng',
     secretaryPhone: '0856269368',
@@ -277,7 +277,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputy: 'Trần Phú Điền'
   },
   {
-    id: 'kp-dh-3',
+    id: 'kp-13',
     name: 'Định Hòa 3',
     chiefName: 'Nguyễn Văn Gu',
     phone: '0785185879',
@@ -288,7 +288,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 1,
     satisfactionRate: 100,
     status: 'GREEN',
-    mttqName: 'Vương Thị Tuyết Mai',
+    mttqName: 'Đỗ Thị Tấn',
     mttqPhone: '0902477692',
     secretaryName: 'Đỗ Thị Tấn',
     secretaryPhone: '0907429889',
@@ -298,7 +298,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0969448349'
   },
   {
-    id: 'kp-dh-4',
+    id: 'kp-14',
     name: 'Định Hòa 4',
     chiefName: 'Ngô Quốc Phong',
     phone: '0938377151',
@@ -309,13 +309,13 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 96,
     status: 'GREEN',
-    mttqName: 'Nguyễn Thị Ngọc Hà',
+    mttqName: 'Văn Văn Hạnh',
     mttqPhone: '0988222362',
     secretaryName: 'Văn Văn Hạnh',
     secretaryPhone: '0913937075'
   },
   {
-    id: 'kp-dh-5',
+    id: 'kp-15',
     name: 'Định Hòa 5',
     chiefName: 'Phạm Văn Chí',
     phone: '0938565172',
@@ -326,13 +326,13 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 97,
     status: 'GREEN',
-    mttqName: 'Nguyễn Thị Ích',
+    mttqName: 'Ngô Văn Còn',
     mttqPhone: '0786752934',
     secretaryName: 'Ngô Văn Còn',
     secretaryPhone: '0947300161'
   },
   {
-    id: 'kp-dh-6',
+    id: 'kp-16',
     name: 'Định Hòa 6',
     chiefName: 'Lê Văn Hoài',
     phone: '0919042548',
@@ -343,13 +343,13 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 3,
     satisfactionRate: 95,
     status: 'GREEN',
-    mttqName: 'Đặng Thị Huyền Trang',
+    mttqName: 'Nguyễn Văn Gọt',
     mttqPhone: '0943477286',
     secretaryName: 'Nguyễn Văn Gợt',
     secretaryPhone: '0918233944'
   },
   {
-    id: 'kp-dh-7',
+    id: 'kp-17',
     name: 'Định Hòa 7',
     chiefName: 'Nguyễn Văn Gấm',
     phone: '0985996979',
@@ -360,13 +360,13 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 1,
     satisfactionRate: 99,
     status: 'GREEN',
-    mttqName: 'Lê Thị Bình',
+    mttqName: 'Đặng Thị Thúy Loan',
     mttqPhone: '0983688364',
     secretaryName: 'Đặng Thị Thúy Loan',
     secretaryPhone: '0978598394'
   },
   {
-    id: 'kp-dh-8',
+    id: 'kp-18',
     name: 'Định Hòa 8',
     chiefName: 'Trần Quốc Dương',
     phone: '0886848586',
@@ -377,7 +377,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 97,
     status: 'GREEN',
-    mttqName: 'Phan Văn Hòa',
+    mttqName: 'Nguyễn Văn Phụng',
     mttqPhone: '0928979677',
     secretaryName: 'Nguyễn Văn Phụng',
     secretaryPhone: '0918292777',
@@ -385,7 +385,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionPhone: '0886009795'
   },
   {
-    id: 'kp-mh',
+    id: 'kp-19',
     name: 'Mỹ Hảo',
     chiefName: 'Ngô Quốc Trung',
     phone: '0901689828',
@@ -396,7 +396,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 2,
     satisfactionRate: 98,
     status: 'GREEN',
-    mttqName: 'Nguyễn Cường',
+    mttqName: 'Nguyễn Văn Hòa',
     mttqPhone: '0989114005',
     secretaryName: 'Nguyễn Văn Hóa',
     secretaryPhone: '0946829638',
@@ -406,7 +406,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0704630921'
   },
   {
-    id: 'kp-cm-1',
+    id: 'kp-20',
     name: 'Chánh Mỹ 1',
     chiefName: 'Đào Thanh Trung',
     phone: '0919450576',
@@ -417,7 +417,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 3,
     satisfactionRate: 96,
     status: 'GREEN',
-    mttqName: 'Nguyễn Thị Mỹ Linh',
+    mttqName: 'Đặng Mỹ Dung',
     mttqPhone: '0843413153',
     secretaryName: 'Đặng Mỹ Dung',
     secretaryPhone: '0909985399',
@@ -427,7 +427,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     youthUnionDeputyPhone: '0373251504'
   },
   {
-    id: 'kp-cm-2',
+    id: 'kp-21',
     name: 'Chánh Mỹ 2',
     chiefName: 'Nguyễn Minh Triết',
     phone: '0907008308',
@@ -438,7 +438,7 @@ export const INITIAL_NEIGHBORHOODS: NeighborhoodStats[] = [
     unityHousesBuilt: 4,
     satisfactionRate: 95,
     status: 'GREEN',
-    mttqName: 'Nguyễn Thị Mỹ Châu',
+    mttqName: 'Bùi Thị Thu Thảo',
     mttqPhone: '0834789870',
     secretaryName: 'Bùi Thị Thu Thảo',
     secretaryPhone: '0384793839',

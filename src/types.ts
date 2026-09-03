@@ -331,7 +331,7 @@ export interface ToastMessage {
 
 export interface NeighborhoodStats {
   id: string;
-  name: string; // e.g. "Khu phố 1"
+  name: string; // e.g. "Tương Bình Hiệp 1"
   chiefName: string;
   phone: string;
   opinionCount: number;
@@ -401,6 +401,7 @@ export type AiToolId =
   | 'conference'          // 8. Trợ lý hội nghị – sự kiện
   | 'meeting_minutes'     // 9. Trợ lý biên bản cuộc họp
   | 'supervision_critique'// 10. Trợ lý Giám sát & Phản biện
+  | 'supervision'         // Alias: Giám sát
   | 'public_opinion'      // 11. Trợ lý Nắm bắt ý kiến nhân dân
   | 'propaganda'          // 12. Trợ lý Tuyên truyền
   | 'compare_docs'        // 13. So sánh hai văn bản
@@ -521,6 +522,7 @@ export interface WorkspaceContextData {
   unitCoordinating?: string;
   activeDossierId?: string;
   activeDossierTitle?: string;
+  scope?: string;
 }
 
 // =========================================================================
@@ -560,7 +562,7 @@ export type AreaType = 'WARD' | 'NEIGHBORHOOD' | 'SUB_AREA' | 'RESIDENTIAL_GROUP
 export interface Area {
   id: string;
   code: string; // Mã địa bàn (e.g., 'CHANH-HIEP', 'KP-01')
-  name: string; // Tên địa bàn (e.g., 'Phường Chánh Hiệp', 'Khu phố 1')
+  name: string; // Tên địa bàn (e.g., 'Phường Chánh Hiệp', 'Tương Bình Hiệp 1')
   type: AreaType;
   parentId?: string | null; // Cấp cha trực tiếp (ví dụ: Khu phố thuộc Phường)
   order?: number;
@@ -587,7 +589,7 @@ export type OrganizationType =
   | 'BRANCH'               // Chi bộ, Chi đoàn, Chi hội cơ sở
   | 'CELL';                // Tổ hội, Phân đoàn
 
-export type OrganizationLevel = 'WARD' | 'NEIGHBORHOOD' | 'SUB_AREA' | 'GROUP';
+export type OrganizationLevel = 'WARD' | 'NEIGHBORHOOD' | 'SUB_AREA' | 'GROUP' | 'BRANCH' | 'TEAM';
 
 export interface Organization {
   id: string;
@@ -638,7 +640,7 @@ export interface MemberOrganization {
   bannerUrl?: string;
   displayOrder?: number;
   // Hierarchical & Geographic Relations
-  parentId?: string | null; // Quan hệ phân cấp cây (ví dụ: Đoàn Phường -> Chi đoàn Khu phố 1)
+  parentId?: string | null; // Quan hệ phân cấp cây (ví dụ: Đoàn Phường -> Chi đoàn Tương Bình Hiệp 1)
   areaId?: string | null;   // Liên kết với bảng Areas (Địa bàn trực thuộc)
   areaName?: string;        // Cache tên khu vực
   organizationId?: string | null; // Liên kết chéo tới Organization
@@ -686,6 +688,20 @@ export interface PublicSurvey {
   totalResponses: number;
   createdBy: string;
   createdAt: string;
+}
+
+export interface NeighborhoodMigrationResult {
+  success: boolean;
+  timestamp: string;
+  areasProcessed: number;
+  legacyAreasRemoved: number;
+  memberOrgsUpdated: number;
+  orphanedMemberOrgsResolved: number;
+  organizationsUpdated: number;
+  areas: Area[];
+  memberOrganizations: MemberOrganization[];
+  politicalOrganizations: Organization[];
+  details: string[];
 }
 
 

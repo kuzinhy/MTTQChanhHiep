@@ -82,7 +82,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
       opacity: 1,
       scale: 1,
       transition: {
-        x: { type: 'spring', stiffness: 300, damping: 30 },
+        x: { type: 'spring' as const, stiffness: 300, damping: 30 },
         opacity: { duration: 0.5 },
         scale: { duration: 0.5 },
       },
@@ -92,7 +92,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
       opacity: 0,
       scale: 0.98,
       transition: {
-        x: { type: 'spring', stiffness: 300, damping: 30 },
+        x: { type: 'spring' as const, stiffness: 300, damping: 30 },
         opacity: { duration: 0.4 },
         scale: { duration: 0.4 },
       },

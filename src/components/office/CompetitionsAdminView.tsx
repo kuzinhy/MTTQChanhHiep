@@ -23,10 +23,12 @@ import {
   HelpCircle,
   Globe,
   RotateCcw,
-  HardDrive
+  HardDrive,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { QuestionBankAdminView } from './QuestionBankAdminView';
+import { exportCompetitionSubmissionsToCsv } from '../../lib/exportUtils';
 
 interface CompetitionsAdminViewProps {
   competitions: Competition[];
@@ -236,9 +238,21 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
 
       {activeTab === 'SUBMISSIONS' && (
         <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="font-black text-slate-900 text-base">Toàn Bộ Bài Dự Thi Trực Tuyến</h3>
-            <p className="text-xs text-slate-500">Danh sách các bài làm và chấm điểm của tất cả các cuộc thi</p>
+          <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="font-black text-slate-900 text-base">Toàn Bộ Bài Dự Thi Trực Tuyến</h3>
+              <p className="text-xs text-slate-500">Danh sách các bài làm và chấm điểm của tất cả các cuộc thi ({submissions.length} bài nộp)</p>
+            </div>
+            <button
+              onClick={() => {
+                exportCompetitionSubmissionsToCsv('TongHop_TatCa_BaiThi', submissions);
+                onTriggerToast?.('Xuất báo cáo', 'Đã tải xuống danh sách bài thi toàn hệ thống định dạng Excel/CSV!');
+              }}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer border border-slate-300 shadow-2xs transition-all active:scale-95"
+            >
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Xuất Báo cáo Excel / CSV</span>
+            </button>
           </div>
 
           <div className="overflow-x-auto">

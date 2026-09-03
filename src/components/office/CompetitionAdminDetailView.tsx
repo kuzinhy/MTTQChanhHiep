@@ -42,6 +42,7 @@ import {
   Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { exportCompetitionSubmissionsToCsv } from '../../lib/exportUtils';
 
 interface CompetitionAdminDetailViewProps {
   competition: Competition;
@@ -919,11 +920,14 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
               <p className="text-xs text-slate-500">Danh sách bài nộp từ nhân dân và đoàn viên</p>
             </div>
             <button
-              onClick={() => triggerToast('Xuất báo cáo', 'Đã xuất báo cáo danh sách bài dự thi ra Excel thành công!')}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+              onClick={() => {
+                exportCompetitionSubmissionsToCsv(compData.title, compSubmissions);
+                triggerToast('Xuất báo cáo', 'Đã tải xuống danh sách bài dự thi định dạng Excel/CSV!');
+              }}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer border border-slate-300 transition-colors shadow-2xs"
             >
-              <Download className="w-4 h-4" />
-              <span>Xuất Excel</span>
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Xuất Excel / CSV</span>
             </button>
           </div>
 
@@ -1034,13 +1038,26 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
               <h3 className="text-base font-black text-slate-900">Bảng Xếp Hạng & Công Bố Giải Thưởng</h3>
               <p className="text-xs text-slate-500">Xếp hạng thí sinh theo điểm số và thời gian nộp bài</p>
             </div>
-            <button
-              onClick={() => triggerToast('Công bố kết quả', 'Đã công bố kết quả xếp hạng chính thức lên trang công khai!')}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md inline-flex items-center gap-1.5 cursor-pointer"
-            >
-              <Award className="w-4 h-4" />
-              <span>Công bố Kết quả</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const sorted = [...compSubmissions].sort((a, b) => (b.score || 0) - (a.score || 0));
+                  exportCompetitionSubmissionsToCsv(`BangXepHang_${compData.title}`, sorted);
+                  triggerToast('Xuất báo cáo', 'Đã tải xuống bảng xếp hạng chung cuộc định dạng Excel/CSV!');
+                }}
+                className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Xuất Bảng Xếp Hạng Excel</span>
+              </button>
+              <button
+                onClick={() => triggerToast('Công bố kết quả', 'Đã công bố kết quả xếp hạng chính thức lên trang công khai!')}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <Award className="w-4 h-4" />
+                <span>Công bố Kết quả</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">

@@ -67,27 +67,8 @@ const DEPARTMENT_PRESETS = [
   'Bộ phận Phong trào - An sinh xã hội',
   'Ban Thanh tra Nhân dân Phường',
   'Ban Giám sát Đầu tư của Cộng đồng',
-  'Ban Công tác Mặt trận Tương Bình Hiệp 1',
-  'Ban Công tác Mặt trận Tương Bình Hiệp 2',
-  'Ban Công tác Mặt trận Tương Bình Hiệp 3',
-  'Ban Công tác Mặt trận Tương Bình Hiệp 4',
-  'Ban Công tác Mặt trận Tương Bình Hiệp 5',
-  'Ban Công tác Mặt trận Tương Bình Hiệp 6',
-  'Ban Công tác Mặt trận Tương Bình Hiệp 7',
-  'Ban Công tác Mặt trận Hiệp An 7',
-  'Ban Công tác Mặt trận Hiệp An 8',
-  'Ban Công tác Mặt trận Hiệp An 9',
-  'Ban Công tác Mặt trận Định Hòa 1',
-  'Ban Công tác Mặt trận Định Hòa 2',
-  'Ban Công tác Mặt trận Định Hòa 3',
-  'Ban Công tác Mặt trận Định Hòa 4',
-  'Ban Công tác Mặt trận Định Hòa 5',
-  'Ban Công tác Mặt trận Định Hòa 6',
-  'Ban Công tác Mặt trận Định Hòa 7',
-  'Ban Công tác Mặt trận Định Hòa 8',
-  'Ban Công tác Mặt trận Mỹ Hảo',
-  'Ban Công tác Mặt trận Chánh Mỹ 1',
-  'Ban Công tác Mặt trận Chánh Mỹ 2'
+  ...Array.from({ length: 21 }, (_, i) => `Ban Công tác Mặt trận Khu phố Chánh Hiệp ${i + 1}`),
+  ...Array.from({ length: 21 }, (_, i) => `Ban Công tác Mặt trận Chánh Hiệp ${i + 1}`)
 ];
 
 export const StaffUsersAdminView: React.FC<StaffUsersAdminViewProps> = ({

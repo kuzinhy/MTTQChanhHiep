@@ -75,7 +75,8 @@ const SAMPLE_PLANS: SupervisionPlan[] = [
 
 export const SupervisionSection: React.FC<{
   onOpenOpinionForm?: () => void;
-}> = ({ onOpenOpinionForm }) => {
+  onSelectDocument?: (doc: any) => void;
+}> = ({ onOpenOpinionForm, onSelectDocument }) => {
   const [selectedField, setSelectedField] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<SupervisionPlan | null>(SAMPLE_PLANS[0]);

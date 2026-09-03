@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PublicOpinion, OpinionStatus } from '../../types';
-import { MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, UserCheck, ShieldAlert, FileText, AlertCircle } from 'lucide-react';
+import { MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, UserCheck, ShieldAlert, FileText, AlertCircle, Download } from 'lucide-react';
+import { exportPublicOpinionsToCsv } from '../../lib/exportUtils';
 
 interface OpinionsAdminViewProps {
   opinions: PublicOpinion[];
@@ -47,13 +48,24 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
           <p className="text-xs text-slate-500 mt-0.5">Tiếp nhận, xử lý và phản hồi ý kiến phản ánh của nhân dân 21 Khu phố</p>
         </div>
 
-        <button
-          onClick={onOpenAiSummary}
-          className="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all"
-        >
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          <span>Tạo Báo cáo AI Dư luận</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportPublicOpinionsToCsv(filteredOpinions)}
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all border border-slate-300"
+            title="Xuất file Excel/CSV chuẩn UTF-8"
+          >
+            <Download className="w-4 h-4 text-emerald-600" />
+            <span>Xuất Excel / CSV</span>
+          </button>
+
+          <button
+            onClick={onOpenAiSummary}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>Tạo Báo cáo AI Dư luận</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Stats Bar */}

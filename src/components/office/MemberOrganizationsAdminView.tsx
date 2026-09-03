@@ -41,6 +41,9 @@ import { uploadFileToGoogleDrive } from '../../lib/googleDriveService';
 import { INITIAL_MEMBER_ORGANIZATIONS, INITIAL_ORGANIZATIONS, INITIAL_AREAS } from '../../data/seedData';
 import { CloudDatabase } from '../../lib/firestoreService';
 import { AppStorageEngine } from '../../lib/storage';
+import { exportOrganizationsToCsv } from '../../lib/exportUtils';
+import { Download, LayoutGrid } from 'lucide-react';
+import { OrgDiagramChart } from './OrgDiagramChart';
 
 interface MemberOrganizationsAdminViewProps {
   organizations: MemberOrganization[];
@@ -64,8 +67,8 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
   // Active Main Tab: 'member_orgs' (Khối MTTQ & Đoàn thể) | 'political_system' (Hệ thống chính trị) | 'areas' (Địa bàn hành chính)
   const [mainTab, setMainTab] = useState<'member_orgs' | 'political_system' | 'areas'>('member_orgs');
 
-  // View modes for Member Organizations: 'tree' | 'grid' | 'table' | 'analytics'
-  const [viewMode, setViewMode] = useState<'tree' | 'grid' | 'table' | 'analytics'>('tree');
+  // View modes for Member Organizations: 'diagram' | 'tree' | 'grid' | 'table' | 'analytics'
+  const [viewMode, setViewMode] = useState<'diagram' | 'tree' | 'grid' | 'table' | 'analytics'>('diagram');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
   const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set(['mem-org-1', 'mem-org-2', 'mem-org-3', 'mem-org-4', 'org-dang-uy', 'org-mttq']));
@@ -613,8 +616,19 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
+              onClick={() => {
+                exportOrganizationsToCsv(organizations);
+                if (onShowToast) onShowToast('Đã tải xuống danh bạ tổ chức và số liệu chi hội định dạng Excel/CSV!', 'success');
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
+              title="Xuất danh bạ và số liệu khối đoàn thể ra Excel/CSV"
+            >
+              <Download className="w-4 h-4 text-emerald-300" />
+              <span>Xuất Excel Danh bạ</span>
+            </button>
+            <button
               onClick={handleResetDefaults}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/15 backdrop-blur-xs"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
               title="Khôi phục cấu trúc chuẩn mặc định"
             >
               <RefreshCw className="w-4 h-4" />
@@ -622,7 +636,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
             </button>
             <button
               onClick={() => handleOpenCreateModal()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-blue-950 text-xs font-black shadow-lg shadow-cyan-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-blue-950 text-xs font-black shadow-lg shadow-cyan-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Thêm Tổ Chức / Chi Hội</span>
@@ -782,10 +796,22 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
           </div>
 
           {/* View Mode Switcher */}
-          <div className="flex items-center gap-2 self-end lg:self-auto shrink-0">
+          <div className="flex items-center gap-1.5 self-end lg:self-auto shrink-0 overflow-x-auto pb-1">
+            <button
+              onClick={() => setViewMode('diagram')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+                viewMode === 'diagram' 
+                  ? 'bg-red-700 text-white shadow-xs font-black' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Network className="w-3.5 h-3.5 text-amber-300" />
+              <span>Sơ Đồ Tổ Chức</span>
+            </button>
+
             <button
               onClick={() => setViewMode('tree')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'tree' 
                   ? 'bg-blue-600 text-white shadow-xs' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -797,7 +823,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
             <button
               onClick={() => setViewMode('grid')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'grid' 
                   ? 'bg-blue-600 text-white shadow-xs' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -809,7 +835,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
             <button
               onClick={() => setViewMode('table')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'table' 
                   ? 'bg-blue-600 text-white shadow-xs' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -821,7 +847,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
             <button
               onClick={() => setViewMode('analytics')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'analytics' 
                   ? 'bg-blue-600 text-white shadow-xs' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -835,10 +861,20 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 1: MEMBER ORGANIZATIONS VIEWS (TREE / GRID / TABLE / ANALYTICS) */}
+      {/* TAB 1: MEMBER ORGANIZATIONS VIEWS (DIAGRAM / TREE / GRID / TABLE / ANALYTICS) */}
       {/* ========================================================================= */}
       {mainTab === 'member_orgs' && (
         <>
+          {/* VIEW 0: INTERACTIVE VISUAL DIAGRAM VIEW */}
+          {viewMode === 'diagram' && (
+            <OrgDiagramChart
+              organizations={organizations}
+              areas={areas}
+              onOpenEditModal={handleOpenEditModal}
+              onShowToast={onShowToast}
+            />
+          )}
+
           {/* VIEW 1: HIERARCHICAL TREE VIEW */}
           {viewMode === 'tree' && (
             <div className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
@@ -1336,35 +1372,80 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
               </p>
             </div>
 
-            <button
-              onClick={() => {
-                setAreaFormData({
-                  id: `area-kp-${Date.now()}`,
-                  name: '',
-                  code: '',
-                  type: 'NEIGHBORHOOD',
-                  parentId: 'area-chanh-hiep',
-                  order: areas.length + 1
-                });
-                setIsAreaModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Thêm Địa Bàn Mới</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (window.confirm('Chạy script chuẩn hóa: Cập nhật 21 Khu phố mới của phường Chánh Hiệp, loại bỏ triệt để 12 mã cũ và tái liên kết toàn vẹn dữ liệu với các Tổ chức thành viên?')) {
+                    const result = AppStorageEngine.migrateChanhHiep21Neighborhoods({ forceReset: true });
+                    saveAreas(result.areas);
+                    onSaveOrganizations(result.memberOrganizations);
+                    if (propOnSavePoliticalOrganizations && result.politicalOrganizations) {
+                      propOnSavePoliticalOrganizations(result.politicalOrganizations);
+                    }
+                    CloudDatabase.purgeLegacyAreas().catch(() => {});
+                    if (onShowToast) {
+                      onShowToast(
+                        `Đã chuẩn hóa 21 Khu phố mới! Đã xử lý ${result.areasProcessed} địa bàn, cập nhật toàn vẹn ${result.memberOrgsUpdated} tổ chức thành viên.`,
+                        'success'
+                      );
+                    }
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
+                title="Cập nhật 21 khu phố mới, loại bỏ 12 mã cũ và đảm bảo tính toàn vẹn dữ liệu liên kết tổ chức"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
+                <span>Chuẩn hóa 21 Khu phố</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setAreaFormData({
+                    id: `area-kp-${Date.now()}`,
+                    name: '',
+                    code: '',
+                    type: 'NEIGHBORHOOD',
+                    parentId: 'area-chanh-hiep',
+                    order: areas.length + 1
+                  });
+                  setIsAreaModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Thêm Địa Bàn Mới</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {areas.map(area => (
-              <div key={area.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-emerald-300 transition-all space-y-2">
+              <div key={area.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-emerald-300 transition-all space-y-2 relative group">
                 <div className="flex items-center justify-between">
                   <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center">
                     {area.order || 0}
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600">
-                    Mã: {area.code}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600">
+                      Mã: {area.code}
+                    </span>
+                    {area.id !== 'area-chanh-hiep' && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Xác nhận xóa địa bàn "${area.name}"?`)) {
+                            const updated = areas.filter(a => a.id !== area.id);
+                            saveAreas(updated);
+                            CloudDatabase.deleteArea(area.id);
+                            if (onShowToast) onShowToast(`Đã xóa địa bàn "${area.name}"`, 'info');
+                          }
+                        }}
+                        className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Xóa địa bàn này"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <h4 className="font-extrabold text-sm text-slate-900">{area.name}</h4>
                 <div className="text-xs text-slate-500">
@@ -1613,7 +1694,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                         <option value="">Toàn phường Chánh Hiệp</option>
                         {areas.map(area => (
                           <option key={area.id} value={area.id}>
-                            {area.name} ({area.level === 'WARD' ? 'Phường' : 'Khu phố'})
+                            {area.name} ({area.type === 'WARD' ? 'Phường' : 'Khu phố'})
                           </option>
                         ))}
                       </select>
@@ -1622,17 +1703,22 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Cấp bậc tổ chức</label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700">Cấp bậc tổ chức</label>
+                        <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md">Quy chuẩn: Cấp Phường</span>
+                      </div>
                       <select
                         value={formData.level || 'WARD'}
                         onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value as OrganizationLevel }))}
                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none font-medium"
                       >
-                        <option value="WARD">Cấp Phường</option>
-                        <option value="NEIGHBORHOOD">Cấp Khu phố</option>
-                        <option value="BRANCH">Chi hội / Chi đoàn cơ sở</option>
-                        <option value="TEAM">Tổ nòng cốt / Nhóm tự quản</option>
+                        <option value="WARD">Cấp Phường (Đoàn thể Phường Chánh Hiệp)</option>
+                        <option value="BRANCH">Chi hội / Chi đoàn trực thuộc</option>
+                        <option value="TEAM">Tổ nòng cốt / Ban chuyên đề</option>
                       </select>
+                      <p className="text-[10px] text-slate-500 mt-0.5 italic">
+                        * Quy định hệ thống: Đoàn thể chính trị - xã hội được thành lập ở cấp phường, quản lý mạng lưới 21 chi hội/chi đoàn tại 21 khu phố.
+                      </p>
                     </div>
 
                     <div className="space-y-1">
@@ -1979,7 +2065,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                 <input
                   type="text"
                   required
-                  placeholder="VD: Khu phố 13"
+                  placeholder="VD: Định Hòa 3"
                   value={areaFormData.name || ''}
                   onChange={(e) => setAreaFormData(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none"

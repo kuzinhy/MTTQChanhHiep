@@ -62,8 +62,28 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
   const [showSidebar, setShowSidebar] = useState(true);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [document.id]);
+    if (document?.id) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [document?.id]);
+
+  if (!document) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center">
+          <FileText className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900">Không Tìm Thấy Văn Bản</h2>
+        <p className="text-xs text-slate-600">Văn bản chỉ đạo bạn đang tìm kiếm không tồn tại hoặc đã được chuyển kho lưu trữ.</p>
+        <button
+          onClick={onBack}
+          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+        >
+          Quay lại danh sách Văn bản &amp; Chỉ đạo
+        </button>
+      </div>
+    );
+  }
 
   const safeDocs = Array.isArray(allDocuments) ? allDocuments : [];
   const relatedDocs = safeDocs

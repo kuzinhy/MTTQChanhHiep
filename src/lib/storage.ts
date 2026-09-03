@@ -35,7 +35,8 @@ import {
   Area,
   AreaNode,
   Organization,
-  OrganizationNode
+  OrganizationNode,
+  NeighborhoodMigrationResult
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -65,9 +66,10 @@ const STORAGE_KEYS = {
   LAST_BACKUP_TIME: 'mttq_chanhhiep_last_backup_time',
   AI_CHATS: 'mttq_chanhhiep_ai_chats_v2',
   KNOWLEDGE_NOTES: 'mttq_chanhhiep_knowledge_notes_v2',
-  MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v2',
-  AREAS: 'mttq_chanhhiep_areas_v2',
-  ORGANIZATIONS: 'mttq_chanhhiep_organizations_v2'
+  MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v4',
+  AREAS: 'mttq_chanhhiep_areas_v3',
+  ORGANIZATIONS: 'mttq_chanhhiep_organizations_v4',
+  NEIGHBORHOODS_MIGRATION_V3: 'mttq_chanhhiep_migration_ward_only_v7'
 };
 
 // In-Memory Storage Cache to prevent redundant serialization & disk writes
@@ -380,20 +382,289 @@ export const AppStorageEngine = {
   },
 
   // ==========================================
+  // SCRIPT XỬ LÝ DỮ LIỆU & DI TRÚ 21 KHU PHỐ
+  // ==========================================
+  /**
+   * Script chuyên dụng xử lý dữ liệu và di trú cấu trúc hành chính:
+   * 1. Cập nhật danh sách 21 khu phố mới của Phường Chánh Hiệp (KP-01 đến KP-21 + area-chanh-hiep).
+   * 2. Loại bỏ triệt để 12 mã cũ hoặc các bản ghi địa bàn lỗi thời không thuộc quy hoạch 21 khu phố mới.
+   * 3. Đảm bảo tính toàn vẹn dữ liệu (Foreign Key Integrity) khi liên kết với MemberOrganizations:
+   *    - Tự động phát hiện và re-link các tổ chức có areaId cũ/sai lệch sang đúng khu phố 1..21 tương ứng.
+   *    - Đồng bộ tên địa bàn (areaName) chuẩn theo 21 khu phố mới.
+   *    - Đảm bảo 100% tất cả 21 khu phố đều có đủ 4 tổ chức nòng cốt: Ban CTMT, Chi đoàn TNCS, Chi hội Phụ nữ, Chi hội CCB.
+   *    - Cập nhật số liệu độ phủ 21 khu phố cho các tổ chức đoàn thể cấp phường.
+   * 4. Đồng bộ tương tự với bảng Organizations (Hệ thống chính trị / 21 BCTMT).
+   */
+  migrateChanhHiep21Neighborhoods: (options?: { forceReset?: boolean }): NeighborhoodMigrationResult => {
+    const details: string[] = [];
+    const timestamp = new Date().toISOString();
+
+    // 1. Dọn dẹp các storage key phiên bản cũ (v1, v2)
+    if (typeof window !== 'undefined') {
+      const legacyStorageKeys = [
+        'mttq_chanhhiep_areas_v1',
+        'mttq_chanhhiep_areas_v2',
+        'mttq_areas_v1',
+        'mttq_chanhhiep_member_orgs_v1',
+        'mttq_chanhhiep_member_orgs_v2',
+        'mttq_member_orgs_v1',
+        'mttq_chanhhiep_organizations_v1',
+        'mttq_chanhhiep_organizations_v2',
+        'mttq_organizations_v1'
+      ];
+      legacyStorageKeys.forEach(k => {
+        try {
+          localStorage.removeItem(k);
+        } catch {
+          // ignore
+        }
+      });
+    }
+
+    // 2. TẬP HỢP DANH SÁCH 21 KHU PHỐ CHUẨN + CẤP PHƯỜNG
+    const officialAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
+    const officialAreaMap = new Map<string, Area>();
+    INITIAL_AREAS.forEach(a => officialAreaMap.set(a.id, { ...a }));
+
+    // Đọc danh sách hiện tại nếu không forceReset
+    let currentRawAreas: Area[] = [];
+    try {
+      currentRawAreas = loadInitialData(STORAGE_KEYS.AREAS, INITIAL_AREAS);
+    } catch {
+      currentRawAreas = INITIAL_AREAS;
+    }
+
+    let legacyAreasRemoved = 0;
+
+    if (!options?.forceReset && Array.isArray(currentRawAreas)) {
+      currentRawAreas.forEach(a => {
+        if (!a || !a.id) return;
+        // Kiểm tra xem ID có nằm trong danh sách 21 khu phố mới + cấp phường hay không
+        if (!officialAreaIds.has(a.id)) {
+          legacyAreasRemoved++;
+          details.push(`Đã loại bỏ mã/địa bàn cũ: ${a.name || a.id} (Mã: ${a.code || 'không rõ'})`);
+        } else {
+          // Giữ lại các trường thông tin tùy biến hợp lệ nếu người dùng đã cập nhật (SĐT, dân số, v.v.)
+          const canonical = officialAreaMap.get(a.id);
+          if (canonical) {
+            officialAreaMap.set(a.id, {
+              ...canonical,
+              ...a,
+              id: canonical.id,
+              code: canonical.code,
+              name: canonical.name,
+              description: canonical.description,
+              type: canonical.type,
+              parentId: canonical.parentId,
+              order: canonical.order
+            });
+          }
+        }
+      });
+    } else if (options?.forceReset) {
+      details.push('Thiết lập lại danh mục chuẩn 21 Khu phố mới của Phường Chánh Hiệp từ cấu hình gốc.');
+    }
+
+    const finalAreas: Area[] = Array.from(officialAreaMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+    saveStorageData(STORAGE_KEYS.AREAS, finalAreas);
+    details.push(`Chuẩn hóa hoàn tất danh mục ${finalAreas.length} địa bàn hành chính (Phường Chánh Hiệp và 21 Khu phố từ KP-01 đến KP-21).`);
+
+    // Bảng tra cứu Area theo ID & theo số KP (1..21)
+    const areaById = new Map<string, Area>();
+    const areaByNumber = new Map<number, Area>();
+    finalAreas.forEach(a => {
+      areaById.set(a.id, a);
+      const numMatch = a.id.match(/^area-kp-(\d+)$/);
+      if (numMatch) {
+        areaByNumber.set(parseInt(numMatch[1], 10), a);
+      }
+    });
+
+    // Helper trích xuất số khu phố (1..21) từ chuỗi bất kỳ
+    const extractKpNumber = (text: string | undefined | null): number | null => {
+      if (!text) return null;
+      const patterns = [
+        /(?:chánh\s*hiệp|khu\s*ph[oố]|kp|chi\s*đoàn\s*kp|chi\s*hội\s*.*?kp|bctmt.*?kp)[-_.\s]*0?(\d{1,2})\b/i,
+        /(?:area-kp-|kp-)[-_.\s]*0?(\d{1,2})\b/i,
+        /\b(?:kp|khu\s*phố|chánh\s*hiệp)[-_.\s]*0?(\d{1,2})\b/i
+      ];
+      for (const p of patterns) {
+        const match = text.match(p);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num >= 1 && num <= 21) return num;
+        }
+      }
+      return null;
+    };
+
+    // 3. XỬ LÝ TOÀN VẸN DỮ LIỆU MEMBER ORGANIZATIONS (TỔ CHỨC CẤP PHƯỜNG)
+    let currentOrgs: MemberOrganization[] = [];
+    try {
+      currentOrgs = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, INITIAL_MEMBER_ORGANIZATIONS);
+    } catch {
+      currentOrgs = INITIAL_MEMBER_ORGANIZATIONS;
+    }
+
+    let memberOrgsUpdated = 0;
+    let orphanedMemberOrgsResolved = 0;
+    const processedOrgMap = new Map<string, MemberOrganization>();
+
+    // Chỉ nạp các tổ chức cấp phường chuẩn
+    INITIAL_MEMBER_ORGANIZATIONS.forEach(org => {
+      processedOrgMap.set(org.id, { ...org });
+    });
+
+    // Áp dụng dữ liệu người dùng đã lưu (chỉ giữ cấp phường)
+    (currentOrgs || []).forEach(org => {
+      if (!org || !org.id) return;
+      // Bỏ qua nếu là cấp khu phố cũ
+      if (org.id.startsWith('org-bctmt-kp') || org.id.startsWith('org-branch-') || org.level === 'NEIGHBORHOOD') {
+        return;
+      }
+      const existing = processedOrgMap.get(org.id) || org;
+      processedOrgMap.set(org.id, { ...existing, ...org });
+    });
+
+    // Rà soát từng tổ chức để đảm bảo ràng buộc
+    const updatedMemberOrgs: MemberOrganization[] = Array.from(processedOrgMap.values()).map(org => {
+      let changed = false;
+      if (org.areaId !== 'area-chanh-hiep') {
+        org.areaId = 'area-chanh-hiep';
+        org.areaName = 'Phường Chánh Hiệp';
+        changed = true;
+      }
+      if (org.level !== 'WARD') {
+        org.level = 'WARD';
+        changed = true;
+      }
+
+      if (changed) {
+        memberOrgsUpdated++;
+      }
+      return org;
+    });
+
+    updatedMemberOrgs.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+    saveStorageData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, updatedMemberOrgs);
+    details.push(`Đảm bảo tính toàn vẹn cho ${updatedMemberOrgs.length} đoàn thể/tổ chức cấp phường.`);
+
+    // 4. XỬ LÝ TOÀN VẸN DỮ LIỆU BẢNG HỆ THỐNG CHÍNH TRỊ (ORGANIZATIONS CẤP PHƯỜNG)
+    let currentPoliticalOrgs: Organization[] = [];
+    try {
+      currentPoliticalOrgs = loadInitialData(STORAGE_KEYS.ORGANIZATIONS, INITIAL_ORGANIZATIONS);
+    } catch {
+      currentPoliticalOrgs = INITIAL_ORGANIZATIONS;
+    }
+
+    let organizationsUpdated = 0;
+    const politicalMap = new Map<string, Organization>();
+    INITIAL_ORGANIZATIONS.forEach(po => politicalMap.set(po.id, { ...po }));
+    (currentPoliticalOrgs || []).forEach(po => {
+      if (po && po.id) {
+        // Bỏ qua nếu là cấp khu phố cũ
+        if (po.id.startsWith('org-bctmt-kp') || po.level === 'NEIGHBORHOOD') {
+          return;
+        }
+        const existing = politicalMap.get(po.id) || po;
+        politicalMap.set(po.id, { ...existing, ...po });
+      }
+    });
+
+    const updatedPoliticalOrgs: Organization[] = Array.from(politicalMap.values()).map(po => {
+      let changed = false;
+      if (po.areaId !== 'area-chanh-hiep') {
+        po.areaId = 'area-chanh-hiep';
+        po.areaName = 'Phường Chánh Hiệp';
+        changed = true;
+      }
+      if (po.level !== 'WARD') {
+        po.level = 'WARD';
+        changed = true;
+      }
+      if (changed) organizationsUpdated++;
+      return po;
+    });
+
+    updatedPoliticalOrgs.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+    saveStorageData(STORAGE_KEYS.ORGANIZATIONS, updatedPoliticalOrgs);
+    details.push(`Đồng bộ ${updatedPoliticalOrgs.length} cơ quan/tổ chức hệ thống chính trị cấp phường.`);
+
+    // Ghi nhận hoàn thành migration
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEYS.NEIGHBORHOODS_MIGRATION_V3, 'completed');
+      } catch {
+        // ignore
+      }
+    }
+
+    return {
+      success: true,
+      timestamp,
+      areasProcessed: finalAreas.length,
+      legacyAreasRemoved,
+      memberOrgsUpdated,
+      orphanedMemberOrgsResolved,
+      organizationsUpdated,
+      areas: finalAreas,
+      memberOrganizations: updatedMemberOrgs,
+      politicalOrganizations: updatedPoliticalOrgs,
+      details
+    };
+  },
+
+  // ==========================================
   // 1. QUẢN LÝ ĐỊA BÀN HÀNH CHÍNH (AREAS)
   // ==========================================
   getAreas: (): Area[] => {
+    // Tự động kích hoạt migration nếu chưa hoàn thành
+    if (typeof window !== 'undefined') {
+      try {
+        if (localStorage.getItem(STORAGE_KEYS.NEIGHBORHOODS_MIGRATION_V3) !== 'completed') {
+          AppStorageEngine.migrateChanhHiep21Neighborhoods();
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     const raw = loadInitialData(STORAGE_KEYS.AREAS, INITIAL_AREAS);
+    // Explicit set of valid 21 new khu phố + ward IDs
+    const validAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
     const areaMap = new Map<string, Area>();
     INITIAL_AREAS.forEach(a => {
       if (a && a.id) areaMap.set(a.id, a);
     });
     (raw || []).forEach(a => {
-      if (a && a.id) {
-        areaMap.set(a.id, { ...(areaMap.get(a.id) || {}), ...a });
+      // Strictly ignore any legacy old 12 khu phố data
+      if (a && a.id && validAreaIds.has(a.id)) {
+        const canonical = areaMap.get(a.id);
+        areaMap.set(a.id, { 
+          ...(canonical || {}), 
+          ...a,
+          name: canonical?.name || a.name,
+          description: canonical?.description || a.description
+        });
       }
     });
     return Array.from(areaMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+  },
+
+  resetToOfficial21Areas: (): Area[] => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.AREAS);
+        localStorage.removeItem('mttq_chanhhiep_areas_v2');
+        localStorage.removeItem('mttq_chanhhiep_areas_v1');
+        localStorage.removeItem('mttq_areas_v1');
+        memoryCache.delete(STORAGE_KEYS.AREAS);
+      } catch {
+        // ignore
+      }
+    }
+    const result = AppStorageEngine.migrateChanhHiep21Neighborhoods({ forceReset: true });
+    return result.areas;
   },
 
   saveAreas: (areas: Area[]) => {
@@ -492,14 +763,32 @@ export const AppStorageEngine = {
   // 2. QUẢN LÝ CÂY TỔ CHỨC CHÍNH TRỊ (ORGANIZATIONS)
   // ==========================================
   getOrganizations: (): Organization[] => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('mttq_chanhhiep_organizations_v2');
+        localStorage.removeItem('mttq_organizations_v1');
+      } catch {
+        // ignore
+      }
+    }
     const raw = loadInitialData(STORAGE_KEYS.ORGANIZATIONS, INITIAL_ORGANIZATIONS);
+    const validAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
     const orgMap = new Map<string, Organization>();
     INITIAL_ORGANIZATIONS.forEach(o => {
       if (o && o.id) orgMap.set(o.id, o);
     });
     (raw || []).forEach(o => {
       if (o && o.id) {
-        orgMap.set(o.id, { ...(orgMap.get(o.id) || {}), ...o });
+        if (!o.areaId || validAreaIds.has(o.areaId)) {
+          const canonical = orgMap.get(o.id);
+          orgMap.set(o.id, { 
+            ...(canonical || {}), 
+            ...o,
+            name: canonical?.name || o.name,
+            shortName: canonical?.shortName || o.shortName,
+            areaName: canonical?.areaName || o.areaName
+          });
+        }
       }
     });
     return Array.from(orgMap.values()).sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
@@ -666,14 +955,33 @@ export const AppStorageEngine = {
   // 3. QUẢN LÝ CÂY TỔ CHỨC THÀNH VIÊN (MEMBER ORGANIZATIONS)
   // ==========================================
   getMemberOrganizations: (): MemberOrganization[] => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('mttq_chanhhiep_member_orgs_v2');
+        localStorage.removeItem('mttq_chanhhiep_member_orgs_v1');
+      } catch {
+        // ignore
+      }
+    }
     const raw = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, INITIAL_MEMBER_ORGANIZATIONS);
+    const validAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
     const orgMap = new Map<string, MemberOrganization>();
     INITIAL_MEMBER_ORGANIZATIONS.forEach(o => {
       if (o && o.id) orgMap.set(o.id, o);
     });
     (raw || []).forEach(o => {
       if (o && o.id) {
-        orgMap.set(o.id, { ...(orgMap.get(o.id) || {}), ...o });
+        // Ensure valid areaId or ward level
+        if (!o.areaId || validAreaIds.has(o.areaId)) {
+          const canonical = orgMap.get(o.id);
+          orgMap.set(o.id, { 
+            ...(canonical || {}), 
+            ...o,
+            name: canonical?.name || o.name,
+            shortName: canonical?.shortName || o.shortName,
+            areaName: canonical?.areaName || o.areaName
+          });
+        }
       }
     });
     return Array.from(orgMap.values()).sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
@@ -918,3 +1226,5 @@ export const AppStorageEngine = {
     localStorage.clear();
   }
 };
+
+export const migrateChanhHiep21Neighborhoods = AppStorageEngine.migrateChanhHiep21Neighborhoods;

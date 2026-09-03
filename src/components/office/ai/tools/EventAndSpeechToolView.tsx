@@ -51,8 +51,8 @@ export const EventAndSpeechToolView: React.FC<EventAndSpeechToolViewProps> = ({
   const [attendees, setAttendees] = useState('Phó Chủ tịch, các Ủy viên Thường trực, 21 Trưởng ban CTMT Khu phố');
   const [rawDiscussion, setRawDiscussion] = useState(`- Chủ tịch khai mạc, nêu mục đích họp triển khai Tháng cao điểm Vì người nghèo.
 - Đ/c Phó Chủ tịch báo cáo dự thảo kế hoạch vận động, chỉ tiêu 500 triệu.
-- Trưởng Ban CTMT Khu phố 1 phát biểu: Đề xuất hỗ trợ thêm kinh phí văn nghệ ngày hội.
-- Trưởng Ban CTMT Khu phố 5 phát biểu: Cần rà soát kỹ đối tượng tặng quà tránh trùng lặp.
+- Trưởng Ban CTMT Tương Bình Hiệp 1 phát biểu: Đề xuất hỗ trợ thêm kinh phí văn nghệ ngày hội.
+- Trưởng Ban CTMT Tương Bình Hiệp 5 phát biểu: Cần rà soát kỹ đối tượng tặng quà tránh trùng lặp.
 - Chủ tịch kết luận: Thống nhất kế hoạch; giao Phó Chủ tịch hoàn chỉnh tờ trình kinh phí trước ngày 25/8; 21 khu phố nộp danh sách hộ nghèo trước 30/8.`);
 
   // Common Generated Content

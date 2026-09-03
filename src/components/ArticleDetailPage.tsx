@@ -53,8 +53,28 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
 
   // Scroll to top when article changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [article.id]);
+    if (article?.id) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [article?.id]);
+
+  if (!article) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center">
+          <FileText className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900">Không Tìm Thấy Bài Viết</h2>
+        <p className="text-xs text-slate-600">Nội dung bài viết bạn đang tìm kiếm không tồn tại hoặc đã được gỡ xuống.</p>
+        <button
+          onClick={onBack}
+          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+        >
+          Quay lại danh sách Tin tức
+        </button>
+      </div>
+    );
+  }
 
   // Related articles in same category
   const relatedArticles = safeArticles

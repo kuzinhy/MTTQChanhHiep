@@ -28,6 +28,7 @@ interface AiCommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectTool: (toolId: AiToolId) => void;
+  favorites?: AiToolId[];
   onOpenDossiers?: () => void;
   onOpenTemplates?: () => void;
 }
