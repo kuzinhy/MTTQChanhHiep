@@ -64,8 +64,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-      {/* Top Banner Header - Blue Tech Government Branding */}
-      <div className="bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-700 text-white px-4 py-2.5 border-b border-blue-500/30 relative overflow-hidden shadow-sm">
+      {/* Top Banner Header - Zalo Electric Blue Tech Government Branding */}
+      <div className="bg-gradient-to-r from-[#0052cc] via-[#0068ff] to-[#0088ff] text-white px-4 py-2.5 border-b border-blue-400/30 relative overflow-hidden shadow-sm">
         {/* Subtle Blue/Cyan Ambient Glow */}
         <div className="absolute -top-10 -left-10 w-44 h-44 bg-cyan-300/20 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute -bottom-10 right-1/4 w-44 h-44 bg-sky-300/20 rounded-full blur-2xl pointer-events-none" />
@@ -82,15 +82,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xs sm:text-sm font-black tracking-tight uppercase leading-tight text-white drop-shadow-xs">
                   ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG CHÁNH HIỆP
                 </h1>
-                <span className="hidden xl:inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-200 border border-cyan-300/30">
-                  <Star className="w-2.5 h-2.5 text-amber-300 fill-amber-300" /> CỔNG THÔNG TIN SỐ
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#f5a623] text-slate-950 shadow-xs">
+                  <Star className="w-2.5 h-2.5 fill-slate-950" /> SỐ HÓA 4.0
                 </span>
               </div>
-              <p className="text-[11px] text-blue-200 font-bold hidden sm:block tracking-wide">
+              <p className="text-[11px] text-blue-100 font-bold hidden sm:block tracking-wide">
                 THÀNH PHỐ HỒ CHÍ MINH
               </p>
             </div>

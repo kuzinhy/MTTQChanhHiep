@@ -11,7 +11,9 @@ import {
   INITIAL_DRIVE_FILES, 
   INITIAL_STAFF_USERS, 
   INITIAL_AUDIT_LOGS,
-  INITIAL_MEMBER_ORGANIZATIONS
+  INITIAL_MEMBER_ORGANIZATIONS,
+  INITIAL_AREAS,
+  INITIAL_ORGANIZATIONS
 } from '../data/seedData';
 import { 
   Article, 
@@ -28,7 +30,12 @@ import {
   AuditLog,
   AiChatLog,
   KnowledgeNote,
-  MemberOrganization
+  MemberOrganization,
+  MemberOrganizationNode,
+  Area,
+  AreaNode,
+  Organization,
+  OrganizationNode
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -58,7 +65,9 @@ const STORAGE_KEYS = {
   LAST_BACKUP_TIME: 'mttq_chanhhiep_last_backup_time',
   AI_CHATS: 'mttq_chanhhiep_ai_chats_v2',
   KNOWLEDGE_NOTES: 'mttq_chanhhiep_knowledge_notes_v2',
-  MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v2'
+  MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v2',
+  AREAS: 'mttq_chanhhiep_areas_v2',
+  ORGANIZATIONS: 'mttq_chanhhiep_organizations_v2'
 };
 
 // In-Memory Storage Cache to prevent redundant serialization & disk writes
@@ -370,6 +379,292 @@ export const AppStorageEngine = {
     saveStorageData(STORAGE_KEYS.KNOWLEDGE_NOTES, notes || []);
   },
 
+  // ==========================================
+  // 1. QUẢN LÝ ĐỊA BÀN HÀNH CHÍNH (AREAS)
+  // ==========================================
+  getAreas: (): Area[] => {
+    const raw = loadInitialData(STORAGE_KEYS.AREAS, INITIAL_AREAS);
+    const areaMap = new Map<string, Area>();
+    INITIAL_AREAS.forEach(a => {
+      if (a && a.id) areaMap.set(a.id, a);
+    });
+    (raw || []).forEach(a => {
+      if (a && a.id) {
+        areaMap.set(a.id, { ...(areaMap.get(a.id) || {}), ...a });
+      }
+    });
+    return Array.from(areaMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+  },
+
+  saveAreas: (areas: Area[]) => {
+    const filtered = (areas || []).filter(a => a && a.id);
+    saveStorageData(STORAGE_KEYS.AREAS, filtered);
+  },
+
+  getAreaById: (id: string): Area | null => {
+    const list = AppStorageEngine.getAreas();
+    return list.find(a => a.id === id) || null;
+  },
+
+  addArea: (areaData: Omit<Area, 'id' | 'createdAt'> & Partial<Pick<Area, 'id' | 'createdAt'>>): Area => {
+    const areas = AppStorageEngine.getAreas();
+    const newArea: Area = {
+      ...areaData,
+      id: areaData.id || `area-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: areaData.createdAt || new Date().toISOString()
+    };
+    const updated = [...areas, newArea];
+    AppStorageEngine.saveAreas(updated);
+    return newArea;
+  },
+
+  updateArea: (id: string, updates: Partial<Area>): Area | null => {
+    const areas = AppStorageEngine.getAreas();
+    let updatedArea: Area | null = null;
+    const nextList = areas.map(item => {
+      if (item.id === id) {
+        updatedArea = { ...item, ...updates, updatedAt: new Date().toISOString() };
+        return updatedArea;
+      }
+      return item;
+    });
+    if (updatedArea) {
+      AppStorageEngine.saveAreas(nextList);
+    }
+    return updatedArea;
+  },
+
+  deleteArea: (id: string, cascade: boolean = false): boolean => {
+    const areas = AppStorageEngine.getAreas();
+    const target = areas.find(a => a.id === id);
+    if (!target) return false;
+
+    if (cascade) {
+      // Find all descendant IDs recursively
+      const getDescendantIds = (parentId: string): string[] => {
+        const children = areas.filter(a => a.parentId === parentId);
+        return children.reduce<string[]>((acc, child) => {
+          return [...acc, child.id, ...getDescendantIds(child.id)];
+        }, []);
+      };
+      const idsToDelete = new Set([id, ...getDescendantIds(id)]);
+      const nextList = areas.filter(a => !idsToDelete.has(a.id));
+      AppStorageEngine.saveAreas(nextList);
+    } else {
+      // Re-parent direct children to null or target's parent
+      const nextList = areas
+        .filter(a => a.id !== id)
+        .map(a => a.parentId === id ? { ...a, parentId: target.parentId || null } : a);
+      AppStorageEngine.saveAreas(nextList);
+    }
+    return true;
+  },
+
+  getChildAreas: (parentId: string | null): Area[] => {
+    const areas = AppStorageEngine.getAreas();
+    return areas.filter(a => (parentId === null || parentId === undefined) ? !a.parentId : a.parentId === parentId);
+  },
+
+  getAreaTree: (): AreaNode[] => {
+    const areas = AppStorageEngine.getAreas();
+    const areaMap = new Map<string, AreaNode>();
+    
+    areas.forEach(a => {
+      areaMap.set(a.id, { ...a, children: [] });
+    });
+
+    const roots: AreaNode[] = [];
+    areas.forEach(a => {
+      const node = areaMap.get(a.id);
+      if (node) {
+        if (a.parentId && areaMap.has(a.parentId)) {
+          areaMap.get(a.parentId)!.children.push(node);
+        } else {
+          roots.push(node);
+        }
+      }
+    });
+
+    return roots;
+  },
+
+  // ==========================================
+  // 2. QUẢN LÝ CÂY TỔ CHỨC CHÍNH TRỊ (ORGANIZATIONS)
+  // ==========================================
+  getOrganizations: (): Organization[] => {
+    const raw = loadInitialData(STORAGE_KEYS.ORGANIZATIONS, INITIAL_ORGANIZATIONS);
+    const orgMap = new Map<string, Organization>();
+    INITIAL_ORGANIZATIONS.forEach(o => {
+      if (o && o.id) orgMap.set(o.id, o);
+    });
+    (raw || []).forEach(o => {
+      if (o && o.id) {
+        orgMap.set(o.id, { ...(orgMap.get(o.id) || {}), ...o });
+      }
+    });
+    return Array.from(orgMap.values()).sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+  },
+
+  saveOrganizations: (orgs: Organization[]) => {
+    const filtered = (orgs || []).filter(o => o && o.id);
+    saveStorageData(STORAGE_KEYS.ORGANIZATIONS, filtered);
+  },
+
+  getOrganizationById: (id: string): Organization | null => {
+    const list = AppStorageEngine.getOrganizations();
+    return list.find(o => o.id === id) || null;
+  },
+
+  addOrganization: (orgData: Omit<Organization, 'id' | 'createdAt'> & Partial<Pick<Organization, 'id' | 'createdAt'>>): Organization => {
+    const orgs = AppStorageEngine.getOrganizations();
+    
+    // Resolve areaName if areaId provided
+    let areaName = orgData.areaName;
+    if (orgData.areaId && !areaName) {
+      const area = AppStorageEngine.getAreaById(orgData.areaId);
+      if (area) areaName = area.name;
+    }
+
+    const newOrg: Organization = {
+      ...orgData,
+      areaName,
+      id: orgData.id || `org-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: orgData.createdAt || new Date().toISOString()
+    };
+    const updated = [...orgs, newOrg];
+    AppStorageEngine.saveOrganizations(updated);
+    return newOrg;
+  },
+
+  updateOrganization: (id: string, updates: Partial<Organization>): Organization | null => {
+    const orgs = AppStorageEngine.getOrganizations();
+    let updatedOrg: Organization | null = null;
+
+    // Resolve areaName if areaId updated
+    let areaName = updates.areaName;
+    if (updates.areaId && !areaName) {
+      const area = AppStorageEngine.getAreaById(updates.areaId);
+      if (area) areaName = area.name;
+    }
+
+    const nextList = orgs.map(item => {
+      if (item.id === id) {
+        updatedOrg = { 
+          ...item, 
+          ...updates, 
+          ...(areaName ? { areaName } : {}),
+          updatedAt: new Date().toISOString() 
+        };
+        return updatedOrg;
+      }
+      return item;
+    });
+
+    if (updatedOrg) {
+      AppStorageEngine.saveOrganizations(nextList);
+    }
+    return updatedOrg;
+  },
+
+  deleteOrganization: (id: string, cascade: boolean = false): boolean => {
+    const orgs = AppStorageEngine.getOrganizations();
+    const target = orgs.find(o => o.id === id);
+    if (!target) return false;
+
+    if (cascade) {
+      const getDescendantIds = (parentId: string): string[] => {
+        const children = orgs.filter(o => o.parentId === parentId);
+        return children.reduce<string[]>((acc, child) => {
+          return [...acc, child.id, ...getDescendantIds(child.id)];
+        }, []);
+      };
+      const idsToDelete = new Set([id, ...getDescendantIds(id)]);
+      const nextList = orgs.filter(o => !idsToDelete.has(o.id));
+      AppStorageEngine.saveOrganizations(nextList);
+    } else {
+      const nextList = orgs
+        .filter(o => o.id !== id)
+        .map(o => o.parentId === id ? { ...o, parentId: target.parentId || null } : o);
+      AppStorageEngine.saveOrganizations(nextList);
+    }
+    return true;
+  },
+
+  getOrganizationsByParent: (parentId: string | null): Organization[] => {
+    const orgs = AppStorageEngine.getOrganizations();
+    return orgs.filter(o => (parentId === null || parentId === undefined) ? !o.parentId : o.parentId === parentId);
+  },
+
+  getOrganizationsByArea: (areaId: string): Organization[] => {
+    const orgs = AppStorageEngine.getOrganizations();
+    return orgs.filter(o => o.areaId === areaId);
+  },
+
+  getOrganizationTree: (rootParentId: string | null = null): OrganizationNode[] => {
+    const orgs = AppStorageEngine.getOrganizations();
+    const areas = AppStorageEngine.getAreas();
+    const areaMap = new Map<string, Area>(areas.map(a => [a.id, a]));
+
+    const nodeMap = new Map<string, OrganizationNode>();
+    orgs.forEach(o => {
+      nodeMap.set(o.id, { 
+        ...o, 
+        children: [],
+        area: o.areaId ? areaMap.get(o.areaId) : undefined 
+      });
+    });
+
+    // Populate parent references & hierarchy
+    const roots: OrganizationNode[] = [];
+    orgs.forEach(o => {
+      const node = nodeMap.get(o.id);
+      if (node) {
+        if (o.parentId && nodeMap.has(o.parentId)) {
+          const parentNode = nodeMap.get(o.parentId)!;
+          node.parent = parentNode;
+          parentNode.children.push(node);
+        } else if (rootParentId === null || o.parentId === rootParentId) {
+          roots.push(node);
+        }
+      }
+    });
+
+    return roots;
+  },
+
+  getOrganizationBreadcrumb: (orgId: string): Organization[] => {
+    const orgs = AppStorageEngine.getOrganizations();
+    const orgMap = new Map<string, Organization>(orgs.map(o => [o.id, o]));
+    const breadcrumb: Organization[] = [];
+    let curr: Organization | undefined = orgMap.get(orgId);
+    
+    while (curr) {
+      breadcrumb.unshift(curr);
+      curr = curr.parentId ? orgMap.get(curr.parentId) : undefined;
+    }
+    return breadcrumb;
+  },
+
+  moveOrganization: (orgId: string, newParentId: string | null): boolean => {
+    // Prevent self or circular parenting
+    if (orgId === newParentId) return false;
+    const orgs = AppStorageEngine.getOrganizations();
+    
+    // Check circular
+    if (newParentId) {
+      let checkCurr: Organization | undefined = orgs.find(o => o.id === newParentId);
+      while (checkCurr) {
+        if (checkCurr.id === orgId) return false; // Circular loop detected!
+        checkCurr = checkCurr.parentId ? orgs.find(o => o.id === checkCurr!.parentId) : undefined;
+      }
+    }
+
+    return AppStorageEngine.updateOrganization(orgId, { parentId: newParentId }) !== null;
+  },
+
+  // ==========================================
+  // 3. QUẢN LÝ CÂY TỔ CHỨC THÀNH VIÊN (MEMBER ORGANIZATIONS)
+  // ==========================================
   getMemberOrganizations: (): MemberOrganization[] => {
     const raw = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, INITIAL_MEMBER_ORGANIZATIONS);
     const orgMap = new Map<string, MemberOrganization>();
@@ -381,11 +676,158 @@ export const AppStorageEngine = {
         orgMap.set(o.id, { ...(orgMap.get(o.id) || {}), ...o });
       }
     });
-    return Array.from(orgMap.values());
+    return Array.from(orgMap.values()).sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
   },
+
   saveMemberOrganizations: (orgs: MemberOrganization[]) => {
     const filtered = (orgs || []).filter(o => o && o.id);
     saveStorageData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, filtered);
+  },
+
+  getMemberOrganizationById: (id: string): MemberOrganization | null => {
+    const list = AppStorageEngine.getMemberOrganizations();
+    return list.find(o => o.id === id) || null;
+  },
+
+  addMemberOrganization: (orgData: Omit<MemberOrganization, 'id' | 'createdAt'> & Partial<Pick<MemberOrganization, 'id' | 'createdAt'>>): MemberOrganization => {
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    
+    // Auto populate areaName
+    let areaName = orgData.areaName;
+    if (orgData.areaId && !areaName) {
+      const area = AppStorageEngine.getAreaById(orgData.areaId);
+      if (area) areaName = area.name;
+    }
+
+    const newOrg: MemberOrganization = {
+      ...orgData,
+      areaName,
+      id: orgData.id || `mem-org-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: orgData.createdAt || new Date().toISOString()
+    };
+    const updated = [...orgs, newOrg];
+    AppStorageEngine.saveMemberOrganizations(updated);
+    return newOrg;
+  },
+
+  updateMemberOrganization: (id: string, updates: Partial<MemberOrganization>): MemberOrganization | null => {
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    let updatedOrg: MemberOrganization | null = null;
+
+    let areaName = updates.areaName;
+    if (updates.areaId && !areaName) {
+      const area = AppStorageEngine.getAreaById(updates.areaId);
+      if (area) areaName = area.name;
+    }
+
+    const nextList = orgs.map(item => {
+      if (item.id === id) {
+        updatedOrg = { 
+          ...item, 
+          ...updates, 
+          ...(areaName ? { areaName } : {}),
+          updatedAt: new Date().toISOString() 
+        };
+        return updatedOrg;
+      }
+      return item;
+    });
+
+    if (updatedOrg) {
+      AppStorageEngine.saveMemberOrganizations(nextList);
+    }
+    return updatedOrg;
+  },
+
+  deleteMemberOrganization: (id: string, cascade: boolean = false): boolean => {
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    const target = orgs.find(o => o.id === id);
+    if (!target) return false;
+
+    if (cascade) {
+      const getDescendantIds = (parentId: string): string[] => {
+        const children = orgs.filter(o => o.parentId === parentId);
+        return children.reduce<string[]>((acc, child) => {
+          return [...acc, child.id, ...getDescendantIds(child.id)];
+        }, []);
+      };
+      const idsToDelete = new Set([id, ...getDescendantIds(id)]);
+      const nextList = orgs.filter(o => !idsToDelete.has(o.id));
+      AppStorageEngine.saveMemberOrganizations(nextList);
+    } else {
+      const nextList = orgs
+        .filter(o => o.id !== id)
+        .map(o => o.parentId === id ? { ...o, parentId: target.parentId || null } : o);
+      AppStorageEngine.saveMemberOrganizations(nextList);
+    }
+    return true;
+  },
+
+  getMemberOrganizationsByParent: (parentId: string | null): MemberOrganization[] => {
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    return orgs.filter(o => (parentId === null || parentId === undefined) ? !o.parentId : o.parentId === parentId);
+  },
+
+  getMemberOrganizationsByArea: (areaId: string): MemberOrganization[] => {
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    return orgs.filter(o => o.areaId === areaId);
+  },
+
+  getMemberOrganizationTree: (rootParentId: string | null = null): MemberOrganizationNode[] => {
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    const areas = AppStorageEngine.getAreas();
+    const areaMap = new Map<string, Area>(areas.map(a => [a.id, a]));
+
+    const nodeMap = new Map<string, MemberOrganizationNode>();
+    orgs.forEach(o => {
+      nodeMap.set(o.id, { 
+        ...o, 
+        children: [],
+        area: o.areaId ? areaMap.get(o.areaId) : undefined
+      });
+    });
+
+    const roots: MemberOrganizationNode[] = [];
+    orgs.forEach(o => {
+      const node = nodeMap.get(o.id);
+      if (node) {
+        if (o.parentId && nodeMap.has(o.parentId)) {
+          const parentNode = nodeMap.get(o.parentId)!;
+          node.parent = parentNode;
+          parentNode.children.push(node);
+        } else if (rootParentId === null || o.parentId === rootParentId) {
+          roots.push(node);
+        }
+      }
+    });
+
+    return roots;
+  },
+
+  getMemberOrganizationBreadcrumb: (orgId: string): MemberOrganization[] => {
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    const orgMap = new Map<string, MemberOrganization>(orgs.map(o => [o.id, o]));
+    const breadcrumb: MemberOrganization[] = [];
+    let curr: MemberOrganization | undefined = orgMap.get(orgId);
+    
+    while (curr) {
+      breadcrumb.unshift(curr);
+      curr = curr.parentId ? orgMap.get(curr.parentId) : undefined;
+    }
+    return breadcrumb;
+  },
+
+  moveMemberOrganization: (orgId: string, newParentId: string | null): boolean => {
+    if (orgId === newParentId) return false;
+    const orgs = AppStorageEngine.getMemberOrganizations();
+    if (newParentId) {
+      let checkCurr: MemberOrganization | undefined = orgs.find(o => o.id === newParentId);
+      while (checkCurr) {
+        if (checkCurr.id === orgId) return false;
+        checkCurr = checkCurr.parentId ? orgs.find(o => o.id === checkCurr!.parentId) : undefined;
+      }
+    }
+    return AppStorageEngine.updateMemberOrganization(orgId, { parentId: newParentId }) !== null;
   },
 
   getCurrentUser: (): StaffUser | null => {
@@ -424,6 +866,8 @@ export const AppStorageEngine = {
         driveFiles: AppStorageEngine.getDriveFiles(),
         staffUsers: AppStorageEngine.getStaffUsers(),
         memberOrganizations: AppStorageEngine.getMemberOrganizations(),
+        areas: AppStorageEngine.getAreas(),
+        organizations: AppStorageEngine.getOrganizations(),
         auditLogs: AppStorageEngine.getAuditLogs(),
         currentUser: AppStorageEngine.getCurrentUser()
       }
@@ -458,6 +902,8 @@ export const AppStorageEngine = {
       if (data.driveFiles) AppStorageEngine.saveDriveFiles(data.driveFiles);
       if (data.staffUsers) AppStorageEngine.saveStaffUsers(data.staffUsers);
       if (data.memberOrganizations) AppStorageEngine.saveMemberOrganizations(data.memberOrganizations);
+      if (data.areas) AppStorageEngine.saveAreas(data.areas);
+      if (data.organizations) AppStorageEngine.saveOrganizations(data.organizations);
       if (data.auditLogs) AppStorageEngine.saveAuditLogs(data.auditLogs);
       if (data.currentUser) AppStorageEngine.saveCurrentUser(data.currentUser);
 

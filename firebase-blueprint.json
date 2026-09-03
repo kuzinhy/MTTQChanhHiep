@@ -193,6 +193,72 @@
         "updatedAt": { "type": "number" }
       },
       "required": ["sessionId", "lastActive"]
+    },
+    "areas": {
+      "title": "Areas & Administrative Units",
+      "description": "Administrative boundaries (ward, neighborhoods, residential groups)",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "parentId": { "type": "string" },
+        "order": { "type": "number" },
+        "description": { "type": "string" },
+        "population": { "type": "number" },
+        "householdsCount": { "type": "number" },
+        "leaderName": { "type": "string" },
+        "leaderPhone": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["code", "name", "type"]
+    },
+    "organizations": {
+      "title": "Political & Front Organizations",
+      "description": "Hierarchical organizations tree linked with administrative areas",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "shortName": { "type": "string" },
+        "slug": { "type": "string" },
+        "type": { "type": "string" },
+        "level": { "type": "string" },
+        "parentId": { "type": "string" },
+        "areaId": { "type": "string" },
+        "leaderName": { "type": "string" },
+        "leaderPosition": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "membersCount": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["code", "name", "type", "level"]
+    },
+    "memberOrganizations": {
+      "title": "Member Organizations",
+      "description": "Fatherland Front member organizations with hierarchical and geographic links",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "shortName": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "parentId": { "type": "string" },
+        "areaId": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "leaderName": { "type": "string" },
+        "leaderPosition": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "activeMembersCount": { "type": "number" },
+        "branchesCount": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "shortName", "slug"]
     }
   }
 }

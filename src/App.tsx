@@ -57,7 +57,7 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent, MemberOrganization } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent, MemberOrganization, Area, Organization } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -125,6 +125,8 @@ export default function App() {
   const [templates] = useState(INITIAL_TEMPLATES);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>(() => AppStorageEngine.getStaffUsers());
   const [memberOrganizations, setMemberOrganizations] = useState<MemberOrganization[]>(() => AppStorageEngine.getMemberOrganizations());
+  const [areas, setAreas] = useState<Area[]>(() => AppStorageEngine.getAreas());
+  const [politicalOrganizations, setPoliticalOrganizations] = useState<Organization[]>(() => AppStorageEngine.getOrganizations());
   const [aiChats, setAiChats] = useState<AiChatLog[]>(() => AppStorageEngine.getAiChats());
   const [knowledgeNotes, setKnowledgeNotes] = useState<KnowledgeNote[]>(() => AppStorageEngine.getKnowledgeNotes());
 
@@ -156,6 +158,9 @@ export default function App() {
       onAuditLogsUpdate: (logs) => setAuditLogs(logs),
       onAiChatsUpdate: (chats) => setAiChats(chats),
       onKnowledgeNotesUpdate: (notes) => setKnowledgeNotes(notes),
+      onMemberOrganizationsUpdate: (orgs) => setMemberOrganizations(orgs),
+      onAreasUpdate: (ar) => setAreas(ar),
+      onOrganizationsUpdate: (orgs) => setPoliticalOrganizations(orgs),
       onSubmissionsUpdate: (subs) => setSubmissions(subs),
       onDriveFilesUpdate: (files) => setDriveFiles(files),
     });
@@ -173,6 +178,8 @@ export default function App() {
   useEffect(() => { AppStorageEngine.saveDriveFiles(driveFiles); }, [driveFiles]);
   useEffect(() => { AppStorageEngine.saveStaffUsers(staffUsers); }, [staffUsers]);
   useEffect(() => { AppStorageEngine.saveMemberOrganizations(memberOrganizations); }, [memberOrganizations]);
+  useEffect(() => { AppStorageEngine.saveAreas(areas); }, [areas]);
+  useEffect(() => { AppStorageEngine.saveOrganizations(politicalOrganizations); }, [politicalOrganizations]);
   useEffect(() => { AppStorageEngine.saveAuditLogs(auditLogs); }, [auditLogs]);
   useEffect(() => { AppStorageEngine.saveCurrentUser(currentStaffUser); }, [currentStaffUser]);
   useEffect(() => { AppStorageEngine.saveAiChats(aiChats); }, [aiChats]);
@@ -1322,9 +1329,22 @@ export default function App() {
                     {officeView === 'member_orgs_admin' && (
                       <MemberOrganizationsAdminView
                         organizations={memberOrganizations}
+                        politicalOrganizations={politicalOrganizations}
+                        areas={areas}
                         onSaveOrganizations={(orgs) => {
                           setMemberOrganizations(orgs);
                           AppStorageEngine.saveMemberOrganizations(orgs);
+                          CloudDatabase.saveAllMemberOrganizations(orgs);
+                        }}
+                        onSavePoliticalOrganizations={(orgs) => {
+                          setPoliticalOrganizations(orgs);
+                          AppStorageEngine.saveOrganizations(orgs);
+                          CloudDatabase.saveAllOrganizations(orgs);
+                        }}
+                        onSaveAreas={(ar) => {
+                          setAreas(ar);
+                          AppStorageEngine.saveAreas(ar);
+                          CloudDatabase.saveAllAreas(ar);
                         }}
                         onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Thất bại' : 'Thông báo', msg)}
                       />

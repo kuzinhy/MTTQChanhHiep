@@ -555,8 +555,77 @@ export interface QuestionBankCollection {
   updatedAt: string;
 }
 
+export type AreaType = 'WARD' | 'NEIGHBORHOOD' | 'SUB_AREA' | 'RESIDENTIAL_GROUP';
+
+export interface Area {
+  id: string;
+  code: string; // Mã địa bàn (e.g., 'CHANH-HIEP', 'KP-01')
+  name: string; // Tên địa bàn (e.g., 'Phường Chánh Hiệp', 'Khu phố 1')
+  type: AreaType;
+  parentId?: string | null; // Cấp cha trực tiếp (ví dụ: Khu phố thuộc Phường)
+  order?: number;
+  description?: string;
+  population?: number; // Dân số
+  householdsCount?: number; // Số hộ dân
+  leaderName?: string; // Trưởng ban / Trưởng khu phố
+  leaderPhone?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AreaNode extends Area {
+  children: AreaNode[];
+}
+
+export type OrganizationType = 
+  | 'POLITICAL_PARTY'      // Đảng bộ, Chi bộ
+  | 'GOVERNMENT'           // HĐND, UBND, cơ quan công quyền
+  | 'FATHERLAND_FRONT'     // Ủy ban MTTQ, Ban Công tác Mặt trận khu phố
+  | 'SOCIO_POLITICAL'      // Đoàn Thanh niên, Hội Phụ nữ, Cựu chiến binh, Nông dân, Công đoàn
+  | 'ASSOCIATION'          // Hội Người cao tuổi, Chữ thập đỏ, Khuyến học...
+  | 'COMMITTEE'            // Ban Thanh tra nhân dân, Ban Giám sát đầu tư cộng đồng
+  | 'BRANCH'               // Chi bộ, Chi đoàn, Chi hội cơ sở
+  | 'CELL';                // Tổ hội, Phân đoàn
+
+export type OrganizationLevel = 'WARD' | 'NEIGHBORHOOD' | 'SUB_AREA' | 'GROUP';
+
+export interface Organization {
+  id: string;
+  code: string;
+  name: string;
+  shortName: string;
+  slug: string;
+  type: OrganizationType;
+  level: OrganizationLevel;
+  parentId?: string | null; // Quan hệ phân cấp cây (Cơ quan cấp trên)
+  areaId?: string | null;   // Liên kết với bảng Areas (Địa bàn hoạt động)
+  areaName?: string;        // Cache tên địa bàn
+  leaderName?: string;
+  leaderPosition?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  description?: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  membersCount?: number;
+  partyMembersCount?: number;
+  displayOrder?: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  establishedDate?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface OrganizationNode extends Organization {
+  children: OrganizationNode[];
+  area?: Area;
+  parent?: Organization;
+}
+
 export interface MemberOrganization {
   id: string;
+  code?: string;
   slug: string;
   name: string; // e.g., 'Đoàn TNCS Hồ Chí Minh', 'Hội Liên hiệp Phụ nữ'
   shortName: string;
@@ -567,9 +636,35 @@ export interface MemberOrganization {
   email: string;
   avatarUrl?: string;
   bannerUrl?: string;
+  displayOrder?: number;
+  // Hierarchical & Geographic Relations
+  parentId?: string | null; // Quan hệ phân cấp cây (ví dụ: Đoàn Phường -> Chi đoàn Khu phố 1)
+  areaId?: string | null;   // Liên kết với bảng Areas (Địa bàn trực thuộc)
+  areaName?: string;        // Cache tên khu vực
+  organizationId?: string | null; // Liên kết chéo tới Organization
+  level?: OrganizationLevel;
+  status?: 'ACTIVE' | 'INACTIVE';
+  // Detailed Organizational Stats (Số liệu công tác tổ chức)
   activeMembersCount?: number;
-  programsCount?: number;
+  branchesCount?: number; // Số chi hội / chi đoàn / tổ hội
+  neighborhoodsCoveredCount?: number; // Số khu phố có tổ chức / chi hội
+  femaleMembersCount?: number; // Số đoàn viên / hội viên nữ
+  youthMembersCount?: number; // Số đoàn viên / hội viên trẻ
+  partyMembersCount?: number; // Số đoàn viên / hội viên là Đảng viên
+  executiveCommitteeMembersCount?: number; // Số ủy viên Ban Chấp hành / Ban Thường trực
+  gatheringRatio?: string; // Tỉ lệ tập hợp quần chúng (ví dụ: '88%')
+  programsCount?: number; // Số chương trình / công trình thanh niên, phụ nữ
+  keyProjectsCount?: number; // Số mô hình / phần việc tiêu biểu
+  establishedYear?: string; // Năm thành lập / ngày truyền thống
+  featuredAchievements?: string[]; // Danh sách thành tích / mô hình tiêu biểu
   createdAt: string;
+  updatedAt?: string;
+}
+
+export interface MemberOrganizationNode extends MemberOrganization {
+  children: MemberOrganizationNode[];
+  area?: Area;
+  parent?: MemberOrganization;
 }
 
 export interface PublicSurvey {

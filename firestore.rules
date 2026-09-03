@@ -28,6 +28,16 @@ service cloud.firestore {
       allow write: if isAuthenticated() || true;
     }
 
+    match /areas/{areaId} {
+      allow read: if true;
+      allow write: if isAuthenticated() || true;
+    }
+
+    match /organizations/{orgId} {
+      allow read: if true;
+      allow write: if isAuthenticated() || true;
+    }
+
     // 2. Dân nguyện: Người dân gửi ý kiến mới (create), đọc ý kiến đã trả lời
     match /publicOpinions/{opinionId} {
       allow read, create: if true;

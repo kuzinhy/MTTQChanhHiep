@@ -24,7 +24,10 @@ import {
   INITIAL_TEMPLATES,
   INITIAL_DRIVE_FILES,
   INITIAL_STAFF_USERS,
-  INITIAL_AUDIT_LOGS
+  INITIAL_AUDIT_LOGS,
+  INITIAL_MEMBER_ORGANIZATIONS,
+  INITIAL_AREAS,
+  INITIAL_ORGANIZATIONS
 } from '../data/seedData';
 import {
   Article,
@@ -40,7 +43,10 @@ import {
   StaffUser,
   AuditLog,
   AiChatLog,
-  KnowledgeNote
+  KnowledgeNote,
+  MemberOrganization,
+  Area,
+  Organization
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -81,7 +87,10 @@ export const FirestoreCollections = {
   AUDIT_LOGS: 'auditLogs',
   SETTINGS: 'settings',
   AI_CHATS: 'aiChats',
-  KNOWLEDGE_NOTES: 'knowledgeNotes'
+  KNOWLEDGE_NOTES: 'knowledgeNotes',
+  MEMBER_ORGANIZATIONS: 'memberOrganizations',
+  AREAS: 'areas',
+  ORGANIZATIONS: 'organizations'
 };
 
 class CloudSyncService {
@@ -104,6 +113,9 @@ class CloudSyncService {
       onAuditLogsUpdate?: (logs: AuditLog[]) => void;
       onAiChatsUpdate?: (chats: AiChatLog[]) => void;
       onKnowledgeNotesUpdate?: (notes: KnowledgeNote[]) => void;
+      onMemberOrganizationsUpdate?: (orgs: MemberOrganization[]) => void;
+      onAreasUpdate?: (areas: Area[]) => void;
+      onOrganizationsUpdate?: (orgs: Organization[]) => void;
       onSubmissionsUpdate?: (subs: CompetitionSubmission[]) => void;
       onDriveFilesUpdate?: (files: DriveFileItem[]) => void;
     }
@@ -343,6 +355,52 @@ class CloudSyncService {
         this.syncListeners.push(unsub);
       }
 
+      // Member Organizations Listener
+      if (callbacks.onMemberOrganizationsUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.MEMBER_ORGANIZATIONS), (snapshot) => {
+          const remoteOrgs: MemberOrganization[] = snapshot.docs
+            .map(d => ({ ...(d.data() as MemberOrganization), id: d.id }))
+            .filter(o => o && o.id);
+          
+          remoteOrgs.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+          AppStorageEngine.saveMemberOrganizations(remoteOrgs);
+          callbacks.onMemberOrganizationsUpdate?.(remoteOrgs);
+        }, (err) => {
+          console.warn('[Firestore] Member Organizations sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
+      // Areas Listener
+      if (callbacks.onAreasUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.AREAS), (snapshot) => {
+          const remoteAreas: Area[] = snapshot.docs
+            .map(d => ({ ...(d.data() as Area), id: d.id }))
+            .filter(a => a && a.id);
+          remoteAreas.sort((a, b) => (a.order || 0) - (b.order || 0));
+          AppStorageEngine.saveAreas(remoteAreas);
+          callbacks.onAreasUpdate?.(remoteAreas);
+        }, (err) => {
+          console.warn('[Firestore] Areas sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
+      // Organizations Listener
+      if (callbacks.onOrganizationsUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.ORGANIZATIONS), (snapshot) => {
+          const remoteOrgs: Organization[] = snapshot.docs
+            .map(d => ({ ...(d.data() as Organization), id: d.id }))
+            .filter(o => o && o.id);
+          remoteOrgs.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+          AppStorageEngine.saveOrganizations(remoteOrgs);
+          callbacks.onOrganizationsUpdate?.(remoteOrgs);
+        }, (err) => {
+          console.warn('[Firestore] Organizations sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
       // 3. Database successfully initialized. Clients will listen to real-time cloud updates.
       // A manual cloud sync is still available via the UI's "Đồng bộ Cloud" button if needed.
 
@@ -459,6 +517,27 @@ class CloudSyncService {
         for (const ev of initialEvents) {
           const evDoc = doc(db, FirestoreCollections.EVENTS, ev.id);
           await setDoc(evDoc, cleanFirestoreData(ev), { merge: true });
+        }
+
+        // Batch seed member organizations
+        const initialOrgs = AppStorageEngine.getMemberOrganizations();
+        for (const org of initialOrgs) {
+          const orgDoc = doc(db, FirestoreCollections.MEMBER_ORGANIZATIONS, org.id);
+          await setDoc(orgDoc, cleanFirestoreData(org), { merge: true });
+        }
+
+        // Batch seed areas
+        const initialAreas = AppStorageEngine.getAreas();
+        for (const area of initialAreas) {
+          const aDoc = doc(db, FirestoreCollections.AREAS, area.id);
+          await setDoc(aDoc, cleanFirestoreData(area), { merge: true });
+        }
+
+        // Batch seed organizations
+        const initialPoliticsOrgs = AppStorageEngine.getOrganizations();
+        for (const o of initialPoliticsOrgs) {
+          const oDoc = doc(db, FirestoreCollections.ORGANIZATIONS, o.id);
+          await setDoc(oDoc, cleanFirestoreData(o), { merge: true });
         }
 
         // Mark as seeded so future deletions are never resurrected
@@ -733,6 +812,117 @@ class CloudSyncService {
     }
   }
 
+  // Member Organizations
+  async saveMemberOrganization(org: MemberOrganization): Promise<boolean> {
+    try {
+      const oDoc = doc(db, FirestoreCollections.MEMBER_ORGANIZATIONS, org.id);
+      await setDoc(oDoc, cleanFirestoreData(org), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving member organization:', err);
+      return false;
+    }
+  }
+
+  async deleteMemberOrganization(orgId: string): Promise<boolean> {
+    try {
+      const oDoc = doc(db, FirestoreCollections.MEMBER_ORGANIZATIONS, orgId);
+      await deleteDoc(oDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting member organization:', err);
+      return false;
+    }
+  }
+
+  async saveAllMemberOrganizations(orgs: MemberOrganization[]): Promise<boolean> {
+    try {
+      for (let i = 0; i < orgs.length; i++) {
+        const item = { ...orgs[i], displayOrder: i + 1 };
+        const oDoc = doc(db, FirestoreCollections.MEMBER_ORGANIZATIONS, item.id);
+        await setDoc(oDoc, cleanFirestoreData(item), { merge: true });
+      }
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving all member organizations:', err);
+      return false;
+    }
+  }
+
+  // Areas (Địa bàn hành chính)
+  async saveArea(area: Area): Promise<boolean> {
+    try {
+      const aDoc = doc(db, FirestoreCollections.AREAS, area.id);
+      await setDoc(aDoc, cleanFirestoreData(area), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving area:', err);
+      return false;
+    }
+  }
+
+  async deleteArea(areaId: string): Promise<boolean> {
+    try {
+      const aDoc = doc(db, FirestoreCollections.AREAS, areaId);
+      await deleteDoc(aDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting area:', err);
+      return false;
+    }
+  }
+
+  async saveAllAreas(areas: Area[]): Promise<boolean> {
+    try {
+      for (let i = 0; i < areas.length; i++) {
+        const item = { ...areas[i], order: i + 1 };
+        const aDoc = doc(db, FirestoreCollections.AREAS, item.id);
+        await setDoc(aDoc, cleanFirestoreData(item), { merge: true });
+      }
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving all areas:', err);
+      return false;
+    }
+  }
+
+  // Organizations (Cây tổ chức hệ thống chính trị)
+  async saveOrganization(org: Organization): Promise<boolean> {
+    try {
+      const oDoc = doc(db, FirestoreCollections.ORGANIZATIONS, org.id);
+      await setDoc(oDoc, cleanFirestoreData(org), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving organization:', err);
+      return false;
+    }
+  }
+
+  async deleteOrganization(orgId: string): Promise<boolean> {
+    try {
+      const oDoc = doc(db, FirestoreCollections.ORGANIZATIONS, orgId);
+      await deleteDoc(oDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting organization:', err);
+      return false;
+    }
+  }
+
+  async saveAllOrganizations(orgs: Organization[]): Promise<boolean> {
+    try {
+      for (let i = 0; i < orgs.length; i++) {
+        const item = { ...orgs[i], displayOrder: i + 1 };
+        const oDoc = doc(db, FirestoreCollections.ORGANIZATIONS, item.id);
+        await setDoc(oDoc, cleanFirestoreData(item), { merge: true });
+      }
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving all organizations:', err);
+      return false;
+    }
+  }
+
   // Pull all cloud data to local storage (cross-device sync for mobile/PC)
   async pullCloudToLocal(): Promise<boolean> {
     try {
@@ -811,6 +1001,27 @@ class CloudSyncService {
         AppStorageEngine.saveKnowledgeNotes(knowledgeSnap.docs.map(d => ({ ...(d.data() as KnowledgeNote), id: d.id })));
       }
 
+      const orgsSnap = await getDocs(collection(db, FirestoreCollections.MEMBER_ORGANIZATIONS));
+      if (!orgsSnap.empty) {
+        const remoteOrgs = orgsSnap.docs.map(d => ({ ...(d.data() as MemberOrganization), id: d.id }));
+        remoteOrgs.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+        AppStorageEngine.saveMemberOrganizations(remoteOrgs);
+      }
+
+      const areasSnap = await getDocs(collection(db, FirestoreCollections.AREAS));
+      if (!areasSnap.empty) {
+        const remoteAreas = areasSnap.docs.map(d => ({ ...(d.data() as Area), id: d.id }));
+        remoteAreas.sort((a, b) => (a.order || 0) - (b.order || 0));
+        AppStorageEngine.saveAreas(remoteAreas);
+      }
+
+      const polOrgsSnap = await getDocs(collection(db, FirestoreCollections.ORGANIZATIONS));
+      if (!polOrgsSnap.empty) {
+        const remotePolOrgs = polOrgsSnap.docs.map(d => ({ ...(d.data() as Organization), id: d.id }));
+        remotePolOrgs.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+        AppStorageEngine.saveOrganizations(remotePolOrgs);
+      }
+
       return true;
     } catch (err) {
       console.error('[Firestore] Error pulling cloud to local:', err);
@@ -848,6 +1059,9 @@ class CloudSyncService {
       await pushCollection(FirestoreCollections.SUBMISSIONS, AppStorageEngine.getSubmissions());
       await pushCollection(FirestoreCollections.DRIVE_FILES, AppStorageEngine.getDriveFiles());
       await pushCollection(FirestoreCollections.AUDIT_LOGS, AppStorageEngine.getAuditLogs());
+      await pushCollection(FirestoreCollections.MEMBER_ORGANIZATIONS, AppStorageEngine.getMemberOrganizations());
+      await pushCollection(FirestoreCollections.AREAS, AppStorageEngine.getAreas());
+      await pushCollection(FirestoreCollections.ORGANIZATIONS, AppStorageEngine.getOrganizations());
 
       if (hasPermissionError) {
         return { 
