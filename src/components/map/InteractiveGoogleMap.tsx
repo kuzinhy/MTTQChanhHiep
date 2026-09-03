@@ -58,23 +58,21 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   const userMarkerRef = useRef<L.Marker | null>(null);
 
   // Map tile style state
-  // 'google-roadmap' | 'google-satellite' | 'google-terrain' | 'osm'
-  const [mapStyle, setMapStyle] = useState<'google-roadmap' | 'google-satellite' | 'google-terrain' | 'osm'>('google-roadmap');
+  // 'carto-voyager' | 'esri-satellite' | 'osm'
+  const [mapStyle, setMapStyle] = useState<'carto-voyager' | 'esri-satellite' | 'osm'>('carto-voyager');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [mapZoom, setMapZoom] = useState<number>(14);
 
   // Tile layer instance ref
   const tileLayerRef = useRef<L.TileLayer | null>(null);
 
-  // Define tile URLs
+  // Define tile URLs (100% Free & Open Source, 0 API Keys required)
   const getTileUrl = (style: string) => {
     switch (style) {
-      case 'google-roadmap':
-        return 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
-      case 'google-satellite':
-        return 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'; // Hybrid: satellite + labels
-      case 'google-terrain':
-        return 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}'; // Terrain + roads
+      case 'carto-voyager':
+        return 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      case 'esri-satellite':
+        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
       case 'osm':
       default:
         return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -82,10 +80,15 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   };
 
   const getTileAttribution = (style: string) => {
-    if (style.startsWith('google')) {
-      return '&copy; Google Maps Platform';
+    switch (style) {
+      case 'carto-voyager':
+        return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      case 'esri-satellite':
+        return 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+      case 'osm':
+      default:
+        return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
     }
-    return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
   };
 
   // 1. Initialize Leaflet Map Instance
@@ -105,10 +108,10 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       });
 
       // Add Tile Layer
-      const tile = L.tileLayer(getTileUrl('google-roadmap'), {
+      const tile = L.tileLayer(getTileUrl('carto-voyager'), {
         maxZoom: 20,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-        attribution: getTileAttribution('google-roadmap')
+        subdomains: 'abcd',
+        attribution: getTileAttribution('carto-voyager')
       }).addTo(map);
 
       tileLayerRef.current = tile;
@@ -449,51 +452,51 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         className="w-full h-full z-0 cursor-grab active:cursor-grabbing"
       />
 
-      {/* 2. Top-Left Floating Map Style Switcher (Roadmap vs Satellite vs Terrain) */}
+      {/* 2. Top-Left Floating Map Style Switcher (Carto Voyager vs Esri Satellite vs OpenStreetMap) */}
       <div className="absolute top-3 left-3 z-30 flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-lg border border-slate-200">
         <button
-          onClick={() => setMapStyle('google-roadmap')}
+          onClick={() => setMapStyle('carto-voyager')}
           className={`px-2.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
-            mapStyle === 'google-roadmap'
+            mapStyle === 'carto-voyager'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-700 hover:bg-slate-100'
           }`}
-          title="Bản đồ đường phố Google Maps"
+          title="Bản đồ chuẩn CartoDB Voyager"
         >
           <Compass className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Google Đường phố</span>
-          <span className="sm:hidden">Đường</span>
+          <span className="hidden sm:inline">Bản đồ Chuẩn</span>
+          <span className="sm:hidden">Chuẩn</span>
         </button>
 
         <button
-          onClick={() => setMapStyle('google-satellite')}
+          onClick={() => setMapStyle('esri-satellite')}
           className={`px-2.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
-            mapStyle === 'google-satellite'
+            mapStyle === 'esri-satellite'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-700 hover:bg-slate-100'
           }`}
-          title="Bản đồ vệ tinh Google Maps kết hợp"
+          title="Bản đồ vệ tinh Esri World Imagery"
         >
           <Layers className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Google Vệ tinh</span>
+          <span className="hidden sm:inline">Vệ tinh Esri</span>
           <span className="sm:hidden">Vệ tinh</span>
         </button>
 
         <button
-          onClick={() => setMapStyle('google-terrain')}
+          onClick={() => setMapStyle('osm')}
           className={`px-2.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
-            mapStyle === 'google-terrain'
+            mapStyle === 'osm'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-700 hover:bg-slate-100'
           }`}
-          title="Bản đồ địa hình Google Maps"
+          title="Bản đồ mở OpenStreetMap"
         >
-          <span className="hidden sm:inline">Địa hình</span>
-          <span className="sm:hidden">Terrain</span>
+          <span className="hidden sm:inline">OpenStreetMap</span>
+          <span className="sm:hidden">OSM</span>
         </button>
       </div>
 
-      {/* 3. Top-Right Floating Controls (Center, Fullscreen, Google Maps App link) */}
+      {/* 3. Top-Right Floating Controls (Center, Fullscreen, External Navigation link) */}
       <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5">
         <button
           onClick={handleCenterWard}
@@ -508,11 +511,11 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
           href="https://www.google.com/maps/search/Ph%C6%B0%E1%BB%9Dng+Ch%C3%A1nh+Hi%E1%BB%87p+Th%C3%A0nh+ph%E1%BB%91+H%E1%BB%93+Ch%C3%AD+Minh"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-red-700 hover:bg-red-800 text-white text-xs font-black px-3 py-1.5 rounded-xl shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
-          title="Mở trên ứng dụng Google Maps"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-3 py-1.5 rounded-xl shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+          title="Mở chỉ đường ngoài app Google Maps"
         >
           <span>Mở Google Maps</span>
-          <ExternalLink className="w-3 h-3 text-amber-300" />
+          <ExternalLink className="w-3 h-3 text-white" />
         </a>
 
         <button
@@ -543,11 +546,11 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         </button>
       </div>
 
-      {/* 5. Bottom-Left Map Coordinate Status & Google Maps Watermark */}
+      {/* 5. Bottom-Left Map Coordinate Status Overlay */}
       <div className="absolute bottom-3 left-3 z-30 flex items-center gap-2 pointer-events-none">
         <div className="bg-white/95 backdrop-blur-md text-slate-800 px-3 py-1.5 rounded-xl text-[10px] font-bold border border-slate-200 shadow-md flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Bản đồ Trực quan Google Maps • Zoom {mapZoom} • 21 Khu phố Phường Chánh Hiệp</span>
+          <span>Bản đồ Số GIS Chánh Hiệp • Zoom {mapZoom} • 21 Khu phố • OpenGIS Layer</span>
         </div>
       </div>
     </div>

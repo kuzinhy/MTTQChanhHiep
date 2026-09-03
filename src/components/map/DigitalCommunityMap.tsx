@@ -17,6 +17,7 @@ import {
   Clock,
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   Maximize2,
   Compass,
@@ -85,6 +86,31 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
   // Map viewport zoom / center simulation
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 11.015, lng: 106.652 });
   const [zoomLevel, setZoomLevel] = useState<number>(14);
+
+  // Horizontal reel ref & scroll handlers
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollLocationsLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -360, behavior: 'smooth' });
+    }
+  };
+
+  const scrollLocationsRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 360, behavior: 'smooth' });
+    }
+  };
+
+  // Auto scroll active location card into view
+  useEffect(() => {
+    if (activeLocation && scrollContainerRef.current) {
+      const cardEl = document.getElementById(`loc-card-${activeLocation.id}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [activeLocation]);
 
   // Handle Initial Location if requested via props
   useEffect(() => {
@@ -238,16 +264,16 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
       {/* ========================================================================= */}
       {/* I. HEADER BANNER: BẢN ĐỒ SỐ AN SINH PHƯỜNG CHÁNH HIỆP                     */}
       {/* ========================================================================= */}
-      <div className="bg-gradient-to-r from-red-800 via-rose-900 to-indigo-950 rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute -right-8 -bottom-8 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-blue-900 rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute -right-8 -bottom-8 w-60 h-60 bg-sky-300/20 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 max-w-4xl space-y-2.5">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30 text-xs font-black uppercase tracking-wider">
-              <Compass className="w-3.5 h-3.5 text-amber-300" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white border border-white/30 text-xs font-black uppercase tracking-wider">
+              <Compass className="w-3.5 h-3.5 text-sky-200" />
               <span>Hệ Thống Dữ Liệu Địa Bàn Số GIS</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-300/30 text-xs font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-100 border border-emerald-300/30 text-xs font-bold">
               <HeartHandshake className="w-3.5 h-3.5 text-emerald-300" />
               <span>Bảo trợ &amp; An sinh 21 Khu phố</span>
             </span>
@@ -256,34 +282,34 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
             Bản Đồ Số An Sinh &amp; Địa Bàn Phường Chánh Hiệp
           </h1>
-          <p className="text-rose-100 text-xs sm:text-sm font-medium leading-relaxed max-w-3xl">
+          <p className="text-sky-100 text-xs sm:text-sm font-medium leading-relaxed max-w-3xl">
             Khám phá trực quan 21 khu phố, hệ thống cơ quan chính trị - hành chính, trạm y tế, trường học, điểm sinh hoạt cộng đồng và mạng lưới an sinh xã hội vì người nghèo.
           </p>
 
           {/* Quick Metrics Dashboard Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
             <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-rose-200">Địa bàn cơ sở</div>
-              <div className="text-lg sm:text-xl font-black text-amber-300">21 Khu phố</div>
-              <div className="text-[10px] text-rose-100">100% Phủ sóng số hóa</div>
+              <div className="text-[10px] uppercase font-bold text-sky-200">Địa bàn cơ sở</div>
+              <div className="text-lg sm:text-xl font-black text-white">21 Khu phố</div>
+              <div className="text-[10px] text-sky-100">100% Phủ sóng số hóa</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-rose-200">Điểm tọa độ (POI)</div>
+              <div className="text-[10px] uppercase font-bold text-sky-200">Điểm tọa độ (POI)</div>
               <div className="text-lg sm:text-xl font-black text-white">{totalLocationsCount}</div>
-              <div className="text-[10px] text-rose-100">Cơ quan, tiện ích, trường học</div>
+              <div className="text-[10px] text-sky-100">Cơ quan, tiện ích, trường học</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-rose-200">Điểm An sinh</div>
+              <div className="text-[10px] uppercase font-bold text-sky-200">Điểm An sinh</div>
               <div className="text-lg sm:text-xl font-black text-emerald-300">{welfarePointsCount}</div>
-              <div className="text-[10px] text-rose-100">Bếp ăn, cứu trợ, từ thiện</div>
+              <div className="text-[10px] text-sky-100">Bếp ăn, cứu trợ, từ thiện</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-rose-200">Cơ quan &amp; Đoàn thể</div>
-              <div className="text-lg sm:text-xl font-black text-sky-300">{adminOfficesCount}</div>
-              <div className="text-[10px] text-rose-100">MTTQ &amp; 21 Ban CTMT</div>
+              <div className="text-[10px] uppercase font-bold text-sky-200">Cơ quan &amp; Đoàn thể</div>
+              <div className="text-lg sm:text-xl font-black text-sky-200">{adminOfficesCount}</div>
+              <div className="text-[10px] text-sky-100">MTTQ &amp; 21 Ban CTMT</div>
             </div>
           </div>
         </div>
@@ -302,7 +328,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm tên địa điểm, cơ quan, trạm y tế, trường học, khu phố 1-21..."
-              className="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all placeholder:text-slate-400"
+              className="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
             />
             {searchQuery && (
               <button
@@ -375,7 +401,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
               onClick={() => setSelectedCategory('ALL')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
                 selectedCategory === 'ALL'
-                  ? 'bg-red-700 text-white shadow-xs'
+                  ? 'bg-blue-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -410,7 +436,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
           {/* Quick 21 Neighborhood Selector Dropdown & Welfare Toggle */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
-              <MapPin className="w-3.5 h-3.5 text-red-600" />
+              <MapPin className="w-3.5 h-3.5 text-blue-600" />
               <span>Lọc theo 21 Khu phố:</span>
             </div>
             
@@ -427,7 +453,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
                   }
                 }
               }}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-red-500/20"
+              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="ALL">Toàn bộ 21 Khu phố</option>
               {neighborhoods.map((nh) => (
@@ -483,7 +509,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
                   type="checkbox"
                   checked={layerConfig.show_administrative_offices}
                   onChange={(e) => setLayerConfig({ ...layerConfig, show_administrative_offices: e.target.checked })}
-                  className="rounded text-red-600 focus:ring-0"
+                  className="rounded text-blue-600 focus:ring-0"
                 />
                 <span className="font-semibold">🏛 Cơ quan Đảng - UBND</span>
               </label>
@@ -563,127 +589,11 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* III. MAIN MAP STAGE & SIDEBAR LOCATIONS LIST                              */}
+      {/* III. MAIN MAP STAGE (FULL WIDTH) & HORIZONTAL LOCATIONS REEL               */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left Side: POI List & Neighborhood Cards (4 Cols Desktop) */}
-        <div className="lg:col-span-4 space-y-3 flex flex-col h-[550px] sm:h-[650px]">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-red-600" />
-              <span>Danh sách địa điểm ({filteredLocations.length})</span>
-            </span>
-            {userCoords && (
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                Sắp xếp theo cự ly gần nhất
-              </span>
-            )}
-          </div>
-
-          {/* Scrollable list */}
-          <div className="flex-1 overflow-y-auto pr-1 space-y-2.5">
-            {filteredLocations.length === 0 ? (
-              <div className="bg-white rounded-3xl p-8 text-center border border-slate-200 space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                  <Search className="w-6 h-6" />
-                </div>
-                <h4 className="font-bold text-sm text-slate-800">Không tìm thấy địa điểm phù hợp</h4>
-                <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                  Thử đổi từ khóa tìm kiếm hoặc bấm nút bên dưới để xem toàn bộ địa điểm.
-                </p>
-                <button
-                  onClick={handleResetView}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors"
-                >
-                  Xóa bộ lọc
-                </button>
-              </div>
-            ) : (
-              filteredLocations.map((loc) => {
-                const isSelected = activeLocation?.id === loc.id;
-                const cat = categories.find(c => c.id === loc.category_id);
-
-                return (
-                  <motion.div
-                    key={loc.id}
-                    whileHover={{ x: 2 }}
-                    onClick={() => {
-                      setActiveLocation(loc);
-                      setMapCenter({ lat: loc.latitude, lng: loc.longitude });
-                      if (onSelectLocation) onSelectLocation(loc);
-                    }}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-500/20'
-                        : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center p-1 text-slate-700">
-                        {renderCategoryIcon(loc.category_code, 'w-5 h-5 text-red-700')}
-                      </div>
-
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${
-                            cat?.bgBadgeColor || 'bg-slate-100 text-slate-700 border-slate-200'
-                          } ${cat?.textBadgeColor || ''}`}>
-                            {cat?.name?.split('&')[0]?.trim() || 'Cơ sở'}
-                          </span>
-
-                          {loc.neighborhood_name && (
-                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                              {loc.neighborhood_name}
-                            </span>
-                          )}
-
-                          {loc.distance_in_meters !== undefined && (
-                            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md ml-auto">
-                              Cách {formatDistance(loc.distance_in_meters)}
-                            </span>
-                          )}
-                        </div>
-
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-snug line-clamp-2">
-                          {loc.name}
-                        </h4>
-
-                        <p className="text-[11px] text-slate-500 line-clamp-1">
-                          {loc.address}
-                        </p>
-
-                        <div className="flex items-center justify-between pt-1 text-[11px]">
-                          {loc.phone && (
-                            <span className="text-slate-600 font-medium flex items-center gap-1">
-                              <Phone className="w-3 h-3 text-blue-600" />
-                              <span>{loc.phone}</span>
-                            </span>
-                          )}
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveLocation(loc);
-                              setShowDetailModal(true);
-                            }}
-                            className="text-blue-700 font-bold hover:underline flex items-center gap-0.5 ml-auto"
-                          >
-                            <span>Chi tiết</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Right Side: Interactive Visual Community Map Stage (8 Cols Desktop) */}
-        <div className="lg:col-span-8 bg-slate-50 rounded-3xl overflow-hidden border border-slate-200 shadow-lg relative h-[550px] sm:h-[650px] flex flex-col">
-          {/* Interactive True Google Maps / GIS Canvas */}
+      <div className="space-y-4">
+        {/* Full-Width Interactive Google Maps Canvas Stage */}
+        <div className="w-full bg-slate-50 rounded-3xl overflow-hidden border border-slate-200 shadow-xl relative h-[560px] sm:h-[660px] lg:h-[700px] flex flex-col">
           <div className="flex-1 relative w-full h-full">
             <InteractiveGoogleMap
               locations={filteredLocations}
@@ -764,6 +674,179 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
             </div>
           )}
         </div>
+
+        {/* Compact Horizontal Locations List Reel */}
+        <div className="space-y-2.5 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-md">
+          {/* Header Bar with Count, Sorting & Scroll Buttons */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs sm:text-sm font-black uppercase text-slate-900 tracking-wider flex items-center gap-2">
+                  <span>Danh sách địa điểm an sinh</span>
+                  <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                    {filteredLocations.length}
+                  </span>
+                </h3>
+                {userCoords && (
+                  <p className="text-[10px] font-bold text-emerald-600">
+                    Sắp xếp theo cự ly gần nhất từ vị trí của bạn
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {searchQuery || selectedCategory !== 'ALL' || selectedNeighborhoodId !== 'ALL' ? (
+                <button
+                  onClick={handleResetView}
+                  className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer mr-1 hidden sm:inline-flex items-center gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Xóa lọc</span>
+                </button>
+              ) : null}
+
+              <button
+                onClick={scrollLocationsLeft}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                title="Cuộn sang trái"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={scrollLocationsRight}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                title="Cuộn sang phải"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Horizontal Scroll Reel Container */}
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-3.5 overflow-x-auto pb-2 pt-1 scroll-smooth snap-x scrollbar-thin"
+          >
+            {filteredLocations.length === 0 ? (
+              <div className="w-full bg-slate-50 rounded-2xl p-6 text-center border border-slate-200 space-y-2">
+                <p className="text-xs font-bold text-slate-700">Không tìm thấy địa điểm phù hợp</p>
+                <button
+                  onClick={handleResetView}
+                  className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors"
+                >
+                  Xóa bộ lọc
+                </button>
+              </div>
+            ) : (
+              filteredLocations.map((loc) => {
+                const isSelected = activeLocation?.id === loc.id;
+                const cat = categories.find(c => c.id === loc.category_id);
+
+                return (
+                  <motion.div
+                    key={loc.id}
+                    id={`loc-card-${loc.id}`}
+                    whileHover={{ y: -2 }}
+                    onClick={() => {
+                      setActiveLocation(loc);
+                      setMapCenter({ lat: loc.latitude, lng: loc.longitude });
+                      if (onSelectLocation) onSelectLocation(loc);
+                    }}
+                    className={`w-[280px] sm:w-[320px] shrink-0 snap-start p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-500/20'
+                        : 'bg-white border-slate-200 hover:border-blue-300 shadow-xs hover:shadow-sm'
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${
+                          cat?.bgBadgeColor || 'bg-slate-100 text-slate-700 border-slate-200'
+                        } ${cat?.textBadgeColor || ''}`}>
+                          {cat?.name?.split('&')[0]?.trim() || 'Cơ sở'}
+                        </span>
+
+                        <div className="flex items-center gap-1 ml-auto">
+                          {loc.neighborhood_name && (
+                            <span className="text-[9px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200">
+                              {loc.neighborhood_name}
+                            </span>
+                          )}
+
+                          {loc.distance_in_meters !== undefined && (
+                            <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                              {formatDistance(loc.distance_in_meters)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 shrink-0 flex items-center justify-center p-1 text-blue-700 mt-0.5">
+                          {renderCategoryIcon(loc.category_code, 'w-4 h-4 text-blue-700')}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-snug line-clamp-2">
+                            {loc.name}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                            📍 {loc.address}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 mt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                      {loc.phone ? (
+                        <a
+                          href={`tel:${loc.phone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-slate-600 font-medium hover:text-blue-700 flex items-center gap-1"
+                        >
+                          <Phone className="w-3 h-3 text-blue-600" />
+                          <span>{loc.phone}</span>
+                        </a>
+                      ) : (
+                        <span className="text-slate-400 text-[10px]">Chưa có SĐT</span>
+                      )}
+
+                      <div className="flex items-center gap-1 ml-auto">
+                        <a
+                          href={generateGoogleMapsDirectionsUrl(loc.latitude, loc.longitude)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold transition-colors inline-flex items-center gap-0.5"
+                          title="Mở chỉ đường Google Maps"
+                        >
+                          <Navigation className="w-2.5 h-2.5" />
+                          <span>Chỉ đường</span>
+                        </a>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveLocation(loc);
+                            setShowDetailModal(true);
+                          }}
+                          className="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold transition-colors inline-flex items-center gap-0.5"
+                        >
+                          <span>Chi tiết</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ========================================================================= */}
@@ -773,13 +856,13 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="bg-gradient-to-r from-red-700 via-rose-700 to-indigo-900 p-5 text-white flex items-center justify-between shrink-0">
+            <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-blue-900 p-5 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
                   {renderCategoryIcon(activeLocation.category_code, 'w-5 h-5 text-white')}
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-sky-200">
                     {activeLocation.neighborhood_name || 'Phường Chánh Hiệp'}
                   </span>
                   <h3 className="text-base sm:text-lg font-black leading-snug">
@@ -816,7 +899,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                   <div className="font-bold text-slate-400 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-red-600" />
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
                     <span>Địa chỉ:</span>
                   </div>
                   <div className="font-bold text-slate-900">{activeLocation.address}</div>
@@ -873,16 +956,16 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
       {showNeighborhoodModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="bg-gradient-to-r from-red-800 to-indigo-900 p-5 text-white flex items-center justify-between shrink-0">
+            <div className="bg-gradient-to-r from-blue-800 to-sky-900 p-5 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
-                  <Home className="w-5 h-5 text-amber-300" />
+                  <Home className="w-5 h-5 text-sky-200" />
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-black">
                     Danh Sách 21 Khu Phố - Phường Chánh Hiệp
                   </h3>
-                  <p className="text-xs text-rose-200">Mạng lưới cán bộ cơ sở &amp; thiết chế văn hóa địa bàn</p>
+                  <p className="text-xs text-sky-100">Mạng lưới cán bộ cơ sở &amp; thiết chế văn hóa địa bàn</p>
                 </div>
               </div>
               <button
@@ -904,10 +987,10 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
                       setMapCenter({ lat: nh.center_lat, lng: nh.center_lng });
                       setShowNeighborhoodModal(false);
                     }}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-red-500 hover:shadow-md transition-all cursor-pointer space-y-2"
+                    className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all cursor-pointer space-y-2"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase text-red-700 bg-red-50 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-black uppercase text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
                         {nh.code}
                       </span>
                       <span className="text-[11px] font-bold text-slate-500">
