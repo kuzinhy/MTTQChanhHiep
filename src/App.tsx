@@ -54,6 +54,7 @@ import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
 import { ToastContainer } from './components/ToastNotification';
+import { PageLoader } from './components/PageLoader';
 
 import { 
   INITIAL_COMPETITIONS, 
@@ -144,6 +145,9 @@ export const TAB_TO_HASH: Record<string, string> = {
 };
 
 export default function App() {
+  // App Initial Loading State
+  const [isAppLoading, setIsAppLoading] = useState(true);
+
   // Navigation & Space State
   const [currentSpace, setCurrentSpace] = useState<'PORTAL' | 'OFFICE'>('PORTAL');
   const [portalTab, setPortalTab] = useState<string>('home');
@@ -922,7 +926,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white">
-      
+      {/* Full Page Initial Loader Screen */}
+      <AnimatePresence mode="wait">
+        {isAppLoading && (
+          <PageLoader key="initial-app-loader" onLoaded={() => setIsAppLoading(false)} />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
         {/* PUBLIC PORTAL SPACE */}
         {currentSpace === 'PORTAL' ? (
