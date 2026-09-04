@@ -124,14 +124,14 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded, minDurationMs 
         </div>
 
         {/* Titles & System Branding */}
-        <div className="space-y-1.5">
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase leading-tight drop-shadow-md">
+        <div className="space-y-1.5 w-full overflow-x-auto no-scrollbar py-1">
+          <h1 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-white uppercase leading-tight drop-shadow-md whitespace-nowrap">
             Ủy Ban Mặt Trận Tổ Quốc Việt Nam
           </h1>
-          <p className="text-sm sm:text-base font-black text-cyan-300 uppercase tracking-widest drop-shadow">
+          <p className="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-widest drop-shadow whitespace-nowrap">
             Phường Chánh Hiệp • TP. Hồ Chí Minh
           </p>
-          <p className="text-xs text-blue-200/90 font-semibold tracking-wide">
+          <p className="text-[11px] sm:text-xs text-blue-200/90 font-semibold tracking-wide whitespace-nowrap">
             Hệ Thống Quản Trị Trực Tuyến &amp; Cổng Dịch Vụ An Sinh Số
           </p>
         </div>
