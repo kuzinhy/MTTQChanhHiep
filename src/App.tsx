@@ -29,6 +29,7 @@ import { DigitalMapSection } from './components/map/DigitalMapSection';
 import { VolunteerRegistrationModal } from './components/VolunteerRegistrationModal';
 import { DigitalDirectoryModal } from './components/DigitalDirectoryModal';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { HoChiMinhCulturalSpaceModal } from './components/cultural/HoChiMinhCulturalSpaceModal';
 import { NotFoundPage } from './components/NotFoundPage';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from './data/neighborhoodsList';
 
@@ -49,6 +50,7 @@ import { QuestionBankAdminView } from './components/office/QuestionBankAdminView
 import { SurveysAdminView } from './components/office/SurveysAdminView';
 import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
+import { CulturalSpaceAdminView } from './components/cultural/CulturalSpaceAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
 import { NotificationAdminView } from './components/office/NotificationAdminView';
 import { UserProfileView } from './components/office/UserProfileView';
@@ -72,7 +74,7 @@ import { VisitorTrackerEngine } from './lib/visitorTracker';
 import { canAccessView } from './lib/rbac';
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
-import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle } from 'lucide-react';
+import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle, Landmark, Star } from 'lucide-react';
 import { browserNotificationService } from './lib/browserNotifications';
 
 export const VALID_PORTAL_TABS = [
@@ -129,7 +131,9 @@ export const PORTAL_HASH_TO_TAB: Record<string, string> = {
   '/y-kien-dan-nguyen': 'opinion',
   '/to-chuc-thanh-vien': 'organizations',
   '/chinh-sach-bao-mat': 'privacy',
-  '/privacy': 'privacy'
+  '/privacy': 'privacy',
+  '/khong-gian-van-hoa-ho-chi-minh': 'hcm_space',
+  '/kgvh-ho-chi-minh': 'hcm_space'
 };
 
 export const TAB_TO_HASH: Record<string, string> = {
@@ -172,6 +176,7 @@ export default function App() {
   const [isVolunteerModalOpen, setIsVolunteerModalOpen] = useState(false);
   const [isDirectoryModalOpen, setIsDirectoryModalOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [isHcmSpaceModalOpen, setIsHcmSpaceModalOpen] = useState(false);
 
   const handleSelectPortalTab = (tab: string) => {
     setNotFoundRoute(null);
@@ -408,6 +413,16 @@ export default function App() {
       }
 
       // 4. Staff Login route: #/dang-nhap or #/dang-nhap-can-bo
+      if (rawHash === '#/khong-gian-van-hoa-ho-chi-minh' || rawHash === '#/kgvh-ho-chi-minh') {
+        setNotFoundRoute(null);
+        setCurrentSpace('PORTAL');
+        setIsHcmSpaceModalOpen(true);
+        setSelectedArticle(null);
+        setSelectedDocument(null);
+        setSelectedCompetition(null);
+        return;
+      }
+
       if (rawHash === '#/dang-nhap' || rawHash === '#/dang-nhap-can-bo') {
         setNotFoundRoute(null);
         setCurrentSpace('PORTAL');
@@ -1026,6 +1041,7 @@ export default function App() {
               onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
               onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
               onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
+              onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
             />
 
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-10">
@@ -1100,20 +1116,23 @@ export default function App() {
                         <motion.div 
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSelectPortalTab('opinion')}
-                          className="bg-gradient-to-br from-rose-50 via-white to-pink-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-rose-200/90 shadow-xs"
+                          onClick={() => setIsHcmSpaceModalOpen(true)}
+                          className="bg-gradient-to-br from-amber-50 via-red-50/40 to-amber-100/30 p-5 rounded-2xl cursor-pointer hover:shadow-xl hover:border-amber-400 transition-all flex items-center justify-between group border border-amber-300/90 shadow-xs relative overflow-hidden"
                         >
-                          <div>
+                          <div className="relative z-10">
                             <div className="flex items-center gap-1.5 mb-1">
-                              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-rose-600">Dân sinh & Trợ cấp</span>
+                              <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-red-700 flex items-center gap-1">
+                                <Star className="w-2.5 h-2.5 fill-red-700" /> Không gian số 3D
+                              </span>
                             </div>
-                            <h3 className="font-black text-sm text-slate-900 group-hover:text-rose-600 transition-colors">Gửi Ý kiến Dân sinh</h3>
-                            <p className="text-xs text-slate-500 mt-0.5 font-medium">Nắm bắt dư luận & trợ cấp</p>
+                            <h3 className="font-black text-sm text-slate-900 group-hover:text-red-700 transition-colors">Không gian VH Hồ Chí Minh</h3>
+                            <p className="text-xs text-slate-600 mt-0.5 font-medium">Bảo tàng ảo & hiện vật 3D tương tác</p>
                           </div>
-                          <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-600 to-red-600 text-white shadow-md shadow-rose-500/20 group-hover:scale-110 transition-transform">
-                            <MessageSquare className="w-5 h-5" />
+                          <div className="p-3 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-amber-600 text-white shadow-md shadow-red-500/30 group-hover:scale-110 transition-transform shrink-0 relative z-10 border border-amber-300/40">
+                            <Landmark className="w-5 h-5" />
                           </div>
+                          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-300/20 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
                         </motion.div>
 
                         <motion.div 
@@ -1306,6 +1325,7 @@ export default function App() {
                 setSearchQuery={setSearchQuery}
                 isStaffLoggedIn={false}
                 onGoToOffice={() => setShowStaffLoginPage(true)}
+                onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
               />
               <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex items-center justify-center">
                 <div className="w-full">
@@ -1725,6 +1745,10 @@ export default function App() {
                       />
                     )}
 
+                    {officeView === 'cultural_space_admin' && (
+                      <CulturalSpaceAdminView />
+                    )}
+
                     {officeView === 'users' && (
                       <StaffUsersAdminView
                         staffUsers={staffUsers}
@@ -1913,6 +1937,16 @@ export default function App() {
             setCurrentSpace('PORTAL');
             setPortalTab(v);
           }
+        }}
+      />
+
+      {/* 3D HO CHI MINH CULTURAL SPACE POPUP MODAL */}
+      <HoChiMinhCulturalSpaceModal
+        isOpen={isHcmSpaceModalOpen}
+        onClose={() => setIsHcmSpaceModalOpen(false)}
+        onNavigateToMap={() => {
+          setIsHcmSpaceModalOpen(false);
+          handleSelectPortalTab('map');
         }}
       />
     </div>

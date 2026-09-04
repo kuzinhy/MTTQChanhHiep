@@ -70,10 +70,10 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
     { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
     { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
-    { id: 'templates', label: 'Mẫu Văn bản MTTQ', icon: FileCheck, badge: 'BIỂU MẪU' },
+    { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
   ];
 
-  const webViewIds = ['cms', 'cms_articles', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'templates', 'member_orgs_admin'];
+  const webViewIds = ['cms', 'cms_articles', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'member_orgs_admin', 'cultural_space_admin'];
   const isCurrentViewWeb = webViewIds.includes(currentView);
 
   // Accordion state for "Quản trị web"

@@ -20,7 +20,8 @@ import {
   Phone,
   Lightbulb,
   MapPin,
-  Clock
+  Clock,
+  Landmark
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -36,6 +37,7 @@ interface NavbarProps {
   onOpenNotificationCenter?: () => void;
   onOpenDigitalDirectory?: () => void;
   onOpenVolunteerModal?: () => void;
+  onOpenHcmSpaceModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -48,12 +50,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   onGoToOffice,
   onOpenNotificationCenter,
   onOpenDigitalDirectory,
-  onOpenVolunteerModal
+  onOpenVolunteerModal,
+  onOpenHcmSpaceModal
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
+    { id: 'hcm_space', label: 'KGVH Hồ Chí Minh', icon: Landmark, isSpecial: true },
     { id: 'map', label: 'Bản đồ số', icon: MapPin },
     { id: 'about', label: 'Giới thiệu', icon: Info },
     { id: 'organizations', label: 'Tổ chức thành viên', icon: Users },
@@ -120,11 +124,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white animate-pulse" />
             </button>
 
+            {/* Không gian VH Hồ Chí Minh Quick Button */}
+            <button
+              onClick={onOpenHcmSpaceModal}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-xl shadow-md border border-amber-300/40 transition-all active:scale-95 shrink-0 cursor-pointer"
+              title="Khám phá Không gian Văn hóa Hồ Chí Minh 3D"
+            >
+              <Star className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300 animate-pulse" />
+              <span>Không gian VH Hồ Chí Minh</span>
+            </button>
 
             {/* Volunteer Signup */}
             <button
               onClick={onOpenVolunteerModal}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
             >
               <HeartHandshake className="w-4 h-4 text-slate-950" />
               <span>Đăng ký TNV</span>
@@ -176,17 +189,29 @@ export const Navbar: React.FC<NavbarProps> = ({
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
+                const isSpecial = (item as any).isSpecial;
+
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => {
+                      if (item.id === 'hcm_space' && onOpenHcmSpaceModal) {
+                        onOpenHcmSpaceModal();
+                      } else {
+                        setActiveTab(item.id);
+                      }
+                    }}
                     className={`relative flex items-center justify-center gap-1 xl:gap-1.5 px-2 xl:px-2.5 py-1.5 text-[11px] xl:text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-xs'
+                        ? isSpecial
+                          ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-xs'
+                          : 'bg-blue-600 text-white shadow-xs'
+                        : isSpecial
+                        ? 'bg-amber-50/80 text-red-800 border border-amber-300/70 hover:bg-amber-100 hover:text-red-900'
                         : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : isSpecial ? 'text-red-700' : 'text-slate-500'}`} />
                     <span>{item.label}</span>
                   </button>
                 );
@@ -228,18 +253,30 @@ export const Navbar: React.FC<NavbarProps> = ({
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
+                const isSpecial = (item as any).isSpecial;
+
                 return (
                   <button
                     key={item.id}
                     onClick={() => {
-                      setActiveTab(item.id);
+                      if (item.id === 'hcm_space' && onOpenHcmSpaceModal) {
+                        onOpenHcmSpaceModal();
+                      } else {
+                        setActiveTab(item.id);
+                      }
                       setMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all ${
-                      isActive ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
+                      isActive
+                        ? isSpecial
+                          ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-xs'
+                          : 'bg-blue-600 text-white shadow-xs'
+                        : isSpecial
+                        ? 'bg-amber-50 text-red-800 border border-amber-300 hover:bg-amber-100'
+                        : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isSpecial ? 'text-red-600' : 'text-slate-500'}`} />
                     <span>{item.label}</span>
                   </button>
                 );

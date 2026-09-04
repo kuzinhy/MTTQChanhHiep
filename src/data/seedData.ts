@@ -1759,46 +1759,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // 3. Hội Liên hiệp Thanh niên Việt Nam Phường Chánh Hiệp
-  {
-    id: 'org-lhtn',
-    code: 'LHTN-CH',
-    slug: 'hoi-lien-hiep-thanh-nien',
-    name: 'Hội Liên hiệp Thanh niên Việt Nam Phường Chánh Hiệp',
-    shortName: 'Hội LHTN Việt Nam',
-    description: 'Đoàn kết, tập hợp thanh niên, xây dựng lối sống đẹp, phát triển kinh tế - xã hội.',
-    leaderName: 'Lê Hoàng Phong',
-    leaderPosition: 'Chủ tịch Hội LHTN',
-    phone: '0274.3822.121',
-    email: 'hoilhtn.chanhhiep@gmail.com',
-    avatarUrl: getOfficialCadreAvatarSvg('Lê Hoàng Phong', 'Chủ tịch Hội LHTN'),
-    bannerUrl: ARTICLE_BANNERS.thidua,
-    displayOrder: 3,
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    organizationId: 'org-hoi-lhtn',
-    level: 'WARD',
-    status: 'ACTIVE',
-    activeMembersCount: 780,
-    branchesCount: 24, // 21 chi hội khu phố + 3 chi hội trường học & CLB
-    neighborhoodsCoveredCount: 21,
-    femaleMembersCount: 380,
-    youthMembersCount: 780,
-    partyMembersCount: 42,
-    executiveCommitteeMembersCount: 15,
-    gatheringRatio: '86%',
-    programsCount: 18,
-    keyProjectsCount: 8,
-    establishedYear: '1956',
-    featuredAchievements: [
-      'CLB Thắp sáng niềm tin & Hỗ trợ thanh niên khởi nghiệp lập nghiệp',
-      'Đội hình tình nguyện vì cộng đồng "Thanh niên Chánh Hiệp - Triệu trái tim"',
-      'Chương trình "Ngày hội Thầy thuốc trẻ làm theo lời Bác - Khám bệnh miễn phí"'
-    ],
-    createdAt: '2026-01-01'
-  },
-  // 3. Hội Liên hiệp Phụ nữ Phường Chánh Hiệp
+  // 2. Hội Liên hiệp Phụ nữ Phường Chánh Hiệp
   {
     id: 'org-lhph',
     code: 'HPN-CH',
@@ -1837,7 +1798,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // 4. Hội Cựu chiến binh Phường Chánh Hiệp
+  // 3. Hội Cựu chiến binh Phường Chánh Hiệp
   {
     id: 'org-ccb',
     code: 'CCB-CH',
@@ -1876,7 +1837,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // 5. Công đoàn Cơ sở Phường Chánh Hiệp
+  // 4. Công đoàn Cơ sở Phường Chánh Hiệp
   {
     id: 'org-congdoan',
     code: 'CD-CH',
@@ -1915,7 +1876,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // 6. Hội Người cao tuổi Phường Chánh Hiệp
+  // 5. Hội Người cao tuổi Phường Chánh Hiệp
   {
     id: 'org-nct',
     code: 'NCT-CH',
@@ -1954,46 +1915,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // 7. Hội Chữ thập đỏ Phường Chánh Hiệp
-  {
-    id: 'org-ctd',
-    code: 'CTD-CH',
-    slug: 'hoi-chu-thap-do',
-    name: 'Hội Chữ thập đỏ Phường Chánh Hiệp',
-    shortName: 'Hội Chữ thập đỏ',
-    description: 'Tổ chức nhân đạo nòng cốt, trợ giúp nhân đạo, cứu trợ khẩn cấp, khám chữa bệnh nhân đạo và vận động hiến máu tình nguyện.',
-    leaderName: 'Hoàng Thị Mai',
-    leaderPosition: 'Chủ tịch Hội Chữ thập đỏ',
-    phone: '0274.3822.116',
-    email: 'chuthapdo.chanhhiep@gmail.com',
-    avatarUrl: getOfficialCadreAvatarSvg('Hoàng Thị Mai', 'Chủ tịch Hội CTĐ'),
-    bannerUrl: ARTICLE_BANNERS.ansinh,
-    displayOrder: 7,
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    organizationId: 'org-hoi-ctd',
-    level: 'WARD',
-    status: 'ACTIVE',
-    activeMembersCount: 320,
-    branchesCount: 21, // 21 chi hội CTĐ khu phố
-    neighborhoodsCoveredCount: 21,
-    femaleMembersCount: 195,
-    youthMembersCount: 85,
-    partyMembersCount: 36,
-    executiveCommitteeMembersCount: 13,
-    gatheringRatio: '88%',
-    programsCount: 34,
-    keyProjectsCount: 9,
-    establishedYear: '1957',
-    featuredAchievements: [
-      'Tổ chức "Bếp ăn từ thiện & Cháo tình thương cho bệnh nhân nghèo"',
-      'Phong trào "Hiến máu nhân đạo - Giọt hồng Chánh Hiệp"',
-      'Ngân hàng xe lăn & Dụng cụ y tế hỗ trợ người khuyết tật'
-    ],
-    createdAt: '2026-01-01'
-  },
-  // 8. Hội Khuyến học Phường Chánh Hiệp
+  // 6. Hội Khuyến học Phường Chánh Hiệp
   {
     id: 'org-hkh',
     code: 'HKH-CH',
@@ -2032,7 +1954,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // 9. Hội Cựu Thanh niên xung phong Phường Chánh Hiệp
+  // 7. Hội Cựu Thanh niên xung phong Phường Chánh Hiệp
   {
     id: 'org-tnxp',
     code: 'TNXP-CH',
@@ -2071,7 +1993,7 @@ export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
     ],
     createdAt: '2026-01-01'
   },
-  // 10. Chi hội Luật gia Phường Chánh Hiệp
+  // 8. Chi hội Luật gia Phường Chánh Hiệp
   {
     id: 'org-luat-gia',
     code: 'HLG-CH',

@@ -35,6 +35,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   question_banks: 'CONTEST_MANAGER',
   surveys_admin: 'REVIEWER',
   member_orgs_admin: 'STAFF',
+  cultural_space_admin: 'STAFF',
   analytics: 'MANAGER',
   users: 'ADMIN',
   audit_logs: 'SUPER_ADMIN'
