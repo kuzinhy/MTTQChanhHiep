@@ -56,6 +56,7 @@ import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
 import { ToastContainer } from './components/ToastNotification';
 import { PageLoader } from './components/PageLoader';
+import { notificationMasterService } from './lib/notificationMasterService';
 
 import { 
   INITIAL_COMPETITIONS, 
@@ -469,6 +470,40 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [portalTab, officeView, currentSpace]);
 
+  // Real-time notification subscriber for cross-device & multi-tab alerts
+  useEffect(() => {
+    const userId = currentStaffUser?.id;
+    const roles = currentStaffUser?.role ? [currentStaffUser.role] : ['GUEST', 'PUBLIC'];
+
+    const unsubscribe = notificationMasterService.subscribeToNotifications(
+      (list) => {
+        if (list && list.length > 0) {
+          const latest = list[0];
+          const createdAtTime = new Date(latest.created_at).getTime();
+          const now = Date.now();
+          if (now - createdAtTime < 20000) {
+            const toastKey = `notif_toast_${latest.id}`;
+            if (!sessionStorage.getItem(toastKey)) {
+              sessionStorage.setItem(toastKey, 'true');
+              handleTriggerSystemToast(`📢 [${latest.category.toUpperCase()}] ${latest.title}`, latest.body);
+            }
+          }
+        }
+      },
+      userId,
+      roles
+    );
+
+    const unsubBroadcast = notificationMasterService.onBroadcastMessage((notif) => {
+      handleTriggerSystemToast(`📢 [Thông báo mới] ${notif.title}`, notif.body);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubBroadcast();
+    };
+  }, [currentStaffUser]);
+
   // Guard RBAC Office Views
   const userRole: UserRole = currentStaffUser?.role || 'STAFF';
   const isOfficeViewAllowed = canAccessView(userRole, officeView);
@@ -478,7 +513,35 @@ export default function App() {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
+// Helper for notification chime using Web Audio API
+  const playNotificationSound = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+      
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } catch (e) {
+      // Audio autoplay restrictions or unsupported
+    }
+  };
+
   const handleTriggerSystemToast = (title: string, message: string) => {
+    playNotificationSound();
     setToasts(prev => {
       // Prevent duplicate notifications with the same message or related content within active toasts
       const isDuplicate = prev.some(t => {
@@ -1839,6 +1902,8 @@ export default function App() {
       <NotificationCenterModal
         isOpen={isNotificationCenterOpen}
         onClose={() => setIsNotificationCenterOpen(false)}
+        userId={currentStaffUser?.id}
+        userRoles={currentStaffUser?.role ? [currentStaffUser.role] : ['GUEST', 'PUBLIC']}
         onNavigate={(v) => {
           setIsNotificationCenterOpen(false);
           if (v === 'opinions') {

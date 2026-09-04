@@ -101,7 +101,7 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded, minDurationMs 
           <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center border border-yellow-300 shadow-xs shrink-0">
             <span className="text-[10px] text-yellow-300 font-black leading-none">★</span>
           </div>
-          <span>Cổng Thông Tin Số • Ủy Ban MTTQ Việt Nam Phường Chánh Hiệp</span>
+          <span className="whitespace-nowrap">Cổng Thông Tin Số • Ủy Ban MTTQ Việt Nam Phường Chánh Hiệp</span>
         </div>
 
         {/* MTTQ Emblem Logo Right in the Center of Concentric Rings inside Glass Card */}

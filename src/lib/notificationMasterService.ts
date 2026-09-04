@@ -54,7 +54,6 @@ export const notificationMasterService = {
     try {
       const q = query(
         collection(db, NOTIFICATIONS_COLLECTION),
-        where('status', 'in', ['SENT', 'SENDING']),
         orderBy('created_at', 'desc'),
         limit(50)
       );
@@ -63,14 +62,18 @@ export const notificationMasterService = {
         const list: NotificationItem[] = [];
         snapshot.forEach((docSnap) => {
           const data = docSnap.data() as NotificationItem;
-          // Filter by target audience rules client-side or server-side
-          if (
-            data.target_type === 'ALL' || 
-            data.target_type === 'GUEST_PUBLIC' ||
-            (userId && data.target_type === 'AUTHENTICATED') ||
-            (userId && data.target_type === 'USER' && data.target_user_ids?.includes(userId)) ||
-            (userRoles && data.target_type === 'ROLE' && data.target_roles?.some(r => userRoles.includes(r)))
-          ) {
+          // Filter status
+          if (data.status && data.status !== 'SENT' && data.status !== 'SENDING') {
+            return;
+          }
+
+          const targetType = data.target_type || 'ALL';
+          const isAll = targetType === 'ALL' || targetType === 'GUEST_PUBLIC';
+          const isAuthenticated = !!userId && targetType === 'AUTHENTICATED';
+          const isUserMatch = !!userId && targetType === 'USER' && (data.target_user_ids || []).includes(userId);
+          const isRoleMatch = !!userRoles && targetType === 'ROLE' && (data.target_roles || []).some(r => userRoles.includes(r));
+
+          if (isAll || isAuthenticated || isUserMatch || isRoleMatch || !userId) {
             list.push({ ...data, id: docSnap.id });
           }
         });
