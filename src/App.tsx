@@ -50,6 +50,7 @@ import { SurveysAdminView } from './components/office/SurveysAdminView';
 import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
+import { NotificationAdminView } from './components/office/NotificationAdminView';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
@@ -107,7 +108,8 @@ export const VALID_OFFICE_VIEWS = [
   'notes',
   'users',
   'analytics',
-  'audit_logs'
+  'audit_logs',
+  'notifications'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -1727,6 +1729,13 @@ export default function App() {
                     )}
 
                     {officeView === 'audit_logs' && <AuditLogsView logs={auditLogs} />}
+
+                    {officeView === 'notifications' && (
+                      <NotificationAdminView
+                        currentUserId={currentStaffUser?.id || 'admin'}
+                        onTriggerToast={(title, msg) => handleTriggerSystemToast(title, msg)}
+                      />
+                    )}
 
                     {/* Office 404 Fallback when view is not recognized */}
                     {!VALID_OFFICE_VIEWS.includes(officeView) && (

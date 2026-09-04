@@ -704,4 +704,112 @@ export interface NeighborhoodMigrationResult {
   details: string[];
 }
 
+export type NotificationPriority = 'NORMAL' | 'IMPORTANT' | 'URGENT' | 'CRITICAL';
+
+export type NotificationCategory = 'news' | 'event' | 'document' | 'system' | 'member' | 'personal' | 'broadcast';
+
+export type NotificationEventType = 
+  | 'CONTENT_PUBLISHED'
+  | 'CONTENT_IMPORTANT_UPDATED'
+  | 'ADMIN_BROADCAST'
+  | 'EVENT_CREATED'
+  | 'EVENT_REMINDER'
+  | 'SYSTEM_ANNOUNCEMENT'
+  | 'MEMBER_NOTIFICATION'
+  | 'PERSONAL_NOTIFICATION';
+
+export type NotificationStatus = 
+  | 'DRAFT'
+  | 'SCHEDULED'
+  | 'QUEUED'
+  | 'SENDING'
+  | 'SENT'
+  | 'CANCELLED'
+  | 'FAILED';
+
+export type NotificationVisibility = 'PUBLIC' | 'INTERNAL' | 'PRIVATE';
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  body: string;
+  summary?: string;
+  type: NotificationEventType;
+  category: NotificationCategory;
+  priority: NotificationPriority;
+  visibility: NotificationVisibility;
+  image_url?: string;
+  action_url?: string;
+  source_type?: string;
+  source_id?: string;
+  source_version?: number;
+  target_type: 'ALL' | 'GUEST_PUBLIC' | 'AUTHENTICATED' | 'ROLE' | 'GROUP' | 'USER';
+  target_roles?: string[];
+  target_user_ids?: string[];
+  channels: ('IN_APP' | 'WEB_PUSH' | 'PWA_PUSH')[];
+  status: NotificationStatus;
+  send_at?: string;
+  sent_at?: string;
+  expires_at?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  idempotency_key?: string;
+}
+
+export interface PushSubscriptionRecord {
+  id: string;
+  user_id?: string | null;
+  device_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  provider: 'WEB_PUSH' | 'FIREBASE' | 'NATIVE';
+  platform: string;
+  browser: string;
+  pwa_installed: boolean;
+  enabled: boolean;
+  created_at: string;
+  last_seen_at: string;
+  last_success_at?: string;
+  failed_count: number;
+}
+
+export interface NotificationRecipient {
+  id: string;
+  notification_id: string;
+  user_id?: string | null;
+  device_id?: string | null;
+  status: 'QUEUED' | 'SENT_TO_PUSH_PROVIDER' | 'RECEIVED' | 'CLICKED' | 'READ' | 'FAILED';
+  queued_at: string;
+  sent_at?: string;
+  received_at?: string;
+  clicked_at?: string;
+  read_at?: string;
+  failed_at?: string;
+  error_code?: string;
+}
+
+export interface NotificationPreference {
+  user_id?: string;
+  device_id?: string;
+  web_push_enabled: boolean;
+  in_app_enabled: boolean;
+  news_enabled: boolean;
+  event_enabled: boolean;
+  system_enabled: boolean;
+  member_enabled: boolean;
+  quiet_hours_start?: string;
+  quiet_hours_end?: string;
+}
+
+export interface NotificationLog {
+  id: string;
+  notification_id: string;
+  action: string;
+  actor_id: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
 

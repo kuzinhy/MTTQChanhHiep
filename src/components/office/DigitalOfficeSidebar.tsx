@@ -16,7 +16,8 @@ import {
   Lock, 
   ChevronDown, 
   FileText, 
-  Layers, 
+  Layers,
+  Bell, 
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -57,6 +58,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: '21 KP' },
     { id: 'tasks', label: 'Quản lý Công việc', icon: CheckSquare },
     { id: 'calendar', label: 'Lịch công tác Phường', icon: Calendar },
+    { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
     { id: 'ai_assistant', label: 'Trợ lý tham mưu MTTQ', icon: Sparkles, badge: 'AI' },
   ];
 
