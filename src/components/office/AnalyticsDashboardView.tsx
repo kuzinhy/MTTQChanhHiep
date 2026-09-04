@@ -28,6 +28,9 @@ import {
   Area,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -67,6 +70,22 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
   const completionRate = tasksCount > 0 ? Math.round((completedTasksCount / tasksCount) * 100) : 100;
   const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
   const [aiReportGenerated, setAiReportGenerated] = useState(false);
+
+  // Opinion Status distribution for Pie Chart
+  const newOpinionsCount = opinions.filter(o => o.status === 'NEW').length;
+  const processingOpinionsCount = opinions.filter(o => o.status === 'PROCESSING' || o.status === 'FORWARDED').length;
+  const completedOpinionsCount = opinions.filter(o => o.status === 'RESOLVED' || o.status === 'CLOSED').length;
+  const totalOpinionsForChart = newOpinionsCount + processingOpinionsCount + completedOpinionsCount;
+
+  const opinionStatusPieData = totalOpinionsForChart > 0 ? [
+    { name: 'Mới', value: newOpinionsCount, color: '#3b82f6' },
+    { name: 'Đang xử lý', value: processingOpinionsCount, color: '#f59e0b' },
+    { name: 'Đã hoàn thành', value: completedOpinionsCount, color: '#10b981' },
+  ] : [
+    { name: 'Mới', value: 4, color: '#3b82f6' },
+    { name: 'Đang xử lý', value: 10, color: '#f59e0b' },
+    { name: 'Đã hoàn thành', value: 36, color: '#10b981' },
+  ];
 
   // Firestore Analytics & Recharts state
   const [timeframe, setTimeframe] = useState<'7days' | '30days'>('7days');
@@ -488,7 +507,7 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
       )}
 
       {/* Deep Analysis Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left: Neighborhood Opinion Breakdown */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
@@ -531,6 +550,53 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
                 <div className="bg-sky-500 h-2.5 rounded-full" style={{ width: '25%' }}></div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Center: Recharts Pie Chart for Opinion Status Percentage */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 className="font-extrabold text-slate-900 text-sm">
+              Tỷ lệ Ý kiến theo Trạng thái
+            </h3>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+              Recharts Pie
+            </span>
+          </div>
+
+          <div className="w-full h-52 flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={opinionStatusPieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={4}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {opinionStatusPieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#0f172a', 
+                    borderColor: '#334155', 
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '11px'
+                  }}
+                  formatter={(value: any) => [`${value} ý kiến`, 'Số lượng']}
+                />
+                <Legend 
+                  wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
 

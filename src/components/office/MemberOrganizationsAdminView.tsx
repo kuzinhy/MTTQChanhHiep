@@ -816,18 +816,6 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
           {/* View Mode Switcher */}
           <div className="flex items-center gap-1.5 self-end lg:self-auto shrink-0 overflow-x-auto pb-1">
             <button
-              onClick={() => setViewMode('diagram')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
-                viewMode === 'diagram' 
-                  ? 'bg-red-700 text-white shadow-xs font-black' 
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <Network className="w-3.5 h-3.5 text-amber-300" />
-              <span>Sơ Đồ Tổ Chức</span>
-            </button>
-
-            <button
               onClick={() => setViewMode('tree')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'tree' 
@@ -879,20 +867,10 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 1: MEMBER ORGANIZATIONS VIEWS (DIAGRAM / TREE / GRID / TABLE / ANALYTICS) */}
+      {/* TAB 1: MEMBER ORGANIZATIONS VIEWS (TREE / GRID / TABLE / ANALYTICS) */}
       {/* ========================================================================= */}
       {mainTab === 'member_orgs' && (
         <>
-          {/* VIEW 0: INTERACTIVE VISUAL DIAGRAM VIEW */}
-          {viewMode === 'diagram' && (
-            <OrgDiagramChart
-              organizations={organizations}
-              areas={areas}
-              onOpenEditModal={handleOpenEditModal}
-              onShowToast={onShowToast}
-            />
-          )}
-
           {/* VIEW 1: HIERARCHICAL TREE VIEW */}
           {viewMode === 'tree' && (
             <div className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
@@ -1926,6 +1904,48 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                           onChange={(e) => setFormData(prev => ({ ...prev, avatarUrl: e.target.value }))}
                           className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium outline-none"
                         />
+                      </div>
+                    </div>
+
+                    {/* Preset Logos Library Selection */}
+                    <div className="pt-2 border-t border-slate-200 space-y-2">
+                      <label className="text-[11px] font-extrabold text-slate-700 block">
+                        📚 Thư viện Logo các Đoàn thể & Cơ quan chuẩn (Chọn nhanh để chèn):
+                      </label>
+                      <div className="grid grid-cols-6 sm:grid-cols-9 gap-2 max-h-36 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200">
+                        {[
+                          { name: 'Chữ thập đỏ', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-chu-thap-do.png' },
+                          { name: 'Đội TNTP Hồ Chí Minh', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Doi-Thieu-nien-Tien-phong-Ho-Chi-Minh.png' },
+                          { name: 'Mặt trận Tổ quốc', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-mt-tran---Copy.png' },
+                          { name: 'Hoa Phượng Đỏ', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Chien-Dich-Hoa-Phuong-Do.webp' },
+                          { name: 'Mùa Hè Xanh', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Chien-Dich-Mua-He-Xanh.webp' },
+                          { name: 'Hội LHTN Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-hoi-lien-hiep-thanh-nien-viet-nam-1392x1392.png' },
+                          { name: 'Tòa án / Pháp luật', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-toa-an-inkythuatso-01.png' },
+                          { name: 'Người cao tuổi', url: 'https://sv2.anhsieuviet.com/2026/09/04/nguoicaotuoi.png' },
+                          { name: 'Hội Liên hiệp Phụ nữ', url: 'https://sv2.anhsieuviet.com/2026/09/04/phu-nu.png' },
+                          { name: 'Cảnh sát giao thông', url: 'https://sv2.anhsieuviet.com/2026/09/04/Phu_hieu_canh_sat_giao_thong.png' },
+                          { name: 'Quốc huy Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/quc-huy.png' },
+                          { name: 'Huy hiệu Đoàn TNCS', url: 'https://sv2.anhsieuviet.com/2026/09/04/snapedit_1706697500696.png' },
+                          { name: 'Huy hiệu ĐV / Biểu trưng', url: 'https://sv2.anhsieuviet.com/2026/09/04/zyro-image-1.png' },
+                          { name: 'Hội Sinh viên Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/400px-Huy_hieu_Hoi_SVVN.svg.png' },
+                          { name: 'Công đoàn Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/congdoan.png' },
+                          { name: 'Hội Nông dân Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/hoi-nong-dan.png' },
+                          { name: 'Cựu chiến binh Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Cu-Chien-Binh-Viet-Nam-Mu-1.png' },
+                          { name: 'Xuân Tình Nguyện', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Chien-Dich-Xuan-Tinh-Nguyen.png' }
+                        ].map((logo, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, avatarUrl: logo.url }))}
+                            className={`group relative p-1 rounded-xl border transition-all flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 ${
+                              formData.avatarUrl === logo.url ? 'border-blue-600 ring-2 ring-blue-400 bg-blue-50/50' : 'border-slate-200'
+                            }`}
+                            title={logo.name}
+                          >
+                            <img src={logo.url} alt={logo.name} className="w-10 h-10 object-contain rounded-lg" />
+                            <span className="text-[9px] font-bold text-slate-600 truncate max-w-full mt-1 text-center">{logo.name}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>

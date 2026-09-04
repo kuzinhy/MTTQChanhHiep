@@ -166,5 +166,50 @@ export const notificationMasterService = {
   async unregisterSubscription(device_id: string) {
     const docRef = doc(db, SUBSCRIPTIONS_COLLECTION, `${device_id}_WEB_PUSH`);
     await updateDoc(docRef, { enabled: false, user_id: null });
+  },
+
+  // Professional Cleanup / Deletion methods
+  async deleteNotification(notificationId: string): Promise<void> {
+    const docRef = doc(db, NOTIFICATIONS_COLLECTION, notificationId);
+    await deleteDoc(docRef);
+  },
+
+  async bulkDeleteNotifications(notificationIds: string[]): Promise<void> {
+    for (const id of notificationIds) {
+      await deleteDoc(doc(db, NOTIFICATIONS_COLLECTION, id));
+    }
+  },
+
+  async cleanupOldNotifications(daysOlder: number = 30): Promise<number> {
+    const q = query(collection(db, NOTIFICATIONS_COLLECTION));
+    const snap = await getDocs(q);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOlder);
+
+    let deletedCount = 0;
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data() as NotificationItem;
+      const createdAt = new Date(data.created_at || Date.now());
+      if (createdAt < cutoffDate) {
+        await deleteDoc(doc(db, NOTIFICATIONS_COLLECTION, docSnap.id));
+        deletedCount++;
+      }
+    }
+    return deletedCount;
+  },
+
+  async archiveAllReadOrExpired(): Promise<number> {
+    const q = query(collection(db, NOTIFICATIONS_COLLECTION));
+    const snap = await getDocs(q);
+    let count = 0;
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data() as NotificationItem;
+      const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
+      if (expiresAt && expiresAt < new Date()) {
+        await deleteDoc(doc(db, NOTIFICATIONS_COLLECTION, docSnap.id));
+        count++;
+      }
+    }
+    return count;
   }
 };

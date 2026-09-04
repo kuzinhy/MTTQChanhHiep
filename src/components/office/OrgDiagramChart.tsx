@@ -68,7 +68,7 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
 
   const mttqOrg = organizations.find(o => o.id === 'org-mttq' || o.code === 'MTTQ-CH') || organizations[0];
 
-  // 6 Pillar organizations configurations matching the requested diagram exactly
+  // 4 Pillar organizations configurations matching the requested diagram exactly
   const pillars: PillarConfig[] = [
     {
       id: 'org-dtn',
@@ -96,64 +96,10 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
             alt="Huy hiệu Đoàn"
             className="w-full h-full object-contain rounded-full"
             onError={(e) => {
-              // Fallback SVG icon if URL fails
               e.currentTarget.style.display = 'none';
             }}
           />
           <Sparkles className="w-6 h-6 text-white" />
-        </div>
-      )
-    },
-    {
-      id: 'org-lhtn',
-      name: 'HỘI LIÊN HIỆP THANH NIÊN VIỆT NAM',
-      shortName: 'Hội LHTN Việt Nam',
-      colorScheme: {
-        primary: '#0284C7',
-        border: 'border-sky-400',
-        bgHeader: 'bg-gradient-to-r from-sky-600 to-cyan-700',
-        bgLight: 'bg-sky-50/70',
-        badgeBg: 'bg-sky-100',
-        badgeText: 'text-sky-800',
-        accentGlow: 'shadow-sky-500/20'
-      },
-      motto: 'Đoàn kết, tập hợp thanh niên, xây dựng lối sống đẹp, phát triển kinh tế - xã hội.',
-      baseBranches: [
-        { title: 'Chi hội khu phố', subtext: '21 Chi hội LHTN tại 21 Khu phố' },
-        { title: 'Chi hội trường học', subtext: 'Khối trường học và CLB kỹ năng' },
-        { title: 'Chi hội cơ quan, doanh nghiệp', subtext: 'Doanh nghiệp và tổ chức thành viên' }
-      ],
-      logoBadge: (
-        <div className="w-12 h-12 rounded-full bg-sky-600 flex items-center justify-center p-1 shadow-md border-2 border-white">
-          <HeartHandshake className="w-7 h-7 text-white" />
-        </div>
-      )
-    },
-    {
-      id: 'org-ctd',
-      name: 'HỘI CHỮ THẬP ĐỎ PHƯỜNG',
-      shortName: 'Hội Chữ thập đỏ',
-      colorScheme: {
-        primary: '#DC2626',
-        border: 'border-red-400',
-        bgHeader: 'bg-gradient-to-r from-red-600 to-rose-700',
-        bgLight: 'bg-red-50/70',
-        badgeBg: 'bg-red-100',
-        badgeText: 'text-red-800',
-        accentGlow: 'shadow-red-500/20'
-      },
-      motto: 'Hoạt động nhân đạo, từ thiện, hỗ trợ người nghèo, người có hoàn cảnh khó khăn.',
-      baseBranches: [
-        { title: 'Chi hội khu phố', subtext: '21 Chi hội Chữ thập đỏ 21 Khu phố' },
-        { title: 'Chi hội trường học', subtext: 'Khối trường học và thanh thiếu niên CTĐ' },
-        { title: 'Chi hội cơ quan, doanh nghiệp', subtext: 'Các tổ chức thiện nguyện và DN' }
-      ],
-      logoBadge: (
-        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center p-1 shadow-md border-2 border-red-500">
-          <div className="w-7 h-7 relative flex items-center justify-center">
-            <div className="w-6 h-2 bg-red-600 rounded-xs absolute" />
-            <div className="w-2 h-6 bg-red-600 rounded-xs absolute" />
-          </div>
         </div>
       )
     },
@@ -276,13 +222,6 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
             >
               <ZoomIn className="w-4 h-4" />
             </button>
-            <button
-              onClick={resetZoom}
-              className="p-1.5 hover:bg-white text-slate-700 rounded-lg transition-colors"
-              title="Đặt lại kích thước chuẩn"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
           </div>
 
           <button
@@ -308,15 +247,19 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
       {/* Main Diagram Area with dynamic zoom */}
       <div 
         ref={containerRef}
-        className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-8 shadow-xs overflow-x-auto min-h-[700px] flex flex-col items-center select-none"
+        className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-8 shadow-xs overflow-auto max-h-[82vh] flex flex-col items-center select-none relative"
       >
         <div 
           style={{ 
             transform: `scale(${zoomLevel})`, 
             transformOrigin: 'top center',
-            transition: 'transform 0.15s ease-out'
+            transition: 'transform 0.1s ease-out',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
           }}
-          className="w-full max-w-[1360px] min-w-[1150px] flex flex-col items-center space-y-6 pt-2 pb-8"
+          className="max-w-[1400px] min-w-[1200px] space-y-6 pt-2 pb-12"
         >
           {/* ========================================================================= */}
           {/* LEVEL 1: TOP HEADER - MTTQ PHƯỜNG CHÁNH HIỆP */}
@@ -380,12 +323,12 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
             {/* Center Vertical Down Line */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-slate-400" />
             
-            {/* Horizontal Bus Line spanning 6 columns */}
-            <div className="absolute top-6 left-[8.33%] right-[8.33%] h-0.5 bg-slate-400" />
+            {/* Horizontal Bus Line spanning 4 columns */}
+            <div className="absolute top-6 left-[12.5%] right-[12.5%] h-0.5 bg-slate-400" />
 
-            {/* 6 Down Connectors to each pillar */}
-            <div className="w-full grid grid-cols-6 h-full relative">
-              {[0, 1, 2, 3, 4, 5].map(idx => (
+            {/* 4 Down Connectors to each pillar */}
+            <div className="w-full grid grid-cols-4 h-full relative">
+              {[0, 1, 2, 3].map(idx => (
                 <div key={idx} className="relative flex justify-center">
                   <div className="absolute top-6 bottom-0 w-0.5 bg-slate-400" />
                 </div>
@@ -394,9 +337,9 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* LEVEL 3: 6 COLUMNS - THE 6 FOUNDATIONAL PILLARS OF THE SYSTEM */}
+          {/* LEVEL 3: 4 COLUMNS - THE FOUNDATIONAL PILLARS OF THE SYSTEM */}
           {/* ========================================================================= */}
-          <div className="grid grid-cols-6 gap-3.5 w-full items-start">
+          <div className="grid grid-cols-4 gap-4 w-full items-start">
             {pillars.map((pillar) => {
               const matchedOrg = organizations.find(o => o.id === pillar.id || o.slug?.includes(pillar.id.replace('org-', '')) || o.shortName.toLowerCase().includes(pillar.shortName.toLowerCase()));
 

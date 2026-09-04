@@ -93,6 +93,39 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState<string>(initialNeighborhoodId || 'ALL');
   const [selectedWelfareOnly, setSelectedWelfareOnly] = useState<boolean>(false);
+  const [isAddingOnMap, setIsAddingOnMap] = useState<boolean>(false);
+
+  const handleMapClickCoordinates = (lat: number, lng: number) => {
+    if (!isAddingOnMap) return;
+    const nearestNh = neighborhoods[0];
+    const defaultCat = categories[0];
+
+    setEditingLocation({
+      id: '',
+      name: '',
+      slug: '',
+      category_id: defaultCat?.id || 'cat-co-quan',
+      category_code: defaultCat?.code || 'CO_QUAN',
+      neighborhood_id: nearestNh?.id || 'area-chanh-hiep',
+      neighborhood_name: nearestNh?.name || 'Phường Chánh Hiệp',
+      neighborhood_code: nearestNh?.code || 'KP-01',
+      address: `Tọa độ: ${lat.toFixed(5)}, ${lng.toFixed(5)} (Phường Chánh Hiệp, TP. TDM)`,
+      latitude: lat,
+      longitude: lng,
+      description: '',
+      phone: '',
+      email: '',
+      opening_hours: '7:30 - 11:30 | 13:30 - 17:00 (Thứ 2 - Thứ 6)',
+      directions_url: generateGoogleMapsDirectionsUrl(lat, lng),
+      is_featured: false,
+      is_public: true,
+      welfare_type: 'NONE',
+      status: 'ACTIVE'
+    });
+    setIsAddingOnMap(false);
+    setShowFormModal(true);
+    showToast(`Đã ghim tọa độ (${lat.toFixed(4)}, ${lng.toFixed(4)}) từ bản đồ!`);
+  };
   
   // Selection
   const [activeLocation, setActiveLocation] = useState<MapLocation | null>(null);
@@ -572,6 +605,21 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
 
               {isAdmin && (
                 <button
+                  onClick={() => {
+                    setIsAddingOnMap(true);
+                    showToast('Đã bật chế độ ghim điểm: Hãy bấm trực tiếp vào vị trí bất kỳ trên bản đồ!');
+                  }}
+                  className={`px-3.5 py-1.5 rounded-xl font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                    isAddingOnMap ? 'bg-amber-300 text-slate-950 ring-2 ring-white animate-bounce' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                  }`}
+                >
+                  <MapPin className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isAddingOnMap ? 'Đang chờ click bản đồ...' : 'Thêm trực tiếp trên bản đồ'}</span>
+                </button>
+              )}
+
+              {isAdmin && (
+                <button
                   onClick={handleOpenCreateForm}
                   className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                 >
@@ -863,6 +911,21 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
       {/* III. MAIN MAP STAGE & HORIZONTAL REEL CARDS LAYOUT                         */}
       {/* ========================================================================= */}
       <div className="space-y-4">
+        {isAddingOnMap && (
+          <div className="bg-amber-400 text-slate-950 px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between gap-3 text-xs font-black animate-pulse border border-amber-300">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-slate-950 shrink-0" />
+              <span>[CHẾ ĐỘ GHIM ĐIỂM TRÊN BẢN ĐỒ]: Vui lòng click trực tiếp vào vị trí bất kỳ trên bản đồ để xác định tọa độ và thêm địa điểm mới.</span>
+            </div>
+            <button
+              onClick={() => setIsAddingOnMap(false)}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-[11px] font-black hover:bg-slate-800 transition cursor-pointer shrink-0"
+            >
+              Hủy chế độ
+            </button>
+          </div>
+        )}
+
         {/* Full-width Map Stage Container */}
         <div className="w-full h-[620px] sm:h-[680px] rounded-3xl overflow-hidden shadow-xl border border-slate-200 relative bg-slate-100">
           <InteractiveGoogleMap
@@ -873,6 +936,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
             activeNeighborhood={activeNeighborhood}
             layerConfig={layerConfig}
             userCoords={userCoords}
+            onMapClick={handleMapClickCoordinates}
             onSelectLocation={(loc) => {
               setActiveLocation(loc);
               if (onSelectLocation) onSelectLocation(loc);
@@ -1604,8 +1668,30 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
                   type="text"
                   required
                   value={editingLocation.name || ''}
-                  onChange={(e) => setEditingLocation({ ...editingLocation, name: e.target.value })}
-                  placeholder="Ví dụ: Trạm Y tế Phường Chánh Hiệp / Bếp ăn từ thiện KP-03"
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    let matchedNh = neighborhoods[0];
+                    const lowerName = newName.toLowerCase();
+                    // Auto-detect neighborhood if name or address mentions a neighborhood name/code
+                    for (const nh of neighborhoods) {
+                      const nhNameLower = nh.name.toLowerCase();
+                      const nhCodeLower = nh.code.toLowerCase();
+                      if (lowerName.includes(nhNameLower) || lowerName.includes(nhCodeLower) || lowerName.includes(`kp-${nh.code.replace(/\D/g, '')}`)) {
+                        matchedNh = nh;
+                        break;
+                      }
+                    }
+                    setEditingLocation({
+                      ...editingLocation,
+                      name: newName,
+                      neighborhood_id: matchedNh.id,
+                      neighborhood_name: matchedNh.name,
+                      neighborhood_code: matchedNh.code,
+                      latitude: editingLocation.latitude || matchedNh.center_lat,
+                      longitude: editingLocation.longitude || matchedNh.center_lng
+                    });
+                  }}
+                  placeholder="Ví dụ: Trạm Y tế Phường Chánh Hiệp / Bếp ăn từ thiện Tương Bình Hiệp 1"
                   className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -1631,11 +1717,11 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
                         });
                       }
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-slate-200 text-xs font-bold text-slate-900 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-slate-300 text-xs font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-xs cursor-pointer hover:border-blue-400 transition"
                   >
                     {neighborhoods.map((nh) => (
                       <option key={nh.id} value={nh.id}>
-                        {nh.code} - {nh.name}
+                        {nh.name} ({nh.code})
                       </option>
                     ))}
                   </select>

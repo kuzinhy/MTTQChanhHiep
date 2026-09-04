@@ -36,6 +36,7 @@ interface InteractiveGoogleMapProps {
   onSelectNeighborhood: (nh: NeighborhoodGIS) => void;
   onOpenDetailModal: (loc: MapLocation) => void;
   onOpenNeighborhoodModal: (nh: NeighborhoodGIS) => void;
+  onMapClick?: (lat: number, lng: number) => void;
 }
 
 // Helper function to safely escape HTML special characters
@@ -60,13 +61,17 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   onSelectLocation,
   onSelectNeighborhood,
   onOpenDetailModal,
-  onOpenNeighborhoodModal
+  onOpenNeighborhoodModal,
+  onMapClick
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const neighborhoodLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
+
+  const onMapClickRef = useRef(onMapClick);
+  onMapClickRef.current = onMapClick;
 
   // Map tile style state
   // 'carto-voyager' | 'esri-satellite' | 'osm'
@@ -137,6 +142,12 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 
       map.on('zoomend', () => {
         setMapZoom(map.getZoom());
+      });
+
+      map.on('click', (e: L.LeafletMouseEvent) => {
+        if (onMapClickRef.current) {
+          onMapClickRef.current(e.latlng.lat, e.latlng.lng);
+        }
       });
     }
 
