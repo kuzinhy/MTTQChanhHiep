@@ -278,16 +278,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
           )}
         </div>
 
-        <div className="flex items-center gap-4 text-slate-500 font-medium shrink-0 self-end md:self-auto text-[11px] relative z-10">
-          <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
-            <Calendar className="w-3.5 h-3.5 text-blue-600" />
-            <span className="capitalize">{todayDateStr}</span>
-          </span>
-          <span className="hidden sm:inline text-slate-300">|</span>
-          <span className="bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded-lg font-mono text-[10px] tracking-widest uppercase font-bold">
-            ● CỔNG AN SINH SỐ
-          </span>
-        </div>
+
       </div>
 
       {/* 2. MAIN HERO NEWS MATRIX (FLAT BLUE MATRIX) */}

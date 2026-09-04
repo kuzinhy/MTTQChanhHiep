@@ -1653,6 +1653,10 @@ export default function App() {
                           CloudDatabase.saveAllAreas(ar);
                         }}
                         onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Thất bại' : 'Thông báo', msg)}
+                        onNavigateTab={(tab) => {
+                          setCurrentSpace('PORTAL');
+                          handleSelectPortalTab(tab);
+                        }}
                       />
                     )}
 

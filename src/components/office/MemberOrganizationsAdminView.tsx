@@ -36,7 +36,8 @@ import {
   MapPin,
   CornerDownRight,
   ShieldCheck,
-  Check
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { uploadFileToGoogleDrive } from '../../lib/googleDriveService';
 import { INITIAL_MEMBER_ORGANIZATIONS, INITIAL_ORGANIZATIONS, INITIAL_AREAS } from '../../data/seedData';
@@ -54,6 +55,7 @@ interface MemberOrganizationsAdminViewProps {
   areas?: Area[];
   onSaveAreas?: (areas: Area[]) => void;
   onShowToast?: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminViewProps> = ({
@@ -63,7 +65,8 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
   onSavePoliticalOrganizations: propOnSavePoliticalOrganizations,
   areas: propAreas,
   onSaveAreas: propOnSaveAreas,
-  onShowToast
+  onShowToast,
+  onNavigateTab
 }) => {
   // Active Main Tab: 'member_orgs' (Khối MTTQ & Đoàn thể) | 'political_system' (Hệ thống chính trị) | 'areas' (Địa bàn hành chính)
   const [mainTab, setMainTab] = useState<'member_orgs' | 'political_system' | 'areas'>('member_orgs');
@@ -616,6 +619,20 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              onClick={() => {
+                if (onNavigateTab) {
+                  onNavigateTab('organizations');
+                } else {
+                  window.location.hash = '#/to-chuc-thanh-vien';
+                }
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
+              title="Xem giao diện Tổ chức thành viên ngoài trang chủ công khai"
+            >
+              <ExternalLink className="w-4 h-4 text-cyan-300" />
+              <span>Xem Giao diện Công khai</span>
+            </button>
             <button
               onClick={() => {
                 exportOrganizationsToCsv(organizations);

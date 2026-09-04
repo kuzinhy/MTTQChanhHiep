@@ -98,7 +98,7 @@ export interface MapLocation {
   category_code?: MapCategoryCode | string;
   category?: MapCategory;
 
-  neighborhood_id: string;         // FK -> NeighborhoodGIS.id (1 trong 21 khu phố)
+  neighborhood_id?: string;         // FK -> NeighborhoodGIS.id (1 trong 21 khu phố)
   neighborhood_name?: string;
   neighborhood_code?: string;
 

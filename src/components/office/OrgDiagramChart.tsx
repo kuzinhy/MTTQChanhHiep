@@ -486,7 +486,25 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
                         if (matchedOrg) {
                           setSelectedPillarOrg(matchedOrg);
                         } else {
-                          onShowToast?.(`Đang mở chi tiết của ${pillar.shortName}`, 'info');
+                          setSelectedPillarOrg({
+                            id: pillar.id,
+                            name: pillar.name,
+                            shortName: pillar.shortName,
+                            slug: pillar.id,
+                            code: 'CH-01',
+                            description: pillar.motto,
+                            leaderName: 'Ban Chủ nhiệm',
+                            leaderPosition: 'Chủ tịch / Trưởng ban',
+                            phone: '0274.3822.111',
+                            email: 'mttq@chanhhiep.vn',
+                            activeMembersCount: 1500,
+                            branchesCount: 21,
+                            femaleMembersCount: 800,
+                            partyMembersCount: 200,
+                            featuredAchievements: [pillar.motto, 'Duy trì hoạt động hiệu quả tại 21 khu phố'],
+                            displayOrder: 1,
+                            createdAt: new Date().toISOString()
+                          } as MemberOrganization);
                         }
                       }}
                       className={`w-full py-1.5 rounded-xl ${pillar.colorScheme.badgeBg} ${pillar.colorScheme.badgeText} text-[11px] font-extrabold flex items-center justify-center gap-1 hover:brightness-95 transition-all`}
@@ -584,7 +602,7 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
                 </div>
               </div>
 
-              {selectedPillarOrg.featuredAchievements && selectedPillarOrg.featuredAchievements.length > 0 && (
+              {selectedPillarOrg?.featuredAchievements && selectedPillarOrg.featuredAchievements.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-amber-500" />

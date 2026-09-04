@@ -19,7 +19,8 @@ import {
   Bell,
   Phone,
   Lightbulb,
-  MapPin
+  MapPin,
+  Clock
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -91,9 +92,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <Star className="w-2.5 h-2.5 fill-slate-950" /> SỐ HÓA 4.0
                 </span>
               </div>
-              <p className="text-[11px] text-blue-100 font-bold hidden sm:block tracking-wide">
-                THÀNH PHỐ HỒ CHÍ MINH
-              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-[11px] text-blue-100 font-bold tracking-wide">
+                  THÀNH PHỐ HỒ CHÍ MINH
+                </p>
+                <span className="text-blue-300 hidden sm:inline">•</span>
+                <span className="inline-flex items-center gap-1 text-[11px] text-blue-100 font-semibold">
+                  <Clock className="w-3.5 h-3.5 text-cyan-200 shrink-0" />
+                  <span className="capitalize">{new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
+                </span>
+              </div>
             </div>
           </div>
 

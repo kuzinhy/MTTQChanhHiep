@@ -284,18 +284,18 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
             </div>
 
             <!-- Crisp Location Label -->
-            <div class="mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-black max-w-[130px] truncate shadow-md text-center border transition-all ${
+            <div class="mt-0.5 px-2 py-0.5 rounded-full text-[8px] font-bold max-w-[120px] truncate shadow-sm text-center border transition-all ${
               isSelected
-                ? 'bg-blue-600 text-white border-blue-300 ring-2 ring-blue-400/50 shadow-blue-500/30'
+                ? 'bg-blue-600 text-white border-blue-300 ring-1 ring-blue-400/50 shadow-blue-500/30'
                 : 'bg-white text-slate-800 border-slate-300 backdrop-blur-sm group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-400'
             }">
               ${escapeHtml(loc.name)}
             </div>
           </div>
         `,
-        iconSize: [44, 54],
-        iconAnchor: [22, 50],
-        popupAnchor: [0, -46]
+        iconSize: [44, 58],
+        iconAnchor: [22, 54],
+        popupAnchor: [0, -50]
       });
 
       const marker = L.marker([loc.latitude, loc.longitude], { icon: customIcon });
