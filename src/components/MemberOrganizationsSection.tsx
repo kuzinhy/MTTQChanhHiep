@@ -36,10 +36,21 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
   onSelectArticleTopic,
   onNavigateTab
 }) => {
-  // Sort by display order
-  const sortedOrgs = [...organizations].sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+  // Ensure all initial organizations are always present and exclude org-mttq since MTTQ is the umbrella header
+  const orgMap = new Map<string, MemberOrganization>();
+  INITIAL_MEMBER_ORGANIZATIONS.forEach(o => orgMap.set(o.id, o));
+  (organizations || []).forEach(o => {
+    if (o && o.id && o.id !== 'org-mttq') {
+      const existing = orgMap.get(o.id) || o;
+      orgMap.set(o.id, { ...existing, ...o });
+    }
+  });
+  orgMap.delete('org-mttq');
+  const allOrgs = Array.from(orgMap.values());
+  const sortedOrgs = [...allOrgs].sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+
   const [selectedOrg, setSelectedOrg] = useState<MemberOrganization>(
-    sortedOrgs.find(o => o.id === 'org-dtn') || sortedOrgs[1] || sortedOrgs[0] || INITIAL_MEMBER_ORGANIZATIONS[0]
+    sortedOrgs[0] || INITIAL_MEMBER_ORGANIZATIONS[0]
   );
   const [activeCategory, setActiveCategory] = useState<'all' | 'political' | 'social'>('all');
   const [showDiagramModal, setShowDiagramModal] = useState<boolean>(false);
@@ -49,8 +60,8 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
     if (activeCategory === 'all') return true;
     if (activeCategory === 'political') {
       // Đoàn TNCS, Hội LHTN, Hội Phụ nữ, Hội CCB, Công đoàn, MTTQ
-      return ['org-mttq', 'org-dtn', 'org-lhtn', 'org-lhph', 'org-ccb', 'org-congdoan'].includes(org.id) ||
-        ['DTN-CH', 'LHTN-CH', 'HPN-CH', 'CCB-CH', 'CD-CH', 'MTTQ-CH'].includes(org.code);
+      return ['org-mttq', 'org-dtn', 'org-lhtn', 'org-lhph', 'org-ccb', 'org-congdoan', 'org-tnxp', 'org-luat-gia'].includes(org.id) ||
+        ['DTN-CH', 'LHTN-CH', 'HPN-CH', 'CCB-CH', 'CD-CH', 'MTTQ-CH', 'TNXP-CH', 'HLG-CH'].includes(org.code);
     }
     if (activeCategory === 'social') {
       // Hội Chữ thập đỏ, Hội Người cao tuổi, Hội Khuyến học
@@ -60,8 +71,8 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
     return true;
   });
 
-  const totalMembers = organizations.reduce((a, b) => a + (b.activeMembersCount || 0), 0);
-  const totalBranches = organizations.reduce((a, b) => a + (b.branchesCount || 0), 0);
+  const totalMembers = sortedOrgs.reduce((a, b) => a + (b.activeMembersCount || 0), 0);
+  const totalBranches = sortedOrgs.reduce((a, b) => a + (b.branchesCount || 0), 0);
 
   // Helper styling for organization tags
   const getOrgBadgeStyle = (code: string) => {
@@ -199,19 +210,13 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
       {/* Grid of Member Organizations */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredOrgs.map((org) => {
-          const isSelected = selectedOrg?.id === org.id;
           const badgeClass = getOrgBadgeStyle(org.code);
 
           return (
             <motion.div
               key={org.id}
               whileHover={{ y: -3 }}
-              onClick={() => setSelectedOrg(org)}
-              className={`p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between ${
-                isSelected 
-                  ? 'bg-blue-50/70 border-blue-500 shadow-lg ring-2 ring-blue-500/20' 
-                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
-              }`}
+              className="p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between bg-white border-slate-200 hover:border-slate-300 shadow-xs"
             >
               <div className="space-y-3.5">
                 <div className="flex items-start gap-3.5">
@@ -259,9 +264,7 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
                     {org.leaderName} <span className="text-[10px] text-slate-500 font-normal">({org.leaderPosition})</span>
                   </div>
                 </div>
-                <span className={`p-2 rounded-xl transition-colors ${
-                  isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white'
-                }`}>
+                <span className="p-2 rounded-xl transition-colors bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white">
                   <ArrowUpRight className="w-4 h-4" />
                 </span>
               </div>
@@ -269,120 +272,6 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
           );
         })}
       </div>
-
-      {/* Selected Org Detailed Focus Section */}
-      {selectedOrg && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-lg space-y-6">
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-full md:w-56 h-48 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-xs flex items-center justify-center p-2">
-              <img 
-                src={selectedOrg.bannerUrl || selectedOrg.avatarUrl || ''} 
-                alt={selectedOrg.name} 
-                className="w-full h-full object-cover rounded-xl"
-                onError={(e) => {
-                  e.currentTarget.src = selectedOrg.avatarUrl || getOfficialCadreAvatarSvg(selectedOrg.name, selectedOrg.shortName);
-                }}
-              />
-            </div>
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Tổ chức thành viên nòng cốt</span>
-                </span>
-                {selectedOrg.establishedYear && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                    <Calendar className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Năm thành lập: {selectedOrg.establishedYear}</span>
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Bao phủ 21 / 21 Khu phố</span>
-                </span>
-              </div>
-
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                {selectedOrg.name}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                {selectedOrg.description}
-              </p>
-
-              {/* Detailed Organization Stats Dashboard */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100">
-                  <div className="text-[10px] font-bold text-blue-600 uppercase">Mạng lưới cơ sở</div>
-                  <div className="font-black text-slate-900 text-sm sm:text-base mt-0.5">
-                    {selectedOrg.branchesCount || 21} <span className="text-xs font-semibold text-slate-500">chi hội/chi đoàn</span>
-                  </div>
-                  <div className="text-[10px] text-blue-700 font-bold mt-1">Phủ khắp {selectedOrg.neighborhoodsCoveredCount || 21}/21 khu phố</div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100">
-                  <div className="text-[10px] font-bold text-emerald-600 uppercase">Đoàn viên / Hội viên</div>
-                  <div className="font-black text-slate-900 text-sm sm:text-base mt-0.5">
-                    {(selectedOrg.activeMembersCount || 0).toLocaleString('vi-VN')} <span className="text-xs font-semibold text-slate-500">người</span>
-                  </div>
-                  <div className="text-[10px] text-emerald-700 font-bold mt-1">
-                    Tỉ lệ tập hợp: {selectedOrg.gatheringRatio || '85%'}
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-100">
-                  <div className="text-[10px] font-bold text-purple-600 uppercase">Hội viên Nữ / Đảng viên</div>
-                  <div className="font-black text-slate-900 text-sm sm:text-base mt-0.5">
-                    {selectedOrg.femaleMembersCount || 0} <span className="text-xs font-semibold text-slate-500">nữ</span>
-                  </div>
-                  <div className="text-[10px] text-purple-700 font-bold mt-1">
-                    {selectedOrg.partyMembersCount || 0} Đảng viên nòng cốt
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-100">
-                  <div className="text-[10px] font-bold text-amber-600 uppercase">Lãnh đạo &amp; BCH</div>
-                  <div className="font-black text-slate-900 text-xs sm:text-sm mt-0.5 truncate">
-                    {selectedOrg.leaderName}
-                  </div>
-                  <div className="text-[10px] text-amber-800 font-bold truncate">
-                    {selectedOrg.leaderPosition} ({selectedOrg.executiveCommitteeMembersCount || 11} BCH)
-                  </div>
-                </div>
-              </div>
-
-              {/* Featured Achievements Tag List */}
-              {selectedOrg.featuredAchievements && selectedOrg.featuredAchievements.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Mô hình tiêu biểu &amp; Phong trào "Dân vận khéo":</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedOrg.featuredAchievements.map((ach, idx) => (
-                      <span key={idx} className="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 px-3 py-1 rounded-xl">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{ach}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Contact info footer */}
-              <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-slate-100 text-xs text-slate-600">
-                <span className="flex items-center gap-1.5 font-bold">
-                  <Phone className="w-3.5 h-3.5 text-blue-600" />
-                  <span>SĐT: {selectedOrg.phone}</span>
-                </span>
-                <span className="flex items-center gap-1.5 font-bold">
-                  <Mail className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Email: {selectedOrg.email}</span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Sơ đồ Cây Tổ chức Modal Popup */}
       {showDiagramModal && (

@@ -55,13 +55,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'home', label: 'Trang chủ', icon: Home },
     { id: 'map', label: 'Bản đồ số', icon: MapPin },
     { id: 'about', label: 'Giới thiệu', icon: Info },
+    { id: 'organizations', label: 'Tổ chức thành viên', icon: Users },
     { id: 'news', label: 'Tin tức - Sự kiện', icon: BookOpen },
     { id: 'supervision', label: 'Giám sát & Phản biện', icon: Scale },
-    { id: 'competitions', label: 'Hội thi trực tuyến', icon: Award },
     { id: 'initiatives', label: 'Mô hình hay', icon: Lightbulb },
     { id: 'surveys', label: 'Khảo sát ý kiến', icon: ClipboardList },
     { id: 'opinion', label: 'Góp ý dân nguyện', icon: MessageSquareHeart },
-    { id: 'organizations', label: 'Tổ chức thành viên', icon: Users },
   ];
 
   return (

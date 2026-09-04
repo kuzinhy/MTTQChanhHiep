@@ -583,36 +583,40 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
-            Bản Đồ Số An Sinh &amp; Địa Bàn Phường Chánh Hiệp
+            Bản đồ số
           </h1>
           <p className="text-sky-100 text-xs sm:text-sm font-medium leading-relaxed max-w-3xl">
-            Khám phá trực quan 21 khu phố, hệ thống cơ quan chính trị - hành chính, trạm y tế, trường học, điểm sinh hoạt cộng đồng và mạng lưới an sinh xã hội vì người nghèo.
+            Khám phá "Địa chỉ đỏ", di tích lịch sử cách mạng, làng nghề truyền thống, thiết chế văn hóa, cơ quan hành chính và các điểm dịch vụ tiện ích tại địa phương.
           </p>
 
           {/* Quick Metrics Dashboard Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
             <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-sky-200">Địa bàn cơ sở</div>
-              <div className="text-lg sm:text-xl font-black text-white">21 Khu phố</div>
-              <div className="text-[10px] text-sky-100">100% Phủ sóng số hóa</div>
+              <div className="text-[10px] uppercase font-bold text-sky-200">Địa chỉ đỏ &amp; Di tích</div>
+              <div className="text-lg sm:text-xl font-black text-red-300">
+                {locations.filter(l => l.category_code === 'DIA_CHI_DO').length}
+              </div>
+              <div className="text-[10px] text-sky-100">Lịch sử cách mạng</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-sky-200">Điểm tọa độ (POI)</div>
+              <div className="text-[10px] uppercase font-bold text-sky-200">Làng nghề truyền thống</div>
+              <div className="text-lg sm:text-xl font-black text-amber-300">
+                {locations.filter(l => l.category_code === 'LANG_NGHE').length}
+              </div>
+              <div className="text-[10px] text-sky-100">Di sản thủ công địa phương</div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
+              <div className="text-[10px] uppercase font-bold text-sky-200">Tổng điểm (POI)</div>
               <div className="text-lg sm:text-xl font-black text-white">{totalLocationsCount}</div>
-              <div className="text-[10px] text-sky-100">Cơ quan, tiện ích, trường học</div>
+              <div className="text-[10px] text-sky-100">Cơ quan, tiện ích, y tế</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
               <div className="text-[10px] uppercase font-bold text-sky-200">Điểm An sinh</div>
               <div className="text-lg sm:text-xl font-black text-emerald-300">{welfarePointsCount}</div>
               <div className="text-[10px] text-sky-100">Bếp ăn, cứu trợ, từ thiện</div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-sky-200">Cơ quan &amp; Đoàn thể</div>
-              <div className="text-lg sm:text-xl font-black text-sky-200">{adminOfficesCount}</div>
-              <div className="text-[10px] text-sky-100">MTTQ &amp; 21 Ban CTMT</div>
             </div>
           </div>
         </div>
@@ -657,15 +661,6 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
             >
               <Navigation className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin text-blue-600' : 'text-emerald-600'}`} />
               <span>{isLocating ? 'Đang định vị...' : userCoords ? 'Đã bật GPS vị trí tôi' : 'Định vị vị trí của tôi'}</span>
-            </button>
-
-            {/* Toggle Neighborhood Boundaries List */}
-            <button
-              onClick={() => setShowNeighborhoodModal(true)}
-              className="px-3.5 py-2.5 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold transition-all border border-blue-200 flex items-center gap-1.5 cursor-pointer"
-            >
-              <Home className="w-3.5 h-3.5 text-blue-600" />
-              <span>21 Khu phố Chánh Hiệp</span>
             </button>
 
             {/* Toggle Layer Panel */}
@@ -743,36 +738,8 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
             })}
           </div>
 
-          {/* Quick 21 Neighborhood Selector Dropdown & Welfare Toggle */}
+          {/* Quick Welfare Filter Switch */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
-              <MapPin className="w-3.5 h-3.5 text-blue-600" />
-              <span>Lọc theo 21 Khu phố:</span>
-            </div>
-            
-            <select
-              value={selectedNeighborhoodId}
-              onChange={(e) => {
-                setSelectedNeighborhoodId(e.target.value);
-                if (e.target.value !== 'ALL') {
-                  const nh = neighborhoods.find(n => n.id === e.target.value);
-                  if (nh) {
-                    setActiveNeighborhood(nh);
-                    setMapCenter({ lat: nh.center_lat, lng: nh.center_lng });
-                  }
-                }
-              }}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
-            >
-              <option value="ALL">Toàn bộ 21 Khu phố</option>
-              {neighborhoods.map((nh) => (
-                <option key={nh.id} value={nh.id}>
-                  {nh.code} - {nh.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Quick Welfare Filter Switch */}
             <button
               onClick={() => setSelectedWelfareOnly(!selectedWelfareOnly)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${

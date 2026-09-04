@@ -1720,46 +1720,7 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
 ];
 
 export const INITIAL_MEMBER_ORGANIZATIONS: MemberOrganization[] = [
-  // 1. Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
-  {
-    id: 'org-mttq',
-    code: 'MTTQ-CH',
-    slug: 'uy-ban-mttq-viet-nam',
-    name: 'Ủy ban MTTQ Việt Nam Phường Chánh Hiệp',
-    shortName: 'Ủy ban MTTQ Phường',
-    description: 'Liên minh chính trị, liên hiệp tự nguyện của các tổ chức chính trị, các tổ chức chính trị - xã hội, tổ chức xã hội và các cá nhân tiêu biểu trong các tầng lớp nhân dân.',
-    leaderName: 'Trần Thị Hoa',
-    leaderPosition: 'Chủ tịch Ủy ban MTTQ',
-    phone: '0274.3822.111',
-    email: 'mttq.chanhhiep@gmail.com',
-    avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/02/862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713.png',
-    bannerUrl: 'https://sv2.anhsieuviet.com/2026/09/02/b94eb55d-1061-4c4f-9278-a46ce8de408a9067fc5c33d6b0a2.png',
-    displayOrder: 1,
-    parentId: null,
-    areaId: 'area-chanh-hiep',
-    areaName: 'Phường Chánh Hiệp',
-    organizationId: 'org-mttq-phuong',
-    level: 'WARD',
-    status: 'ACTIVE',
-    activeMembersCount: 45,
-    branchesCount: 21, // 21 Ban công tác Mặt trận tại 21 khu phố
-    neighborhoodsCoveredCount: 21,
-    femaleMembersCount: 22,
-    youthMembersCount: 10,
-    partyMembersCount: 38,
-    executiveCommitteeMembersCount: 35,
-    gatheringRatio: '95%',
-    programsCount: 32,
-    keyProjectsCount: 21,
-    establishedYear: '1930',
-    featuredAchievements: [
-      'Xây dựng 100% Ban công tác Mặt trận 21 khu phố vững mạnh toàn diện',
-      'Mô hình "Nối vòng tay lớn - Chăm lo An sinh Xã hội và Hộ nghèo"',
-      'Mô hình "Khu dân cư Tự quản - Chuyển đổi số - Đô thị văn minh"'
-    ],
-    createdAt: '2026-01-01'
-  },
-  // 2. Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp
+  // 1. Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp
   {
     id: 'org-dtn',
     code: 'DTN-CH',

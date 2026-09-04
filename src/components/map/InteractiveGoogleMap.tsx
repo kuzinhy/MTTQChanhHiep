@@ -81,7 +81,7 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   const getTileUrl = (style: string) => {
     switch (style) {
       case 'carto-voyager':
-        return 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+        return 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png';
       case 'esri-satellite':
         return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
       case 'osm':
