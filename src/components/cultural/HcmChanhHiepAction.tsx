@@ -29,6 +29,7 @@ import {
 } from '../../data/hcmVerifiedMuseumData';
 import {
   loadStoredActions,
+  loadStoredChanhHiepActions,
   saveStoredActions,
   loadStoredInitiatives,
   saveStoredInitiatives
@@ -244,8 +245,11 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                 const linkedInits = initiativesList.filter(
                   (init) =>
                     init.linkedHcmActionId === model.id ||
-                    model.linkedInitiativeIds?.includes(init.id)
+                    model.linkedInitiativeIds?.includes(init.id) ||
+                    model.id === `hcm-action-${init.id}`
                 );
+
+                const displayImage = model.imageUrl || linkedInits.find((init) => init.imageUrl)?.imageUrl;
 
                 return (
                   <motion.div
@@ -256,10 +260,10 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                     className="rounded-3xl bg-gradient-to-br from-white via-rose-50/50 to-amber-50/30 border-2 border-rose-200 shadow-sm hover:shadow-md hover:border-rose-400 transition-all flex flex-col justify-between overflow-hidden"
                   >
                     {/* Ảnh minh họa mô hình */}
-                    {model.imageUrl && (
+                    {displayImage && (
                       <div className="relative h-48 w-full overflow-hidden bg-rose-950">
                         <img
-                          src={model.imageUrl}
+                          src={displayImage}
                           alt={model.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -290,7 +294,7 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                             <span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">
                               Chuyên đề Học Bác • {model.neighborhood}
                             </span>
-                            {!model.imageUrl && isAdmin && (
+                            {!displayImage && isAdmin && (
                               <button
                                 onClick={() => setEditingItem({ type: 'chanh_hiep_action', data: model })}
                                 className="px-2.5 py-1 rounded-lg bg-amber-400 text-rose-950 font-extrabold text-xs flex items-center gap-1 hover:bg-amber-300 transition cursor-pointer"
@@ -384,7 +388,7 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
             <div className="flex items-center justify-between border-b border-rose-200 pb-2">
               <h3 className="text-base sm:text-lg font-serif font-extrabold text-rose-950 flex items-center gap-2">
                 <Lightbulb className="w-5 h-5 text-amber-600 fill-amber-300" />
-                <span>Mô Hình Nhân Rộng &amp; Sáng Kiến Tác Nghiệp Mặt Trận 21 Khu Phố</span>
+                <span>Mô hình tiêu biểu (Sáng kiến Mặt Trận 21 Khu phố)</span>
               </h3>
               <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200">
                 {initiativesList.length} Sáng kiến liên thông

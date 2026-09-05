@@ -459,7 +459,7 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
           {/* TOOL VIEWS ROUTING */}
           {currentView === 'tool' && currentToolId && (
             <div className="h-full">
-              {(currentToolId === 'read_process_doc' || currentToolId === 'summarize' || currentToolId === 'extract_tasks' || currentToolId === 'read_doc' || currentToolId === 'qa_document') && (
+              {(currentToolId === 'read_process_doc' || currentToolId === 'summarize' || currentToolId === 'extract_tasks' || currentToolId === 'qa_document') && (
                 <ReadProcessDocToolView
                   onSaveDocument={handleSaveDocument}
                   workspaceContext={workspaceContext}
@@ -472,7 +472,7 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
                 />
               )}
 
-              {(currentToolId === 'draft_proofread_doc' || currentToolId === 'draft_doc' || currentToolId === 'proofread' || currentToolId === 'drafting_wizard' || currentToolId === 'compare_docs') && (
+              {(currentToolId === 'draft_proofread_doc' || currentToolId === 'draft_doc' || currentToolId === 'proofread' || currentToolId === 'compare_docs') && (
                 <DraftAndProofreadDocToolView
                   onSaveDocument={handleSaveDocument}
                   workspaceContext={workspaceContext}
@@ -482,7 +482,7 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
                 />
               )}
 
-              {(currentToolId === 'advisory' || currentToolId === 'advisory_tool') && (
+              {currentToolId === 'advisory' && (
                 <AdvisoryToolView
                   onSaveDocument={handleSaveDocument}
                   onOpenHistory={() => setIsHistoryOpen(true)}

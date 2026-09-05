@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building, 
   Users, 
@@ -11,111 +11,170 @@ import {
   FileText,
   HeartHandshake,
   Star,
-  Sparkles
+  Sparkles,
+  Edit3
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getOfficialCadreAvatarSvg } from '../utils/officialImages';
+import { loadStoredAboutData, AboutPageData } from '../lib/aboutDataStore';
 
 export const AboutSection: React.FC<{
   onGoToTab?: (tab: string) => void;
-}> = ({ onGoToTab }) => {
+  isAdmin?: boolean;
+}> = ({ onGoToTab, isAdmin = true }) => {
+  const [aboutData, setAboutData] = useState<AboutPageData>(() => loadStoredAboutData());
+
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail) {
+        setAboutData(e.detail);
+      } else {
+        setAboutData(loadStoredAboutData());
+      }
+    };
+    window.addEventListener('mttq_about_data_updated', handleUpdate);
+    return () => window.removeEventListener('mttq_about_data_updated', handleUpdate);
+  }, []);
+
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-sky-950 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-sky-950 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-3xl space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-400/20 text-cyan-200 border border-cyan-300/30 text-xs font-black uppercase tracking-wider">
             <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-            <span>Đoàn Kết – Dân Chủ – Đồng Thuận – Phát Triển</span>
+            <span>{aboutData.motto || 'Đoàn Kết – Dân Chủ – Đồng Thuận – Phát Triển'}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
-            Ủy Ban Mặt Trận Tổ Quốc Việt Nam Phường Chánh Hiệp
+            {aboutData.headerTitle}
           </h1>
           <p className="text-blue-100 text-xs sm:text-sm font-medium leading-relaxed">
-            Cơ quan đại diện cho khối đại đoàn kết toàn dân tộc tại địa bàn Phường Chánh Hiệp, Thành phố Hồ Chí Minh; cầu nối vững chắc giữa Đảng, Chính quyền với các tầng lớp Nhân dân trên 21 khu phố.
+            {aboutData.headerSubtitle}
           </p>
         </div>
+
+        {isAdmin && onGoToTab && (
+          <div className="relative z-10 shrink-0">
+            <button
+              onClick={() => onGoToTab('cms_about')}
+              className="px-4 py-2.5 rounded-2xl bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg hover:bg-amber-300 transition cursor-pointer"
+            >
+              <Edit3 className="w-4 h-4" />
+              <span>Quản trị Trang Giới thiệu</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 3 Pillars Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-black">
-            <Users className="w-6 h-6" />
-          </div>
-          <h3 className="font-extrabold text-base text-slate-900">Tập hợp Khối Đại Đoàn Kết</h3>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            Tuyên truyền, vận động các tầng lớp nhân dân thực hiện chủ trương của Đảng, chính sách pháp luật của Nhà nước và các phong trào thi đua yêu nước tại cơ sở.
-          </p>
+      {/* Pillars Summary */}
+      {aboutData.pillars && aboutData.pillars.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {aboutData.pillars.map((pillar, idx) => (
+            <div key={pillar.id || idx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-black">
+                {idx === 0 ? <Users className="w-6 h-6" /> : idx === 1 ? <ShieldCheck className="w-6 h-6" /> : <HeartHandshake className="w-6 h-6" />}
+              </div>
+              <h3 className="font-extrabold text-base text-slate-900">{pillar.title}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                {pillar.description}
+              </p>
+            </div>
+          ))}
         </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-700 flex items-center justify-center font-black">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <h3 className="font-extrabold text-base text-slate-900">Giám Sát &amp; Phản Biện Xã Hội</h3>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            Thực hiện quyền làm chủ của nhân dân, giám sát hoạt động của cơ quan nhà nước, cán bộ, đảng viên; tham gia đóng góp xây dựng Đảng và chính quyền trong sạch, vững mạnh.
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-black">
-            <HeartHandshake className="w-6 h-6" />
-          </div>
-          <h3 className="font-extrabold text-base text-slate-900">Chăm Lo An Sinh Xã Hội</h3>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            Vận động xây dựng Quỹ "Vì người nghèo", cứu trợ thiên tai, trao tặng nhà Đại đoàn kết và chăm lo các đối tượng yếu thế trên địa bàn 21 khu phố.
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Leadership & Contact Structure */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-lg space-y-6">
-        <h3 className="text-lg font-black text-slate-900 border-b border-slate-100 pb-3">
-          Ban Thường Trực Ủy Ban MTTQ Phường Khóa X (Nhiệm kỳ 2024 - 2029)
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src={getOfficialCadreAvatarSvg('Trần Thị Hoa', 'Chủ tịch MTTQ')} alt="Chủ tịch MTTQ" className="w-full h-full object-cover" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-800 font-extrabold text-[11px] uppercase tracking-wider mb-1">
+              <span>{aboutData.termSubtitle || 'ĐƠN VỊ CÔNG TÁC THƯỜNG TRỰC'}</span>
             </div>
-            <div className="text-center">
-              <div className="font-black text-xs text-slate-900">Trần Thị Hoa</div>
-              <div className="text-[11px] font-bold text-blue-700">Chủ tịch Ủy ban MTTQ</div>
-            </div>
+            <h3 className="text-lg sm:text-xl font-black text-slate-900">
+              {aboutData.termTitle}
+            </h3>
           </div>
-
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src={getOfficialCadreAvatarSvg('Nguyễn Văn Hùng', 'Phó Chủ tịch')} alt="Phó Chủ tịch MTTQ" className="w-full h-full object-cover" />
-            </div>
-            <div className="text-center">
-              <div className="font-black text-xs text-slate-900">Nguyễn Văn Hùng</div>
-              <div className="text-[11px] font-bold text-blue-700">Phó Chủ tịch Thường trực</div>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl">
+              {aboutData.members?.length || 0} Đồng chí Thường trực
+            </span>
+            {isAdmin && onGoToTab && (
+              <button
+                onClick={() => onGoToTab('cms_about')}
+                className="px-3 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center gap-1.5 hover:bg-slate-800 transition cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                <span>Chỉnh sửa nhân sự</span>
+              </button>
+            )}
           </div>
+        </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src={getOfficialCadreAvatarSvg('Trần Văn Nam', 'Ủy viên Thường trực')} alt="Ủy viên Thường trực" className="w-full h-full object-cover" />
-            </div>
-            <div className="text-center">
-              <div className="font-black text-xs text-slate-900">Trần Văn Nam</div>
-              <div className="text-[11px] font-bold text-slate-600">Ủy viên Thường trực</div>
-            </div>
+        {/* Personnel Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {aboutData.members.map((m, idx) => {
+            const avatar = m.avatarUrl || getOfficialCadreAvatarSvg(m.name, m.position);
+            const isLeader = m.isMainLeader || idx === 0;
+
+            return (
+              <div 
+                key={m.id || idx} 
+                className={`p-4 rounded-2xl space-y-2 shadow-xs transition ${
+                  isLeader 
+                    ? 'bg-gradient-to-b from-red-50/80 to-amber-50/50 border-2 border-red-200 hover:border-red-400' 
+                    : 'bg-slate-50 border border-slate-200 hover:border-blue-300'
+                }`}
+              >
+                <div className={`w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border ${isLeader ? 'border-2 border-red-300' : 'border-slate-300'}`}>
+                  <img src={avatar} alt={m.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="text-center space-y-1">
+                  <span className={`inline-block px-2 py-0.5 rounded-md font-extrabold text-[10px] ${isLeader ? 'bg-red-700 text-white' : 'bg-slate-200 text-slate-800'}`}>
+                    STT {String(m.stt || idx + 1).padStart(2, '0')}
+                  </span>
+                  <div className="font-black text-sm text-slate-900">{m.name}</div>
+                  <div className={`text-[11px] font-extrabold leading-snug ${isLeader ? 'text-red-700' : 'text-blue-700'}`}>
+                    {m.position}
+                  </div>
+                  {m.secondaryPosition && (
+                    <div className="text-[10px] font-semibold text-slate-600">{m.secondaryPosition}</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Official Personnel Table */}
+        <div className="mt-6 border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+          <div className="bg-slate-900 text-white px-5 py-3 font-extrabold text-xs flex items-center justify-between">
+            <span>DANH SÁCH {aboutData.termTitle.toUpperCase()}</span>
+            <span className="text-[10px] text-amber-300 font-bold">Cập nhật chính thức</span>
           </div>
-
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border border-slate-300">
-              <img src={getOfficialCadreAvatarSvg('Lê Thị Thu Thảo', 'Cán bộ Tuyên giáo')} alt="Cán bộ Tuyên giáo" className="w-full h-full object-cover" />
-            </div>
-            <div className="text-center">
-              <div className="font-black text-xs text-slate-900">Lê Thị Thu Thảo</div>
-              <div className="text-[11px] font-bold text-slate-600">Cán bộ Tuyên giáo - Thi đua</div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-100 text-slate-800 border-b border-slate-200 font-black">
+                  <th className="py-3 px-4 text-center w-16 border-r border-slate-200">STT</th>
+                  <th className="py-3 px-4 border-r border-slate-200">Tên đơn vị trực thuộc</th>
+                  <th className="py-3 px-4 border-r border-slate-200 font-bold text-red-700">Họ và tên</th>
+                  <th className="py-3 px-4 font-bold text-red-700">Chức vụ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 font-medium text-slate-800">
+                {aboutData.members.map((m, idx) => (
+                  <tr key={m.id || idx} className={`transition ${m.isMainLeader || idx === 0 ? 'hover:bg-red-50/50' : 'hover:bg-slate-50'}`}>
+                    <td className="py-3 px-4 text-center font-bold text-red-700 border-r border-slate-200">{m.stt || idx + 1}</td>
+                    <td className="py-3 px-4 font-semibold text-red-700 border-r border-slate-200">{m.unit || 'Ủy ban MTTQ VN phường'}</td>
+                    <td className="py-3 px-4 font-extrabold text-red-700 border-r border-slate-200">{m.name}</td>
+                    <td className="py-3 px-4 font-semibold text-red-700">
+                      {m.position}{m.secondaryPosition ? `, ${m.secondaryPosition}` : ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -123,15 +182,15 @@ export const AboutSection: React.FC<{
         <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="flex items-center gap-3 text-slate-600 font-medium">
             <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>Số 1240, đường Đại Lộ Bình Dương, Khu phố Định Hòa 5, phường Chánh Hiệp, Thành phố Hồ Chí Minh</span>
+            <span>{aboutData.address}</span>
           </div>
           <div className="flex items-center gap-3 text-slate-600 font-medium">
             <Phone className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>Hotline: 0989614614 (Đồng chí Nguyễn Xuân Kiều)</span>
+            <span>Hotline: {aboutData.hotline}</span>
           </div>
           <div className="flex items-center gap-3 text-slate-600 font-medium">
             <Mail className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>mttqvietnamphuongchanhhiep@gmail.com</span>
+            <span>{aboutData.email}</span>
           </div>
         </div>
       </div>

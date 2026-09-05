@@ -334,7 +334,7 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
                 <div className="bg-gradient-to-r from-red-700 to-amber-600 text-white p-4 rounded-2xl border-2 border-amber-300 shadow-md text-center max-w-xl w-full">
                   <div className="text-[10px] font-bold text-amber-200 uppercase">Cơ quan chủ trì khối đại đoàn kết</div>
                   <h4 className="font-black text-base uppercase">Ủy Ban Mặt Trận Tổ Quốc Việt Nam Phường</h4>
-                  <div className="text-xs text-white/90 font-medium mt-1">Chủ tịch: <strong>Trần Thị Hoa</strong> • 21 Ban Công tác Mặt trận</div>
+                  <div className="text-xs text-white/90 font-medium mt-1">Chủ tịch: <strong>Nguyễn Công Lý</strong> • 21 Ban Công tác Mặt trận</div>
                 </div>
 
                 {sortedOrgs.length > 0 && (

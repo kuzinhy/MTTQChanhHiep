@@ -63,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'organizations', label: 'Tổ chức thành viên', icon: Users },
     { id: 'news', label: 'Tin tức - Sự kiện', icon: BookOpen },
     { id: 'supervision', label: 'Giám sát & Phản biện', icon: Scale },
-    { id: 'initiatives', label: 'Mô hình hay', icon: Lightbulb },
+    { id: 'initiatives', label: 'Mô hình tiêu biểu', icon: Lightbulb },
     { id: 'surveys', label: 'Khảo sát ý kiến', icon: ClipboardList },
     { id: 'opinion', label: 'Góp ý dân nguyện', icon: MessageSquareHeart },
   ];

@@ -1622,6 +1622,29 @@ export default function App() {
                       />
                     )}
 
+                    {officeView === 'cms_about' && (
+                      <CmsAdminView
+                        articles={articles}
+                        documents={documents}
+                        competitions={competitions}
+                        opinions={opinions}
+                        initialTab="ABOUT"
+                        onAddArticle={handleAddArticle}
+                        onUpdateArticle={handleUpdateArticle}
+                        onDeleteArticle={handleDeleteArticle}
+                        onAddDocument={handleAddDocument}
+                        onUpdateDocument={handleUpdateDocument}
+                        onDeleteDocument={handleDeleteDocument}
+                        onAddCompetition={handleAddCompetition}
+                        onUpdateCompetition={handleUpdateCompetition}
+                        onDeleteCompetition={handleDeleteCompetition}
+                        onUpdateOpinionStatus={handleUpdateOpinionStatus}
+                        onRequestDocApproval={handleTriggerDocApprovalToast}
+                        onForceCloudSync={handleForceCloudSync}
+                        onShowToast={handleTriggerSystemToast}
+                      />
+                    )}
+
                     {officeView === 'cms_documents' && (
                       <CmsAdminView
                         articles={articles}

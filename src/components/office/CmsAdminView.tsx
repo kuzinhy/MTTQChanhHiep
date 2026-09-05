@@ -16,6 +16,7 @@ import { getApiUrl } from '../../lib/api';
 import { SecurePdfViewer } from '../SecurePdfViewer';
 import { AdminAnalyticsView } from './AdminAnalyticsView';
 import { InitiativesSection } from '../InitiativesSection';
+import { AboutAdminView } from './AboutAdminView';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
   Article, 
@@ -53,6 +54,7 @@ import {
   Award,
   MessageSquare,
   Lightbulb,
+  Info,
   Tag,
   AlertCircle,
   Calendar,
@@ -92,7 +94,7 @@ interface CmsAdminViewProps {
   documents: OfficialDocument[];
   competitions?: Competition[];
   opinions?: PublicOpinion[];
-  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS';
+  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES';
   onAddArticle: (art: Article) => void;
   onUpdateArticle: (art: Article) => void;
   onDeleteArticle: (id: string) => void;
@@ -175,11 +177,15 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onForceCloudSync,
   onShowToast
 }) => {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES'>(initialTab || 'ARTICLES');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT'>(
+    initialTab === 'cms_about' || initialTab === 'ABOUT' ? 'ABOUT' : (initialTab as any) || 'ARTICLES'
+  );
 
   React.useEffect(() => {
-    if (initialTab) {
-      setActiveTab(initialTab);
+    if (initialTab === 'cms_about' || initialTab === 'ABOUT') {
+      setActiveTab('ABOUT');
+    } else if (initialTab) {
+      setActiveTab(initialTab as any);
     }
   }, [initialTab]);
 
@@ -236,7 +242,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const [docTitle, setDocTitle] = useState('');
   const [docType, setDocType] = useState<DocType>('Kế hoạch');
   const [docField, setDocField] = useState('Tổ chức - Tuyên giáo');
-  const [docSigner, setDocSigner] = useState('Chủ tịch Trần Thị Hoa');
+  const [docSigner, setDocSigner] = useState('Chủ tịch Nguyễn Công Lý');
   const [docSummary, setDocSummary] = useState('');
   const [docIssueDate, setDocIssueDate] = useState(new Date().toISOString().substring(0, 10));
   const [docIsPublic, setDocIsPublic] = useState(true);
@@ -1258,6 +1264,18 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           <Lightbulb className="w-4 h-4 shrink-0 text-amber-300" />
           <span className="truncate">Sáng Kiến 21 Khu Phố</span>
         </button>
+
+        <button
+          onClick={() => { setActiveTab('ABOUT'); setSelectedCategory('ALL'); setSearchTerm(''); }}
+          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
+            activeTab === 'ABOUT'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
+          }`}
+        >
+          <Info className="w-4 h-4 shrink-0 text-amber-300" />
+          <span className="truncate">Trang Giới Thiệu</span>
+        </button>
       </div>
 
       {/* ========================================================================= */}
@@ -1776,6 +1794,13 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       {/* ========================================================================= */}
       {activeTab === 'INITIATIVES' && (
         <InitiativesSection isAdmin={true} />
+      )}
+
+      {/* ========================================================================= */}
+      {/* 6. QUẢN TRỊ TRANG GIỚI THIỆU TAB */}
+      {/* ========================================================================= */}
+      {activeTab === 'ABOUT' && (
+        <AboutAdminView onShowToast={onShowToast} />
       )}
 
       {/* ========================================================================= */}

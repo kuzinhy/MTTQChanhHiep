@@ -19,6 +19,7 @@ import {
   Layers,
   Bell, 
   Lightbulb,
+  Info,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -66,7 +67,8 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   // 2. NHÓM QUẢN TRỊ NỘI DUNG & NGHIỆP VỤ (CMS & Nghiệp vụ Mặt trận)
   const webMenuItems: SidebarItem[] = [
     { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
-    { id: 'cms_initiatives', label: 'Đăng & Quản lý Mô hình Hay', icon: Lightbulb, badge: 'MÔ HÌNH' },
+    { id: 'cms_initiatives', label: 'Mô hình', icon: Lightbulb, badge: 'MÔ HÌNH' },
+    { id: 'cms_about', label: 'Giới thiệu', icon: Info, badge: 'GIỚI THIỆU' },
     { id: 'cms_documents', label: 'Văn bản & Chỉ đạo', icon: FileText, badge: 'VĂN BẢN' },
     { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
     { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
@@ -75,7 +77,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
   ];
 
-  const webViewIds = ['cms', 'cms_articles', 'cms_initiatives', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'member_orgs_admin', 'cultural_space_admin'];
+  const webViewIds = ['cms', 'cms_articles', 'cms_initiatives', 'cms_about', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'member_orgs_admin', 'cultural_space_admin'];
   const isCurrentViewWeb = webViewIds.includes(currentView);
 
   // Accordion state for "Quản trị web"

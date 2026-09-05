@@ -352,7 +352,7 @@ export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
           <div className="p-2 rounded-xl bg-blue-950/60 border border-blue-800/50 text-xs flex items-center justify-between">
             <div className="min-w-0 pr-2">
               <p className="text-[10px] text-blue-300 font-bold uppercase tracking-wider truncate">ĐƠN VỊ THAO TÁC</p>
-              <p className="text-xs text-white font-bold truncate">{workspaceContext.orgName || 'MTTQ Phường Chánh Hiệp'}</p>
+              <p className="text-xs text-white font-bold truncate">{workspaceContext.unitLeading || 'MTTQ Phường Chánh Hiệp'}</p>
             </div>
 
             {onOpenContextSettings && (

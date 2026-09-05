@@ -309,7 +309,7 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
                 <div className="text-sm font-black text-slate-900 flex items-center gap-2">
                   <span>Chủ tịch Ủy ban MTTQ phường</span>
                   <span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-md">
-                    {mttqOrg?.leaderName || 'Trần Thị Hoa'}
+                    {mttqOrg?.leaderName || 'Nguyễn Công Lý'}
                   </span>
                 </div>
               </div>

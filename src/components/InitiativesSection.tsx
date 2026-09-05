@@ -39,6 +39,25 @@ interface InitiativesSectionProps {
   isAdmin?: boolean;
 }
 
+const DEFAULT_FALLBACK_COVER = 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80';
+
+const getInitiativeCardImage = (item: FrontInitiative): string => {
+  if (item.imageUrl && !item.imageUrl.includes('anhsieuviet.com')) {
+    return item.imageUrl;
+  }
+  const titleLower = item.title ? item.title.toLowerCase() : '';
+  if (item.id === 'model-01-padlet' || titleLower.includes('padlet') || titleLower.includes('kết nối số')) {
+    return 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80';
+  }
+  if (item.id === 'model-02-hopthu' || titleLower.includes('hộp thư') || titleLower.includes('điều em muốn nói')) {
+    return 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80';
+  }
+  if (item.id === 'model-03-sohoaditich' || titleLower.includes('số hóa') || titleLower.includes('di tích')) {
+    return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80';
+  }
+  return DEFAULT_FALLBACK_COVER;
+};
+
 export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin = true }) => {
   const [initiatives, setInitiatives] = useState<FrontInitiative[]>(() => loadStoredInitiatives());
   const [hcmActions, setHcmActions] = useState<ChanhHiepActionModel[]>(() => loadStoredChanhHiepActions());
@@ -84,7 +103,7 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
     if (e) e.stopPropagation();
     const updated = initiatives.map((item) => {
       if (item.id === id) {
-        const nextStatus = item.status === 'DRAFT' ? 'PUBLISHED' : 'DRAFT';
+        const nextStatus: 'PUBLISHED' | 'DRAFT' = item.status === 'DRAFT' ? 'PUBLISHED' : 'DRAFT';
         return { ...item, status: nextStatus };
       }
       return item;
@@ -220,41 +239,45 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
         />
       )}
 
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-700 text-white p-6 sm:p-8 rounded-3xl shadow-xl relative overflow-hidden">
-        <div className="space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-xs">
-            <Lightbulb className="w-4 h-4 fill-amber-950 text-amber-950" />
-            <span>KHO SÁNG KIẾN &amp; MÔ HÌNH HAY MẶT TRẬN 21 KHU PHỐ</span>
+      {/* Header Banner - Refined Professional Design */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-blue-800/40 relative overflow-hidden">
+        {/* Background Ambient Glow */}
+        <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="space-y-3 relative z-10 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/90 text-slate-950 font-black text-xs uppercase tracking-wider shadow-sm backdrop-blur-md">
+            <Lightbulb className="w-4 h-4 fill-slate-950 text-slate-950" />
+            <span>MÔ HÌNH TIÊU BIỂU &amp; SÁNG KIẾN MẶT TRẬN</span>
           </div>
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">
-            Mô Hình Nhân Rộng &amp; Sáng Kiến Tác Nghiệp Mặt Trận 21 Khu Phố
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-white tracking-tight leading-tight">
+            Mô hình tiêu biểu
           </h2>
-          <p className="text-xs sm:text-sm text-blue-100 max-w-3xl leading-relaxed">
-            Hệ thống quản trị &amp; tra cứu bài viết sáng kiến, giải pháp tác nghiệp Mặt Trận liên thông trực tiếp với Chuyên đề Học tập và Làm theo Tư tưởng, Đạo đức, Phong cách Hồ Chí Minh Phường Chánh Hiệp.
+          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+            Kho dữ liệu sáng kiến tác nghiệp, mô hình nhân rộng hay Mặt Trận tại 21 khu phố — Phường Chánh Hiệp. Tích hợp liên thông dữ liệu trực tiếp với Chuyên đề Học tập và Làm theo Tư tưởng, Đạo đức, Phong cách Hồ Chí Minh.
           </p>
         </div>
 
-        {/* Admin Mode Toggle Button */}
-        <div className="shrink-0 relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        {/* Admin Mode Toggle & Actions */}
+        <div className="shrink-0 relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {isAdmin && (
             <button
               onClick={() => setIsAdminMode(!isAdminMode)}
               className={`px-4 py-2.5 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md ${
                 isAdminMode
                   ? 'bg-amber-400 text-slate-950 hover:bg-amber-300 ring-2 ring-amber-200'
-                  : 'bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-md'
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md'
               }`}
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{isAdminMode ? 'Đang bật Bàn Quản Trị' : 'Bật Quản Trị Bài Viết'}</span>
+              <span>{isAdminMode ? 'Đang bật Quản trị' : 'Bật Bàn Quản Trị'}</span>
             </button>
           )}
 
           {isAdminMode && (
             <button
               onClick={handleCreateNewArticle}
-              className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+              className="px-4.5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg hover:shadow-emerald-500/25 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Thêm Mô Hình Mới</span>
@@ -474,43 +497,35 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                   )}
                 </div>
 
-                {/* Cover Image */}
-                {item.imageUrl && (
-                  <div className="relative h-44 w-full bg-slate-900 overflow-hidden shrink-0">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-bold text-[10px] backdrop-blur-xs border border-white/10">
-                      {item.unit}
+                {/* Cover Image - Guaranteed Cover Image for all models */}
+                {(() => {
+                  const cardImg = getInitiativeCardImage(item);
+                  return (
+                    <div className="relative h-48 w-full bg-slate-900 overflow-hidden shrink-0">
+                      <img
+                        src={cardImg}
+                        alt={item.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = DEFAULT_FALLBACK_COVER;
+                        }}
+                      />
+                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-bold text-[10px] backdrop-blur-xs border border-white/10 shadow-xs">
+                        {item.unit}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
                   <div className="space-y-3">
-                    {!item.imageUrl && (
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-black text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
-                          {item.unit}
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-medium">{item.date}</span>
-                      </div>
-                    )}
-
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-sm font-black text-slate-900 group-hover:text-blue-700 transition leading-snug">
                           {item.title}
                         </h3>
-                        {item.imageUrl && (
-                          <span className="text-[10px] text-slate-400 font-medium shrink-0">{item.date}</span>
-                        )}
+                        <span className="text-[10px] text-slate-400 font-medium shrink-0">{item.date}</span>
                       </div>
                       {item.author && (
                         <p className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
@@ -799,16 +814,18 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden relative my-8">
             {/* Cover Header Image */}
-            {selectedArticleDetail.imageUrl && (
-              <div className="relative h-60 w-full bg-slate-900 overflow-hidden">
-                <img
-                  src={selectedArticleDetail.imageUrl}
-                  alt={selectedArticleDetail.title}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-                <div className="absolute bottom-4 left-6 right-6 text-white space-y-1">
+            <div className="relative h-60 w-full bg-slate-900 overflow-hidden">
+              <img
+                src={getInitiativeCardImage(selectedArticleDetail)}
+                alt={selectedArticleDetail.title}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_FALLBACK_COVER;
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+              <div className="absolute bottom-4 left-6 right-6 text-white space-y-1">
                   <span className="px-3 py-1 rounded-full bg-blue-600 text-white font-bold text-xs">
                     {selectedArticleDetail.unit}
                   </span>
@@ -817,7 +834,6 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                   </h2>
                 </div>
               </div>
-            )}
 
             <button
               onClick={() => setSelectedArticleDetail(null)}

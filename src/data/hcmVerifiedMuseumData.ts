@@ -1975,7 +1975,7 @@ export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
     date: '05/09/2026',
     linkedHcmActionId: 'act-01',
     linkedHcmTopicTitle: 'Dân vận khéo – Gần dân, sát việc, lo cho dân',
-    imageUrl: 'https://anhsieuviet.com/image/a7VdwC',
+    imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80',
     status: 'PUBLISHED',
     isFeatured: true
   },
@@ -1992,7 +1992,7 @@ export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
     date: '05/09/2026',
     linkedHcmActionId: 'act-02',
     linkedHcmTopicTitle: 'Tổ liên kết An sinh Xã hội – Mái ấm Đại đoàn kết',
-    imageUrl: 'https://anhsieuviet.com/image/a7VcPz',
+    imageUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80',
     status: 'PUBLISHED',
     isFeatured: true
   },
@@ -2009,7 +2009,7 @@ export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
     date: '05/09/2026',
     linkedHcmActionId: 'act-04',
     linkedHcmTopicTitle: 'Tuyến hẻm tự quản Xanh - Sạch - Văn minh - Nghĩa tình',
-    imageUrl: 'https://anhsieuviet.com/image/a7VpKf',
+    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
     status: 'PUBLISHED',
     isFeatured: true
   }
