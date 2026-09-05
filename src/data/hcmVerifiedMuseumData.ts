@@ -139,6 +139,13 @@ export interface FrontInitiative {
   linkedHcmActionId?: string; // Link to ChanhHiepActionModel ID (e.g. 'act-01')
   linkedHcmTopicTitle?: string;
   imageUrl?: string;
+  fullContent?: string;
+  author?: string;
+  neighborhoodId?: string;
+  status?: 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
+  isFeatured?: boolean;
+  viewCount?: number;
+  postToHcmSpace?: boolean;
 }
 
 export interface ChanhHiepActionModel {
@@ -1949,119 +1956,61 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
 // ==========================================
 // 7. PHÂN HỆ ĐƯƠNG ĐẠI: "CHÁNH HIỆP HỌC VÀ LÀM THEO BÁC"
 // ==========================================
-export const CHANH_HIEP_ACTION_MODELS: ChanhHiepActionModel[] = [
-  {
-    id: 'act-01',
-    title: 'Mô hình "Dân vận khéo – Gần dân, sát việc, lo cho dân"',
-    targetGroup: 'Cán bộ - Đảng viên',
-    neighborhood: '21/21 Khu phố Phường Chánh Hiệp',
-    summary: 'Thực hiện lời dạy của Bác trong tác phẩm "Dân vận", cán bộ Ủy ban MTTQ và các đoàn thể phường duy trì chế độ đi cơ sở hàng tuần, nắm bắt tâm tư và giải quyết kịp thời 100% kiến nghị bức xúc của nhân dân ngay từ tổ dân phố.',
-    practicalResult: 'Vận động thành công nhân dân tự nguyện hiến hơn 1.200m² đất mở rộng hẻm và lắp đặt 100% hệ thống chiếu sáng, camera an ninh.',
-    inspirationalQuote: '“Dân vận kém thì việc gì cũng kém. Dân vận khéo thì việc gì cũng thành công.”',
-    updatedDate: 'Năm 2026',
-    imageUrl: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
-    linkedInitiativeIds: ['init-01', 'init-04', 'init-03']
-  },
-  {
-    id: 'act-02',
-    title: 'Tổ liên kết An sinh Xã hội – "Mái ấm Đại đoàn kết"',
-    targetGroup: 'Mặt trận & Hội viên',
-    neighborhood: 'Khu phố 3, Khu phố 7, Khu phố 14',
-    summary: 'Cụ thể hóa Di chúc thiêng liêng của Bác về việc chăm lo không ngừng nâng cao đời sống của nhân dân; MTTQ phường phối hợp các nhà hảo tâm và doanh nghiệp địa phương xây dựng, sửa chữa nhà đại đoàn kết cho các hộ khó khăn.',
-    practicalResult: 'Trao tặng 18 căn nhà Đại đoàn kết, phụng dưỡng trọn đời 02 Mẹ Việt Nam Anh hùng và hỗ trợ 150 suất học bổng cho học sinh nghèo hiếu học.',
-    inspirationalQuote: '“Việc gì có lợi cho dân, ta phải hết sức làm. Việc gì hại đến dân, ta phải hết sức tránh.”',
-    updatedDate: 'Năm 2026',
-    imageUrl: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=800&q=80',
-    linkedInitiativeIds: ['init-02', 'init-05']
-  },
-  {
-    id: 'act-03',
-    title: 'Tủ sách điện tử Bác Hồ & Không gian Văn hóa số 21 Khu phố',
-    targetGroup: 'Đoàn viên thanh niên',
-    neighborhood: 'Nhà văn hóa 21 Khu phố',
-    summary: 'Đoàn Thanh niên phối hợp Ban Công tác Mặt trận thiết lập các điểm quét mã QR tra cứu sách điện tử Hồ Chí Minh, tổ chức các buổi sinh hoạt chuyên đề "Học tập và làm theo tấm gương đạo đức, phong cách Hồ Chí Minh".',
-    practicalResult: 'Thu hút hơn 8.500 lượt đoàn viên, học sinh và nhân dân tham gia đọc, nghiên cứu tài liệu và dự thi tìm hiểu di sản Bác Hồ.',
-    inspirationalQuote: '“Học để làm việc, làm người, làm cán bộ. Học để phụng sự đoàn thể, phụng sự giai cấp và nhân dân.”',
-    updatedDate: 'Năm 2026',
-    imageUrl: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=80',
-    linkedInitiativeIds: ['init-01', 'init-04']
-  },
-  {
-    id: 'act-04',
-    title: 'Tuyến hẻm tự quản "Xanh - Sạch - Văn minh - Nghĩa tình"',
-    targetGroup: 'Nhân dân 21 Khu phố',
-    neighborhood: 'Toàn địa bàn 21 Khu phố',
-    summary: 'Thực hiện lời dạy của Bác trong tác phẩm "Đời sống mới", các hộ dân cam kết không xả rác bừa bãi, trồng hoa cây xanh trước nhà, tích cực tham gia Ngày Chủ nhật xanh và giữ gìn tình làng nghĩa xóm tối lửa tắt đèn có nhau.',
-    practicalResult: '100% 21 khu phố đạt chuẩn đô thị văn minh; nhân rộng 45 tuyến hẻm hoa tự quản kiểu mẫu do người dân tự nguyện đóng góp chăm sóc.',
-    inspirationalQuote: '“Đoàn kết, đoàn kết, đại đoàn kết. Thành công, thành công, đại thành công!”',
-    updatedDate: 'Năm 2026',
-    imageUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80',
-    linkedInitiativeIds: ['init-02', 'init-03']
-  }
-];
+export const CHANH_HIEP_ACTION_MODELS: ChanhHiepActionModel[] = [];
 
 // ==========================================
 // 8. SÁNG KIẾN TÁC NGHIỆP MẶT TRẬN (MÔ HÌNH NHÂN RỘNG)
 // ==========================================
 export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
   {
-    id: 'init-01',
-    title: 'Mô hình "Tổ Đoàn Kết Số 4.0" tại 21 Khu phố Phường Chánh Hiệp',
-    unit: 'Ủy ban MTTQ & Ban CTMTKP 5',
-    summary: 'Ứng dụng nhóm Zalo kết nối liên thông và Bảng tin số khu phố để thông báo lịch sinh hoạt, thu quỹ công khai và tiếp nhận kiến nghị trực tuyến.',
-    impact: 'Tiết kiệm 90% chi phí in ấn giấy, 100% hộ dân nhận được thông tin chỉ đạo trong vòng 15 phút.',
-    likes: 342,
-    tags: ['Chuyển đổi số', 'Dân nguyện', 'Khu phố số', 'Làm theo Bác'],
-    date: '15/08/2026',
+    id: 'model-01-padlet',
+    title: 'Kết nối số - Tiếp nhận và phản hồi ý kiến của Nhân dân trên nền tảng Padlet',
+    unit: 'MTTQ Việt Nam phường Chánh Hiệp',
+    author: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
+    summary: 'Kênh thông tin trực tuyến nhằm tiếp nhận ý kiến, kiến nghị, phản ánh của Nhân dân, đồng thời cung cấp thông tin, hướng dẫn và phản hồi kết quả xử lý các vấn đề thuộc chức năng của MTTQ. Qua đó, tăng cường tương tác giữa MTTQ với Nhân dân, kịp thời nắm bắt tâm tư, nguyện vọng, phát huy quyền làm chủ của Nhân dân và nâng cao hiệu quả công tác giám sát, phản biện xã hội.',
+    fullContent: 'Kênh thông tin trực tuyến nhằm tiếp nhận ý kiến, kiến nghị, phản ánh của Nhân dân, đồng thời cung cấp thông tin, hướng dẫn và phản hồi kết quả xử lý các vấn đề thuộc chức năng của MTTQ.\n\nQua đó, tăng cường tương tác giữa MTTQ với Nhân dân, kịp thời nắm bắt tâm tư, nguyện vọng, phát huy quyền làm chủ của Nhân dân và nâng cao hiệu quả công tác giám sát, phản biện xã hội.',
+    impact: 'Tăng cường tương tác giữa MTTQ với Nhân dân, kịp thời nắm bắt tâm tư, nguyện vọng, phát huy quyền làm chủ của Nhân dân và nâng cao hiệu quả công tác giám sát, phản biện xã hội.',
+    likes: 352,
+    tags: ['Kết nối số', 'Nền tảng Padlet', 'Tiếp nhận ý kiến', 'Dân nguyện', 'MTTQ Phường'],
+    date: '05/09/2026',
     linkedHcmActionId: 'act-01',
-    linkedHcmTopicTitle: 'Dân vận khéo – Gần dân, sát việc, lo cho dân'
+    linkedHcmTopicTitle: 'Dân vận khéo – Gần dân, sát việc, lo cho dân',
+    imageUrl: 'https://anhsieuviet.com/image/a7VdwC',
+    status: 'PUBLISHED',
+    isFeatured: true
   },
   {
-    id: 'init-02',
-    title: 'Sáng kiến "Góc Xanh Đại Đoàn Kết" - Phân loại rác tại nguồn & Nuôi heo đất an sinh',
-    unit: 'Hội Liên hiệp Phụ nữ & MTTQ Phường',
-    summary: 'Xây dựng 21 điểm thu gom rác tái chế lấy kinh phí nuôi heo đất khuyến học cho học sinh nghèo hiếu học tại các khu phố.',
-    impact: 'Thu gom hơn 4.2 tấn nhựa tái chế, trao 85 suất học bổng cho học sinh nghèo.',
-    likes: 289,
-    tags: ['Bảo vệ môi trường', 'An sinh xã hội', 'Bác Hồ với học sinh nghèo'],
-    date: '02/08/2026',
+    id: 'model-02-hopthu',
+    title: 'Mô hình “Hộp thư Điều em muốn nói”',
+    unit: 'Đoàn phường Chánh Hiệp',
+    author: 'Đoàn Phường Chánh Hiệp',
+    summary: 'Xây dựng kênh tiếp nhận ý kiến, tâm tư, nguyện vọng, đề xuất và những điều trẻ em, thiếu nhi muốn chia sẻ. Thông qua mô hình, tạo môi trường thân thiện, an toàn để các em mạnh dạn bày tỏ suy nghĩ, phản ánh những vấn đề liên quan đến học tập, vui chơi, đời sống và quyền trẻ em...',
+    fullContent: 'Xây dựng kênh tiếp nhận ý kiến, tâm tư, nguyện vọng, đề xuất và những điều trẻ em, thiếu nhi muốn chia sẻ.\n\nThông qua mô hình, tạo môi trường thân thiện, an toàn để các em mạnh dạn bày tỏ suy nghĩ, phản ánh những vấn đề liên quan đến học tập, vui chơi, đời sống và quyền trẻ em; qua đó giúp MTTQ và các tổ chức chính trị - xã hội kịp thời lắng nghe, nắm bắt, hỗ trợ và chuyển tải ý kiến của trẻ em đến các cơ quan có thẩm quyền xem xét, giải quyết.',
+    impact: 'Giúp MTTQ và các tổ chức chính trị - xã hội kịp thời lắng nghe, nắm bắt, hỗ trợ và chuyển tải ý kiến của trẻ em đến các cơ quan có thẩm quyền xem xét, giải quyết.',
+    likes: 298,
+    tags: ['Hộp thư thiếu nhi', 'Điều em muốn nói', 'Quyền trẻ em', 'Đoàn Phường'],
+    date: '05/09/2026',
     linkedHcmActionId: 'act-02',
-    linkedHcmTopicTitle: 'Tổ liên kết An sinh Xã hội – Mái ấm Đại đoàn kết'
+    linkedHcmTopicTitle: 'Tổ liên kết An sinh Xã hội – Mái ấm Đại đoàn kết',
+    imageUrl: 'https://anhsieuviet.com/image/a7VcPz',
+    status: 'PUBLISHED',
+    isFeatured: true
   },
   {
-    id: 'init-03',
-    title: 'Mô hình "Camera An ninh Đại đoàn kết" Nhân dân tự quản',
-    unit: 'Ban CTMTKP 12 & Công an Phường',
-    summary: 'Vận động Nhân dân đóng góp kinh phí lắp đặt 128 mắt camera độ phân giải cao tại các hẻm tự quản.',
-    impact: 'Giảm 75% sự vụ mất an ninh trật tự, xử lý nhanh các vụ vi phạm môi trường.',
-    likes: 215,
-    tags: ['An ninh trật tự', 'Tự quản cộng đồng', 'Đời sống mới'],
-    date: '20/07/2026',
+    id: 'model-03-sohoaditich',
+    title: 'Mô hình “Số hóa di tích lịch sử”',
+    unit: 'Đoàn TNCS Hồ Chí Minh phường Chánh Hiệp',
+    author: 'Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp',
+    summary: 'Ứng dụng công nghệ số để số hóa thông tin, hình ảnh và giá trị lịch sử, văn hóa của các di tích, địa điểm có ý nghĩa trên địa bàn phường thông qua mã QR. Người dân, đoàn viên, thanh thiếu nhi có thể quét mã QR để tìm hiểu nhanh về lịch sử hình thành...',
+    fullContent: 'Ứng dụng công nghệ số để số hóa thông tin, hình ảnh và giá trị lịch sử, văn hóa của các di tích, địa điểm có ý nghĩa trên địa bàn phường thông qua mã QR.\n\nNgười dân, đoàn viên, thanh thiếu nhi có thể quét mã QR để tìm hiểu nhanh về lịch sử hình thành, quá trình phát triển, các nhân vật, sự kiện và những giá trị văn hóa gắn liền với từng địa điểm.\n\nMô hình góp phần đổi mới phương thức tuyên truyền, giáo dục truyền thống cách mạng, lịch sử địa phương; phát huy vai trò của tuổi trẻ trong chuyển đổi số và quảng bá các giá trị văn hóa của phường Chánh Hiệp.',
+    impact: 'Đổi mới phương thức tuyên truyền, giáo dục truyền thống cách mạng, lịch sử địa phương; phát huy vai trò của tuổi trẻ trong chuyển đổi số và quảng bá các giá trị văn hóa của phường Chánh Hiệp.',
+    likes: 415,
+    tags: ['Số hóa di tích', 'Mã QR lịch sử', 'Chuyển đổi số', 'Đoàn Thanh niên'],
+    date: '05/09/2026',
     linkedHcmActionId: 'act-04',
-    linkedHcmTopicTitle: 'Tuyến hẻm tự quản Xanh - Sạch - Văn minh - Nghĩa tình'
-  },
-  {
-    id: 'init-04',
-    title: 'Sáng kiến "Tiếp nhận Dân nguyện Số qua Mã QR 21 Khu phố"',
-    unit: 'Ủy ban MTTQ Phường Chánh Hiệp',
-    summary: 'Dán mã QR tiếp nhận phản ánh, kiến nghị của người dân tại 21 Nhà văn hóa khu phố, tự động chuyển về Mặt trận Phường xử lý.',
-    impact: '100% ý kiến phản ánh được phân loại và phản hồi kết quả cho người dân trong 48 giờ.',
-    likes: 310,
-    tags: ['Cải cách hành chính', 'Sửa đổi lối làm việc', 'Lắng nghe dân'],
-    date: '10/08/2026',
-    linkedHcmActionId: 'act-01',
-    linkedHcmTopicTitle: 'Dân vận khéo – Gần dân, sát việc, lo cho dân'
-  },
-  {
-    id: 'init-05',
-    title: 'Sáng kiến "Bữa ăn Nghĩa tình - Bếp ăn Đại đoàn kết"',
-    unit: 'Ban CTMTKP 3, KP 7 & Hội Chữ Thập Đỏ',
-    summary: 'Tổ chức nấu và phát 300 suất ăn miễn phí hàng tuần cho công nhân yếu thế, lao động tự do và cụ già neo đơn.',
-    impact: 'Duy trì liên tục 24 tháng, trao hơn 12.000 suất ăn ấm lòng nhân dân.',
-    likes: 425,
-    tags: ['An sinh xã hội', 'Bác Hồ với người nghèo', 'Nghĩa tình Chánh Hiệp'],
-    date: '25/08/2026',
-    linkedHcmActionId: 'act-02',
-    linkedHcmTopicTitle: 'Tổ liên kết An sinh Xã hội – Mái ấm Đại đoàn kết'
+    linkedHcmTopicTitle: 'Tuyến hẻm tự quản Xanh - Sạch - Văn minh - Nghĩa tình',
+    imageUrl: 'https://anhsieuviet.com/image/a7VpKf',
+    status: 'PUBLISHED',
+    isFeatured: true
   }
 ];

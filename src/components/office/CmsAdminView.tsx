@@ -15,6 +15,7 @@ import {
 import { getApiUrl } from '../../lib/api';
 import { SecurePdfViewer } from '../SecurePdfViewer';
 import { AdminAnalyticsView } from './AdminAnalyticsView';
+import { InitiativesSection } from '../InitiativesSection';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
   Article, 
@@ -51,6 +52,7 @@ import {
   CheckCircle2, 
   Award,
   MessageSquare,
+  Lightbulb,
   Tag,
   AlertCircle,
   Calendar,
@@ -173,7 +175,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onForceCloudSync,
   onShowToast
 }) => {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS'>(initialTab || 'ARTICLES');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES'>(initialTab || 'ARTICLES');
 
   React.useEffect(() => {
     if (initialTab) {
@@ -1184,7 +1186,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       )}
 
       {/* Tabs Navigation (Fit on 1 line across Desktop/Tablet) */}
-      <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-2 md:grid-cols-5 gap-2 shadow-2xs">
+      <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-2 md:grid-cols-6 gap-2 shadow-2xs">
         <button
           onClick={() => { setActiveTab('OVERVIEW'); setSelectedCategory('ALL'); setSearchTerm(''); }}
           className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
@@ -1243,6 +1245,18 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         >
           <MessageSquare className="w-4 h-4 shrink-0" />
           <span className="truncate">Ý Kiến Dân Sinh ({opinions.length})</span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('INITIATIVES'); setSelectedCategory('ALL'); setSearchTerm(''); }}
+          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
+            activeTab === 'INITIATIVES'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
+          }`}
+        >
+          <Lightbulb className="w-4 h-4 shrink-0 text-amber-300" />
+          <span className="truncate">Sáng Kiến 21 Khu Phố</span>
         </button>
       </div>
 
@@ -1755,6 +1769,13 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5. SÁNG KIẾN TÁC NGHIỆP MẶT TRẬN 21 KHU PHỐ TAB */}
+      {/* ========================================================================= */}
+      {activeTab === 'INITIATIVES' && (
+        <InitiativesSection isAdmin={true} />
       )}
 
       {/* ========================================================================= */}

@@ -72,6 +72,7 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
         : [updated, ...initiativesList];
       setInitiativesList(updatedList);
       saveStoredInitiatives(updatedList);
+      setActionsList(loadStoredChanhHiepActions());
     }
     setEditingItem(null);
   };
@@ -87,7 +88,8 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
       tags: ['Sáng kiến mới', 'Làm theo Bác'],
       date: new Date().toLocaleDateString('vi-VN'),
       linkedHcmActionId: actionsList[0]?.id || 'act-01',
-      linkedHcmTopicTitle: actionsList[0]?.title || ''
+      linkedHcmTopicTitle: actionsList[0]?.title || '',
+      postToHcmSpace: true
     };
     setEditingItem({ type: 'front_initiative', data: newInit });
   };
@@ -229,7 +231,14 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {actionsList.length === 0 ? (
+              <div className="p-8 text-center bg-rose-50/50 rounded-3xl border border-dashed border-rose-200 space-y-2">
+                <BookOpen className="w-8 h-8 text-rose-300 mx-auto" />
+                <p className="text-sm font-bold text-rose-900">Chưa có bài viết Chuyên đề Học Bác nào</p>
+                <p className="text-xs text-rose-700">Các bài viết chuyên đề sẽ hiển thị tại đây khi được thêm mới.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {actionsList.map((model, idx) => {
                 // Find linked initiatives
                 const linkedInits = initiativesList.filter(
@@ -366,6 +375,7 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                 );
               })}
             </div>
+            )}
           </div>
         )}
 

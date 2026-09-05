@@ -101,6 +101,7 @@ export const VALID_OFFICE_VIEWS = [
   'ai_assistant',
   'cms',
   'cms_articles',
+  'cms_initiatives',
   'cms_documents',
   'competitions_admin',
   'question_banks',
@@ -1582,6 +1583,29 @@ export default function App() {
                         competitions={competitions}
                         opinions={opinions}
                         initialTab="ARTICLES"
+                        onAddArticle={handleAddArticle}
+                        onUpdateArticle={handleUpdateArticle}
+                        onDeleteArticle={handleDeleteArticle}
+                        onAddDocument={handleAddDocument}
+                        onUpdateDocument={handleUpdateDocument}
+                        onDeleteDocument={handleDeleteDocument}
+                        onAddCompetition={handleAddCompetition}
+                        onUpdateCompetition={handleUpdateCompetition}
+                        onDeleteCompetition={handleDeleteCompetition}
+                        onUpdateOpinionStatus={handleUpdateOpinionStatus}
+                        onRequestDocApproval={handleTriggerDocApprovalToast}
+                        onForceCloudSync={handleForceCloudSync}
+                        onShowToast={handleTriggerSystemToast}
+                      />
+                    )}
+
+                    {officeView === 'cms_initiatives' && (
+                      <CmsAdminView
+                        articles={articles}
+                        documents={documents}
+                        competitions={competitions}
+                        opinions={opinions}
+                        initialTab="INITIATIVES"
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}

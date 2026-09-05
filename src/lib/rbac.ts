@@ -30,6 +30,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   templates: 'STAFF',
   cms: 'CONTRIBUTOR',
   cms_articles: 'CONTRIBUTOR',
+  cms_initiatives: 'CONTRIBUTOR',
   cms_documents: 'EDITOR',
   competitions_admin: 'CONTEST_MANAGER',
   question_banks: 'CONTEST_MANAGER',

@@ -18,6 +18,7 @@ import {
   FileText, 
   Layers,
   Bell, 
+  Lightbulb,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -65,6 +66,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   // 2. NHÓM QUẢN TRỊ NỘI DUNG & NGHIỆP VỤ (CMS & Nghiệp vụ Mặt trận)
   const webMenuItems: SidebarItem[] = [
     { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
+    { id: 'cms_initiatives', label: 'Đăng & Quản lý Mô hình Hay', icon: Lightbulb, badge: 'MÔ HÌNH' },
     { id: 'cms_documents', label: 'Văn bản & Chỉ đạo', icon: FileText, badge: 'VĂN BẢN' },
     { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
     { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
@@ -73,7 +75,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
   ];
 
-  const webViewIds = ['cms', 'cms_articles', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'member_orgs_admin', 'cultural_space_admin'];
+  const webViewIds = ['cms', 'cms_articles', 'cms_initiatives', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'member_orgs_admin', 'cultural_space_admin'];
   const isCurrentViewWeb = webViewIds.includes(currentView);
 
   // Accordion state for "Quản trị web"
@@ -212,7 +214,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                 <div className="text-left">
                   <div className="text-xs font-black tracking-tight leading-none">Nghiệp vụ Mặt trận</div>
                   <div className={`text-[9px] mt-0.5 ${isCurrentViewWeb ? 'text-blue-100' : 'text-blue-700 font-medium'}`}>
-                    7 chuyên mục tác nghiệp
+                    8 chuyên mục tác nghiệp
                   </div>
                 </div>
               </div>
@@ -221,7 +223,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
                   isCurrentViewWeb ? 'bg-amber-400 text-slate-950 font-black' : 'bg-blue-200/80 text-blue-900'
                 }`}>
-                  7 MỤC
+                  8 MỤC
                 </span>
                 <motion.div
                   animate={{ rotate: isWebMenuOpen ? 180 : 0 }}
