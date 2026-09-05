@@ -56,173 +56,201 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in overflow-y-auto">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-700 text-white p-5 sm:p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-fade-in">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh] my-auto">
+        {/* Compact Header */}
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-700 text-white px-4 py-3 sm:px-5 sm:py-3.5 relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+            className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+            title="Đóng"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
           
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-white/15 backdrop-blur-md rounded-2xl border border-white/20 text-amber-300">
-              <HeartHandshake className="w-7 h-7" />
+          <div className="flex items-center gap-2.5 sm:gap-3 pr-8">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shrink-0">
+              <HeartHandshake className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-white/10 px-2 py-0.5 rounded-md">
-                KẾT NỐI SỨC MẠNH CỘNG ĐỒNG
-              </span>
-              <h2 className="text-lg font-black text-white mt-1">Đăng Ký Tình Nguyện Viên MTTQ</h2>
-              <p className="text-xs text-blue-100 font-medium">Đồng hành cùng MTTQ Phường Chánh Hiệp xây dựng đô thị văn minh</p>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-black uppercase tracking-wider text-amber-300 bg-white/10 px-1.5 py-0.5 rounded">
+                  KẾT NỐI SỨC MẠNH CỘNG ĐỒNG
+                </span>
+              </div>
+              <h2 className="text-sm sm:text-base font-black text-white leading-tight mt-0.5">
+                Đăng Ký Tình Nguyện Viên MTTQ
+              </h2>
+              <p className="text-[11px] text-blue-100 font-medium">
+                Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
+              </p>
             </div>
           </div>
         </div>
 
         {/* Content Body */}
         {isSubmitted ? (
-          <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
-              <Check className="w-8 h-8" />
+          <div className="p-6 sm:p-8 text-center space-y-3.5 my-auto">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
+              <Check className="w-7 h-7" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-black text-slate-900">Trân Trọng Cảm Ơn Tinh Thần Tình Nguyện!</h3>
-              <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">
+                Trân Trọng Cảm Ơn Tinh Thần Tình Nguyện!
+              </h3>
+              <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
                 Thông tin của bạn <strong className="text-slate-900">{fullName}</strong> ({phone}) đã được lưu trữ trên hệ thống Chánh Hiệp Digital Office. Thường trực MTTQ sẽ liên hệ khi có hoạt động phù hợp.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs transition shadow-md cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-sm cursor-pointer"
             >
               Đóng cửa sổ
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Họ và tên Tình nguyện viên <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nguyễn Văn A"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-600 focus:bg-white transition"
-                  />
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+            {/* Scrollable Form Area */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+              {/* Row 1: Name & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Họ và tên Tình nguyện viên <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nguyễn Văn A"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Số điện thoại / Zalo <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="0901234567"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                    />
+                  </div>
                 </div>
               </div>
 
+              {/* Row 2: Neighborhood */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Số điện thoại / Zalo <span className="text-rose-500">*</span>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Khu phố sinh sống / Tác nghiệp
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="0901234567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-600 focus:bg-white transition"
-                  />
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                  <select
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                  >
+                    {OFFICIAL_NEIGHBORHOOD_NAMES.map((kp) => (
+                      <option key={kp} value={kp}>{kp}</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              {/* Row 3: Volunteer Teams (Compact 2x2 Grid) */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[11px] font-bold text-slate-700">
+                    Chọn Đội hình / Lĩnh vực tham gia
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Có thể chọn nhiều
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {volunteerTeams.map((team) => {
+                    const isSelected = selectedTeams.includes(team.id);
+                    return (
+                      <div
+                        key={team.id}
+                        onClick={() => toggleTeam(team.id)}
+                        className={`p-2 sm:p-2.5 rounded-xl border transition cursor-pointer flex items-start gap-2 ${
+                          isSelected 
+                            ? 'bg-blue-50/90 border-blue-500 text-blue-900 shadow-2xs' 
+                            : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 mt-0.5 border transition ${
+                          isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'
+                        }`}>
+                          {isSelected && <Check className="w-3 h-3" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold leading-tight">{team.id}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5 leading-snug line-clamp-2">{team.desc}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Row 4: Note */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Ghi chú thêm (Kỹ năng, khung giờ rảnh)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ví dụ: Rảnh sáng Chủ nhật, có xe máy, có kỹ năng chụp ảnh / tin học..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Khu phố sinh sống / Tác nghiệp
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <select
-                  value={neighborhood}
-                  onChange={(e) => setNeighborhood(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-blue-600 focus:bg-white transition"
+            {/* Pinned Action Footer - Never cut off */}
+            <div className="px-4 py-2.5 sm:px-5 sm:py-3 bg-slate-50/95 backdrop-blur-xs border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
+              <span className="text-[11px] text-slate-500 hidden sm:inline-flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                Thông tin được bảo mật
+              </span>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-100 transition cursor-pointer"
                 >
-                  {OFFICIAL_NEIGHBORHOOD_NAMES.map((kp) => (
-                    <option key={kp} value={kp}>{kp}</option>
-                  ))}
-                </select>
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-xs hover:shadow transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <span>Đang gửi...</span>
+                  ) : (
+                    <>
+                      <Send className="w-3 h-3" />
+                      <span>Gửi Đăng Ký Ngay</span>
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">
-                Chọn Đội hình / Lĩnh vực muốn đóng góp (Có thể chọn nhiều)
-              </label>
-              <div className="space-y-2">
-                {volunteerTeams.map((team) => {
-                  const isSelected = selectedTeams.includes(team.id);
-                  return (
-                    <div
-                      key={team.id}
-                      onClick={() => toggleTeam(team.id)}
-                      className={`p-3 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
-                        isSelected 
-                          ? 'bg-blue-50/80 border-blue-500 text-blue-900 shadow-xs' 
-                          : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 mt-0.5 border transition ${
-                        isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'
-                      }`}>
-                        {isSelected && <Check className="w-3.5 h-3.5" />}
-                      </div>
-                      <div>
-                        <div className="text-xs font-black">{team.id}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{team.desc}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Ghi chú thêm (Kỹ năng, thời gian rảnh)
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Ví dụ: Rảnh sáng Chủ nhật, có xe máy, biết thiết kế đồ họa/quay phim..."
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-600 focus:bg-white transition"
-              />
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition cursor-pointer"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <span>Đang gửi thông tin...</span>
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Gửi Đăng Ký Ngay</span>
-                  </>
-                )}
-              </button>
             </div>
           </form>
         )}

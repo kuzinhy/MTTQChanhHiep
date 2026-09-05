@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+@layer base {
+  html, body {
+    font-family: 'Be Vietnam Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .font-serif {
+    font-family: 'Merriweather', 'Times New Roman', Georgia, serif !important;
+  }
+}
+
 @layer utilities {
   /* Glassmorphic Tech Surface */
   .glass-card {

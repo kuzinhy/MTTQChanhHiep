@@ -384,30 +384,69 @@ export interface KnowledgeNote {
 // =========================================================================
 
 export type AiToolGroup = 
-  | 'group1_draft_proofread' // NHÓM 01 – SOẠN THẢO & KIỂM TRA VĂN BẢN
-  | 'group2_report_advisory'  // NHÓM 02 – BÁO CÁO & THAM MƯU
-  | 'group3_conference_event' // NHÓM 03 – HỘI NGHỊ, SỰ KIỆN & PHÁT BIỂU
-  | 'group4_mttq_specialized' // NHÓM 04 – CÔNG CỤ NGHIỆP VỤ MTTQ
-  | 'group5_smart_utilities'; // NHÓM 05 – CÔNG CỤ THÔNG MINH BỔ SUNG
+  | 'group1_docs_dossier'     // NHÓM 01: VĂN BẢN & HỒ SƠ
+  | 'group2_advisory_report'  // NHÓM 02: THAM MƯU & TỔNG HỢP
+  | 'group3_meeting_event'    // NHÓM 03: HỌP – SỰ KIỆN – PHÁT BIỂU
+  | 'group4_task_operational' // NHÓM 04: CÔNG VIỆC & ĐIỀU HÀNH
+  // Legacy aliases
+  | 'group1_draft_proofread' 
+  | 'group2_report_advisory'  
+  | 'group3_conference_event' 
+  | 'group4_mttq_specialized' 
+  | 'group5_smart_utilities'; 
 
 export type AiToolId =
-  | 'proofread'           // 1. Kiểm tra & Hoàn thiện văn bản
-  | 'draft_doc'           // 2. Trợ lý soạn thảo văn bản (Wizard)
-  | 'report'              // 3. Trợ lý soạn báo cáo
-  | 'advisory'            // 4. Trợ lý tham mưu
-  | 'summarize'           // 5. Tóm tắt văn bản (4 chế độ)
-  | 'extract_tasks'       // 6. Đọc văn bản → Trích xuất nhiệm vụ
-  | 'speech'              // 7. Trợ lý soạn bài phát biểu
-  | 'conference'          // 8. Trợ lý hội nghị – sự kiện
-  | 'meeting_minutes'     // 9. Trợ lý biên bản cuộc họp
-  | 'supervision_critique'// 10. Trợ lý Giám sát & Phản biện
-  | 'supervision'         // Alias: Giám sát
-  | 'public_opinion'      // 11. Trợ lý Nắm bắt ý kiến nhân dân
-  | 'propaganda'          // 12. Trợ lý Tuyên truyền
-  | 'compare_docs'        // 13. So sánh hai văn bản
-  | 'qa_document'         // 14. Hỏi – Đáp trên tài liệu
-  | 'work_plan'           // 15. Trợ lý Lập kế hoạch công tác
-  | 'checklist';          // 16. Trợ lý Checklist
+  // 08 CORE TOOLS
+  | 'read_process_doc'    // 1. Đọc & Xử lý văn bản
+  | 'draft_proofread_doc' // 2. Soạn & Hoàn thiện văn bản
+  | 'advisory'            // 3. Trợ lý Tham mưu
+  | 'report_plan'         // 4. Báo cáo – Kế hoạch – Chương trình
+  | 'event_workspace'     // 5. Trợ lý Hội họp & Sự kiện
+  | 'speech_script'       // 6. Bài phát biểu – Kịch bản
+  | 'task_tracking'       // 7. Trích nhiệm vụ & Theo dõi tiến độ
+  | 'lookup_templates'    // 8. Tra cứu nghiệp vụ & Mẫu biểu
+  // Legacy aliases for backward compatibility
+  | 'proofread' 
+  | 'draft_doc' 
+  | 'report' 
+  | 'summarize' 
+  | 'extract_tasks' 
+  | 'speech' 
+  | 'conference' 
+  | 'meeting_minutes' 
+  | 'supervision_critique'
+  | 'supervision' 
+  | 'public_opinion' 
+  | 'propaganda' 
+  | 'compare_docs' 
+  | 'qa_document' 
+  | 'work_plan' 
+  | 'checklist';
+
+export type MttqTaskStatus = 
+  | 'pending'           // CHƯA THỰC HIỆN
+  | 'in_progress'       // ĐANG THỰC HIỆN
+  | 'waiting_coop'      // CHỜ PHỐI HỢP
+  | 'waiting_approval'  // CHỜ DUYỆT
+  | 'completed'         // HOÀN THÀNH
+  | 'overdue';          // QUÁ HẠN
+
+export interface MttqTask {
+  id: string;
+  title: string;
+  description: string;
+  sourceDoc?: string;
+  assignedTo: string;
+  collaborators?: string[];
+  startDate?: string;
+  dueDate: string;
+  priority: 'high' | 'medium' | 'low';
+  status: MttqTaskStatus;
+  progress: number; // 0..100
+  attachment?: string;
+  note?: string;
+  createdAt: string;
+}
 
 export interface AiToolMetadata {
   id: AiToolId;

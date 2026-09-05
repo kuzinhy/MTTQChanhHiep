@@ -16,6 +16,7 @@ import {
   Upload,
   AlertCircle
 } from 'lucide-react';
+import { SecurityNoticeBanner } from '../SecurityNoticeBanner';
 import { aiWorkspaceService } from '../../../../lib/aiWorkspaceService';
 import { AiDocument } from '../../../../types';
 
@@ -166,6 +167,8 @@ ${advisoryResult.draftAdvisoryStatement}`;
 
   return (
     <div className="flex flex-col h-full bg-slate-100 p-4 md:p-6 overflow-y-auto space-y-5">
+      <SecurityNoticeBanner />
+
       {/* Header */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">

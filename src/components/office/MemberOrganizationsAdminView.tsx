@@ -72,7 +72,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
   const [mainTab, setMainTab] = useState<'member_orgs' | 'political_system' | 'areas'>('member_orgs');
 
   // View modes for Member Organizations: 'diagram' | 'tree' | 'grid' | 'table' | 'analytics'
-  const [viewMode, setViewMode] = useState<'diagram' | 'tree' | 'grid' | 'table' | 'analytics'>('diagram');
+  const [viewMode, setViewMode] = useState<'diagram' | 'tree' | 'grid' | 'table' | 'analytics'>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
   const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set(['mem-org-1', 'mem-org-2', 'mem-org-3', 'mem-org-4', 'org-dang-uy', 'org-mttq']));
@@ -331,12 +331,10 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
   };
 
   const handleResetDefaults = () => {
-    if (window.confirm('Khôi phục danh sách tổ chức thành viên về dữ liệu chuẩn? Các cập nhật tùy chỉnh sẽ được làm mới.')) {
-      onSaveOrganizations(INITIAL_MEMBER_ORGANIZATIONS);
-      CloudDatabase.saveAllMemberOrganizations(INITIAL_MEMBER_ORGANIZATIONS);
-      saveAreas(INITIAL_AREAS);
-      savePoliticalOrgs(INITIAL_ORGANIZATIONS);
-      if (onShowToast) onShowToast('Đã khôi phục dữ liệu cây tổ chức và địa bàn mặc định!', 'success');
+    if (window.confirm('Xác nhận làm sạch danh sách tổ chức thành viên về trạng thái trống? Các tổ chức do AI tạo sẵn sẽ được xóa hoàn toàn.')) {
+      onSaveOrganizations([]);
+      CloudDatabase.saveAllMemberOrganizations([]);
+      if (onShowToast) onShowToast('Đã xóa sạch danh sách tổ chức thành viên!', 'success');
     }
   };
 
@@ -483,30 +481,30 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
     return (
       <div key={node.id} className="relative">
         <div 
-          className={`group flex items-center justify-between p-3 rounded-2xl border transition-all ${
+          className={`group flex items-center justify-between p-2 sm:p-2.5 rounded-xl border transition-all ${
             depth === 0 
-              ? 'bg-white border-slate-200/80 shadow-xs hover:border-blue-400 hover:shadow-md' 
-              : 'bg-slate-50/70 border-slate-200/60 ml-6 sm:ml-10 hover:bg-white hover:border-blue-300'
+              ? 'bg-white border-slate-200/80 shadow-2xs hover:border-blue-400 hover:shadow-xs' 
+              : 'bg-slate-50/70 border-slate-200/60 ml-4 sm:ml-8 hover:bg-white hover:border-blue-300'
           }`}
         >
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
             {/* Collapse / Expand Button */}
             {hasChildren ? (
               <button 
                 onClick={() => toggleNodeExpansion(node.id)}
-                className="w-7 h-7 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all shrink-0 font-bold"
+                className="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all shrink-0 font-bold"
                 title={isExpanded ? 'Thu gọn nhánh' : 'Mở rộng nhánh'}
               >
-                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
               </button>
             ) : (
-              <div className="w-7 h-7 flex items-center justify-center shrink-0 text-slate-300">
-                {depth > 0 ? <CornerDownRight className="w-4 h-4 text-slate-400" /> : <div className="w-2 h-2 rounded-full bg-slate-300" />}
+              <div className="w-6 h-6 flex items-center justify-center shrink-0 text-slate-300">
+                {depth > 0 ? <CornerDownRight className="w-3.5 h-3.5 text-slate-400" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />}
               </div>
             )}
 
             {/* Avatar / Logo */}
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
               <img 
                 src={node.avatarUrl || getOfficialCadreAvatarSvg(node.name, node.shortName)} 
                 alt={node.name} 
@@ -516,72 +514,76 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
             {/* Organization Meta */}
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-extrabold text-sm text-slate-900 truncate">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-extrabold text-xs sm:text-sm text-slate-900 truncate">
                   {node.name}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-black uppercase">
+                <span className="px-1.5 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-black uppercase">
                   {node.shortName}
                 </span>
                 {node.areaName && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold">
                     <MapPin className="w-2.5 h-2.5" />
                     <span>{node.areaName}</span>
                   </span>
                 )}
                 {node.level && (
-                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
-                    {node.level === 'WARD' ? 'Cấp Phường' : node.level === 'NEIGHBORHOOD' ? 'Khu phố' : 'Chi hội / Chi đoàn'}
+                  <span className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                    {node.level === 'WARD' ? 'Cấp Phường' : node.level === 'NEIGHBORHOOD' ? 'Khu phố' : 'Chi hội'}
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
+              <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-0.5">
                 <span>Lãnh đạo: <strong className="text-slate-700 font-semibold">{node.leaderName}</strong> ({node.leaderPosition})</span>
-                <span className="hidden sm:inline-block text-slate-300">•</span>
-                <span className="hidden sm:inline-block">Hotline: <strong className="text-slate-700 font-semibold">{node.phone}</strong></span>
+                {node.phone && (
+                  <>
+                    <span className="hidden sm:inline-block text-slate-300">•</span>
+                    <span className="hidden sm:inline-block">ĐT: <strong className="text-slate-700 font-semibold">{node.phone}</strong></span>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           {/* Quick Metrics & Actions */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-3">
-            <div className="hidden md:flex items-center gap-3 text-right">
-              <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Chi hội/Chi đoàn</div>
-                <div className="text-xs font-black text-blue-700">{node.branchesCount || 0} cơ sở</div>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 pl-2">
+            <div className="hidden md:flex items-center gap-2 text-right">
+              <div className="bg-white px-2 py-1 rounded-lg border border-slate-200">
+                <div className="text-[9px] text-slate-400 font-bold uppercase">Chi hội/đoàn</div>
+                <div className="text-xs font-black text-blue-700 leading-tight">{node.branchesCount || 0} cơ sở</div>
               </div>
-              <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Đoàn/Hội viên</div>
-                <div className="text-xs font-black text-emerald-700">{(node.activeMembersCount || 0).toLocaleString('vi-VN')}</div>
+              <div className="bg-white px-2 py-1 rounded-lg border border-slate-200">
+                <div className="text-[9px] text-slate-400 font-bold uppercase">Hội viên</div>
+                <div className="text-xs font-black text-emerald-700 leading-tight">{(node.activeMembersCount || 0).toLocaleString('vi-VN')}</div>
               </div>
-              <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Đảng viên</div>
-                <div className="text-xs font-black text-red-700">{node.partyMembersCount || 0}</div>
+              <div className="bg-white px-2 py-1 rounded-lg border border-slate-200">
+                <div className="text-[9px] text-slate-400 font-bold uppercase">Đảng viên</div>
+                <div className="text-xs font-black text-red-700 leading-tight">{node.partyMembersCount || 0}</div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <button
                 onClick={() => handleOpenCreateModal(node.id)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors font-bold text-xs flex items-center gap-1"
+                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-bold text-xs flex items-center gap-1"
                 title="Thêm chi hội / chi đoàn con trực thuộc"
               >
-                <Plus className="w-4 h-4" />
-                <span className="hidden lg:inline">Thêm nhánh</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline text-[11px]">Thêm nhánh</span>
               </button>
               <button
                 onClick={() => handleOpenEditModal(node)}
-                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 title="Chỉnh sửa thông tin"
               >
-                <Edit3 className="w-4 h-4" />
+                <Edit3 className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => handleDeleteOrg(node.id, node.shortName)}
-                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 title="Xóa tổ chức"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -589,7 +591,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
         {/* Children Sub-Tree */}
         {hasChildren && isExpanded && (
-          <div className="mt-2 space-y-2 relative before:absolute before:left-3 sm:before:left-5 before:top-0 before:bottom-3 before:w-0.5 before:bg-blue-200">
+          <div className="mt-1.5 space-y-1.5 relative before:absolute before:left-3 sm:before:left-4 before:top-0 before:bottom-2 before:w-0.5 before:bg-blue-200">
             {node.children.map(child => renderMemberTreeNode(child, depth + 1))}
           </div>
         )}
@@ -598,27 +600,24 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-12">
-      {/* Top Banner - Electric Blue Zalo / zBusiness styling */}
-      <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute -right-12 -bottom-12 w-80 h-80 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 right-1/4 w-40 h-40 bg-blue-300/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-blue-100 border border-white/20 text-xs font-black uppercase tracking-wider backdrop-blur-xs">
-              <Network className="w-3.5 h-3.5 text-cyan-300" />
+    <div className="space-y-4 animate-fadeIn pb-8">
+      {/* Top Banner - Compact Executive Header */}
+      <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 rounded-2xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-blue-100 border border-white/20 text-[11px] font-bold uppercase tracking-wider backdrop-blur-xs">
+              <Network className="w-3 h-3 text-cyan-300" />
               <span>Hệ Thống Phân Cấp & Quản Trị Khối Đại Đoàn Kết</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               Quản Lý Cây Tổ Chức, Địa Bàn & Số Liệu Công Tác
             </h2>
-            <p className="text-blue-100 text-xs sm:text-sm max-w-2xl font-medium leading-relaxed">
-              Thiết kế mô hình quan hệ phân cấp cây (Cấp trên - Đơn vị trực thuộc), liên kết với 21 Khu phố địa bàn, quản lý chi tiết số lượng chi hội/chi đoàn, lực lượng đoàn viên, hội viên và Đảng viên nòng cốt.
+            <p className="text-blue-100 text-xs max-w-2xl font-medium leading-relaxed">
+              Quản lý phân cấp mô hình tổ chức MTTQ và các đoàn thể, liên kết 21 Khu phố địa bàn, theo dõi số liệu đoàn viên, hội viên và Đảng viên nòng cốt.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
               onClick={() => {
                 if (onNavigateTab) {
@@ -627,183 +626,183 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                   window.location.hash = '#/to-chuc-thanh-vien';
                 }
               }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
               title="Xem giao diện Tổ chức thành viên ngoài trang chủ công khai"
             >
-              <ExternalLink className="w-4 h-4 text-cyan-300" />
-              <span>Xem Giao diện Công khai</span>
+              <ExternalLink className="w-3.5 h-3.5 text-cyan-300" />
+              <span>Giao diện Công khai</span>
             </button>
             <button
               onClick={() => {
                 exportOrganizationsToCsv(organizations);
                 if (onShowToast) onShowToast('Đã tải xuống danh bạ tổ chức và số liệu chi hội định dạng Excel/CSV!', 'success');
               }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
               title="Xuất danh bạ và số liệu khối đoàn thể ra Excel/CSV"
             >
-              <Download className="w-4 h-4 text-emerald-300" />
-              <span>Xuất Excel Danh bạ</span>
+              <Download className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Xuất Excel</span>
             </button>
             <button
               onClick={handleResetDefaults}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
-              title="Khôi phục cấu trúc chuẩn mặc định"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all border border-white/15 backdrop-blur-xs cursor-pointer"
+              title="Làm trống toàn bộ danh sách tổ chức"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>Khôi phục mặc định</span>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Làm trống</span>
             </button>
             <button
               onClick={() => handleOpenCreateModal()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-blue-950 text-xs font-black shadow-lg shadow-cyan-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-blue-950 text-xs font-black shadow-xs transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Thêm Tổ Chức / Chi Hội</span>
+              <span>Thêm Tổ Chức</span>
             </button>
           </div>
         </div>
 
         {/* Main Tab Switcher */}
-        <div className="flex items-center gap-2 mt-6 pt-5 border-t border-white/15 overflow-x-auto pb-1">
+        <div className="flex items-center gap-1.5 mt-3.5 pt-3 border-t border-white/15 overflow-x-auto pb-0.5">
           <button
             onClick={() => setMainTab('member_orgs')}
-            className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
               mainTab === 'member_orgs'
-                ? 'bg-white text-blue-900 shadow-md'
+                ? 'bg-white text-blue-900 shadow-xs'
                 : 'text-blue-100 hover:bg-white/10'
             }`}
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-3.5 h-3.5" />
             <span>MTTQ & Các Đoàn Thể ({organizations.length})</span>
           </button>
 
           <button
             onClick={() => setMainTab('political_system')}
-            className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
               mainTab === 'political_system'
-                ? 'bg-white text-blue-900 shadow-md'
+                ? 'bg-white text-blue-900 shadow-xs'
                 : 'text-blue-100 hover:bg-white/10'
             }`}
           >
-            <Building2 className="w-4 h-4" />
+            <Building2 className="w-3.5 h-3.5" />
             <span>Hệ Thống Chính Trị & Cơ Quan ({politicalOrgs.length})</span>
           </button>
 
           <button
             onClick={() => setMainTab('areas')}
-            className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
               mainTab === 'areas'
-                ? 'bg-white text-blue-900 shadow-md'
+                ? 'bg-white text-blue-900 shadow-xs'
                 : 'text-blue-100 hover:bg-white/10'
             }`}
           >
-            <MapPin className="w-4 h-4" />
+            <MapPin className="w-3.5 h-3.5" />
             <span>21 Khu Phố & Địa Bàn ({areas.length})</span>
           </button>
         </div>
       </div>
 
-      {/* Aggregate Statistics Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+      {/* Aggregate Statistics Overview Cards - Compact */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider">Tổ chức</span>
-            <Building2 className="w-4 h-4 text-blue-600" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tổ chức</span>
+            <Building2 className="w-3.5 h-3.5 text-blue-600" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900">{totalOrgs}</div>
-            <div className="text-[10px] text-blue-600 font-bold mt-0.5">Khối Đại đoàn kết</div>
+          <div className="mt-1.5">
+            <div className="text-lg font-black text-slate-900 leading-none">{totalOrgs}</div>
+            <div className="text-[10px] text-blue-600 font-semibold mt-1 truncate">Khối Đại đoàn kết</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider">Mạng lưới</span>
-            <Layers className="w-4 h-4 text-cyan-600" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mạng lưới</span>
+            <Layers className="w-3.5 h-3.5 text-cyan-600" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900">{totalBranches}</div>
-            <div className="text-[10px] text-cyan-700 font-bold mt-0.5">Chi hội / Chi đoàn</div>
+          <div className="mt-1.5">
+            <div className="text-lg font-black text-slate-900 leading-none">{totalBranches}</div>
+            <div className="text-[10px] text-cyan-700 font-semibold mt-1 truncate">Chi hội / Chi đoàn</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider">Đoàn/Hội viên</span>
-            <Users className="w-4 h-4 text-emerald-600" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Đoàn/Hội viên</span>
+            <Users className="w-3.5 h-3.5 text-emerald-600" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900">{totalMembers.toLocaleString('vi-VN')}</div>
-            <div className="text-[10px] text-emerald-700 font-bold mt-0.5">Lực lượng nòng cốt</div>
+          <div className="mt-1.5">
+            <div className="text-lg font-black text-slate-900 leading-none">{totalMembers.toLocaleString('vi-VN')}</div>
+            <div className="text-[10px] text-emerald-700 font-semibold mt-1 truncate">Lực lượng nòng cốt</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider">Hội viên Nữ</span>
-            <Award className="w-4 h-4 text-purple-600" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Hội viên Nữ</span>
+            <Award className="w-3.5 h-3.5 text-purple-600" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900">{totalFemaleMembers.toLocaleString('vi-VN')}</div>
-            <div className="text-[10px] text-purple-700 font-bold mt-0.5">
+          <div className="mt-1.5">
+            <div className="text-lg font-black text-slate-900 leading-none">{totalFemaleMembers.toLocaleString('vi-VN')}</div>
+            <div className="text-[10px] text-purple-700 font-semibold mt-1 truncate">
               {totalMembers > 0 ? `${Math.round((totalFemaleMembers / totalMembers) * 100)}% tổng số` : '0%'}
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider">Đảng viên</span>
-            <Flag className="w-4 h-4 text-red-600" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Đảng viên</span>
+            <Flag className="w-3.5 h-3.5 text-red-600" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900">{totalPartyMembers}</div>
-            <div className="text-[10px] text-red-700 font-bold mt-0.5">Sinh hoạt đoàn thể</div>
+          <div className="mt-1.5">
+            <div className="text-lg font-black text-slate-900 leading-none">{totalPartyMembers}</div>
+            <div className="text-[10px] text-red-700 font-semibold mt-1 truncate">Sinh hoạt đoàn thể</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider">Mô hình</span>
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mô hình</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900">{totalProjects}</div>
-            <div className="text-[10px] text-amber-700 font-bold mt-0.5">Công trình tiêu biểu</div>
+          <div className="mt-1.5">
+            <div className="text-lg font-black text-slate-900 leading-none">{totalProjects}</div>
+            <div className="text-[10px] text-amber-700 font-semibold mt-1 truncate">Công trình tiêu biểu</div>
           </div>
         </div>
       </div>
 
-      {/* Control Bar: Search, Area Filter & View Modes */}
+      {/* Control Bar: Search, Area Filter & View Modes - Compact */}
       {mainTab === 'member_orgs' && (
-        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex flex-wrap items-center gap-3 flex-1">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 bg-white p-2.5 sm:p-3 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex flex-wrap items-center gap-2 flex-1">
             {/* Search Input */}
-            <div className="relative flex-1 min-w-[220px]">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Tìm tổ chức, chức vụ, lãnh đạo, chi hội..."
+                placeholder="Tìm tổ chức, chức vụ, lãnh đạo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none font-medium"
+                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none font-medium"
               />
               {searchTerm && (
                 <button 
                   onClick={() => setSearchTerm('')} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </button>
               )}
             </div>
 
             {/* Area Filter */}
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-slate-400" />
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <select
                 value={selectedAreaFilter}
                 onChange={(e) => setSelectedAreaFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none"
               >
                 <option value="all">Tất cả địa bàn</option>
                 {areas.map(area => (
@@ -814,12 +813,24 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
           </div>
 
           {/* View Mode Switcher */}
-          <div className="flex items-center gap-1.5 self-end lg:self-auto shrink-0 overflow-x-auto pb-1">
+          <div className="flex items-center gap-1 shrink-0 overflow-x-auto">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+                viewMode === 'table' 
+                  ? 'bg-blue-600 text-white shadow-2xs' 
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <ListOrdered className="w-3.5 h-3.5" />
+              <span>Bảng Thứ Tự</span>
+            </button>
+
             <button
               onClick={() => setViewMode('tree')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'tree' 
-                  ? 'bg-blue-600 text-white shadow-xs' 
+                  ? 'bg-blue-600 text-white shadow-2xs' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -829,9 +840,9 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
             <button
               onClick={() => setViewMode('grid')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'grid' 
-                  ? 'bg-blue-600 text-white shadow-xs' 
+                  ? 'bg-blue-600 text-white shadow-2xs' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -840,22 +851,10 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
             </button>
 
             <button
-              onClick={() => setViewMode('table')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
-                viewMode === 'table' 
-                  ? 'bg-blue-600 text-white shadow-xs' 
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <ListOrdered className="w-3.5 h-3.5" />
-              <span>Bảng Thứ Tự</span>
-            </button>
-
-            <button
               onClick={() => setViewMode('analytics')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                 viewMode === 'analytics' 
-                  ? 'bg-blue-600 text-white shadow-xs' 
+                  ? 'bg-blue-600 text-white shadow-2xs' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -873,28 +872,28 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
         <>
           {/* VIEW 1: HIERARCHICAL TREE VIEW */}
           {viewMode === 'tree' && (
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 pb-2.5 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    <GitBranch className="w-5 h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                    <GitBranch className="w-4 h-4 text-blue-600" />
                     <span>Cây Phân Cấp Khối Đại Đoàn Kết Phường Chánh Hiệp</span>
                   </h3>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    Hiển thị mối quan hệ phụ thuộc cấp trên - cấp dưới, đơn vị chủ quản và các chi hội trực thuộc 21 khu phố.
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Mối quan hệ phụ thuộc cấp trên - cấp dưới, đơn vị chủ quản và các chi hội trực thuộc 21 khu phố.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={handleExpandAll}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
                   >
                     Mở rộng tất cả
                   </button>
                   <button
                     onClick={handleCollapseAll}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
                   >
                     Thu gọn
                   </button>
@@ -902,13 +901,13 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
               </div>
 
               {/* Tree Container */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-1">
                 {memberOrgTree.length > 0 ? (
                   memberOrgTree.map(rootNode => renderMemberTreeNode(rootNode, 0))
                 ) : (
-                  <div className="text-center py-12 text-slate-400">
-                    <Users className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                    <p className="text-sm font-bold">Không tìm thấy tổ chức nào phù hợp điều kiện lọc.</p>
+                  <div className="text-center py-8 text-slate-400">
+                    <Users className="w-8 h-8 mx-auto mb-1.5 opacity-40" />
+                    <p className="text-xs font-bold">Không tìm thấy tổ chức nào phù hợp điều kiện lọc.</p>
                   </div>
                 )}
               </div>
@@ -917,17 +916,33 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
           {/* VIEW 2: GRID VIEW */}
           {viewMode === 'grid' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredOrgs.map((org, index) => (
+            filteredOrgs.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+                <Building2 className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                <h4 className="font-bold text-slate-800 text-sm">Chưa có tổ chức thành viên nào</h4>
+                <p className="text-xs text-slate-500 mt-0.5 max-w-md mx-auto">
+                  Các tổ chức tạo sẵn đã được xóa. Bạn có thể nhấn nút "Thêm Tổ Chức" phía trên để thiết lập các tổ chức thành viên chính thức.
+                </p>
+                <button
+                  onClick={() => handleOpenCreateModal()}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Thêm Tổ Chức Mới</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredOrgs.map((org, index) => (
                 <div 
                   key={org.id}
-                  className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between relative group"
+                  className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between relative group"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-2.5">
                     {/* Header with Avatar & Actions */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
                           <img 
                             src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
                             alt={org.name} 
@@ -935,115 +950,127 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                           />
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
-                              Thứ tự #{org.displayOrder || (index + 1)}
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                              #{org.displayOrder || (index + 1)}
                             </span>
                             <span className="text-[10px] font-bold text-slate-500">
                               {org.shortName}
                             </span>
                           </div>
-                          <h3 className="font-extrabold text-sm text-slate-900 mt-0.5 line-clamp-1">
+                          <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 mt-0.5 line-clamp-1">
                             {org.name}
                           </h3>
                         </div>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-0.5 shrink-0">
                         <button
                           onClick={() => handleOpenEditModal(org)}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Chỉnh sửa thông tin & số liệu"
+                          className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          title="Chỉnh sửa"
                         >
-                          <Edit3 className="w-4 h-4" />
+                          <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteOrg(org.id, org.shortName)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Xóa tổ chức"
+                          className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          title="Xóa"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
                       {org.description}
                     </p>
 
                     {/* Key Metrics Pill Badges */}
-                    <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
-                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase">Mạng lưới</div>
+                    <div className="grid grid-cols-2 gap-1.5 pt-0.5 text-xs">
+                      <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <div className="text-[9px] font-bold text-slate-400 uppercase">Mạng lưới</div>
                         <div className="font-extrabold text-slate-800 text-xs mt-0.5">
-                          {org.branchesCount || 21} <span className="text-[10px] text-slate-500 font-normal">chi hội/chi đoàn</span>
+                          {org.branchesCount || 21} <span className="text-[10px] text-slate-500 font-normal">chi hội/đoàn</span>
                         </div>
                       </div>
-                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase">Đoàn viên/Hội viên</div>
+                      <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <div className="text-[9px] font-bold text-slate-400 uppercase">Đoàn/Hội viên</div>
                         <div className="font-extrabold text-slate-800 text-xs mt-0.5">
-                          {(org.activeMembersCount || 0).toLocaleString('vi-VN')} <span className="text-[10px] text-slate-500 font-normal">người</span>
+                          {(org.activeMembersCount || 0).toLocaleString('vi-VN')}
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Footer Leadership & Reorder buttons */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                     <div>
-                      <div className="text-[10px] font-bold text-slate-400">Đại diện phụ trách:</div>
-                      <div className="font-bold text-slate-800 text-xs truncate max-w-[140px]">{org.leaderName}</div>
+                      <div className="text-[9px] font-bold text-slate-400">Phụ trách:</div>
+                      <div className="font-bold text-slate-800 text-xs truncate max-w-[130px]">{org.leaderName}</div>
                     </div>
 
-                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                    <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg">
                       <button
                         onClick={() => handleMoveUp(index)}
                         disabled={index === 0}
-                        className="p-1 hover:bg-white text-slate-600 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                        title="Di chuyển lên trên"
+                        className="p-1 hover:bg-white text-slate-600 rounded disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        title="Di chuyển lên"
                       >
-                        <ArrowUp className="w-3.5 h-3.5" />
+                        <ArrowUp className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => handleMoveDown(index)}
                         disabled={index === filteredOrgs.length - 1}
-                        className="p-1 hover:bg-white text-slate-600 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                        title="Di chuyển xuống dưới"
+                        className="p-1 hover:bg-white text-slate-600 rounded disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        title="Di chuyển xuống"
                       >
-                        <ArrowDown className="w-3.5 h-3.5" />
+                        <ArrowDown className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+            )
           )}
 
           {/* VIEW 3: TABLE & REORDERING VIEW */}
           {viewMode === 'table' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-black tracking-wider">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-bold text-[10px] tracking-wider">
                     <tr>
-                      <th className="px-4 py-3.5 text-center w-20">Thứ tự</th>
-                      <th className="px-4 py-3.5">Tổ chức thành viên</th>
-                      <th className="px-4 py-3.5">Địa bàn</th>
-                      <th className="px-4 py-3.5">Lãnh đạo phụ trách</th>
-                      <th className="px-4 py-3.5 text-center">Chi hội/Chi đoàn</th>
-                      <th className="px-4 py-3.5 text-center">Hội viên</th>
-                      <th className="px-4 py-3.5 text-center">Đảng viên</th>
-                      <th className="px-4 py-3.5 text-center">Mô hình</th>
-                      <th className="px-4 py-3.5 text-right">Thao tác</th>
+                      <th className="px-3 py-2 text-center w-16">Thứ tự</th>
+                      <th className="px-3 py-2">Tổ chức thành viên</th>
+                      <th className="px-3 py-2">Địa bàn</th>
+                      <th className="px-3 py-2">Lãnh đạo phụ trách</th>
+                      <th className="px-3 py-2 text-center">Chi hội/đoàn</th>
+                      <th className="px-3 py-2 text-center">Hội viên</th>
+                      <th className="px-3 py-2 text-center">Đảng viên</th>
+                      <th className="px-3 py-2 text-center">Mô hình</th>
+                      <th className="px-3 py-2 text-right">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-                    {filteredOrgs.map((org, index) => (
+                    {filteredOrgs.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="px-4 py-8 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center space-y-1.5">
+                            <Users className="w-6 h-6 opacity-40 text-slate-400" />
+                            <p className="font-bold text-slate-700 text-xs">Chưa có tổ chức thành viên nào</p>
+                            <p className="text-[11px] text-slate-500">Nhấn nút "Thêm Tổ Chức" ở phía trên để tạo tổ chức mới.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredOrgs.map((org, index) => (
                       <tr key={org.id} className="hover:bg-blue-50/40 transition-colors">
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-3 py-1.5 text-center">
                           <div className="flex items-center justify-center gap-1">
-                            <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-800 font-black text-xs flex items-center justify-center">
+                            <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-black text-[11px] flex items-center justify-center">
                               {org.displayOrder || (index + 1)}
                             </span>
                             <div className="flex flex-col gap-0.5">
@@ -1053,7 +1080,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                                 className="p-0.5 hover:bg-slate-200 text-slate-600 rounded disabled:opacity-20"
                                 title="Lên"
                               >
-                                <ArrowUp className="w-3 h-3" />
+                                <ArrowUp className="w-2.5 h-2.5" />
                               </button>
                               <button
                                 onClick={() => handleMoveDown(index)}
@@ -1061,65 +1088,65 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                                 className="p-0.5 hover:bg-slate-200 text-slate-600 rounded disabled:opacity-20"
                                 title="Xuống"
                               >
-                                <ArrowDown className="w-3 h-3" />
+                                <ArrowDown className="w-2.5 h-2.5" />
                               </button>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
+                        <td className="px-3 py-1.5">
+                          <div className="flex items-center gap-2">
                             <img 
                               src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
                               alt={org.name} 
-                              className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0"
+                              className="w-7 h-7 rounded-md object-cover border border-slate-200 shrink-0"
                             />
                             <div>
-                              <div className="font-extrabold text-slate-900">{org.name}</div>
+                              <div className="font-bold text-xs text-slate-900">{org.name}</div>
                               <div className="text-[10px] text-blue-700 font-bold">{org.shortName}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[11px]">
+                        <td className="px-3 py-1.5">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px]">
                             <MapPin className="w-2.5 h-2.5" />
                             <span>{org.areaName || 'Toàn phường'}</span>
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="font-bold text-slate-900">{org.leaderName}</div>
+                        <td className="px-3 py-1.5">
+                          <div className="font-bold text-xs text-slate-900">{org.leaderName}</div>
                           <div className="text-[10px] text-slate-500">{org.leaderPosition}</div>
                         </td>
-                        <td className="px-4 py-3 text-center font-bold text-slate-900">
+                        <td className="px-3 py-1.5 text-center font-bold text-slate-900">
                           {org.branchesCount || 21}
                         </td>
-                        <td className="px-4 py-3 text-center font-extrabold text-emerald-700">
+                        <td className="px-3 py-1.5 text-center font-bold text-emerald-700">
                           {(org.activeMembersCount || 0).toLocaleString('vi-VN')}
                         </td>
-                        <td className="px-4 py-3 text-center font-bold text-red-700">
+                        <td className="px-3 py-1.5 text-center font-bold text-red-700">
                           {org.partyMembersCount || 0}
                         </td>
-                        <td className="px-4 py-3 text-center font-bold text-amber-700">
+                        <td className="px-3 py-1.5 text-center font-bold text-amber-700">
                           {org.keyProjectsCount || 0}
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-3 py-1.5 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => handleOpenEditModal(org)}
-                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs flex items-center gap-1 transition-colors"
+                              className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-[11px] flex items-center gap-1 transition-colors"
                             >
-                              <Edit3 className="w-3.5 h-3.5" />
+                              <Edit3 className="w-3 h-3" />
                               <span>Sửa</span>
                             </button>
                             <button
                               onClick={() => handleDeleteOrg(org.id, org.shortName)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    )))}
                   </tbody>
                 </table>
               </div>
@@ -1128,90 +1155,90 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
           {/* VIEW 4: ANALYTICS / DETAILED REPORT VIEW */}
           {viewMode === 'analytics' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Detailed Breakdown Cards */}
-              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-blue-600" />
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-4">
+                <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-blue-600" />
                     <span>Bảng Tổng Hợp Số Liệu Công Tác Tổ Chức Chi Tiết</span>
                   </h3>
-                  <div className="text-xs font-bold text-slate-500">
+                  <div className="text-[11px] font-bold text-slate-500">
                     Cập nhật thời gian thực từ cơ sở
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-1">
-                    <span className="text-[11px] font-black text-blue-700 uppercase">Tổng đoàn viên thanh niên</span>
-                    <div className="text-2xl font-black text-blue-900">{totalYouthMembers.toLocaleString('vi-VN')}</div>
-                    <p className="text-[10px] text-blue-600 font-semibold">Đoàn TNCS Hồ Chí Minh & Hội LHTN</p>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  <div className="p-3 rounded-xl bg-blue-50/50 border border-blue-100 space-y-0.5">
+                    <span className="text-[10px] font-bold text-blue-700 uppercase">Đoàn viên thanh niên</span>
+                    <div className="text-xl font-black text-blue-900">{totalYouthMembers.toLocaleString('vi-VN')}</div>
+                    <p className="text-[10px] text-blue-600 font-semibold truncate">Đoàn TNCS & Hội LHTN</p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-purple-50/50 border border-purple-100 space-y-1">
-                    <span className="text-[11px] font-black text-purple-700 uppercase">Tổng hội viên phụ nữ</span>
-                    <div className="text-2xl font-black text-purple-900">{totalFemaleMembers.toLocaleString('vi-VN')}</div>
-                    <p className="text-[10px] text-purple-600 font-semibold">Tỷ lệ {totalMembers > 0 ? Math.round((totalFemaleMembers / totalMembers) * 100) : 0}% tổng lực lượng</p>
+                  <div className="p-3 rounded-xl bg-purple-50/50 border border-purple-100 space-y-0.5">
+                    <span className="text-[10px] font-bold text-purple-700 uppercase">Hội viên phụ nữ</span>
+                    <div className="text-xl font-black text-purple-900">{totalFemaleMembers.toLocaleString('vi-VN')}</div>
+                    <p className="text-[10px] text-purple-600 font-semibold truncate">Tỷ lệ {totalMembers > 0 ? Math.round((totalFemaleMembers / totalMembers) * 100) : 0}% tổng lực lượng</p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-red-50/50 border border-red-100 space-y-1">
-                    <span className="text-[11px] font-black text-red-700 uppercase">Đảng viên trong đoàn thể</span>
-                    <div className="text-2xl font-black text-red-900">{totalPartyMembers.toLocaleString('vi-VN')}</div>
-                    <p className="text-[10px] text-red-600 font-semibold">Lực lượng nòng cốt chính trị</p>
+                  <div className="p-3 rounded-xl bg-red-50/50 border border-red-100 space-y-0.5">
+                    <span className="text-[10px] font-bold text-red-700 uppercase">Đảng viên trong đoàn thể</span>
+                    <div className="text-xl font-black text-red-900">{totalPartyMembers.toLocaleString('vi-VN')}</div>
+                    <p className="text-[10px] text-red-600 font-semibold truncate">Lực lượng nòng cốt chính trị</p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-1">
-                    <span className="text-[11px] font-black text-emerald-700 uppercase">Tỷ lệ tập hợp trung bình</span>
-                    <div className="text-2xl font-black text-emerald-900">86.5%</div>
-                    <p className="text-[10px] text-emerald-600 font-semibold">Đạt và vượt chỉ tiêu Nghị quyết</p>
+                  <div className="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-0.5">
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase">Tỷ lệ tập hợp TB</span>
+                    <div className="text-xl font-black text-emerald-900">86.5%</div>
+                    <p className="text-[10px] text-emerald-600 font-semibold truncate">Đạt và vượt chỉ tiêu</p>
                   </div>
                 </div>
 
                 {/* Grid Comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredOrgs.map(org => (
-                    <div key={org.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
-                      <div className="flex items-center gap-3">
+                    <div key={org.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                      <div className="flex items-center gap-2.5">
                         <img 
                           src={org.avatarUrl || ''} 
                           alt={org.name} 
-                          className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0" 
+                          className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" 
                         />
                         <div>
-                          <div className="font-black text-slate-900 text-sm">{org.shortName}</div>
+                          <div className="font-black text-slate-900 text-xs sm:text-sm">{org.shortName}</div>
                           <div className="text-[10px] text-slate-500 font-medium">Lãnh đạo: {org.leaderName}</div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-400 block uppercase">Chi hội/Chi đoàn</span>
-                          <span className="font-extrabold text-blue-700 text-sm">{org.branchesCount || 21} cơ sở</span>
+                      <div className="grid grid-cols-2 gap-1.5 text-xs">
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-[9px] font-bold text-slate-400 block uppercase">Chi hội/đoàn</span>
+                          <span className="font-extrabold text-blue-700 text-xs">{org.branchesCount || 21} cơ sở</span>
                         </div>
 
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-400 block uppercase">Đoàn/Hội viên</span>
-                          <span className="font-extrabold text-emerald-700 text-sm">{(org.activeMembersCount || 0).toLocaleString('vi-VN')}</span>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-[9px] font-bold text-slate-400 block uppercase">Đoàn/Hội viên</span>
+                          <span className="font-extrabold text-emerald-700 text-xs">{(org.activeMembersCount || 0).toLocaleString('vi-VN')}</span>
                         </div>
 
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-400 block uppercase">Đoàn/Hội viên Nữ</span>
-                          <span className="font-extrabold text-purple-700 text-sm">{org.femaleMembersCount || 0} người</span>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-[9px] font-bold text-slate-400 block uppercase">Hội viên Nữ</span>
+                          <span className="font-extrabold text-purple-700 text-xs">{org.femaleMembersCount || 0} người</span>
                         </div>
 
-                        <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-400 block uppercase">Là Đảng viên</span>
-                          <span className="font-extrabold text-red-700 text-sm">{org.partyMembersCount || 0} người</span>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200">
+                          <span className="text-[9px] font-bold text-slate-400 block uppercase">Đảng viên</span>
+                          <span className="font-extrabold text-red-700 text-xs">{org.partyMembersCount || 0} người</span>
                         </div>
                       </div>
 
                       {org.featuredAchievements && org.featuredAchievements.length > 0 && (
                         <div className="pt-2 border-t border-slate-200/80">
-                          <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Mô hình tiêu biểu:</div>
-                          <ul className="text-xs space-y-1 text-slate-700">
+                          <div className="text-[9px] font-bold text-slate-500 uppercase mb-1">Mô hình tiêu biểu:</div>
+                          <ul className="text-[11px] space-y-1 text-slate-700">
                             {org.featuredAchievements.map((ach, idx) => (
                               <li key={idx} className="flex items-start gap-1.5">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0 mt-0.5" />
                                 <span className="line-clamp-1 font-medium">{ach}</span>
                               </li>
                             ))}
@@ -1224,59 +1251,59 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
               </div>
 
               {/* Matrix of 21 Neighborhoods */}
-              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
+                <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-emerald-600" />
                   <span>Ma Trận Mạng Lưới Tổ Chức & Chi Hội Tại 21 Khu Phố</span>
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-black">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-bold text-[10px]">
                       <tr>
-                        <th className="px-4 py-3">Địa bàn Khu phố</th>
-                        <th className="px-4 py-3 text-center">Ban CT Mặt trận</th>
-                        <th className="px-4 py-3 text-center">Chi hội Phụ nữ</th>
-                        <th className="px-4 py-3 text-center">Chi đoàn Thanh niên</th>
-                        <th className="px-4 py-3 text-center">Chi hội CCB</th>
-                        <th className="px-4 py-3 text-center">Chi hội Nông dân</th>
-                        <th className="px-4 py-3 text-center">Chữ thập đỏ</th>
+                        <th className="px-3 py-2">Địa bàn Khu phố</th>
+                        <th className="px-3 py-2 text-center">Ban CT Mặt trận</th>
+                        <th className="px-3 py-2 text-center">Chi hội Phụ nữ</th>
+                        <th className="px-3 py-2 text-center">Chi đoàn Thanh niên</th>
+                        <th className="px-3 py-2 text-center">Chi hội CCB</th>
+                        <th className="px-3 py-2 text-center">Chi hội Nông dân</th>
+                        <th className="px-3 py-2 text-center">Chữ thập đỏ</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-semibold text-slate-800">
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
                       {areas.filter(a => a.type === 'NEIGHBORHOOD').map(area => (
                         <tr key={area.id} className="hover:bg-slate-50">
-                          <td className="px-4 py-3 font-bold text-slate-900 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                          <td className="px-3 py-2 font-bold text-slate-900 flex items-center gap-2 text-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                             <span>{area.name}</span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                              <Check className="w-3.5 h-3.5" /> Có
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[11px]">
+                              <Check className="w-3 h-3" /> Có
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                              <Check className="w-3.5 h-3.5" /> Có
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[11px]">
+                              <Check className="w-3 h-3" /> Có
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                              <Check className="w-3.5 h-3.5" /> Có
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[11px]">
+                              <Check className="w-3 h-3" /> Có
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                              <Check className="w-3.5 h-3.5" /> Có
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[11px]">
+                              <Check className="w-3 h-3" /> Có
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                              <Check className="w-3.5 h-3.5" /> Có
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[11px]">
+                              <Check className="w-3 h-3" /> Có
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                              <Check className="w-3.5 h-3.5" /> Có
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[11px]">
+                              <Check className="w-3 h-3" /> Có
                             </span>
                           </td>
                         </tr>
@@ -1294,52 +1321,52 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
       {/* TAB 2: POLITICAL ORGANIZATIONS (HỆ THỐNG CHÍNH TRỊ & NHÀ NƯỚC) */}
       {/* ========================================================================= */}
       {mainTab === 'political_system' && (
-        <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 pb-2.5 border-b border-slate-100">
             <div>
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
+              <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-blue-600" />
                 <span>Cây Hệ Thống Chính Trị & Cơ Quan Nhà Nước Phường Chánh Hiệp</span>
               </h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
+              <p className="text-[11px] text-slate-500 font-medium">
                 Cơ cấu Đảng bộ, Hội đồng Nhân dân, Ủy ban Nhân dân, Ủy ban MTTQ và các lực lượng vũ trang địa phương.
               </p>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {politicalOrgTree.map((node: any) => (
-              <div key={node.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+              <div key={node.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 font-black flex items-center justify-center text-sm">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 font-black flex items-center justify-center text-xs">
                       {node.shortName?.substring(0, 3) || 'CQ'}
                     </div>
                     <div>
-                      <div className="font-extrabold text-sm text-slate-900">{node.name}</div>
-                      <div className="text-xs text-slate-500 font-medium">{node.leaderPosition}: <strong className="text-slate-700">{node.leaderName}</strong></div>
+                      <div className="font-extrabold text-xs sm:text-sm text-slate-900">{node.name}</div>
+                      <div className="text-[11px] text-slate-500 font-medium">{node.leaderPosition}: <strong className="text-slate-700">{node.leaderName}</strong></div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100">
                       {node.type || 'Hành chính'}
                     </span>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100">
                       {node.membersCount || 0} Cán bộ/Đảng viên
                     </span>
                   </div>
                 </div>
 
                 {node.children && node.children.length > 0 && (
-                  <div className="pl-6 pt-2 border-l-2 border-blue-200 space-y-2">
+                  <div className="pl-4 pt-1.5 border-l-2 border-blue-200 space-y-1.5">
                     {node.children.map((child: any) => (
-                      <div key={child.id} className="p-3 rounded-xl bg-white border border-slate-200 flex items-center justify-between">
+                      <div key={child.id} className="p-2 sm:p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
                         <div>
                           <div className="font-bold text-xs text-slate-900">{child.name} ({child.shortName})</div>
-                          <div className="text-[11px] text-slate-500">Phụ trách: {child.leaderName}</div>
+                          <div className="text-[10px] text-slate-500">Phụ trách: {child.leaderName}</div>
                         </div>
-                        <div className="text-xs font-bold text-slate-600">
+                        <div className="text-[11px] font-bold text-slate-600">
                           {child.membersCount || 0} thành viên
                         </div>
                       </div>
@@ -1356,19 +1383,19 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
       {/* TAB 3: AREAS MANAGEMENT (21 KHU PHỐ & ĐỊA BÀN HÀNH CHÍNH) */}
       {/* ========================================================================= */}
       {mainTab === 'areas' && (
-        <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 pb-2.5 border-b border-slate-100">
             <div>
-              <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-emerald-600" />
+              <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-emerald-600" />
                 <span>Danh Mục 21 Khu Phố & Địa Bàn Hành Chính Phường Chánh Hiệp</span>
               </h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
+              <p className="text-[11px] text-slate-500 font-medium">
                 Quản lý phân cấp địa bàn hành chính, liên kết các tổ chức, ban công tác mặt trận và chi đoàn/chi hội.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => {
                   if (window.confirm('Chạy script chuẩn hóa: Cập nhật 21 Khu phố mới của phường Chánh Hiệp, loại bỏ triệt để 12 mã cũ và tái liên kết toàn vẹn dữ liệu với các Tổ chức thành viên?')) {
@@ -1387,7 +1414,7 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                     }
                   }
                 }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all"
                 title="Cập nhật 21 khu phố mới, loại bỏ 12 mã cũ và đảm bảo tính toàn vẹn dữ liệu liên kết tổ chức"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
@@ -1406,23 +1433,23 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                   });
                   setIsAreaModalOpen(true);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
               >
-                <Plus className="w-4 h-4" />
-                <span>Thêm Địa Bàn Mới</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Thêm Địa Bàn</span>
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
             {areas.map(area => (
-              <div key={area.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-emerald-300 transition-all space-y-2 relative group">
+              <div key={area.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-emerald-300 transition-all space-y-1.5 relative group">
                 <div className="flex items-center justify-between">
-                  <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center">
+                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[11px] flex items-center justify-center">
                     {area.order || 0}
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600">
+                    <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[9px] font-bold text-slate-600">
                       Mã: {area.code}
                     </span>
                     {area.id !== 'area-chanh-hiep' && (
@@ -1435,21 +1462,21 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                             if (onShowToast) onShowToast(`Đã xóa địa bàn "${area.name}"`, 'info');
                           }
                         }}
-                        className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
                         title="Xóa địa bàn này"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     )}
                   </div>
                 </div>
-                <h4 className="font-extrabold text-sm text-slate-900">{area.name}</h4>
-                <div className="text-xs text-slate-500">
+                <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 truncate">{area.name}</h4>
+                <div className="text-[11px] text-slate-500">
                   Cấp: <strong className="text-slate-700">{area.type === 'WARD' ? 'Cấp Phường' : 'Khu phố'}</strong>
                 </div>
                 {area.population && (
-                  <div className="text-[11px] text-slate-500">
-                    Dân số: {area.population.toLocaleString('vi-VN')} người ({area.householdsCount || 0} hộ)
+                  <div className="text-[10px] text-slate-500 truncate">
+                    Dân số: {area.population.toLocaleString('vi-VN')} ({area.householdsCount || 0} hộ)
                   </div>
                 )}
               </div>

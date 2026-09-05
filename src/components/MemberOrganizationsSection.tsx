@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getOfficialCadreAvatarSvg } from '../utils/officialImages';
 import { 
   Users, 
@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { MemberOrganization } from '../types';
-import { INITIAL_MEMBER_ORGANIZATIONS } from '../data/seedData';
 
 interface MemberOrganizationsSectionProps {
   organizations?: MemberOrganization[];
@@ -31,27 +30,24 @@ interface MemberOrganizationsSectionProps {
   onNavigateTab?: (tab: string) => void;
 }
 
+const AI_GENERATED_SEEDS = new Set([
+  'org-dtn', 'org-lhph', 'org-ccb', 'org-congdoan', 'org-nct', 'org-hkh', 'org-tnxp', 'org-luat-gia',
+  'mem-org-1', 'mem-org-2', 'mem-org-3', 'mem-org-4'
+]);
+
 export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProps> = ({ 
-  organizations = INITIAL_MEMBER_ORGANIZATIONS,
+  organizations = [],
   onSelectArticleTopic,
   onNavigateTab
 }) => {
-  // Ensure all initial organizations are always present and exclude org-mttq since MTTQ is the umbrella header
-  const orgMap = new Map<string, MemberOrganization>();
-  INITIAL_MEMBER_ORGANIZATIONS.forEach(o => orgMap.set(o.id, o));
-  (organizations || []).forEach(o => {
-    if (o && o.id && o.id !== 'org-mttq') {
-      const existing = orgMap.get(o.id) || o;
-      orgMap.set(o.id, { ...existing, ...o });
-    }
-  });
-  orgMap.delete('org-mttq');
-  const allOrgs = Array.from(orgMap.values());
-  const sortedOrgs = [...allOrgs].sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+  // Exclude MTTQ (umbrella) and filter out any AI generated seeds
+  const sortedOrgs = useMemo(() => {
+    return (organizations || [])
+      .filter(o => o && o.id && o.id !== 'org-mttq' && !AI_GENERATED_SEEDS.has(o.id))
+      .sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+  }, [organizations]);
 
-  const [selectedOrg, setSelectedOrg] = useState<MemberOrganization>(
-    sortedOrgs[0] || INITIAL_MEMBER_ORGANIZATIONS[0]
-  );
+  const [selectedOrg, setSelectedOrg] = useState<MemberOrganization | null>(null);
   const [activeCategory, setActiveCategory] = useState<'all' | 'political' | 'social'>('all');
   const [showDiagramModal, setShowDiagramModal] = useState<boolean>(false);
 
@@ -207,71 +203,104 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
         </button>
       </div>
 
-      {/* Grid of Member Organizations */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredOrgs.map((org) => {
-          const badgeClass = getOrgBadgeStyle(org.code);
+      {/* Empty State or Grid of Member Organizations */}
+      {sortedOrgs.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto shadow-xs space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
+            <Users className="w-8 h-8 text-blue-600" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-base sm:text-lg font-black text-slate-800">
+              Chưa có tổ chức thành viên trong hệ thống
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              Các dữ liệu mẫu do AI tạo sẵn đã được xóa sạch. Cán bộ quản lý có thể sử dụng chức năng <strong>Thêm tổ chức</strong> trong Văn phòng số để cập nhật danh sách tổ chức thành viên chính thức của địa phương.
+            </p>
+          </div>
+          {onNavigateTab && (
+            <div className="pt-2">
+              <button
+                onClick={() => onNavigateTab('member_orgs_admin')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+              >
+                <span>Đến Quản lý Tổ chức Thành viên</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredOrgs.map((org) => {
+            const badgeClass = getOrgBadgeStyle(org.code);
 
-          return (
-            <motion.div
-              key={org.id}
-              whileHover={{ y: -3 }}
-              className="p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-            >
-              <div className="space-y-3.5">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-xs p-1 flex items-center justify-center">
-                    <img 
-                      src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
-                      alt={org.name} 
-                      className="w-full h-full object-contain rounded-xl"
-                      onError={(e) => {
-                        e.currentTarget.src = getOfficialCadreAvatarSvg(org.name, org.shortName);
-                      }}
-                    />
+            return (
+              <motion.div
+                key={org.id}
+                whileHover={{ y: -3 }}
+                className="p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between bg-white border-slate-200 hover:border-slate-300 shadow-xs"
+              >
+                <div className="space-y-3.5">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-xs p-1 flex items-center justify-center">
+                      <img 
+                        src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
+                        alt={org.name} 
+                        className="w-full h-full object-contain rounded-xl"
+                        onError={(e) => {
+                          e.currentTarget.src = getOfficialCadreAvatarSvg(org.name, org.shortName);
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className={`inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${badgeClass}`}>
+                        {org.shortName || org.name}
+                      </span>
+                      <h3 className="font-extrabold text-sm text-slate-900 mt-1 leading-snug line-clamp-2">
+                        {org.name}
+                      </h3>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={`inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${badgeClass}`}>
-                      {org.shortName}
-                    </span>
-                    <h3 className="font-extrabold text-sm text-slate-900 mt-1 leading-snug line-clamp-2">
-                      {org.name}
-                    </h3>
+
+                  {org.description && (
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium line-clamp-2">
+                      "{org.description}"
+                    </p>
+                  )}
+
+                  {/* Quick stats badges */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {org.branchesCount ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-xl">
+                        <Building2 className="w-3 h-3 text-blue-600" />
+                        <span>{org.branchesCount} chi hội/chi đoàn</span>
+                      </span>
+                    ) : null}
+                    {org.activeMembersCount ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-xl">
+                        <Users className="w-3 h-3 text-emerald-600" />
+                        <span>{org.activeMembersCount.toLocaleString('vi-VN')} đoàn/hội viên</span>
+                      </span>
+                    ) : null}
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-600 leading-relaxed font-medium line-clamp-2">
-                  "{org.description}"
-                </p>
-
-                {/* Quick stats badges */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-xl">
-                    <Building2 className="w-3 h-3 text-blue-600" />
-                    <span>{org.branchesCount || 21} chi hội/chi đoàn</span>
+                <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-400">Đại diện phụ trách:</div>
+                    <div className="font-black text-slate-800 text-xs truncate max-w-[170px]">
+                      {org.leaderName || 'Đang cập nhật'} {org.leaderPosition ? <span className="text-[10px] text-slate-500 font-normal">({org.leaderPosition})</span> : null}
+                    </div>
+                  </div>
+                  <span className="p-2 rounded-xl transition-colors bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white">
+                    <ArrowUpRight className="w-4 h-4" />
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-xl">
-                    <Users className="w-3 h-3 text-emerald-600" />
-                    <span>{(org.activeMembersCount || 0).toLocaleString('vi-VN')} đoàn/hội viên</span>
-                  </span>
                 </div>
-              </div>
-
-              <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                <div>
-                  <div className="text-[10px] font-bold text-slate-400">Đại diện phụ trách:</div>
-                  <div className="font-black text-slate-800 text-xs truncate max-w-[170px]">
-                    {org.leaderName} <span className="text-[10px] text-slate-500 font-normal">({org.leaderPosition})</span>
-                  </div>
-                </div>
-                <span className="p-2 rounded-xl transition-colors bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white">
-                  <ArrowUpRight className="w-4 h-4" />
-                </span>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Sơ đồ Cây Tổ chức Modal Popup */}
       {showDiagramModal && (
@@ -285,9 +314,9 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
                 </div>
                 <div>
                   <h3 className="font-black text-sm sm:text-base uppercase tracking-tight">
-                    Sơ Đồ Hệ Thống MTTQ &amp; 6 Khối Đoàn Thể Phường Chánh Hiệp
+                    Sơ Đồ Hệ Thống MTTQ &amp; Các Tổ Chức Thành Viên
                   </h3>
-                  <p className="text-xs text-amber-200">Mô hình tổ chức nòng cốt &amp; mạng lưới trực thuộc tại 21 khu phố</p>
+                  <p className="text-xs text-amber-200">Mô hình tổ chức nòng cốt &amp; mạng lưới trực thuộc</p>
                 </div>
               </div>
               <button 
@@ -308,132 +337,56 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
                   <div className="text-xs text-white/90 font-medium mt-1">Chủ tịch: <strong>Trần Thị Hoa</strong> • 21 Ban Công tác Mặt trận</div>
                 </div>
 
-                <div className="w-0.5 h-6 bg-slate-400" />
-                <div className="w-11/12 h-0.5 bg-slate-400" />
+                {sortedOrgs.length > 0 && (
+                  <>
+                    <div className="w-0.5 h-6 bg-slate-400" />
+                    <div className="w-11/12 h-0.5 bg-slate-400" />
+                  </>
+                )}
               </div>
 
-              {/* Level 2: 6 Pillars Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                {/* 1. Đoàn TNCS */}
-                <div className="bg-white rounded-2xl border-2 border-amber-400 p-3 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="bg-amber-500 text-white text-[11px] font-black p-2 rounded-xl text-center uppercase">
-                      Đoàn TNCS Hồ Chí Minh
-                    </div>
-                    <p className="text-[10px] text-slate-600 italic mt-2 text-center">
-                      "Đoàn kết, tập hợp thanh niên, xung kích, sáng tạo."
-                    </p>
-                    <div className="mt-3 space-y-1 text-[10px]">
-                      <div className="bg-amber-50 p-1.5 rounded-lg font-bold text-amber-900">• 21 Chi đoàn khu phố</div>
-                      <div className="bg-amber-50 p-1.5 rounded-lg font-bold text-amber-900">• Chi đoàn trường học</div>
-                      <div className="bg-amber-50 p-1.5 rounded-lg font-bold text-amber-900">• Chi đoàn doanh nghiệp</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-center text-[10px] font-black text-amber-700 pt-2 border-t border-slate-100">
-                    520 Đoàn viên
-                  </div>
+              {/* Level 2: Dynamic Pillars Grid */}
+              {sortedOrgs.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center max-w-md mx-auto text-slate-500">
+                  <Building2 className="w-10 h-10 mx-auto text-slate-400 mb-2" />
+                  <p className="font-bold text-slate-700 text-sm">Chưa có tổ chức thành viên nào</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Các tổ chức tạo sẵn đã được gỡ bỏ. Vui lòng thêm các tổ chức thành viên chính thức từ menu quản trị văn phòng số.
+                  </p>
                 </div>
-
-                {/* 2. Hội LHTN */}
-                <div className="bg-white rounded-2xl border-2 border-sky-400 p-3 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="bg-sky-600 text-white text-[11px] font-black p-2 rounded-xl text-center uppercase">
-                      Hội LHTN Việt Nam
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {sortedOrgs.map((org) => (
+                    <div key={org.id} className="bg-white rounded-2xl border-2 border-slate-300 p-3 shadow-xs flex flex-col justify-between">
+                      <div>
+                        <div className="bg-red-600 text-white text-[11px] font-black p-2 rounded-xl text-center uppercase">
+                          {org.shortName || org.name}
+                        </div>
+                        {org.description && (
+                          <p className="text-[10px] text-slate-600 italic mt-2 text-center line-clamp-2">
+                            "{org.description}"
+                          </p>
+                        )}
+                        <div className="mt-3 space-y-1 text-[10px]">
+                          <div className="bg-slate-100 p-1.5 rounded-lg font-bold text-slate-800">
+                            • Phụ trách: {org.leaderName || 'Đang cập nhật'}
+                          </div>
+                          {org.branchesCount ? (
+                            <div className="bg-slate-100 p-1.5 rounded-lg font-bold text-slate-800">
+                              • {org.branchesCount} chi hội/chi đoàn
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      {org.activeMembersCount ? (
+                        <div className="mt-3 text-center text-[10px] font-black text-red-700 pt-2 border-t border-slate-100">
+                          {org.activeMembersCount.toLocaleString('vi-VN')} Đoàn/Hội viên
+                        </div>
+                      ) : null}
                     </div>
-                    <p className="text-[10px] text-slate-600 italic mt-2 text-center">
-                      "Đoàn kết thanh niên, xây dựng lối sống đẹp, phát triển KT-XH."
-                    </p>
-                    <div className="mt-3 space-y-1 text-[10px]">
-                      <div className="bg-sky-50 p-1.5 rounded-lg font-bold text-sky-900">• 21 Chi hội khu phố</div>
-                      <div className="bg-sky-50 p-1.5 rounded-lg font-bold text-sky-900">• Chi hội trường học</div>
-                      <div className="bg-sky-50 p-1.5 rounded-lg font-bold text-sky-900">• CLB kỹ năng &amp; thanh niên</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-center text-[10px] font-black text-sky-700 pt-2 border-t border-slate-100">
-                    780 Hội viên
-                  </div>
+                  ))}
                 </div>
-
-                {/* 3. Hội Chữ thập đỏ */}
-                <div className="bg-white rounded-2xl border-2 border-red-400 p-3 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="bg-red-600 text-white text-[11px] font-black p-2 rounded-xl text-center uppercase">
-                      Hội Chữ Thập Đỏ
-                    </div>
-                    <p className="text-[10px] text-slate-600 italic mt-2 text-center">
-                      "Hoạt động nhân đạo, từ thiện, trợ giúp người nghèo."
-                    </p>
-                    <div className="mt-3 space-y-1 text-[10px]">
-                      <div className="bg-red-50 p-1.5 rounded-lg font-bold text-red-900">• 21 Chi hội khu phố</div>
-                      <div className="bg-red-50 p-1.5 rounded-lg font-bold text-red-900">• Chi hội trường học</div>
-                      <div className="bg-red-50 p-1.5 rounded-lg font-bold text-red-900">• Đội hiến máu tình nguyện</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-center text-[10px] font-black text-red-700 pt-2 border-t border-slate-100">
-                    320 Hội viên
-                  </div>
-                </div>
-
-                {/* 4. Hội CCB */}
-                <div className="bg-white rounded-2xl border-2 border-purple-400 p-3 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="bg-purple-700 text-white text-[11px] font-black p-2 rounded-xl text-center uppercase">
-                      Hội Cựu Chiến Binh
-                    </div>
-                    <p className="text-[10px] text-slate-600 italic mt-2 text-center">
-                      "Bản chất Bộ đội Cụ Hồ, gương mẫu xây dựng &amp; bảo vệ Tổ quốc."
-                    </p>
-                    <div className="mt-3 space-y-1 text-[10px]">
-                      <div className="bg-purple-50 p-1.5 rounded-lg font-bold text-purple-900">• 21 Chi hội khu phố</div>
-                      <div className="bg-purple-50 p-1.5 rounded-lg font-bold text-purple-900">• Ban liên lạc CCB</div>
-                      <div className="bg-purple-50 p-1.5 rounded-lg font-bold text-purple-900">• Tổ hòa giải khu dân cư</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-center text-[10px] font-black text-purple-700 pt-2 border-t border-slate-100">
-                    420 Hội viên
-                  </div>
-                </div>
-
-                {/* 5. Hội LH Phụ nữ */}
-                <div className="bg-white rounded-2xl border-2 border-blue-400 p-3 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="bg-blue-600 text-white text-[11px] font-black p-2 rounded-xl text-center uppercase">
-                      Hội Liên Hiệp Phụ Nữ
-                    </div>
-                    <p className="text-[10px] text-slate-600 italic mt-2 text-center">
-                      "Đoàn kết, hỗ trợ phụ nữ, xây dựng gia đình hạnh phúc."
-                    </p>
-                    <div className="mt-3 space-y-1 text-[10px]">
-                      <div className="bg-blue-50 p-1.5 rounded-lg font-bold text-blue-900">• 21 Chi hội phụ nữ KP</div>
-                      <div className="bg-blue-50 p-1.5 rounded-lg font-bold text-blue-900">• Các tổ phụ nữ nòng cốt</div>
-                      <div className="bg-blue-50 p-1.5 rounded-lg font-bold text-blue-900">• Quỹ tương trợ khởi nghiệp</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-center text-[10px] font-black text-blue-700 pt-2 border-t border-slate-100">
-                    1.680 Hội viên
-                  </div>
-                </div>
-
-                {/* 6. Công đoàn */}
-                <div className="bg-white rounded-2xl border-2 border-teal-400 p-3 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="bg-teal-700 text-white text-[11px] font-black p-2 rounded-xl text-center uppercase">
-                      Công Đoàn Phường
-                    </div>
-                    <p className="text-[10px] text-slate-600 italic mt-2 text-center">
-                      "Bảo vệ quyền lợi hợp pháp của người lao động."
-                    </p>
-                    <div className="mt-3 space-y-1 text-[10px]">
-                      <div className="bg-teal-50 p-1.5 rounded-lg font-bold text-teal-900">• CĐCS khối cơ quan</div>
-                      <div className="bg-teal-50 p-1.5 rounded-lg font-bold text-teal-900">• CĐCS khối trường học</div>
-                      <div className="bg-teal-50 p-1.5 rounded-lg font-bold text-teal-900">• CĐCS doanh nghiệp</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-center text-[10px] font-black text-teal-700 pt-2 border-t border-slate-100">
-                    85 Đoàn viên
-                  </div>
-                </div>
-              </div>
+              )}
 
               {/* Footer Motto */}
               <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white text-center">

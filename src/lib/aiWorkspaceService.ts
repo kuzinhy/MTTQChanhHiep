@@ -6,230 +6,130 @@ import {
   AiAuditLog, 
   AiToolId, 
   AiToolMetadata,
-  WorkspaceContextData
+  WorkspaceContextData,
+  MttqTask
 } from '../types';
 import { getApiUrl } from './api';
 
-// Metadata definition for all 16 professional MTTQ tools across 5 groups
+// Metadata definition for the 8 core MTTQ tools across 4 main operational groups
 export const AI_TOOLS_CATALOG: AiToolMetadata[] = [
-  // NHÓM 01 – SOẠN THẢO & KIỂM TRA VĂN BẢN
+  // NHÓM 01 – VĂN BẢN & HỒ SƠ
   {
-    id: 'proofread',
-    name: 'Kiểm tra & Hoàn thiện văn bản',
-    shortDesc: 'Phát hiện lỗi chính tả, thể thức 15 tiêu chí và văn phong hành chính đa lớp.',
-    group: 'group1_draft_proofread',
-    iconName: 'FileCheck2',
-    badge: 'CHUẨN HÓA',
-    tags: ['chính tả', 'văn phong', 'thể thức', 'nghị định 30', 'so sánh'],
+    id: 'read_process_doc',
+    name: '1. Đọc & Xử lý văn bản',
+    shortDesc: 'Xử lý trọn gói 1 file: Tóm tắt 3 mức, nội dung cốt lõi, trích nhiệm vụ & đề xuất phiếu trình.',
+    group: 'group1_docs_dossier',
+    iconName: 'FileSearch',
+    badge: 'HỒ SƠ PHÂN TÍCH',
+    tags: ['đọc văn bản', 'tóm tắt', 'nhiệm vụ', 'trích yếu', 'phiếu trình'],
     suggestedPrompts: [
-      'Kiểm tra chính tả và lỗi câu cho bản kế hoạch này',
-      'Chuẩn hóa thể thức hành chính theo Nghị định 30/2020/NĐ-CP',
-      'Đề xuất cách diễn đạt trang trọng hơn cho phần kết luận'
+      'Đọc và phân tích Công văn/Kế hoạch cấp trên gửi về',
+      'Tóm tắt nội dung cốt lõi và trích danh sách nhiệm vụ cần làm',
+      'Đề xuất hướng xử lý và dự thảo Phiếu trình Lãnh đạo'
     ]
   },
   {
-    id: 'draft_doc',
-    name: 'Trợ lý soạn thảo văn bản',
-    shortDesc: 'Quy trình Wizard 5 bước soạn thảo Kế hoạch, Tờ trình, Công văn, Hướng dẫn chuẩn xác.',
-    group: 'group1_draft_proofread',
+    id: 'draft_proofread_doc',
+    name: '2. Soạn & Hoàn thiện văn bản',
+    shortDesc: 'Soạn mới 12 loại văn bản hành chính, rà soát 12 lớp (chính tả, thể thức NĐ 30, căn cứ) & xuất Word.',
+    group: 'group1_docs_dossier',
     iconName: 'PenTool',
-    badge: 'WIZARD',
-    tags: ['soạn thảo', 'kế hoạch', 'tờ trình', 'công văn', 'thư mời'],
+    badge: 'XUẤT WORD',
+    tags: ['soạn thảo', 'kiểm tra 12 lớp', 'nghị định 30', 'xuất word', 'chính tả'],
     suggestedPrompts: [
       'Soạn Kế hoạch tổ chức Ngày hội Đại đoàn kết toàn dân tộc',
-      'Soạn Tờ trình xin chủ trương hỗ trợ xây dựng Nhà Đại đoàn kết',
-      'Soạn Thư mời đại biểu dự Hội nghị sơ kết quý'
+      'Kiểm tra 12 lớp chính tả, thể thức Nghị định 30 cho bản thảo',
+      'Soạn Tờ trình xin hỗ trợ kinh phí sửa chữa Nhà Đại đoàn kết'
     ]
   },
 
-  // NHÓM 02 – BÁO CÁO & THAM MƯU
-  {
-    id: 'report',
-    name: 'Trợ lý soạn báo cáo',
-    shortDesc: 'Tổng hợp từ ý thô, đề cương và số liệu thành báo cáo tuần, tháng, quý, năm hoàn chỉnh.',
-    group: 'group2_report_advisory',
-    iconName: 'FileBarChart2',
-    badge: 'BÁO CÁO',
-    tags: ['báo cáo', 'tuần', 'tháng', 'quý', 'năm', 'tổng kết'],
-    suggestedPrompts: [
-      'Soạn Báo cáo công tác Mặt trận tháng 8',
-      'Tổng hợp báo cáo sơ kết 6 tháng đầu năm theo đề cương',
-      'Báo cáo nhanh kết quả cuộc vận động Quỹ Vì người nghèo'
-    ]
-  },
+  // NHÓM 02 – THAM MƯU & TỔNG HỢP
   {
     id: 'advisory',
-    name: 'Trợ lý tham mưu',
-    shortDesc: 'Phân tích văn bản cấp trên thành 9 phần tham mưu và trích xuất bảng phân công nhiệm vụ.',
-    group: 'group2_report_advisory',
+    name: '3. Trợ lý Tham mưu',
+    shortDesc: 'Phân tích vấn đề 10 bước: Bối cảnh, căn cứ, phương án, rủi ro, kiến nghị & việc cần thực hiện.',
+    group: 'group2_advisory_report',
     iconName: 'Compass',
     badge: 'TRỌNG TÂM',
-    tags: ['tham mưu', 'chỉ đạo', 'phiếu trình', 'phân công', 'nhiệm vụ'],
+    tags: ['tham mưu', 'chỉ đạo', 'phiếu tham mưu', 'phương án', 'phân tích rủi ro'],
     suggestedPrompts: [
-      'Lập phiếu tham mưu xử lý Công văn chỉ đạo của Quận/Thành phố',
-      'Phân tích trách nhiệm của MTTQ Phường trong Kế hoạch của UBND',
-      'Trích xuất hướng xử lý và dự thảo ý kiến trình Ban Thường trực'
+      'Lập phiếu tham mưu xử lý Công văn chỉ đạo mới từ Thành phố/Quận',
+      'Phân tích phương án và rủi ro khi triển khai mô hình Dân vận khéo',
+      'Đề xuất hướng tham mưu cho Ban Thường trực về đơn thư phản ánh'
     ]
   },
   {
-    id: 'summarize',
-    name: 'Tóm tắt văn bản',
-    shortDesc: '4 chế độ tóm tắt thông minh: 30 giây, Bản lãnh đạo, Cán bộ tham mưu và Báo cáo họp.',
-    group: 'group2_report_advisory',
-    iconName: 'AlignLeft',
-    tags: ['tóm tắt', '30 giây', 'lãnh đạo', 'cuộc họp', 'cốt lõi'],
+    id: 'report_plan',
+    name: '4. Báo cáo – Kế hoạch – Chương trình',
+    shortDesc: 'Quy trình tối đa 3 bước tổng hợp báo cáo định kỳ/chuyên đề từ dữ liệu công việc và lịch làm việc.',
+    group: 'group2_advisory_report',
+    iconName: 'FileBarChart2',
+    badge: 'MAX 3 BƯỚC',
+    tags: ['báo cáo', 'kế hoạch', 'chương trình', 'báo cáo tuần', 'số liệu thực'],
     suggestedPrompts: [
-      'Tóm tắt 30 giây lấy 5 điểm cốt lõi nhất',
-      'Tóm tắt cho Chủ tịch duyệt các quyết định cần ban hành',
-      'Tóm tắt để thuyết trình báo cáo trong cuộc họp giao ban'
-    ]
-  },
-  {
-    id: 'extract_tasks',
-    name: 'Đọc văn bản → Trích nhiệm vụ',
-    shortDesc: 'Bóc tách danh sách đầu việc, đơn vị chủ trì, phối hợp, thời hạn và sản phẩm bàn giao.',
-    group: 'group2_report_advisory',
-    iconName: 'CheckSquare',
-    tags: ['trích xuất', 'nhiệm vụ', 'bảng công việc', 'tiến độ'],
-    suggestedPrompts: [
-      'Trích xuất toàn bộ các đầu việc từ kế hoạch liên ngành',
-      'Lập danh sách việc cần làm và phân công 21 Ban CTMT Khu phố'
+      'Lập Báo cáo công tác Mặt trận tháng 8 từ dữ liệu nhiệm vụ',
+      'Soạn Báo cáo nhanh kết quả Vận động Quỹ Vì người nghèo',
+      'Lập Chương trình công tác quý IV/2026 của Ủy ban MTTQ Phường'
     ]
   },
 
-  // NHÓM 03 – HỘI NGHỊ, SỰ KIỆN & PHÁT BIỂU
+  // NHÓM 03 – HỌP – SỰ KIỆN – PHÁT BIỂU
   {
-    id: 'speech',
-    name: 'Trợ lý soạn bài phát biểu',
-    shortDesc: 'Soạn bài phát biểu truyền cảm hứng theo chủ đề, người phát biểu và căn chỉnh thời lượng 3-15 phút.',
-    group: 'group3_conference_event',
-    iconName: 'Mic',
-    badge: 'PHÁT BIỂU',
-    tags: ['phát biểu', 'đại đoàn kết', 'khai mạc', 'bế mạc', 'thời lượng'],
-    suggestedPrompts: [
-      'Bài phát biểu của Chủ tịch MTTQ tại Ngày hội Đại đoàn kết (5 phút)',
-      'Bài phát biểu phát động phong trào thi đua an sinh xã hội',
-      'Lời đáp từ trong buổi lễ tiếp nhận kinh phí ủng hộ Quỹ'
-    ]
-  },
-  {
-    id: 'conference',
-    name: 'Trợ lý hội nghị – sự kiện',
-    shortDesc: 'Tự động tạo trọn bộ: Kế hoạch, Timeline, Kịch bản MC, Thư mời, Checklist và Phân công.',
-    group: 'group3_conference_event',
+    id: 'event_workspace',
+    name: '5. Trợ lý Hội họp & Sự kiện',
+    shortDesc: 'Quản lý Workspace sự kiện: Giấy mời, Kịch bản, Checklist trước họp, Agenda trong họp & Kết luận sau họp.',
+    group: 'group3_meeting_event',
     iconName: 'CalendarCheck',
-    badge: 'TRỌN GÓI',
-    tags: ['hội nghị', 'sự kiện', 'kịch bản mc', 'timeline', 'thư mời'],
+    badge: 'WORKSPACE',
+    tags: ['sự kiện', 'hội nghị', 'checklist', 'kịch bản', 'kết luận họp'],
     suggestedPrompts: [
-      'Tạo trọn bộ sự kiện Ngày hội Đại đoàn kết toàn dân tộc 2026',
-      'Lập kịch bản điều hành và MC cho Hội nghị tổng kết năm',
-      'Checklist chuẩn bị Đại hội đại biểu MTTQ Phường'
+      'Tạo Workspace chuẩn bị Ngày hội Đại đoàn kết toàn dân tộc',
+      'Lập Checklist hậu cần và phân công công việc cuộc họp giao ban',
+      'Soạn Thông báo Kết luận cuộc họp Ban Thường trực'
     ]
   },
   {
-    id: 'meeting_minutes',
-    name: 'Trợ lý biên bản cuộc họp',
-    shortDesc: 'Xử lý ghi chú thô/transcript thành Biên bản chi tiết và Thông báo Kết luận chỉ đạo.',
-    group: 'group3_conference_event',
-    iconName: 'FileText',
-    tags: ['biên bản', 'kết luận', 'cuộc họp', 'thư ký'],
+    id: 'speech_script',
+    name: '6. Bài phát biểu – Kịch bản',
+    shortDesc: 'Tạo bài phát biểu theo mốc 3p, 5p, 7p, Kịch bản MC điều hành & Dàn ý nói nhanh không cần đọc văn bản.',
+    group: 'group3_meeting_event',
+    iconName: 'Mic',
+    badge: 'KHAI MẠC/BẾ MẠC',
+    tags: ['phát biểu', 'kịch bản mc', 'dàn ý nói', '3 phút', '5 phút'],
     suggestedPrompts: [
-      'Lập biên bản cuộc họp giao ban Ban Thường trực với 21 Trưởng ban CTMT',
-      'Tạo Thông báo kết luận cuộc họp hiệp thương bầu cử'
-    ]
-  },
-
-  // NHÓM 04 – CÔNG CỤ NGHIỆP VỤ MTTQ
-  {
-    id: 'supervision_critique',
-    name: 'Trợ lý Giám sát & Phản biện',
-    shortDesc: 'Phân tích dự thảo chính sách, phát hiện mâu thuẫn, gợi ý câu hỏi chất vấn và đề cương giám sát.',
-    group: 'group4_mttq_specialized',
-    iconName: 'ShieldAlert',
-    badge: 'NGHIỆP VỤ',
-    tags: ['giám sát', 'phản biện', 'chất vấn', 'chính sách', 'đất đai'],
-    suggestedPrompts: [
-      'Phản biện dự thảo kế hoạch bồi thường giải tỏa tuyến đường',
-      'Xây dựng đề cương giám sát việc thực hiện quy chế dân chủ cơ sở',
-      'Đề xuất các câu hỏi phản biện đối với đề án thu gom rác'
-    ]
-  },
-  {
-    id: 'public_opinion',
-    name: 'Trợ lý Nắm bắt ý kiến nhân dân',
-    shortDesc: 'Phân loại 10 nhóm lĩnh vực, phân tích điểm nóng, mức độ bức xúc và đề xuất cơ quan giải quyết.',
-    group: 'group4_mttq_specialized',
-    iconName: 'Users',
-    badge: 'DƯ LUẬN',
-    tags: ['ý kiến', 'phản ánh', 'dân sinh', 'dư luận', 'phân loại'],
-    suggestedPrompts: [
-      'Tổng hợp 35 ý kiến tiếp xúc cử tri tại 21 khu phố',
-      'Phân tích xu hướng phản ánh về trật tự đô thị và thoát nước'
-    ]
-  },
-  {
-    id: 'propaganda',
-    name: 'Trợ lý Tuyên truyền đa kênh',
-    shortDesc: 'Chuyển đổi văn bản thành bài viết Website, Facebook, thông báo Zalo, Infographic và Kịch bản phát thanh.',
-    group: 'group4_mttq_specialized',
-    iconName: 'Megaphone',
-    tags: ['tuyên truyền', 'facebook', 'zalo', 'website', 'infographic', 'phát thanh'],
-    suggestedPrompts: [
-      'Viết bài đăng Fanpage và thông báo Zalo về Cuộc vận động mới',
-      'Tạo nội dung Infographic 4 bước đăng ký nhận hỗ trợ an sinh',
-      'Soạn kịch bản phát thanh cơ sở 3 phút tuyên truyền Luật Mặt trận'
+      'Soạn bài phát biểu 5 phút của Chủ tịch MTTQ tại Ngày hội Đại đoàn kết',
+      'Tạo Dàn ý phát biểu ngắn gọn cho Lãnh đạo cấp ủy',
+      'Soạn Kịch bản MC điều hành Lễ phát động Tháng hành động Vì người nghèo'
     ]
   },
 
-  // NHÓM 05 – CÔNG CỤ THÔNG MINH BỔ SUNG
+  // NHÓM 04 – CÔNG VIỆC & ĐIỀU HÀNH
   {
-    id: 'compare_docs',
-    name: 'So sánh hai văn bản',
-    shortDesc: 'Đối chiếu Văn bản A và Văn bản B, chỉ rõ nội dung bổ sung, cắt giảm, thay đổi số liệu và trách nhiệm.',
-    group: 'group5_smart_utilities',
-    iconName: 'GitCompare',
-    tags: ['so sánh', 'đối chiếu', 'dự thảo cũ mới', 'thay đổi'],
+    id: 'task_tracking',
+    name: '7. Trích nhiệm vụ & Theo dõi tiến độ',
+    shortDesc: 'Tự động trích xuất Task từ văn bản/kết luận họp, theo dõi trạng thái, phân công và cảnh báo quá hạn.',
+    group: 'group4_task_operational',
+    iconName: 'CheckSquare',
+    badge: 'QUẢN LÝ TASK',
+    tags: ['nhiệm vụ', 'tiến độ', 'quá hạn', 'phân công', '21 khu phố'],
     suggestedPrompts: [
-      'So sánh Dự thảo lần 1 và Dự thảo lần 2 của Kế hoạch',
-      'Tìm các điểm thay đổi về quyền lợi và trách nhiệm giữa 2 bản quy chế'
+      'Trích xuất toàn bộ nhiệm vụ từ Kết luận cuộc họp giao ban',
+      'Lập bảng theo dõi tiến độ phân công 21 Ban CTMT Khu phố',
+      'Xem danh sách việc hôm nay và việc quá hạn cần xử lý'
     ]
   },
   {
-    id: 'qa_document',
-    name: 'Hỏi – Đáp trên tài liệu',
-    shortDesc: 'Tra cứu tài liệu đính kèm với trích dẫn chính xác trang/mục; chống bịa đặt thông tin tuyệt đối.',
-    group: 'group5_smart_utilities',
-    iconName: 'HelpCircle',
-    badge: 'TRÍCH NGUỒN',
-    tags: ['hỏi đáp', 'tra cứu', 'tài liệu', 'trích dẫn', 'nguồn'],
+    id: 'lookup_templates',
+    name: '8. Tra cứu nghiệp vụ & Mẫu biểu',
+    shortDesc: 'Kho mẫu văn bản chuẩn Nghị định 30, quy chế, hướng dẫn nghiệp vụ Mặt Trận có nguồn gốc kiểm chứng.',
+    group: 'group4_task_operational',
+    iconName: 'BookTemplate',
+    badge: 'KHO MẪU NĐ 30',
+    tags: ['tra cứu', 'mẫu biểu', 'nghiệp vụ', 'nghị định 30', 'quy chế'],
     suggestedPrompts: [
-      'Trong kế hoạch này MTTQ phường có những trách nhiệm cụ thể nào?',
-      'Chỉ tiêu vận động kinh phí được giao là bao nhiêu triệu đồng?',
-      'Thời hạn gửi báo cáo nghiệm thu là ngày mấy?'
-    ]
-  },
-  {
-    id: 'work_plan',
-    name: 'Trợ lý Lập kế hoạch công tác',
-    shortDesc: 'Lập bảng tiến độ công tác tuần, tháng, quý, chiến dịch theo ma trận: STT, Việc, Hạn, Chủ trì, Kết quả.',
-    group: 'group5_smart_utilities',
-    iconName: 'TableProperties',
-    tags: ['lập kế hoạch', 'tiến độ', 'ma trận công việc', 'tuần tháng'],
-    suggestedPrompts: [
-      'Lập ma trận kế hoạch công tác tháng 9/2026',
-      'Lập tiến độ chiến dịch 30 ngày đêm cao điểm chăm lo Tết'
-    ]
-  },
-  {
-    id: 'checklist',
-    name: 'Trợ lý Checklist công việc',
-    shortDesc: 'Tự động tạo bảng danh mục kiểm tra theo từng giai đoạn công việc có hộp kiểm tick hoàn thành.',
-    group: 'group5_smart_utilities',
-    iconName: 'ListChecks',
-    tags: ['checklist', 'kiểm tra', 'hậu cần', 'tiến độ', 'đầu việc'],
-    suggestedPrompts: [
-      'Tạo checklist tổ chức Ngày hội Đại đoàn kết toàn dân tộc',
-      'Checklist quy trình tiếp công dân và xử lý đơn thư phản ánh'
+      'Tra cứu mẫu Kế hoạch giám sát và phản biện xã hội',
+      'Tìm mẫu Giấy mời họp giao ban chuẩn thể thức',
+      'Tra cứu Hướng dẫn tổ chức Ngày hội Đại đoàn kết toàn dân tộc'
     ]
   }
 ];
@@ -330,7 +230,53 @@ export const aiWorkspaceService = {
     }
   },
 
-  // 2. Local Storage Document Management (Autosave & Persistence)
+  // 2. Real-time Draft Storage & Unfinished Session Recovery
+  getToolDraft(toolId: string): any {
+    try {
+      const drafts = JSON.parse(localStorage.getItem('mttq_ai_active_drafts_v1') || '{}');
+      return drafts[toolId] || null;
+    } catch (e) {
+      console.warn('Error reading tool draft:', e);
+      return null;
+    }
+  },
+
+  saveToolDraft(toolId: string, toolName: string, draftData: any): void {
+    try {
+      const drafts = JSON.parse(localStorage.getItem('mttq_ai_active_drafts_v1') || '{}');
+      drafts[toolId] = {
+        toolId,
+        toolName,
+        updatedAt: new Date().toISOString(),
+        data: draftData
+      };
+      localStorage.setItem('mttq_ai_active_drafts_v1', JSON.stringify(drafts));
+    } catch (e) {
+      console.warn('Error saving tool draft:', e);
+    }
+  },
+
+  clearToolDraft(toolId: string): void {
+    try {
+      const drafts = JSON.parse(localStorage.getItem('mttq_ai_active_drafts_v1') || '{}');
+      delete drafts[toolId];
+      localStorage.setItem('mttq_ai_active_drafts_v1', JSON.stringify(drafts));
+    } catch (e) {
+      console.warn('Error clearing tool draft:', e);
+    }
+  },
+
+  getAllToolDrafts(): Array<{ toolId: string; toolName: string; updatedAt: string; data: any }> {
+    try {
+      const drafts = JSON.parse(localStorage.getItem('mttq_ai_active_drafts_v1') || '{}');
+      return Object.values(drafts);
+    } catch (e) {
+      console.warn('Error reading all tool drafts:', e);
+      return [];
+    }
+  },
+
+  // 3. Local Storage Document Management (Autosave & Persistence)
   getSavedDocuments(): AiDocument[] {
     try {
       const data = localStorage.getItem('mttq_ai_documents_v2');
@@ -518,7 +464,77 @@ export const aiWorkspaceService = {
     localStorage.setItem('mttq_ai_workspace_context', JSON.stringify(updated));
   },
 
-  // 8. Export Utilities
+  // 9. Tasks Management (Trích nhiệm vụ & Theo dõi tiến độ)
+  getTasks(): MttqTask[] {
+    try {
+      const data = localStorage.getItem('mttq_ai_tasks_v1');
+      if (data) return JSON.parse(data);
+    } catch (e) {
+      console.warn('Error reading tasks:', e);
+    }
+    return [
+      {
+        id: 'task-01',
+        title: 'Nghiệm thu công trình "Góc Xanh Đại Đoàn Kết"',
+        description: 'Kiểm tra 21 điểm thu gom rác nhựa tái chế tại 21 Khu phố Phường Chánh Hiệp.',
+        sourceDoc: 'Kế hoạch số 12/KH-MTTQ ngày 15/08/2026',
+        assignedTo: 'Ban CTMT KP 5 & Hội Phụ nữ Phường',
+        dueDate: '2026-09-10',
+        priority: 'high',
+        status: 'in_progress',
+        progress: 75,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'task-02',
+        title: 'Gửi Giấy mời dự Họp Giao ban Ban Thường trực với 21 Trưởng ban CTMT',
+        description: 'Chuẩn bị tài liệu, đính kèm chương trình họp và gửi qua Zalo Công việc.',
+        sourceDoc: 'Thông báo Kết luận số 45/TB-MTTQ',
+        assignedTo: 'Chuyên viên Văn phòng MTTQ',
+        dueDate: '2026-09-08',
+        priority: 'high',
+        status: 'pending',
+        progress: 20,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'task-03',
+        title: 'Tổng hợp danh sách 85 suất học bổng Quỹ Vì người nghèo',
+        description: 'Rà soát danh sách học sinh nghèo hiếu học tại 21 Khu phố trình Chủ tịch duyệt.',
+        sourceDoc: 'Tờ trình số 08/TTr-MTTQ',
+        assignedTo: 'Bộ phận An sinh Xã hội',
+        dueDate: '2026-09-02',
+        priority: 'medium',
+        status: 'overdue',
+        progress: 90,
+        createdAt: new Date().toISOString()
+      }
+    ];
+  },
+
+  saveTask(task: MttqTask): void {
+    try {
+      const list = this.getTasks();
+      const idx = list.findIndex(t => t.id === task.id);
+      if (idx >= 0) {
+        list[idx] = task;
+      } else {
+        list.unshift(task);
+      }
+      localStorage.setItem('mttq_ai_tasks_v1', JSON.stringify(list));
+    } catch (e) {
+      console.warn('Error saving task:', e);
+    }
+  },
+
+  deleteTask(taskId: string): void {
+    try {
+      const list = this.getTasks().filter(t => t.id !== taskId);
+      localStorage.setItem('mttq_ai_tasks_v1', JSON.stringify(list));
+    } catch (e) {
+      console.warn('Error deleting task:', e);
+    }
+  },
   exportToWord(title: string, content: string): void {
     const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head><meta charset='utf-8'><title>${title}</title>

@@ -1117,20 +1117,30 @@ export default function App() {
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setIsHcmSpaceModalOpen(true)}
-                          className="bg-gradient-to-br from-amber-50 via-red-50/40 to-amber-100/30 p-5 rounded-2xl cursor-pointer hover:shadow-xl hover:border-amber-400 transition-all flex items-center justify-between group border border-amber-300/90 shadow-xs relative overflow-hidden"
+                          className="bg-gradient-to-br from-amber-50 via-red-50/40 to-amber-100/30 p-4 sm:p-5 rounded-2xl cursor-pointer hover:shadow-xl hover:border-amber-400 transition-all flex items-center justify-between group border border-amber-300/90 shadow-xs relative overflow-hidden"
                         >
-                          <div className="relative z-10">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-red-700 flex items-center gap-1">
-                                <Star className="w-2.5 h-2.5 fill-red-700" /> Không gian số 3D
-                              </span>
+                          <div className="relative z-10 flex items-center gap-3">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-500 shadow-md shrink-0 border border-amber-300/90 group-hover:scale-105 transition-transform">
+                              <img
+                                src="https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png"
+                                alt="Chủ tịch Hồ Chí Minh"
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover object-top rounded-full"
+                              />
                             </div>
-                            <h3 className="font-black text-sm text-slate-900 group-hover:text-red-700 transition-colors">Không gian VH Hồ Chí Minh</h3>
-                            <p className="text-xs text-slate-600 mt-0.5 font-medium">Bảo tàng ảo & hiện vật 3D tương tác</p>
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-red-700 flex items-center gap-1">
+                                  <Star className="w-2.5 h-2.5 fill-red-700" /> Không gian số 3D
+                                </span>
+                              </div>
+                              <h3 className="font-black text-sm text-slate-900 group-hover:text-red-700 transition-colors">Không gian VH Hồ Chí Minh</h3>
+                              <p className="text-xs text-slate-600 mt-0.5 font-medium">Bảo tàng ảo & hiện vật 3D tương tác</p>
+                            </div>
                           </div>
-                          <div className="p-3 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-amber-600 text-white shadow-md shadow-red-500/30 group-hover:scale-110 transition-transform shrink-0 relative z-10 border border-amber-300/40">
-                            <Landmark className="w-5 h-5" />
+                          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-amber-600 text-white shadow-md shadow-red-500/30 group-hover:scale-110 transition-transform shrink-0 relative z-10 border border-amber-300/40">
+                            <Landmark className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                           <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-300/20 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
                         </motion.div>
@@ -1215,6 +1225,7 @@ export default function App() {
                         searchQuery={searchQuery}
                         onSelectArticle={(art) => handleSelectArticle(art)}
                         onGoToOpinion={() => handleSelectPortalTab('opinion')}
+                        onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
                       />
                       <WorkCalendarSection 
                         events={events} 
@@ -1242,6 +1253,7 @@ export default function App() {
                       searchQuery={searchQuery}
                       onSelectArticle={(art) => handleSelectArticle(art)}
                       onGoToOpinion={() => handleSelectPortalTab('opinion')}
+                      onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
                     />
                   )}
                   {portalTab === 'documents' && (
@@ -1948,6 +1960,8 @@ export default function App() {
           setIsHcmSpaceModalOpen(false);
           handleSelectPortalTab('map');
         }}
+        currentStaffUser={currentStaffUser}
+        onTriggerToast={handleTriggerSystemToast}
       />
     </div>
   );

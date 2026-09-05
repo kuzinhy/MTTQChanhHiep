@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Sparkles, 
+  FileSearch,
+  BookTemplate,
   FileText, 
   PenTool, 
   FileCheck2, 
@@ -35,6 +37,8 @@ interface AiCommandPaletteProps {
 
 const getToolIcon = (iconName: string) => {
   switch (iconName) {
+    case 'FileSearch': return <FileSearch className="w-4 h-4 text-blue-600" />;
+    case 'BookTemplate': return <BookTemplate className="w-4 h-4 text-indigo-600" />;
     case 'FileCheck2': return <FileCheck2 className="w-4 h-4 text-emerald-600" />;
     case 'PenTool': return <PenTool className="w-4 h-4 text-blue-600" />;
     case 'FileBarChart2': return <FileBarChart2 className="w-4 h-4 text-purple-600" />;

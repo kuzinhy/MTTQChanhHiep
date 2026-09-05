@@ -1,64 +1,39 @@
-import React, { useState } from 'react';
-import { Lightbulb, ThumbsUp, Download, Share2, Sparkles, Eye, CheckCircle2, QrCode } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Lightbulb, ThumbsUp, Download, Share2, Sparkles, Eye, CheckCircle2, QrCode, BookOpen, ArrowRight, X } from 'lucide-react';
 import { QrCodeModal } from './QrCodeModal';
-
-interface InitiativeItem {
-  id: string;
-  title: string;
-  unit: string;
-  summary: string;
-  impact: string;
-  likes: number;
-  tags: string[];
-  date: string;
-}
-
-const INITIATIVE_DATA: InitiativeItem[] = [
-  {
-    id: '1',
-    title: 'Mô hình "Tổ Đoàn Kết Số 4.0" tại 21 Khu phố Phường Chánh Hiệp',
-    unit: 'Ủy ban MTTQ & Ban CTMTKP 5',
-    summary: 'Ứng dụng nhóm Zalo kết nối liên thông và Bảng tin số khu phố để thông báo lịch sinh hoạt, thu quỹ công khai và tiếp nhận kiến nghị trực tuyến.',
-    impact: 'Tiết kiệm 90% chi phí in ấn giấy, 100% hộ dân nhận được thông tin chỉ đạo trong vòng 15 phút.',
-    likes: 342,
-    tags: ['Chuyển đổi số', 'Dân nguyện', 'Khu phố số'],
-    date: '15/08/2026'
-  },
-  {
-    id: '2',
-    title: 'Sáng kiến "Góc Xanh Đại Đoàn Kết" - Phân loại rác tại nguồn',
-    unit: 'Hội Liên hiệp Phụ nữ & MTTQ Phường',
-    summary: 'Xây dựng 21 điểm thu gom rác tái chế lấy kinh phí nuôi heo đất khuyến học cho học sinh nghèo hiếu học tại các khu phố.',
-    impact: 'Thu gom hơn 4.2 tấn nhựa tái chế, trao 85 suất học bổng cho học sinh nghèo.',
-    likes: 289,
-    tags: ['Bảo vệ môi trường', 'An sinh xã hội'],
-    date: '02/08/2026'
-  },
-  {
-    id: '3',
-    title: 'Mô hình "Camera An ninh Đại đoàn kết" Nhân dân tự quản',
-    unit: 'Ban CTMTKP 12 & Công an Phường',
-    summary: 'Vận động Nhân dân đóng góp kinh phí lắp đặt 128 mắt camera độ phân giải cao tại các hẻm tự quản.',
-    impact: 'Giảm 75% sự vụ mất an ninh trật tự, xử lý nhanh các vụ vi phạm môi trường.',
-    likes: 215,
-    tags: ['An ninh trật tự', 'Tự quản cộng đồng'],
-    date: '20/07/2026'
-  }
-];
+import { FrontInitiative, ChanhHiepActionModel } from '../data/hcmVerifiedMuseumData';
+import { loadStoredInitiatives, saveStoredInitiatives, loadStoredChanhHiepActions } from '../lib/hcmDataStore';
 
 export const InitiativesSection: React.FC = () => {
-  const [initiatives, setInitiatives] = useState(INITIATIVE_DATA);
+  const [initiatives, setInitiatives] = useState<FrontInitiative[]>(() => loadStoredInitiatives());
+  const [hcmActions, setHcmActions] = useState<ChanhHiepActionModel[]>(() => loadStoredChanhHiepActions());
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
   const [qrModalItem, setQrModalItem] = useState<{ title: string; url: string } | null>(null);
+  const [selectedHcmActionModal, setSelectedHcmActionModal] = useState<ChanhHiepActionModel | null>(null);
+
+  useEffect(() => {
+    setInitiatives(loadStoredInitiatives());
+    setHcmActions(loadStoredChanhHiepActions());
+  }, []);
 
   const handleLike = (id: string) => {
     const isLiked = likedMap[id];
     setLikedMap((prev) => ({ ...prev, [id]: !isLiked }));
-    setInitiatives((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, likes: item.likes + (isLiked ? -1 : 1) } : item
-      )
+    const updated = initiatives.map((item) =>
+      item.id === id ? { ...item, likes: item.likes + (isLiked ? -1 : 1) } : item
     );
+    setInitiatives(updated);
+    saveStoredInitiatives(updated);
+  };
+
+  const handleViewHcmAction = (actionId?: string, topicTitle?: string) => {
+    const found = hcmActions.find(
+      (a) => a.id === actionId || (topicTitle && a.title.toLowerCase().includes(topicTitle.toLowerCase()))
+    ) || hcmActions[0];
+
+    if (found) {
+      setSelectedHcmActionModal(found);
+    }
   };
 
   return (
@@ -68,13 +43,13 @@ export const InitiativesSection: React.FC = () => {
         <div className="space-y-1 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-xs">
             <Lightbulb className="w-4 h-4 fill-amber-950" />
-            <span>KHO SÁNG KIẾN &amp; MÔ HÌNH HAY</span>
+            <span>KHO SÁNG KIẾN &amp; MÔ HÌNH HAY MẶT TRẬN</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-white">
-            Mô Hình Nhân Rộng &amp; Sáng Kiến Tác Nghiệp Mặt Trận
+            Mô Hình Nhân Rộng &amp; Sáng Kiến Tác Nghiệp Mặt Trận 21 Khu Phố
           </h2>
           <p className="text-xs text-blue-100 max-w-2xl">
-            Tổng hợp các giải pháp, cách làm hay từ 21 Khu phố mang lại hiệu quả thiết thực cho Nhân dân Phường Chánh Hiệp.
+            Các giải pháp, sáng kiến tác nghiệp Mặt Trận liên thông trực tiếp với Chuyên đề Học tập và Làm theo Tư tưởng, Đạo đức, Phong cách Hồ Chí Minh Phường Chánh Hiệp.
           </p>
         </div>
       </div>
@@ -99,6 +74,22 @@ export const InitiativesSection: React.FC = () => {
                 <h3 className="text-sm font-black text-slate-900 group-hover:text-blue-700 transition leading-snug">
                   {item.title}
                 </h3>
+
+                {/* Badge Liên thông Học Bác */}
+                {item.linkedHcmTopicTitle && (
+                  <button
+                    onClick={() => handleViewHcmAction(item.linkedHcmActionId, item.linkedHcmTopicTitle)}
+                    className="w-full text-left p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs text-rose-950 transition flex items-center justify-between gap-2 cursor-pointer group/badge"
+                  >
+                    <div className="flex items-start gap-1.5 min-w-0">
+                      <BookOpen className="w-3.5 h-3.5 text-rose-700 shrink-0 mt-0.5" />
+                      <span className="line-clamp-1 font-semibold">
+                        Gắn liền Học Bác: <strong className="text-rose-900">{item.linkedHcmTopicTitle}</strong>
+                      </span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-rose-700 shrink-0 group-hover/badge:translate-x-0.5 transition" />
+                  </button>
+                )}
 
                 <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
                   {item.summary}
@@ -151,6 +142,55 @@ export const InitiativesSection: React.FC = () => {
         })}
       </div>
 
+      {/* MODAL XEM BÀI VIẾT HỌC BÁC LIÊN THÔNG */}
+      {selectedHcmActionModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border-2 border-rose-300 shadow-2xl max-w-lg w-full p-6 space-y-4 relative">
+            <button
+              onClick={() => setSelectedHcmActionModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-rose-100 text-rose-900 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1">
+              <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-900 font-bold text-xs border border-rose-200 inline-block">
+                Chuyên đề Học Tập Bác • {selectedHcmActionModal.neighborhood}
+              </span>
+              <h3 className="text-lg font-serif font-extrabold text-rose-950">
+                {selectedHcmActionModal.title}
+              </h3>
+            </div>
+
+            {selectedHcmActionModal.inspirationalQuote && (
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs italic font-serif text-amber-950">
+                <span className="font-sans font-bold text-amber-900 not-italic block mb-0.5">Kim chỉ nam:</span>
+                “{selectedHcmActionModal.inspirationalQuote}”
+              </div>
+            )}
+
+            <div className="space-y-2 text-xs">
+              <p className="text-slate-800 leading-relaxed font-normal">
+                {selectedHcmActionModal.summary}
+              </p>
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                <span className="font-bold text-emerald-900 block">Kết quả thực tiễn:</span>
+                <p className="text-emerald-950 font-medium">{selectedHcmActionModal.practicalResult}</p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setSelectedHcmActionModal(null)}
+                className="px-4 py-2 rounded-xl bg-rose-800 text-white font-bold text-xs hover:bg-rose-900 transition cursor-pointer"
+              >
+                Đóng cửa sổ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* QR Modal */}
       {qrModalItem && (
         <QrCodeModal
@@ -164,3 +204,4 @@ export const InitiativesSection: React.FC = () => {
     </section>
   );
 };
+

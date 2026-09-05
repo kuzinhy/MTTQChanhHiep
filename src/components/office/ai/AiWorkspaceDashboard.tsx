@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Search, 
+  FileSearch,
   Command, 
   Bot, 
   Clock, 
@@ -36,7 +37,8 @@ import {
   SlidersHorizontal,
   X,
   LayoutDashboard,
-  Building2
+  Building2,
+  Menu
 } from 'lucide-react';
 import { 
   AiDocument, 
@@ -56,16 +58,18 @@ import { AiCommandPalette } from './AiCommandPalette';
 import { AiDocumentHistoryModal } from './AiDocumentHistoryModal';
 import { AiDossierManager } from './AiDossierManager';
 import { AiTemplateManager } from './AiTemplateManager';
+import { AiToolDetailModal } from './AiToolDetailModal';
+import { AiDraftRecoveryBanner } from './AiDraftRecoveryBanner';
 
 // Individual Tool Views
-import { ProofreadToolView } from './tools/ProofreadToolView';
-import { DraftingWizardToolView } from './tools/DraftingWizardToolView';
-import { ReportToolView } from './tools/ReportToolView';
+import { ReadProcessDocToolView } from './tools/ReadProcessDocToolView';
+import { DraftAndProofreadDocToolView } from './tools/DraftAndProofreadDocToolView';
 import { AdvisoryToolView } from './tools/AdvisoryToolView';
-import { SummarizeAndExtractToolView } from './tools/SummarizeAndExtractToolView';
-import { EventAndSpeechToolView } from './tools/EventAndSpeechToolView';
-import { MttqSpecializedToolView } from './tools/MttqSpecializedToolView';
-import { SmartUtilitiesToolView } from './tools/SmartUtilitiesToolView';
+import { ReportAndPlanToolView } from './tools/ReportAndPlanToolView';
+import { EventWorkspaceToolView } from './tools/EventWorkspaceToolView';
+import { SpeechAndScriptToolView } from './tools/SpeechAndScriptToolView';
+import { TaskTrackingToolView } from './tools/TaskTrackingToolView';
+import { LookupAndTemplatesToolView } from './tools/LookupAndTemplatesToolView';
 
 interface AiWorkspaceDashboardProps {
   onBackToOffice?: () => void;
@@ -74,6 +78,8 @@ interface AiWorkspaceDashboardProps {
 const getIcon = (iconName: string) => {
   const cls = "w-5 h-5";
   switch (iconName) {
+    case 'FileSearch': return <FileSearch className={cls} />;
+    case 'BookTemplate': return <BookTemplate className={cls} />;
     case 'FileCheck2': return <FileCheck2 className={cls} />;
     case 'PenTool': return <PenTool className={cls} />;
     case 'FileBarChart2': return <FileBarChart2 className={cls} />;
@@ -105,16 +111,22 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
   const [dossiers, setDossiers] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<AiAuditLog[]>([]);
-  const [favorites, setFavorites] = useState<AiToolId[]>(['proofread', 'draft_doc', 'advisory', 'report']);
+  const [favorites, setFavorites] = useState<AiToolId[]>(['read_process_doc', 'draft_proofread_doc', 'advisory', 'task_tracking']);
   const [workspaceContext, setWorkspaceContext] = useState<WorkspaceContextData>(aiWorkspaceService.getWorkspaceContext());
 
   // UI States
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<AiDocument | null>(null);
   const [isContextModalOpen, setIsContextModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Tool Detail Popup Modal & Launch States
+  const [modalTool, setModalTool] = useState<any | null>(null);
+  const [scenarioPrompt, setScenarioPrompt] = useState<string | undefined>(undefined);
+  const [shouldRestoreDraft, setShouldRestoreDraft] = useState<boolean>(false);
 
   // Load initial data
   const refreshData = () => {
@@ -140,9 +152,34 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleSelectTool = (toolId: AiToolId) => {
+  // When clicking any tool card or menu item: open Popup Detail Modal first!
+  const handleOpenToolModal = (toolId: AiToolId) => {
+    const tool = AI_TOOLS_CATALOG.find(t => t.id === toolId) || {
+      id: toolId,
+      name: toolId === 'draft_doc' ? 'Dự Thảo Văn Bản' : toolId === 'proofread' ? 'Rà Soát Thể Thức' : 'Công Cụ Tham Mưu AI',
+      shortDesc: 'Trợ lý thông minh hỗ trợ xử lý công việc Mặt trận Trận.',
+      group: 'group1_docs_dossier' as AiToolGroup,
+      iconName: 'PenTool',
+      badge: 'CHUẨN THỂ THỨC',
+      tags: ['Mặt trận', 'Tự động'],
+      suggestedPrompts: [
+        'Soạn Kế hoạch Ngày hội Đại đoàn kết',
+        'Soạn Tờ trình xin chủ trương kinh phí',
+        'Rà soát lỗi thể thức Nghị định 30'
+      ]
+    };
+    setModalTool(tool);
+  };
+
+  const handleLaunchToolDirectly = (toolId: AiToolId, prompt?: string, restoreDraft: boolean = false) => {
     setCurrentToolId(toolId);
+    setScenarioPrompt(prompt);
+    setShouldRestoreDraft(restoreDraft);
     setCurrentView('tool');
+  };
+
+  const handleSelectTool = (toolId: AiToolId) => {
+    handleOpenToolModal(toolId);
   };
 
   const handleToggleFavorite = (toolId: AiToolId) => {
@@ -165,40 +202,34 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
   // Group definitions
   const toolGroups: { id: AiToolGroup; title: string; desc: string; badge: string }[] = [
     {
-      id: 'group1_draft_proofread',
-      title: 'NHÓM 01 – SOẠN THẢO & KIỂM TRA VĂN BẢN',
-      desc: 'Chuẩn hóa thể thức Nghị định 30/2020/NĐ-CP, kiểm tra chính tả, văn phong và soạn thảo theo quy trình 5 bước.',
-      badge: '2 Công cụ'
+      id: 'group1_docs_dossier',
+      title: 'NHÓM 01 – VĂN BẢN & HỒ SƠ',
+      desc: 'Tự động tóm tắt 3 mức, bóc tách nhiệm vụ, dự thảo phiếu trình và kiểm tra thể thức Nghị định 30/2020/NĐ-CP.',
+      badge: '2 Công cụ cốt lõi'
     },
     {
-      id: 'group2_report_advisory',
-      title: 'NHÓM 02 – BÁO CÁO & THAM MƯU XỬ LÝ VĂN BẢN',
-      desc: 'Lập báo cáo định kỳ, thẩm định văn bản chỉ đạo cấp trên 9 phần, tóm tắt nhanh và bóc tách nhiệm vụ.',
-      badge: '4 Công cụ'
+      id: 'group2_advisory_report',
+      title: 'NHÓM 02 – THAM MƯU & TỔNG HỢP',
+      desc: 'Lập phiếu tham mưu 10 bước xử lý văn bản cấp trên và tạo báo cáo định kỳ/kế hoạch tối đa 3 bước.',
+      badge: '2 Công cụ cốt lõi'
     },
     {
-      id: 'group3_conference_event',
-      title: 'NHÓM 03 – HỘI NGHỊ, SỰ KIỆN & PHÁT BIỂU',
-      desc: 'Soạn thảo bài phát biểu theo mốc thời lượng, sinh trọn gói 7 tài liệu sự kiện và biên bản họp.',
-      badge: '3 Công cụ'
+      id: 'group3_meeting_event',
+      title: 'NHÓM 03 – HỌP, SỰ KIỆN & PHÁT BIỂU',
+      desc: 'Quản lý trọn gói 1 sự kiện qua 3 giai đoạn (trước, trong, sau) và soạn bài phát biểu/kịch bản MC.',
+      badge: '2 Công cụ cốt lõi'
     },
     {
-      id: 'group4_mttq_specialized',
-      title: 'NHÓM 04 – CÔNG CỤ NGHIỆP VỤ MTTQ CHUYÊN SÂU',
-      desc: 'Giám sát phản biện xã hội, phân loại dư luận nhân dân 10 lĩnh vực và tuyên truyền đa kênh.',
-      badge: '3 Công cụ'
-    },
-    {
-      id: 'group5_smart_utilities',
-      title: 'NHÓM 05 – CÔNG CỤ THÔNG MINH BỔ SUNG',
-      desc: 'So sánh văn bản đối chiếu, hỏi đáp có căn cứ điều khoản, ma trận kế hoạch 5W1H và checklist.',
-      badge: '4 Công cụ'
+      id: 'group4_task_operational',
+      title: 'NHÓM 04 – CÔNG VIỆC & ĐIỀU HÀNH',
+      desc: 'Theo dõi tiến độ nhiệm vụ 21 Khu phố và tra cứu thư viện mẫu biểu chuẩn Nghị định 30.',
+      badge: '2 Công cụ cốt lõi'
     }
   ];
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden text-slate-800 font-sans">
-      {/* 1. Left Professional Sidebar */}
+      {/* 1. Left Vertical Navigation Sidebar */}
       <AiWorkspaceSidebar
         currentView={currentView}
         currentToolId={currentToolId}
@@ -212,25 +243,23 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
         workspaceContext={workspaceContext}
         onOpenContextSettings={() => setIsContextModalOpen(true)}
         onBackToOffice={onBackToOffice}
+        isOpenMobile={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* 2. Main Workspace Center */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Top App Bar */}
-        <header className="h-14 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between shrink-0 shadow-2xs z-10">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Prominent Back to Admin Button */}
-            {onBackToOffice && (
-              <button
-                onClick={onBackToOffice}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-300 hover:border-blue-300 rounded-xl text-xs font-bold transition-all shrink-0 shadow-2xs group"
-                title="Quay lại giao diện Trang Quản Trị Văn Phòng Số"
-              >
-                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform text-blue-600" />
-                <span className="hidden sm:inline">Quay lại Trang Quản trị</span>
-                <span className="sm:hidden">Quản trị</span>
-              </button>
-            )}
+        {/* Top Title & Quick Action Bar */}
+        <header className="h-11 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between shrink-0 shadow-2xs z-10">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Mobile Hamburger Menu Toggle */}
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="p-1.5 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-slate-100 md:hidden transition-colors mr-1"
+              title="Mở Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
 
             {currentView !== 'dashboard' && (
               <button
@@ -241,11 +270,11 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
                 className="text-xs font-semibold text-slate-500 hover:text-blue-700 flex items-center gap-1 transition-colors shrink-0"
               >
                 <span>Tổng quan</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
               </button>
             )}
 
-            <h1 className="text-sm font-bold text-slate-900 truncate">
+            <h1 className="text-xs md:text-sm font-extrabold text-slate-900 truncate">
               {currentView === 'dashboard' && 'TRUNG TÂM TRỢ LÝ THAM MƯU AI'}
               {currentView === 'tool' && currentToolId && AI_TOOLS_CATALOG.find(t => t.id === currentToolId)?.name}
               {currentView === 'dossiers' && 'Hồ Sơ Công Việc Tham Mưu'}
@@ -259,35 +288,25 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
             {/* Quick Command Palette Launcher */}
             <button
               onClick={() => setIsPaletteOpen(true)}
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-medium transition-all border border-slate-200"
+              className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-medium transition-all border border-slate-200"
             >
               <Search className="w-3.5 h-3.5 text-blue-500" />
               <span>Tìm kiếm công cụ...</span>
-              <kbd className="px-1.5 py-0.5 bg-white rounded-md text-[10px] text-slate-400 border border-slate-200 font-mono">
+              <kbd className="px-1.5 py-0.2 bg-white rounded-md text-[10px] text-slate-400 border border-slate-200 font-mono">
                 Ctrl+K
               </kbd>
-            </button>
-
-            {/* Context Settings Button */}
-            <button
-              onClick={() => setIsContextModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 rounded-lg text-xs font-semibold border border-blue-200 transition-colors"
-              title="Cài đặt bối cảnh công tác"
-            >
-              <Layers className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden md:inline">Bối cảnh: {workspaceContext.eventName || 'Thường xuyên'}</span>
             </button>
 
             {/* Copilot Toggle Button */}
             <button
               onClick={() => setIsCopilotOpen(prev => !prev)}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-2xs ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-2xs ${
                 isCopilotOpen
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-700'
               }`}
             >
-              <Bot className="w-4 h-4 text-cyan-400" />
+              <Bot className="w-3.5 h-3.5 text-cyan-400" />
               <span className="hidden sm:inline">Trợ Lý Copilot</span>
             </button>
           </div>
@@ -298,6 +317,14 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
           {/* DASHBOARD VIEW */}
           {currentView === 'dashboard' && (
             <div className="h-full overflow-y-auto p-4 md:p-6 space-y-6">
+              {/* Draft Recovery Banner */}
+              <AiDraftRecoveryBanner
+                onOpenToolWithDraft={(toolId) => {
+                  handleLaunchToolDirectly(toolId, undefined, true);
+                }}
+                onRefresh={refreshData}
+              />
+
               {/* Official Hero Banner - Modern Tech Blue */}
               <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-indigo-950 text-white rounded-2xl p-6 md:p-7 shadow-xl relative overflow-hidden border border-blue-900/60">
                 <div className="relative z-10 max-w-3xl space-y-2.5">
@@ -432,64 +459,69 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
           {/* TOOL VIEWS ROUTING */}
           {currentView === 'tool' && currentToolId && (
             <div className="h-full">
-              {currentToolId === 'proofread' && (
-                <ProofreadToolView
-                  onSaveDocument={handleSaveDocument}
-                  onOpenHistory={() => setIsHistoryOpen(true)}
-                />
-              )}
-
-              {currentToolId === 'draft_doc' && (
-                <DraftingWizardToolView
+              {(currentToolId === 'read_process_doc' || currentToolId === 'summarize' || currentToolId === 'extract_tasks' || currentToolId === 'read_doc' || currentToolId === 'qa_document') && (
+                <ReadProcessDocToolView
                   onSaveDocument={handleSaveDocument}
                   workspaceContext={workspaceContext}
                   onOpenHistory={() => setIsHistoryOpen(true)}
+                  initialPrompt={scenarioPrompt}
+                  shouldRestoreDraft={shouldRestoreDraft}
+                  onNavigateToTask={() => {
+                    setCurrentToolId('task_tracking');
+                  }}
                 />
               )}
 
-              {currentToolId === 'report' && (
-                <ReportToolView
+              {(currentToolId === 'draft_proofread_doc' || currentToolId === 'draft_doc' || currentToolId === 'proofread' || currentToolId === 'drafting_wizard' || currentToolId === 'compare_docs') && (
+                <DraftAndProofreadDocToolView
                   onSaveDocument={handleSaveDocument}
+                  workspaceContext={workspaceContext}
                   onOpenHistory={() => setIsHistoryOpen(true)}
+                  initialPrompt={scenarioPrompt}
+                  shouldRestoreDraft={shouldRestoreDraft}
                 />
               )}
 
-              {currentToolId === 'advisory' && (
+              {(currentToolId === 'advisory' || currentToolId === 'advisory_tool') && (
                 <AdvisoryToolView
                   onSaveDocument={handleSaveDocument}
                   onOpenHistory={() => setIsHistoryOpen(true)}
                 />
               )}
 
-              {(currentToolId === 'summarize' || currentToolId === 'extract_tasks') && (
-                <SummarizeAndExtractToolView
-                  mode={currentToolId as any}
+              {(currentToolId === 'report_plan' || currentToolId === 'report' || currentToolId === 'work_plan') && (
+                <ReportAndPlanToolView
                   onSaveDocument={handleSaveDocument}
-                />
-              )}
-
-              {(currentToolId === 'speech' || currentToolId === 'conference' || currentToolId === 'meeting_minutes') && (
-                <EventAndSpeechToolView
-                  toolId={currentToolId as any}
                   workspaceContext={workspaceContext}
-                  onSaveDocument={handleSaveDocument}
                   onOpenHistory={() => setIsHistoryOpen(true)}
                 />
               )}
 
-              {(currentToolId === 'supervision' || currentToolId === 'public_opinion' || currentToolId === 'propaganda') && (
-                <MttqSpecializedToolView
-                  toolId={currentToolId as any}
+              {(currentToolId === 'event_workspace' || currentToolId === 'conference' || currentToolId === 'meeting_minutes') && (
+                <EventWorkspaceToolView
                   onSaveDocument={handleSaveDocument}
+                  workspaceContext={workspaceContext}
                   onOpenHistory={() => setIsHistoryOpen(true)}
                 />
               )}
 
-              {(currentToolId === 'compare_docs' || currentToolId === 'qa_document' || currentToolId === 'work_plan' || currentToolId === 'checklist') && (
-                <SmartUtilitiesToolView
-                  toolId={currentToolId as any}
+              {(currentToolId === 'speech_script' || currentToolId === 'speech') && (
+                <SpeechAndScriptToolView
                   onSaveDocument={handleSaveDocument}
+                  workspaceContext={workspaceContext}
                   onOpenHistory={() => setIsHistoryOpen(true)}
+                />
+              )}
+
+              {(currentToolId === 'task_tracking' || currentToolId === 'checklist') && (
+                <TaskTrackingToolView />
+              )}
+
+              {(currentToolId === 'lookup_templates' || currentToolId === 'supervision' || currentToolId === 'supervision_critique' || currentToolId === 'public_opinion' || currentToolId === 'propaganda') && (
+                <LookupAndTemplatesToolView
+                  onSelectTemplateToDraft={(templateTitle) => {
+                    handleLaunchToolDirectly('draft_proofread_doc', templateTitle, false);
+                  }}
                 />
               )}
             </div>
@@ -736,6 +768,17 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Tool Detail Interactive Popup Modal */}
+      <AiToolDetailModal
+        tool={modalTool}
+        isOpen={!!modalTool}
+        onClose={() => setModalTool(null)}
+        onLaunchTool={(toolId, prompt, restoreDraft) => {
+          handleLaunchToolDirectly(toolId, prompt, restoreDraft);
+        }}
+        workspaceContext={workspaceContext}
+      />
     </div>
   );
 };

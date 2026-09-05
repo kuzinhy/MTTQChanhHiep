@@ -123,9 +123,10 @@ interface NewsSectionProps {
   searchQuery: string;
   onSelectArticle: (article: Article) => void;
   onGoToOpinion?: () => void;
+  onOpenHcmSpaceModal?: () => void;
 }
 
-export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery, onSelectArticle, onGoToOpinion }) => {
+export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery, onSelectArticle, onGoToOpinion, onOpenHcmSpaceModal }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   const categories: { id: string; label: string }[] = [
@@ -545,27 +546,60 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
       <div className="p-6 sm:p-8 bg-gradient-to-br from-rose-50/90 via-pink-50/60 to-white rounded-3xl text-slate-900 shadow-xs border border-rose-200/80 space-y-6 relative overflow-hidden backdrop-blur-md">
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-rose-200/80 pb-5 relative z-10">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2.5 bg-gradient-to-br from-rose-600 to-pink-600 text-white rounded-2xl shadow-md border border-rose-300 shrink-0">
-              <BookOpen className="w-8 h-8" />
-            </div>
-            <div className="space-y-1">
-              <div className="text-[11px] font-black uppercase text-rose-800 bg-rose-100/90 border border-rose-200/80 px-3 py-0.5 rounded-full w-max flex items-center gap-1.5 shadow-2xs">
-                <span>🌸 CHUYÊN ĐỀ DÂN VẬN &amp; TƯ TƯỞNG BÁC</span>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            {/* Chân dung Chủ tịch Hồ Chí Minh trang trọng */}
+            <div 
+              className="relative shrink-0 group cursor-pointer" 
+              onClick={() => onOpenHcmSpaceModal && onOpenHcmSpaceModal()}
+              title="Mở Không gian văn hóa Hồ Chí Minh 3D"
+            >
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-500 shadow-xl ring-4 ring-rose-200/90 overflow-hidden relative">
+                <img
+                  src="https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png"
+                  alt="Chủ tịch Hồ Chí Minh (1890 - 1969)"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover object-top rounded-full group-hover:scale-105 transition-transform duration-500"
+                />
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-rose-950 tracking-tight flex items-center gap-2">
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-rose-600 text-amber-100 font-black text-[9.5px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap border border-amber-200 tracking-wider">
+                1890 — 1969
+              </div>
+            </div>
+
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="text-[11px] font-black uppercase text-rose-800 bg-rose-100/90 border border-rose-200/80 px-3 py-0.5 rounded-full w-max flex items-center gap-1.5 shadow-2xs mx-auto sm:mx-0">
+                <LotusFlowerIcon className="w-3.5 h-3.5 text-rose-600" />
+                <span>KHÔNG GIAN VĂN HÓA HỒ CHÍ MINH SỐ</span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-black text-rose-950 tracking-tight flex items-center gap-2 justify-center sm:justify-start">
                 HỌC TẬP VÀ LÀM THEO TƯ TƯỞNG, ĐẠO ĐỨC, PHONG CÁCH HỒ CHÍ MINH
               </h2>
+              <p className="text-xs text-rose-900/90 font-medium">
+                Chủ tịch Hồ Chí Minh — Lãnh tụ vĩ đại của dân tộc, Anh hùng giải phóng dân tộc, Danh nhân văn hóa thế giới
+              </p>
             </div>
           </div>
 
-          <div className="bg-rose-100/60 border border-rose-200/90 p-3.5 rounded-2xl text-rose-950 text-xs italic font-medium max-w-lg space-y-1 shadow-2xs">
-            <div className="text-rose-800 font-extrabold not-italic text-[11px] flex items-center gap-1">
-              <span>★ Không gian văn hóa Hồ Chí Minh Số tại 21 Khu phố</span>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="bg-rose-100/70 border border-rose-200/90 p-3.5 rounded-2xl text-rose-950 text-xs italic font-medium max-w-md space-y-1 shadow-2xs">
+              <div className="text-rose-800 font-extrabold not-italic text-[11px] flex items-center gap-1">
+                <span>★ Không gian văn hóa Hồ Chí Minh Số tại 21 Khu phố</span>
+              </div>
+              <p className="text-rose-900/90 leading-relaxed">
+                "Tháp Mười đẹp nhất bông sen - Việt Nam đẹp nhất có tên Bác Hồ" — Lan tỏa nếp sống văn minh, mô hình "Dân vận khéo" số hóa tại phường Chánh Hiệp.
+              </p>
             </div>
-            <p className="text-rose-900/90 leading-relaxed">
-              "Tháp Mười đẹp nhất bông sen - Việt Nam đẹp nhất có tên Bác Hồ" — Lan tỏa nếp sống văn minh, mô hình "Dân vận khéo" số hóa tại phường Chánh Hiệp.
-            </p>
+
+            {onOpenHcmSpaceModal && (
+              <button
+                onClick={onOpenHcmSpaceModal}
+                className="px-4 py-3 bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-extrabold text-xs rounded-2xl shadow-md border border-amber-300/40 flex items-center justify-center gap-2 shrink-0 transition-all active:scale-95 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
+                <span>Khám phá Bảo tàng 3D</span>
+                <ChevronRight className="w-4 h-4 text-amber-200" />
+              </button>
+            )}
           </div>
         </div>
 

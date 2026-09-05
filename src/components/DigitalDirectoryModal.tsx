@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Phone, Mail, Search, MapPin, UserCheck, Shield, ExternalLink, X, Building, MessageCircle } from 'lucide-react';
 import { OFFICIAL_21_NEIGHBORHOODS } from '../data/neighborhoodsList';
+import { AppStorageEngine } from '../lib/storage';
 
 interface ContactItem {
   id: string;
@@ -13,7 +14,7 @@ interface ContactItem {
   category: 'BOARD' | 'NEIGHBORHOOD' | 'ORGANIZATION';
 }
 
-const DIRECTORY_DATA: ContactItem[] = [
+const STATIC_DIRECTORY_DATA: ContactItem[] = [
   // Ban Thường trực
   { id: '1', name: 'Nguyễn Văn Minh', position: 'Chủ tịch Ủy ban MTTQ', unit: 'Thường trực MTTQ Phường', phone: '0912.345.678', email: 'mttq.chanhhiep@hochiminhcity.gov.vn', category: 'BOARD' },
   { id: '2', name: 'Trần Thị Thu Thảo', position: 'Phó Chủ tịch Thường trực', unit: 'Thường trực MTTQ Phường', phone: '0988.765.432', email: 'thaott.mttq@hochiminhcity.gov.vn', category: 'BOARD' },
@@ -27,13 +28,7 @@ const DIRECTORY_DATA: ContactItem[] = [
     unit: `Khu phố ${n.name}`,
     phone: n.phone,
     category: 'NEIGHBORHOOD' as const
-  })),
-
-  // Tổ chức thành viên
-  { id: 'org_1', name: 'Đoàn Thanh niên Phường Chánh Hiệp', position: 'Bí thư Đoàn Phường', unit: 'Đoàn TNCS Hồ Chí Minh', phone: '0274.3822.111', category: 'ORGANIZATION' },
-  { id: 'org_2', name: 'Hội Liên hiệp Phụ nữ Phường', position: 'Chủ tịch Hội Phụ nữ', unit: 'Hội LHPN Phường', phone: '0274.3822.222', category: 'ORGANIZATION' },
-  { id: 'org_3', name: 'Hội Cựu chiến binh Phường', position: 'Chủ tịch Hội Cựu chiến binh', unit: 'Hội CCB Phường', phone: '0274.3822.333', category: 'ORGANIZATION' },
-  { id: 'org_4', name: 'Hội Chữ thập đỏ Phường', position: 'Chủ tịch Hội Chữ thập đỏ', unit: 'Hội CTĐ Phường', phone: '0274.3822.444', category: 'ORGANIZATION' },
+  }))
 ];
 
 interface DigitalDirectoryModalProps {
@@ -45,9 +40,24 @@ export const DigitalDirectoryModal: React.FC<DigitalDirectoryModalProps> = ({ is
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState<'ALL' | 'BOARD' | 'NEIGHBORHOOD' | 'ORGANIZATION'>('ALL');
 
+  const directoryData = useMemo<ContactItem[]>(() => {
+    const memberOrgs = AppStorageEngine.getMemberOrganizations();
+    const dynamicOrgContacts: ContactItem[] = memberOrgs.map(org => ({
+      id: org.id,
+      name: org.leaderName || org.name,
+      position: org.leaderPosition || 'Lãnh đạo đơn vị',
+      unit: org.shortName || org.name,
+      phone: org.phone || '',
+      email: org.email || '',
+      category: 'ORGANIZATION' as const
+    }));
+
+    return [...STATIC_DIRECTORY_DATA, ...dynamicOrgContacts];
+  }, []);
+
   if (!isOpen) return null;
 
-  const filtered = DIRECTORY_DATA.filter((item) => {
+  const filtered = directoryData.filter((item) => {
     const matchesTab = selectedTab === 'ALL' || item.category === selectedTab;
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

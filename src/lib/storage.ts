@@ -69,7 +69,7 @@ const STORAGE_KEYS = {
   AI_CHATS: 'mttq_chanhhiep_ai_chats_v2',
   KNOWLEDGE_NOTES: 'mttq_chanhhiep_knowledge_notes_v2',
   MAP_LOCATIONS: 'mttq_chanhhiep_map_locations_v2',
-  MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v4',
+  MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v5',
   AREAS: 'mttq_chanhhiep_areas_v3',
   ORGANIZATIONS: 'mttq_chanhhiep_organizations_v4',
   NEIGHBORHOODS_MIGRATION_V3: 'mttq_chanhhiep_migration_ward_only_v7'
@@ -515,29 +515,28 @@ export const AppStorageEngine = {
     // 3. XỬ LÝ TOÀN VẸN DỮ LIỆU MEMBER ORGANIZATIONS (TỔ CHỨC CẤP PHƯỜNG)
     let currentOrgs: MemberOrganization[] = [];
     try {
-      currentOrgs = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, INITIAL_MEMBER_ORGANIZATIONS);
+      currentOrgs = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, []);
     } catch {
-      currentOrgs = INITIAL_MEMBER_ORGANIZATIONS;
+      currentOrgs = [];
     }
+
+    const AI_SEEDS = new Set([
+      'org-dtn', 'org-lhph', 'org-ccb', 'org-congdoan', 'org-nct', 'org-hkh', 'org-tnxp', 'org-luat-gia',
+      'mem-org-1', 'mem-org-2', 'mem-org-3', 'mem-org-4'
+    ]);
 
     let memberOrgsUpdated = 0;
     let orphanedMemberOrgsResolved = 0;
     const processedOrgMap = new Map<string, MemberOrganization>();
 
-    // Chỉ nạp các tổ chức cấp phường chuẩn
-    INITIAL_MEMBER_ORGANIZATIONS.forEach(org => {
-      processedOrgMap.set(org.id, { ...org });
-    });
-
-    // Áp dụng dữ liệu người dùng đã lưu (chỉ giữ cấp phường)
+    // Áp dụng dữ liệu người dùng đã lưu (loại bỏ các tổ chức AI tạo sẵn)
     (currentOrgs || []).forEach(org => {
-      if (!org || !org.id) return;
+      if (!org || !org.id || AI_SEEDS.has(org.id)) return;
       // Bỏ qua nếu là cấp khu phố cũ
       if (org.id.startsWith('org-bctmt-kp') || org.id.startsWith('org-branch-') || org.level === 'NEIGHBORHOOD') {
         return;
       }
-      const existing = processedOrgMap.get(org.id) || org;
-      processedOrgMap.set(org.id, { ...existing, ...org });
+      processedOrgMap.set(org.id, { ...org });
     });
 
     // Rà soát từng tổ chức để đảm bảo ràng buộc
@@ -971,34 +970,22 @@ export const AppStorageEngine = {
   getMemberOrganizations: (): MemberOrganization[] => {
     if (typeof window !== 'undefined') {
       try {
+        localStorage.removeItem('mttq_chanhhiep_member_orgs_v4');
+        localStorage.removeItem('mttq_chanhhiep_member_orgs_v3');
         localStorage.removeItem('mttq_chanhhiep_member_orgs_v2');
         localStorage.removeItem('mttq_chanhhiep_member_orgs_v1');
       } catch {
         // ignore
       }
     }
-    const raw = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, INITIAL_MEMBER_ORGANIZATIONS);
+    const AI_SEEDS = new Set([
+      'org-dtn', 'org-lhph', 'org-ccb', 'org-congdoan', 'org-nct', 'org-hkh', 'org-tnxp', 'org-luat-gia',
+      'mem-org-1', 'mem-org-2', 'mem-org-3', 'mem-org-4'
+    ]);
+    const raw = loadInitialData(STORAGE_KEYS.MEMBER_ORGANIZATIONS, []);
     const validAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
-    const orgMap = new Map<string, MemberOrganization>();
-    INITIAL_MEMBER_ORGANIZATIONS.forEach(o => {
-      if (o && o.id) orgMap.set(o.id, o);
-    });
-    (raw || []).forEach(o => {
-      if (o && o.id) {
-        // Ensure valid areaId or ward level
-        if (!o.areaId || validAreaIds.has(o.areaId)) {
-          const canonical = orgMap.get(o.id);
-          orgMap.set(o.id, { 
-            ...(canonical || {}), 
-            ...o,
-            name: canonical?.name || o.name,
-            shortName: canonical?.shortName || o.shortName,
-            areaName: canonical?.areaName || o.areaName
-          });
-        }
-      }
-    });
-    return Array.from(orgMap.values()).sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
+    const cleanList = (raw || []).filter(o => o && o.id && !AI_SEEDS.has(o.id) && (!o.areaId || validAreaIds.has(o.areaId)));
+    return cleanList.sort((a, b) => (a.displayOrder || 99) - (b.displayOrder || 99));
   },
 
   saveMemberOrganizations: (orgs: MemberOrganization[]) => {
