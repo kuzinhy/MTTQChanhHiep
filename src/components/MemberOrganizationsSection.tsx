@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { MemberOrganization } from '../types';
+import { OptimizedImage } from './common/OptimizedImage';
 
 interface MemberOrganizationsSectionProps {
   organizations?: MemberOrganization[];
@@ -243,13 +244,11 @@ export const MemberOrganizationsSection: React.FC<MemberOrganizationsSectionProp
                 <div className="space-y-3.5">
                   <div className="flex items-start gap-3.5">
                     <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-xs p-1 flex items-center justify-center">
-                      <img 
+                      <OptimizedImage 
                         src={org.avatarUrl || getOfficialCadreAvatarSvg(org.name, org.shortName)} 
                         alt={org.name} 
+                        variant="avatar"
                         className="w-full h-full object-contain rounded-xl"
-                        onError={(e) => {
-                          e.currentTarget.src = getOfficialCadreAvatarSvg(org.name, org.shortName);
-                        }}
                       />
                     </div>
                     <div className="flex-1 min-w-0">

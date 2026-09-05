@@ -37,6 +37,7 @@ import {
 import { DongSonDrumIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal, EditableHcmItemType } from './UniversalHcmEditorModal';
 import { QrCodeModal } from '../QrCodeModal';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 interface HcmChanhHiepActionProps {
   isAdmin?: boolean;
@@ -262,14 +263,11 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                     {/* Ảnh minh họa mô hình */}
                     {displayImage && (
                       <div className="relative h-48 w-full overflow-hidden bg-rose-950">
-                        <img
+                        <OptimizedImage
                           src={displayImage}
                           alt={model.title}
-                          referrerPolicy="no-referrer"
+                          variant="card"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
                         />
                         <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-rose-950/80 text-amber-200 text-xs font-bold border border-rose-300/40 backdrop-blur-sm">
                           {model.targetGroup}

@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Article } from '../types';
 import { sortArticlesNewestFirst } from '../lib/dateUtils';
-import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
-import { ARTICLE_BANNERS } from '../utils/officialImages';
+import { getGoogleDriveDirectImageUrl, handleImageError } from '../lib/googleDriveService';
+import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
+import { OptimizedImage } from './common/OptimizedImage';
 import { 
   Calendar, 
   Eye, 
@@ -310,9 +311,12 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               className="lg:col-span-7 group cursor-pointer space-y-3 flex flex-col justify-between hover:shadow-lg p-2.5 rounded-2xl transition-all duration-300 bg-white"
             >
               <div className="relative h-64 sm:h-80 md:h-[360px] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
-                <img
-                  src={getGoogleDriveDirectImageUrl(mainHero.featuredImage) || ARTICLE_BANNERS.default}
+                <OptimizedImage
+                  src={mainHero.featuredImage}
                   alt={mainHero.title}
+                  variant="article"
+                  fallbackCategory={mainHero.category}
+                  priority={true}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 
@@ -384,9 +388,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                       className="p-2.5 bg-white hover:bg-blue-50/60 rounded-xl border border-slate-200/80 hover:border-blue-300 hover:shadow-md cursor-pointer flex gap-3 items-center transition-all duration-200 group/item shrink-0 shadow-2xs"
                     >
                       <div className="w-20 h-16 sm:w-24 sm:h-18 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80 relative shadow-2xs">
-                        <img
-                          src={getGoogleDriveDirectImageUrl(item.featuredImage) || ARTICLE_BANNERS.default}
+                        <OptimizedImage
+                          src={item.featuredImage}
                           alt={item.title}
+                          variant="thumbnail"
+                          fallbackCategory={item.category}
                           className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
                         />
                       </div>
@@ -489,9 +495,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
             >
               {/* CLEAR IMAGE CONTAINER */}
               <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-slate-100">
-                <img
-                  src={getGoogleDriveDirectImageUrl(article.featuredImage) || ARTICLE_BANNERS.default}
+                <OptimizedImage
+                  src={article.featuredImage}
                   alt={article.title}
+                  variant="card"
+                  fallbackCategory={article.category}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-xs ${getCategoryBadgeStyle(article.category)}`}>
@@ -554,10 +562,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               title="Mở Không gian văn hóa Hồ Chí Minh 3D"
             >
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-500 shadow-xl ring-4 ring-rose-200/90 overflow-hidden relative">
-                <img
+                <OptimizedImage
                   src="https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png"
                   alt="Chủ tịch Hồ Chí Minh (1890 - 1969)"
-                  referrerPolicy="no-referrer"
+                  variant="avatar"
+                  priority={true}
                   className="w-full h-full object-cover object-top rounded-full group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -623,9 +632,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               >
                 <div className="space-y-3">
                   <div className="h-36 rounded-xl overflow-hidden bg-rose-100 border border-rose-200 relative">
-                    <img
-                      src={getGoogleDriveDirectImageUrl(item.featuredImage) || ARTICLE_BANNERS.hoctapbac}
+                    <OptimizedImage
+                      src={item.featuredImage}
                       alt={item.title}
+                      variant="card"
+                      fallbackCategory="Học tập và làm theo Bác"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-2 left-2 bg-rose-600 text-white font-black text-[9.5px] px-2.5 py-0.5 rounded-md uppercase shadow-xs flex items-center gap-1 border border-rose-400">
@@ -688,9 +699,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               className="p-4 bg-slate-50 hover:bg-blue-50/70 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer flex gap-3.5 items-center group"
             >
               <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-200 border border-slate-200">
-                <img
-                  src={getGoogleDriveDirectImageUrl(art.featuredImage)}
+                <OptimizedImage
+                  src={art.featuredImage}
                   alt={art.title}
+                  variant="thumbnail"
+                  fallbackCategory={art.category}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 />
               </div>

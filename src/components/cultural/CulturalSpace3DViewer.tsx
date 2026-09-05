@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CulturalSpace3DLanding } from './CulturalSpace3DLanding';
 import { Play, ArrowLeft, Layers, Volume2, VolumeX, Maximize2, Compass, Shield, Sparkles, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 interface CulturalSpace3DViewerProps {
   onBackToPortal: () => void;
@@ -135,7 +136,7 @@ export const CulturalSpace3DViewer: React.FC<CulturalSpace3DViewerProps> = ({ on
                   onClick={() => setSelectedExhibit(ex)}
                   className="bg-slate-800/80 hover:bg-slate-750 border border-slate-700/80 p-3 rounded-2xl cursor-pointer transition-all hover:border-amber-400/60 shadow-md group flex items-center gap-3"
                 >
-                  <img src={ex.image} alt={ex.title} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/20" />
+                  <OptimizedImage src={ex.image} alt={ex.title} variant="thumbnail" className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/20" />
                   <div className="min-w-0 flex-1">
                     <h5 className="text-xs font-bold text-white truncate group-hover:text-amber-300 transition-colors">{ex.title}</h5>
                     <p className="text-[10px] text-slate-400 truncate mt-0.5">{ex.desc}</p>
@@ -182,7 +183,7 @@ export const CulturalSpace3DViewer: React.FC<CulturalSpace3DViewerProps> = ({ on
               ✕
             </button>
 
-            <img src={selectedExhibit.image} alt={selectedExhibit.title} className="w-full h-56 object-cover rounded-2xl border border-slate-700" />
+            <OptimizedImage src={selectedExhibit.image} alt={selectedExhibit.title} variant="card" priority={true} className="w-full h-56 object-cover rounded-2xl border border-slate-700" />
 
             <div className="space-y-2">
               <h3 className="text-lg font-black text-amber-300">{selectedExhibit.title}</h3>

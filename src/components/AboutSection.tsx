@@ -17,6 +17,7 @@ import {
 import { motion } from 'motion/react';
 import { getOfficialCadreAvatarSvg } from '../utils/officialImages';
 import { loadStoredAboutData, AboutPageData } from '../lib/aboutDataStore';
+import { OptimizedImage } from './common/OptimizedImage';
 
 export const AboutSection: React.FC<{
   onGoToTab?: (tab: string) => void;
@@ -106,7 +107,7 @@ export const AboutSection: React.FC<{
                 }`}
               >
                 <div className={`w-16 h-16 rounded-2xl bg-slate-200 overflow-hidden mx-auto mb-2 border ${isLeader ? 'border-2 border-red-300' : 'border-slate-300'}`}>
-                  <img src={avatar} alt={m.name} className="w-full h-full object-cover" />
+                  <OptimizedImage src={avatar} alt={m.name} variant="avatar" className="w-full h-full object-cover" />
                 </div>
                 <div className="text-center space-y-1">
                   <span className={`inline-block px-2 py-0.5 rounded-md font-extrabold text-[10px] ${isLeader ? 'bg-red-700 text-white' : 'bg-slate-200 text-slate-800'}`}>

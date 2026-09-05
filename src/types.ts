@@ -47,13 +47,27 @@ export type ArticleCategory =
 
 export type ArticleStatus = 'Draft' | 'Pending Review' | 'Approved' | 'Published' | 'Archived';
 
+export interface CloudinaryImageMeta {
+  url: string;
+  secureUrl: string;
+  publicId: string;
+  assetId?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  bytes?: number;
+  alt?: string;
+  caption?: string;
+}
+
 export interface Article {
   id: string;
   title: string;
   slug: string;
   summary: string;
   content: string;
-  featuredImage?: string;
+  featuredImage?: string | CloudinaryImageMeta;
+  featuredImageMeta?: CloudinaryImageMeta;
   category: ArticleCategory;
   tags: string[];
   status: ArticleStatus;

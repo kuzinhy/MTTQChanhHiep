@@ -7,6 +7,7 @@ import { auth } from '../../lib/firebase';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { CloudDatabase } from '../../lib/firestoreService';
 import { AppStorageEngine } from '../../lib/storage';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 // Local storage key to sync activity across tabs
 const ACTIVITY_STORAGE_KEY = 'last_office_activity_timestamp';
@@ -333,11 +334,11 @@ export const SessionLockScreen: React.FC<SessionLockScreenProps> = ({
 
                 {/* Locked user card profile */}
                 <div className="w-full p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-center gap-3">
-                  <img
+                  <OptimizedImage
                     src={currentUser.avatar || getOfficialCadreAvatarSvg(currentUser.fullname, currentUser.position)}
                     alt="avatar"
+                    variant="avatar"
                     className="w-11 h-11 rounded-xl object-cover shrink-0 border border-slate-200"
-                    referrerPolicy="no-referrer"
                   />
                   <div className="text-left overflow-hidden">
                     <div className="font-extrabold text-slate-900 text-xs truncate">{currentUser.fullname}</div>

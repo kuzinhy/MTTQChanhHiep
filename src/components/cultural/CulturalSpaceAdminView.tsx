@@ -45,6 +45,7 @@ import {
   loadStoredVersions,
   recordVersionChange
 } from '../../data/hcmGovernanceSchema';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 export const CulturalSpaceAdminView: React.FC = () => {
   // Navigation Tabs: 7 Required Menus
@@ -455,10 +456,11 @@ export const CulturalSpaceAdminView: React.FC = () => {
                 Chân dung Bác Hồ (Ảnh tư liệu chính thức)
               </label>
               <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 aspect-3/4 flex items-center justify-center">
-                <img
+                <OptimizedImage
                   src={coverConfig.portrait_url}
                   alt={coverConfig.portrait_caption}
-                  referrerPolicy="no-referrer"
+                  variant="card"
+                  priority={true}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
@@ -663,10 +665,10 @@ export const CulturalSpaceAdminView: React.FC = () => {
                 className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm flex flex-col justify-between"
               >
                 <div className="relative h-44 bg-slate-900">
-                  <img
+                  <OptimizedImage
                     src={media.file}
                     alt={media.alt}
-                    referrerPolicy="no-referrer"
+                    variant="card"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 left-2">

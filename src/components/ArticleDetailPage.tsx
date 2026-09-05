@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Article } from '../types';
-import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
-import { ARTICLE_BANNERS } from '../utils/officialImages';
+import { getGoogleDriveDirectImageUrl, handleImageError } from '../lib/googleDriveService';
+import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
+import { OptimizedImage } from './common/OptimizedImage';
+import { ImageLightboxModal } from './common/ImageLightboxModal';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -49,6 +51,8 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   const [commentText, setCommentText] = useState('');
   const [commentName, setCommentName] = useState('');
   const [commentSubmitted, setCommentSubmitted] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxTitle, setLightboxTitle] = useState<string | undefined>(undefined);
 
   const safeArticles: Article[] = Array.isArray(allArticles) ? allArticles : (Array.isArray(articles) ? articles : []);
 
@@ -219,15 +223,23 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
           {/* Featured Image */}
           {article.featuredImage && (
             <div className="space-y-2">
-              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-900">
-                <img
-                  src={getGoogleDriveDirectImageUrl(article.featuredImage)}
+              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-900 group">
+                <OptimizedImage
+                  src={article.featuredImage}
                   alt={article.title}
-                  className="w-full max-h-[460px] object-cover"
+                  variant="article"
+                  fallbackCategory={article.category}
+                  priority={true}
+                  enableLightbox={true}
+                  onOpenLightbox={(origUrl) => {
+                    setLightboxImage(origUrl);
+                    setLightboxTitle(article.title);
+                  }}
+                  className="w-full max-h-[560px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
                 />
               </div>
               <p className="text-[11px] text-slate-500 italic text-center">
-                Hình ảnh hoạt động thực tế tại Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Hồ Chí Minh.
+                Hình ảnh hoạt động thực tế tại Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Hồ Chí Minh. (Nhấp vào ảnh để xem bản gốc độ phân giải cao)
               </p>
             </div>
           )}
@@ -238,9 +250,16 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
           </div>
 
           {/* Article Main Text Content */}
-          <div className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-relaxed whitespace-pre-line space-y-5 font-normal">
-            {article.content}
-          </div>
+          {article.content && /<[a-z][\s\S]*>/i.test(article.content) ? (
+            <div 
+              className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-relaxed space-y-5 font-normal [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-2xl [&_img]:my-4 [&_img]:shadow-sm [&_img]:border [&_img]:border-slate-200"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
+          ) : (
+            <div className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-relaxed whitespace-pre-line space-y-5 font-normal">
+              {article.content}
+            </div>
+          )}
 
           {/* Tags list */}
           {article.tags && article.tags.length > 0 && (
@@ -428,9 +447,11 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                     className="p-3 rounded-2xl hover:bg-blue-50/70 border border-transparent hover:border-blue-200 transition-all cursor-pointer group flex gap-3 items-center"
                   >
                     <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
-                      <img
-                        src={getGoogleDriveDirectImageUrl(rel.featuredImage) || ARTICLE_BANNERS.default}
+                      <OptimizedImage
+                        src={rel.featuredImage}
                         alt={rel.title}
+                        variant="thumbnail"
+                        fallbackCategory={rel.category}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
                     </div>
@@ -545,6 +566,17 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
         </div>
 
       </div>
+
+      {/* High-Resolution Master Image Lightbox Modal */}
+      <ImageLightboxModal
+        isOpen={!!lightboxImage}
+        imageUrl={lightboxImage}
+        title={lightboxTitle}
+        onClose={() => {
+          setLightboxImage(null);
+          setLightboxTitle(undefined);
+        }}
+      />
     </motion.div>
   );
 };

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { auth } from '../../lib/firebase';
 import { CloudDatabase } from '../../lib/firestoreService';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -381,9 +382,11 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
           <div className="flex items-center justify-between pb-3.5 border-b border-slate-200">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-slate-900 p-2 flex items-center justify-center shrink-0 shadow-md ring-2 ring-blue-600/30">
-                <img
+                <OptimizedImage
                   src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
                   alt="Logo MTTQ"
+                  variant="thumbnail"
+                  priority={true}
                   className="w-full h-full object-contain filter drop-shadow-sm"
                 />
               </div>

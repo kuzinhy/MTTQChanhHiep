@@ -337,19 +337,62 @@ export function getGoogleDriveDirectDownloadUrl(urlOrId: string | undefined | nu
   return trimmed;
 }
 
+import { CloudinaryImageMeta } from '../types';
+import { ARTICLE_BANNERS } from '../utils/officialImages';
+
 /**
- * Converts a Google Drive share link, view link, or file ID into a direct embeddable image URL
+ * Converts a Google Drive share link, view link, Cloudinary image meta, or file ID into a high-resolution direct image URL
  */
-export function getGoogleDriveDirectImageUrl(urlOrId: string | undefined | null): string {
+export function getGoogleDriveDirectImageUrl(urlOrId: string | CloudinaryImageMeta | undefined | null): string {
   if (!urlOrId) return '';
-  if (urlOrId.startsWith('data:image/') || urlOrId.startsWith('blob:')) return urlOrId;
+  if (typeof urlOrId === 'object') {
+    return urlOrId.secureUrl || urlOrId.url || '';
+  }
+  const trimmed = urlOrId.trim();
+  if (!trimmed) return '';
+
+  if (trimmed.startsWith('data:image/') || trimmed.startsWith('blob:')) return trimmed;
 
   // Extract file ID from google drive URLs if applicable
   // e.g. https://drive.google.com/file/d/1ABCXYZ/view or https://drive.google.com/uc?id=1ABCXYZ
-  const fileId = extractGoogleDriveFileId(urlOrId);
+  const fileId = extractGoogleDriveFileId(trimmed);
   if (fileId) {
-    return `https://lh3.googleusercontent.com/d/${fileId}`;
+    // Adding =w2000 parameter forces Google Drive CDN to serve a sharp, high-resolution 2000px image
+    return `https://lh3.googleusercontent.com/d/${fileId}=w2000`;
   }
-  return urlOrId;
+
+  // Handle uc?export=view or uc?id=... Google Drive links
+  if (trimmed.includes('drive.google.com/uc?')) {
+    const match = trimmed.match(/id=([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://lh3.googleusercontent.com/d/${match[1]}=w2000`;
+    }
+  }
+
+  return trimmed;
+}
+
+/**
+ * Universal error handler for <img> tags to handle broken links or Google Drive CDN rate limits
+ */
+export function handleImageError(
+  e: React.SyntheticEvent<HTMLImageElement, Event>,
+  fallbackCategoryBanner?: string
+): void {
+  const target = e.currentTarget;
+  if (target.dataset.errorHandled === 'true') return;
+
+  const currentSrc = target.src;
+  const fileId = extractGoogleDriveFileId(currentSrc);
+
+  if (fileId && !target.dataset.triedHighResThumbnail) {
+    target.dataset.triedHighResThumbnail = 'true';
+    // High-resolution thumbnail fallback (sz=w2000)
+    target.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w2000`;
+    return;
+  }
+
+  target.dataset.errorHandled = 'true';
+  target.src = fallbackCategoryBanner || ARTICLE_BANNERS.default;
 }
 

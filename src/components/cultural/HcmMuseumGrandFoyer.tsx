@@ -40,6 +40,7 @@ import {
 } from '../../data/hcmGovernanceSchema';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon, TraditionalBorderPattern } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 interface HcmMuseumGrandFoyerProps {
   onNavigateTab: (tabId: string) => void;
@@ -134,10 +135,11 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
           <div className="flex-shrink-0 flex flex-col items-center text-center">
             <div className="relative group">
               <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-full overflow-hidden p-1.5 bg-gradient-to-tr from-amber-400 via-rose-300 to-amber-500 shadow-2xl ring-4 ring-rose-300/50">
-                <img
+                <OptimizedImage
                   src={coverConfig.portrait_url}
                   alt={coverConfig.portrait_caption}
-                  referrerPolicy="no-referrer"
+                  variant="avatar"
+                  priority={true}
                   className="w-full h-full object-cover object-top rounded-full filter contrast-[1.03] transition-transform duration-700 group-hover:scale-105"
                 />
               </div>

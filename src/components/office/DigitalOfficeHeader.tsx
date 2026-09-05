@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getRoleBadgeStyle, getRoleLabel } from '../../lib/rbac';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { UserRole } from '../../types';
 import { browserNotificationService } from '../../lib/browserNotifications';
 
@@ -118,9 +119,11 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
           </button>
         )}
         <div className="hidden xs:flex w-8 h-8 rounded-lg bg-white p-0.5 items-center justify-center shrink-0 border border-slate-200 shadow-2xs">
-          <img
+          <OptimizedImage
             src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
             alt="Logo MTTQ"
+            variant="thumbnail"
+            priority={true}
             className="w-full h-full object-contain"
           />
         </div>
@@ -294,7 +297,7 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
             <div className="relative">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black flex items-center justify-center text-xs shadow-xs overflow-hidden border border-white">
                 {staffAvatar ? (
-                  <img src={staffAvatar} alt={staffName} className="w-full h-full object-cover" />
+                  <OptimizedImage src={staffAvatar} alt={staffName} variant="avatar" className="w-full h-full object-cover" />
                 ) : (
                   <span>{staffName ? staffName.charAt(0) : 'CB'}</span>
                 )}
@@ -326,7 +329,7 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white/20 p-0.5 overflow-hidden border border-white/50 shrink-0">
                       {staffAvatar ? (
-                        <img src={staffAvatar} alt={staffName} className="w-full h-full object-cover rounded-lg" />
+                        <OptimizedImage src={staffAvatar} alt={staffName} variant="avatar" className="w-full h-full object-cover rounded-lg" />
                       ) : (
                         <div className="w-full h-full bg-white text-blue-700 font-black flex items-center justify-center rounded-lg">
                           {staffName.charAt(0)}

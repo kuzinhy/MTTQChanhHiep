@@ -41,6 +41,7 @@ import { FrontInitiative, ChanhHiepActionModel, FRONT_INITIATIVE_DATA } from '..
 import { loadStoredInitiatives, saveStoredInitiatives, loadStoredChanhHiepActions } from '../lib/hcmDataStore';
 import { UniversalHcmEditorModal } from './cultural/UniversalHcmEditorModal';
 import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
+import { OptimizedImage } from './common/OptimizedImage';
 
 interface InitiativesSectionProps {
   isAdmin?: boolean;
@@ -322,10 +323,11 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
         <article className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden space-y-6">
           {/* Cover Header Image */}
           <div className="relative h-64 sm:h-80 md:h-96 w-full bg-slate-950 overflow-hidden">
-            <img
-              src={cardImg}
+            <OptimizedImage
+              src={selectedArticleDetail.imageUrl || cardImg}
               alt={selectedArticleDetail.title}
-              referrerPolicy="no-referrer"
+              variant="article"
+              priority={true}
               className="w-full h-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = createVietnameseBannerSvg(selectedArticleDetail.title, selectedArticleDetail.unit);
@@ -557,10 +559,10 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                   >
                     <div className="space-y-3">
                       <div className="h-36 w-full bg-slate-900 relative overflow-hidden">
-                        <img
-                          src={relImg}
+                        <OptimizedImage
+                          src={rel.imageUrl || relImg}
                           alt={rel.title}
-                          referrerPolicy="no-referrer"
+                          variant="card"
                           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
                         <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-md bg-blue-600/90 backdrop-blur-md text-white font-bold text-[10px]">
@@ -869,10 +871,10 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                 <div className="flex items-center gap-3 min-w-0 flex-1 w-full sm:w-auto">
                   {/* Thumbnail Image */}
                   <div className="relative w-20 h-16 sm:w-28 sm:h-20 rounded-xl bg-slate-900 overflow-hidden shrink-0 shadow-2xs">
-                    <img
-                      src={cardImg}
+                    <OptimizedImage
+                      src={item.imageUrl || cardImg}
                       alt={item.title}
-                      referrerPolicy="no-referrer"
+                      variant="thumbnail"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = createVietnameseBannerSvg(item.title, item.unit);
@@ -1040,10 +1042,10 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                   const cardImg = getInitiativeCardImage(item);
                   return (
                     <div className="relative h-48 w-full bg-slate-900 overflow-hidden shrink-0">
-                      <img
-                        src={cardImg}
+                      <OptimizedImage
+                        src={item.imageUrl || cardImg}
                         alt={item.title}
-                        referrerPolicy="no-referrer"
+                        variant="card"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = createVietnameseBannerSvg(item.title, item.unit);
@@ -1226,14 +1228,11 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                             onClick={() => setSelectedArticleDetail(item)}
                             className="w-14 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-900 mx-auto shrink-0 shadow-2xs hover:opacity-90 cursor-pointer group"
                           >
-                            <img
+                            <OptimizedImage
                               src={item.imageUrl}
                               alt={item.title}
-                              referrerPolicy="no-referrer"
+                              variant="thumbnail"
                               className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
                             />
                           </div>
                         ) : (
@@ -1380,10 +1379,10 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
           <div className="bg-white rounded-3xl border-2 border-rose-300 shadow-2xl max-w-lg w-full overflow-hidden relative">
             {selectedHcmActionModal.imageUrl && (
               <div className="relative h-48 w-full bg-rose-950 overflow-hidden">
-                <img
+                <OptimizedImage
                   src={selectedHcmActionModal.imageUrl}
                   alt={selectedHcmActionModal.title}
-                  referrerPolicy="no-referrer"
+                  variant="card"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-rose-950/80 text-amber-200 text-xs font-bold border border-rose-300/40 backdrop-blur-xs">

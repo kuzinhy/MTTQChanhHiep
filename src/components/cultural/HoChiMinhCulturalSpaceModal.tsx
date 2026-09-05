@@ -46,6 +46,7 @@ import { HcmFootstepsMap } from './HcmFootstepsMap';
 import { HcmAudioArchive } from './HcmAudioArchive';
 import { HcmChanhHiepAction } from './HcmChanhHiepAction';
 import { HcmBiographyView } from './HcmBiographyView';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 // Re-export for backward compatibility
 export type { ExhibitItem, ExhibitPart };
@@ -1283,9 +1284,11 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
 
                     {/* 3D Stage Box */}
                     <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 h-52 group select-none shadow-xs">
-                      <img
+                      <OptimizedImage
                         src={selectedExhibit.imageUrl}
                         alt={selectedExhibit.title}
+                        variant="card"
+                        priority={true}
                         className="w-full h-full object-cover transition-transform duration-500"
                         style={{
                           transform: `scale(${modelZoom}) rotateY(${turntableRotation}deg)`

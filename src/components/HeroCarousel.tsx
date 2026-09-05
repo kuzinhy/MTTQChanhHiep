@@ -3,8 +3,9 @@ import { Article } from '../types';
 import { Calendar, ChevronLeft, ChevronRight, Eye, ArrowRight, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { sortArticlesNewestFirst } from '../lib/dateUtils';
-import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
-import { ARTICLE_BANNERS } from '../utils/officialImages';
+import { getGoogleDriveDirectImageUrl, handleImageError } from '../lib/googleDriveService';
+import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
+import { OptimizedImage } from './common/OptimizedImage';
 
 interface HeroCarouselProps {
   articles: Article[];
@@ -124,10 +125,13 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
             exit="exit"
             className="absolute inset-0 w-full h-full"
           >
-            <img
-              src={getGoogleDriveDirectImageUrl(current.featuredImage) || ARTICLE_BANNERS.default}
+            <OptimizedImage
+              src={current.featuredImage}
               alt={current.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              variant="hero"
+              fallbackCategory={current.category}
+              priority={true}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 select-none"
             />
             {/* Bottom-only Deep Blue Gradient Overlay */}
             <div className="absolute inset-x-0 bottom-0 h-36 sm:h-44 bg-gradient-to-t from-blue-900/95 via-blue-900/70 via-blue-800/25 to-transparent pointer-events-none" />

@@ -17,6 +17,9 @@ import { SecurePdfViewer } from '../SecurePdfViewer';
 import { AdminAnalyticsView } from './AdminAnalyticsView';
 import { InitiativesSection } from '../InitiativesSection';
 import { AboutAdminView } from './AboutAdminView';
+import { MediaUploader } from './MediaUploader';
+import { MediaLibraryView } from './MediaLibraryView';
+import { inspectImageFile, formatBytes, getOptimalImageUrl } from '../../lib/imageOptimization';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
   Article, 
@@ -28,7 +31,8 @@ import {
   ArticleCategory, 
   ArticleStatus, 
   OpinionStatus,
-  DocType 
+  DocType,
+  CloudinaryImageMeta
 } from '../../types';
 import {
   sortArticlesNewestFirst,
@@ -94,7 +98,7 @@ interface CmsAdminViewProps {
   documents: OfficialDocument[];
   competitions?: Competition[];
   opinions?: PublicOpinion[];
-  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES';
+  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA';
   onAddArticle: (art: Article) => void;
   onUpdateArticle: (art: Article) => void;
   onDeleteArticle: (id: string) => void;
@@ -177,12 +181,15 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onForceCloudSync,
   onShowToast
 }) => {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT'>(
-    initialTab === 'cms_about' || initialTab === 'ABOUT' ? 'ABOUT' : (initialTab as any) || 'ARTICLES'
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA'>(
+    (initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT' ? 'ABOUT' : (initialTab as any) || 'ARTICLES'
   );
 
+  // Content Image Inserter Modal
+  const [showInsertContentImageModal, setShowInsertContentImageModal] = useState(false);
+
   React.useEffect(() => {
-    if (initialTab === 'cms_about' || initialTab === 'ABOUT') {
+    if ((initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT') {
       setActiveTab('ABOUT');
     } else if (initialTab) {
       setActiveTab(initialTab as any);
@@ -552,7 +559,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setArtContent(art.content);
     setArtCategory(art.category);
     setArtAuthor(art.authorName || 'Cán bộ Tuyên giáo');
-    setArtImage(art.featuredImage || DEFAULT_IMAGE_PRESETS[0].url);
+    setArtImage(typeof art.featuredImage === 'string' ? art.featuredImage : art.featuredImage?.secureUrl || DEFAULT_IMAGE_PRESETS[0].url);
     setArtTags((art.tags || []).join(', '));
     setArtStatus(art.status || 'Published');
     setArtIsFeatured(!!art.isFeatured);
@@ -600,62 +607,36 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     showSuccessBanner(updated.isFeatured ? 'Đã ghim bài viết lên vị trí Nổi bật trang đầu!' : 'Đã bỏ ghim bài viết nổi bật.');
   };
 
-  // Helper to compress image files before storing
-  const compressImageFile = (file: File, maxDim = 800, quality = 0.7): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', quality));
-          } else {
-            resolve((e.target?.result as string) || '');
-          }
-        };
-        img.onerror = () => resolve((e.target?.result as string) || '');
-        img.src = (e.target?.result as string) || '';
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  // Handle Image File Upload (FileReader to base64 with compression)
+  // Handle Image File Upload (Preserves master original file resolution, diagnoses dimensions and warnings)
   const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.type.startsWith('image/')) {
-        const compressed = await compressImageFile(file);
-        setArtImage(compressed);
+        const diag = await inspectImageFile(file);
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') setArtImage(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        if (diag.warning) {
+          showErrorBanner(`⚠️ ${diag.warning}`);
+        } else {
+          showSuccessBanner(`Đã chọn ảnh gốc "${file.name}" (${diag.width} × ${diag.height}px, ${diag.sizeFormatted}) - Đạt chuẩn sắc nét HD!`);
+        }
       } else {
         const reader = new FileReader();
         reader.onload = () => {
           if (typeof reader.result === 'string') setArtImage(reader.result);
         };
         reader.readAsDataURL(file);
+        showSuccessBanner(`Đã chọn hình ảnh đính kèm "${file.name}"!`);
       }
-      showSuccessBanner(`Đã chọn hình ảnh đính kèm "${file.name}"!`);
     }
   };
 
-  // Handle Document/File Attachment / Image Upload
-  const handleAttachmentFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Document/File Attachment / Image Upload (Preserves original master resolution)
+  const handleAttachmentFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setArtSelectedFile(file);
@@ -665,9 +646,16 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       setArtUploadSuccess(false);
 
       if (file.type.startsWith('image/')) {
-        compressImageFile(file).then(compressed => {
-          setArtImage(compressed);
-        });
+        const diag = await inspectImageFile(file);
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') setArtImage(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        if (diag.warning) {
+          showErrorBanner(`⚠️ ${diag.warning}`);
+        }
       }
 
       if (file.size > 100 * 1024) {
@@ -1276,6 +1264,18 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           <Info className="w-4 h-4 shrink-0 text-amber-300" />
           <span className="truncate">Trang Giới Thiệu</span>
         </button>
+
+        <button
+          onClick={() => { setActiveTab('MEDIA'); setSelectedCategory('ALL'); setSearchTerm(''); }}
+          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
+            activeTab === 'MEDIA'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
+          }`}
+        >
+          <ImageIcon className="w-4 h-4 shrink-0 text-emerald-400" />
+          <span className="truncate">Thư Viện Ảnh (Cloudinary)</span>
+        </button>
       </div>
 
       {/* ========================================================================= */}
@@ -1407,10 +1407,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                               className="w-16 h-12 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                if (art.featuredImage && art.featuredImage.includes('drive.google.com') && !target.dataset.triedThumbnail) {
+                                const imgStr = typeof art.featuredImage === 'string' ? art.featuredImage : art.featuredImage?.secureUrl || '';
+                                if (imgStr && imgStr.includes('drive.google.com') && !target.dataset.triedThumbnail) {
                                   target.dataset.triedThumbnail = 'true';
-                                  const match = art.featuredImage.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || art.featuredImage.match(/id=([a-zA-Z0-9_-]+)/);
-                                  if (match && match[1]) target.src = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
+                                  const match = imgStr.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || imgStr.match(/id=([a-zA-Z0-9_-]+)/);
+                                  if (match && match[1]) target.src = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w2000`;
                                 }
                               }}
                             />
@@ -1804,114 +1805,62 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* ARTICLE CREATE / EDIT MODAL */}
+      {/* 7. QUẢN TRỊ THƯ VIỆN MEDIA CLOUDINARY TAB */}
+      {/* ========================================================================= */}
+      {activeTab === 'MEDIA' && (
+        <MediaLibraryView articles={articles} />
+      )}
+
+      {/* ========================================================================= */}
+      {/* ARTICLE CREATE / EDIT MODAL - WIDESCREEN WIDE LAYOUT */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {isArticleModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white w-full max-w-5xl rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-200 space-y-5 max-h-[92vh] overflow-y-auto text-slate-900"
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="bg-white w-full max-w-[1400px] w-[96vw] h-[92vh] max-h-[920px] rounded-3xl p-5 md:p-7 shadow-2xl border border-slate-200 flex flex-col text-slate-900 overflow-hidden"
             >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg">
-                    <Newspaper className="w-4.5 h-4.5" />
+              {/* Modal Top Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-3 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-100 text-blue-700 rounded-2xl">
+                    <Newspaper className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-black text-base text-slate-900">
-                      {editingArticle ? 'Chỉnh sửa nội dung bài viết' : 'Soạn & Xuất bản bài viết mới'}
-                    </h3>
-                    <p className="text-[11px] text-slate-500">Nội dung sẽ được cập nhật đồng bộ lên Cổng thông tin Mặt trận.</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-black text-base md:text-lg text-slate-900">
+                        {editingArticle ? 'Chỉnh sửa nội dung bài viết' : 'Soạn & Xuất bản bài viết mới'}
+                      </h3>
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md">
+                        CMS Editor
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500">Nội dung tự động đồng bộ lên Cổng thông tin Mặt trận Tổ quốc Việt Nam phường Chánh Hiệp.</p>
                   </div>
                 </div>
+
                 <button
                   onClick={() => setIsArticleModalOpen(false)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+                  title="Đóng cửa sổ"
                 >
-                  <X className="w-4.5 h-4.5" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveArticle} className="flex-1 flex flex-col min-h-0 space-y-3 overflow-y-auto pr-1">
-                {/* 1. AI News Link Parsing Bar - COMPACT TOP BAR */}
-                <div className="p-3 bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50 border border-blue-200 rounded-xl space-y-1.5 shrink-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-[11px] font-black text-blue-950 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
-                      <span>Trợ lý AI Bóc tách dữ liệu từ Link URL</span>
-                    </label>
-                    <span className="text-[9.5px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Gemini 3.7</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="url"
-                        placeholder="Dán link bài viết từ báo chí, cổng thông tin... (vd: https://baobinhduong.vn/...)"
-                        value={artInputUrl || artOriginalUrl}
-                        onChange={(e) => {
-                          setArtInputUrl(e.target.value);
-                          setArtOriginalUrl(e.target.value);
-                        }}
-                        className="w-full text-xs pl-7 pr-3 py-1.5 bg-white border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-medium text-slate-800"
-                      />
-                      <Globe className="w-3.5 h-3.5 text-blue-500 absolute left-2 top-2.5" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleParseNewsLink}
-                      disabled={isParsingNewsLink}
-                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 shrink-0 disabled:opacity-50 cursor-pointer"
-                    >
-                      {isParsingNewsLink ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          <span>Đang bóc tách...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3 h-3" />
-                          <span>AI Bóc tách</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Duplicate Article Content Warning Banner */}
-                {duplicateArticleMatch && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-2.5 bg-amber-50 border border-amber-400 rounded-xl flex items-start gap-2 shadow-2xs text-slate-900 shrink-0"
-                  >
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="space-y-0.5 text-xs">
-                      <p className="font-black text-amber-950 flex items-center gap-1.5 text-[11px]">
-                        <span>⚠️ CẢNH BÁO ĐĂNG BÀI TRÙNG NỘI DUNG!</span>
-                      </p>
-                      <p className="text-amber-900 text-[10.5px]">
-                        Hệ thống phát hiện bài viết tương tự đã tồn tại trong CSDL: <strong>"{duplicateArticleMatch.title}"</strong>
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* TWO COLUMN MAIN FORM BODY */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start flex-1 min-h-0">
-                  {/* LEFT COLUMN: Metadata, Category, Image & Excerpt (5 cols) */}
-                  <div className="lg:col-span-5 space-y-3">
-                    {/* Title */}
-                    <div>
-                      <label className="text-[11px] font-black text-slate-800 block mb-1">
-                        Tiêu đề bài viết <span className="text-rose-600">*</span>
-                      </label>
+              <form onSubmit={handleSaveArticle} className="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
+                {/* 1. TOP TOOLBAR: Article Title & AI Link Parser */}
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 shrink-0">
+                  {/* Article Main Title - Full prominent focus */}
+                  <div className="xl:col-span-8">
+                    <div className="relative">
                       <input
                         type="text"
                         required
-                        placeholder="Nhập tiêu đề tin tức, hoạt động Mặt trận..."
+                        placeholder="Nhập tiêu đề bài viết tin tức, hoạt động Mặt trận..."
                         value={artTitle}
                         onChange={(e) => {
                           setArtTitle(e.target.value);
@@ -1919,262 +1868,270 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                             setArtSlug(generateSlug(e.target.value));
                           }
                         }}
-                        className="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-bold"
+                        className="w-full text-sm md:text-base px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-bold text-slate-900 shadow-2xs"
                       />
-                    </div>
-
-                    {/* Category, Status, Author & Date in 2x2 grid */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10.5px] font-black text-slate-800 block mb-1">
-                          Chuyên mục <span className="text-rose-600">*</span>
-                        </label>
-                        <select
-                          value={artCategory}
-                          onChange={(e) => setArtCategory(e.target.value as ArticleCategory)}
-                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-bold bg-white cursor-pointer"
-                        >
-                          {ARTICLE_CATEGORIES.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-[10.5px] font-black text-slate-800 block mb-1">
-                          Trạng thái
-                        </label>
-                        <select
-                          value={artStatus}
-                          onChange={(e) => setArtStatus(e.target.value as ArticleStatus)}
-                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-bold bg-white cursor-pointer"
-                        >
-                          <option value="Published">Đã xuất bản</option>
-                          <option value="Draft">Bản nháp</option>
-                          <option value="Archived">Lưu trữ</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-[10.5px] font-black text-slate-800 block mb-1">Tác giả</label>
-                        <input
-                          type="text"
-                          value={artAuthor}
-                          onChange={(e) => setArtAuthor(e.target.value)}
-                          className="w-full text-xs px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[10.5px] font-black text-slate-800 block mb-1">Ngày phát hành</label>
-                        <input
-                          type="date"
-                          value={artPublishDate}
-                          onChange={(e) => setArtPublishDate(e.target.value)}
-                          className="w-full text-xs px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Hero Feature Checkbox */}
-                    <div className="p-2 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Star className={`w-3.5 h-3.5 ${artIsFeatured ? 'text-amber-600 fill-amber-500' : 'text-slate-400'}`} />
-                        <span className="text-xs font-bold text-amber-950">Ghim Tin Nổi Bật (Hero Feature)</span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={artIsFeatured}
-                        onChange={(e) => setArtIsFeatured(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 rounded cursor-pointer"
-                      />
-                    </div>
-
-                    {/* Featured Image Upload & Google Drive */}
-                    <div className="p-3 bg-emerald-50/90 border border-emerald-300 rounded-xl space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <label className="text-xs font-black text-emerald-950 flex items-center gap-1">
-                          <ImageIcon className="w-4 h-4 text-emerald-700" />
-                          <span>Ảnh đại diện (Upload / Google Drive)</span>
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setShowAppsScriptConfig(!showAppsScriptConfig)}
-                          className="bg-emerald-200 hover:bg-emerald-300 text-emerald-900 text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer inline-flex items-center gap-0.5"
-                        >
-                          <Settings className="w-2.5 h-2.5" />
-                          <span>Config</span>
-                        </button>
-                      </div>
-
-                      {showAppsScriptConfig && (
-                        <div className="p-2 bg-white border border-emerald-400 rounded-lg space-y-1 text-xs">
-                          <div className="flex items-center justify-between text-[10px]">
-                            <span className="font-bold text-emerald-950">Apps Script URL:</span>
-                          </div>
-                          <input
-                            type="url"
-                            placeholder="https://script.google.com/macros/s/.../exec"
-                            value={appsScriptUrlInput}
-                            onChange={(e) => handleSaveAppsScriptUrl(e.target.value)}
-                            className="w-full px-2 py-1 bg-slate-50 border border-emerald-300 rounded text-[11px] font-mono"
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        <label className="flex-1 px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-lg text-xs font-bold transition-all shadow-2xs inline-flex items-center justify-center gap-1.5 cursor-pointer">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{artAttachmentName ? 'Chọn ảnh khác' : 'Chọn ảnh từ máy'}</span>
-                          <input
-                            type="file"
-                            accept="image/*,.pdf,.doc,.docx"
-                            onChange={handleAttachmentFileUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        {artAttachmentName && (
-                          <button
-                            type="button"
-                            onClick={handleUploadArticleAttachmentToDrive}
-                            disabled={artIsUploading}
-                            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                          >
-                            {artIsUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HardDrive className="w-3.5 h-3.5" />}
-                            <span>Upload Drive</span>
-                          </button>
-                        )}
-                      </div>
-
-                      {/* URL Option */}
-                      <input
-                        type="url"
-                        placeholder="Hoặc dán link ảnh trực tuyến (https://...)"
-                        value={artImage}
-                        onChange={(e) => setArtImage(e.target.value)}
-                        className="w-full text-xs px-2.5 py-1.5 bg-white border border-emerald-300 rounded-lg focus:ring-1 focus:ring-emerald-600 outline-hidden font-medium text-slate-800"
-                      />
-
-                      {/* Compact Image Preview */}
-                      {artImage && (
-                        <div className="relative rounded-lg overflow-hidden border border-emerald-300 bg-slate-900 group max-h-32 flex items-center justify-center">
-                          <img
-                            src={getGoogleDriveDirectImageUrl(artImage)}
-                            alt="Preview ảnh đại diện"
-                            className="w-full h-28 object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const fileIdMatch = artImage.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || artImage.match(/id=([a-zA-Z0-9_-]+)/);
-                              if (fileIdMatch && fileIdMatch[1] && !target.dataset.triedThumbnail) {
-                                target.dataset.triedThumbnail = 'true';
-                                target.src = `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
-                              }
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between p-2 text-white">
-                            <span className="text-[10px] font-bold bg-slate-900/80 px-2 py-0.5 rounded">
-                              {artUploadSuccess ? '✅ Ảnh trên Drive' : 'Ảnh xem trước'}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setArtImage('');
-                                setArtAttachment('');
-                                setArtAttachmentName('');
-                                setArtAttachmentSize('');
-                                setArtSelectedFile(null);
-                                setArtUploadSuccess(false);
-                              }}
-                              className="p-1 bg-rose-600 text-white rounded text-xs font-bold"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Excerpt Summary */}
-                    <div>
-                      <label className="text-[11px] font-black text-slate-800 block mb-1">Tóm tắt trích yếu (Excerpt)</label>
-                      <textarea
-                        rows={2}
-                        placeholder="Tóm tắt ngắn gọn 1-2 câu hiển thị ở danh sách bài viết..."
-                        value={artSummary}
-                        onChange={(e) => setArtSummary(e.target.value)}
-                        className="w-full text-xs px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-medium resize-none"
-                      />
-                    </div>
-
-                    {/* Tags & Original Source Link */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10.5px] font-black text-slate-800 block mb-1">Thẻ Tags</label>
-                        <input
-                          type="text"
-                          placeholder="Mặt trận, Chánh Hiệp..."
-                          value={artTags}
-                          onChange={(e) => setArtTags(e.target.value)}
-                          className="w-full text-xs px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10.5px] font-black text-slate-800 block mb-1">Nguồn bài viết</label>
-                        <input
-                          type="text"
-                          placeholder="MTTQ Chánh Hiệp"
-                          value={artSourceName}
-                          onChange={(e) => setArtSourceName(e.target.value)}
-                          className="w-full text-xs px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                        />
-                      </div>
+                      <span className="absolute right-3 top-3 text-[10px] font-semibold text-slate-400">
+                        {artTitle.length} ký tự
+                      </span>
                     </div>
                   </div>
 
-                  {/* RIGHT COLUMN: Full Height Main Article Content (7 cols) */}
-                  <div className="lg:col-span-7 flex flex-col h-full space-y-2">
-                    <label className="text-[11px] font-black text-slate-800 flex items-center justify-between">
-                      <span>Nội dung chi tiết bài viết <span className="text-rose-600">*</span></span>
-                      <span className="text-[10px] text-slate-400 font-normal">Hỗ trợ định dạng văn bản & xuống dòng</span>
-                    </label>
+                  {/* AI Link Parser Compact Widget */}
+                  <div className="xl:col-span-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50 border border-blue-200 rounded-2xl px-3 py-1.5 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-600 shrink-0 animate-pulse" />
+                    <div className="relative flex-1">
+                      <input
+                        type="url"
+                        placeholder="Dán link bài viết từ báo chí để AI tự bóc tách..."
+                        value={artInputUrl || artOriginalUrl}
+                        onChange={(e) => {
+                          setArtInputUrl(e.target.value);
+                          setArtOriginalUrl(e.target.value);
+                        }}
+                        className="w-full text-xs pl-7 pr-2 py-1.5 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium text-slate-800"
+                      />
+                      <Globe className="w-3.5 h-3.5 text-blue-500 absolute left-2 top-2" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleParseNewsLink}
+                      disabled={isParsingNewsLink}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 shrink-0 disabled:opacity-50 cursor-pointer"
+                    >
+                      {isParsingNewsLink ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Đang bóc tách...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>AI Bóc tách</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Duplicate Article Warning Banner */}
+                {duplicateArticleMatch && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-amber-50 border border-amber-400 rounded-2xl flex items-start gap-2 shadow-2xs text-slate-900 shrink-0"
+                  >
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5 text-xs">
+                      <p className="font-black text-amber-950 flex items-center gap-1.5">
+                        <span>⚠️ CẢNH BÁO ĐĂNG BÀI TRÙNG NỘI DUNG!</span>
+                      </p>
+                      <p className="text-amber-900">
+                        Hệ thống phát hiện bài viết tương tự đã tồn tại trong CSDL: <strong>"{duplicateArticleMatch.title}"</strong>
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* MAIN FORM BODY: TWO SPACIOUS COLUMNS WITH INDEPENDENT SCROLL */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-0 overflow-y-auto pr-1">
+                  
+                  {/* LEFT COLUMN: Metadata & Media Settings (5 Cols) */}
+                  <div className="lg:col-span-5 space-y-3.5">
+                    
+                    {/* SECTION 1: Publishing Settings Card */}
+                    <div className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3">
+                      <div className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <span>1. Cấu hình xuất bản</span>
+                        <span className="text-[10px] text-slate-400 font-normal">Chuyên mục & Quyền hạn</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-800 block mb-1">
+                            Chuyên mục <span className="text-rose-600">*</span>
+                          </label>
+                          <select
+                            value={artCategory}
+                            onChange={(e) => setArtCategory(e.target.value as ArticleCategory)}
+                            className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-bold bg-white cursor-pointer"
+                          >
+                            {ARTICLE_CATEGORIES.map(cat => (
+                              <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-800 block mb-1">Trạng thái bài viết</label>
+                          <select
+                            value={artStatus}
+                            onChange={(e) => setArtStatus(e.target.value as ArticleStatus)}
+                            className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-bold bg-white cursor-pointer"
+                          >
+                            <option value="Published">Đã xuất bản</option>
+                            <option value="Draft">Bản nháp</option>
+                            <option value="Archived">Lưu trữ</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-800 block mb-1">Tác giả biên soạn</label>
+                          <input
+                            type="text"
+                            value={artAuthor}
+                            onChange={(e) => setArtAuthor(e.target.value)}
+                            className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-800 block mb-1">Ngày phát hành</label>
+                          <input
+                            type="date"
+                            value={artPublishDate}
+                            onChange={(e) => setArtPublishDate(e.target.value)}
+                            className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Featured Checkbox & Source */}
+                      <div className="pt-1 flex flex-col gap-2">
+                        <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Star className={`w-4 h-4 ${artIsFeatured ? 'text-amber-600 fill-amber-500' : 'text-slate-400'}`} />
+                            <span className="text-xs font-bold text-amber-950">Ghim Tin Nổi Bật (Hero Feature)</span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={artIsFeatured}
+                            onChange={(e) => setArtIsFeatured(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10.5px] font-bold text-slate-700 block mb-1">Thẻ Tags (cách dấu phẩy)</label>
+                            <input
+                              type="text"
+                              placeholder="Mặt trận, Chánh Hiệp..."
+                              value={artTags}
+                              onChange={(e) => setArtTags(e.target.value)}
+                              className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10.5px] font-bold text-slate-700 block mb-1">Tên nguồn thông tin</label>
+                            <input
+                              type="text"
+                              placeholder="MTTQ Chánh Hiệp"
+                              value={artSourceName}
+                              onChange={(e) => setArtSourceName(e.target.value)}
+                              className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SECTION 2: Featured Image Box */}
+                    <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-2xl">
+                      <MediaUploader
+                        folder="articles"
+                        label="2. Ảnh đại diện bài viết (Cloudinary Storage)"
+                        currentImage={artImage}
+                        onImageUploaded={(img) => {
+                          setArtImage(img.secureUrl);
+                        }}
+                        onRemoveImage={() => setArtImage('')}
+                      />
+                    </div>
+
+                    {/* SECTION 3: Excerpt Summary */}
+                    <div className="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-1.5">
+                      <label className="text-[11px] font-black text-slate-800 block">3. Tóm tắt trích yếu (Excerpt)</label>
+                      <textarea
+                        rows={3}
+                        placeholder="Tóm tắt ngắn gọn 1-2 câu hiển thị ở danh sách bài viết trang chủ..."
+                        value={artSummary}
+                        onChange={(e) => setArtSummary(e.target.value)}
+                        className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium resize-none"
+                      />
+                    </div>
+
+                  </div>
+
+                  {/* RIGHT COLUMN: Full Height Content Editor Workspace (7 Cols) */}
+                  <div className="lg:col-span-7 flex flex-col space-y-3 h-full">
+                    
+                    {/* Content Editor Toolbar Header */}
+                    <div className="flex items-center justify-between bg-slate-100/90 px-3.5 py-2 rounded-2xl border border-slate-200 shrink-0">
+                      <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                        <span>Nội dung chi tiết bài viết <span className="text-rose-600">*</span></span>
+                        <span className="text-[10px] text-slate-500 font-normal">({artContent.length} ký tự)</span>
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowInsertContentImageModal(true)}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Chèn ảnh từ Cloudinary vào bài
+                      </button>
+                    </div>
+
+                    {/* Rich Main Textarea */}
                     <textarea
-                      rows={15}
+                      rows={18}
                       required
-                      placeholder="Nhập toàn văn nội dung bài viết tuyên truyền, phóng sự hoặc tin hoạt động..."
+                      placeholder="Nhập toàn văn nội dung bài viết tuyên truyền, phóng sự hoặc tin tức hoạt động..."
                       value={artContent}
                       onChange={(e) => setArtContent(e.target.value)}
-                      className="w-full text-xs px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-medium leading-relaxed flex-1 min-h-[360px]"
+                      className="w-full text-xs md:text-sm px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-medium leading-relaxed flex-1 min-h-[380px] shadow-2xs"
                     />
 
-                    <div>
-                      <label className="text-[10.5px] font-black text-slate-800 block mb-1">Liên kết bài gốc (Link Facebook / Báo chí)</label>
+                    {/* Original Article Link Field */}
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl shrink-0">
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Liên kết bài viết gốc / Nguồn đính kèm (Facebook / Báo chí / PDF)
+                      </label>
                       <input
                         type="url"
                         placeholder="https://www.facebook.com/mttq.chanhhiep/posts/..."
                         value={artOriginalUrl}
                         onChange={(e) => setArtOriginalUrl(e.target.value)}
-                        className="w-full text-xs px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-hidden font-mono"
+                        className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-mono"
                       />
                     </div>
+
                   </div>
+
                 </div>
 
-                {/* Modal Actions Footer */}
-                <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setIsArticleModalOpen(false)}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
-                  >
-                    Hủy bỏ
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Check className="w-4 h-4 text-white stroke-[3]" />
-                    <span>{editingArticle ? 'Lưu Thay Đổi Bài Viết' : 'Xuất Bản Bài Viết'}</span>
-                  </button>
+                {/* MODAL ACTIONS FOOTER */}
+                <div className="pt-3.5 flex items-center justify-between border-t border-slate-100 shrink-0">
+                  <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-ping"></span>
+                    <span>Đồng bộ tức thì lên Cổng thông tin Mặt trận Chánh Hiệp</span>
+                  </div>
+
+                  <div className="flex items-center gap-3 ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => setIsArticleModalOpen(false)}
+                      className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      Hủy bỏ
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-7 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs md:text-sm font-black rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <Check className="w-4 h-4 text-white stroke-[3]" />
+                      <span>{editingArticle ? 'Lưu Thay Đổi Bài Viết' : 'Xuất Bản Bài Viết Ngay'}</span>
+                    </button>
+                  </div>
                 </div>
               </form>
             </motion.div>
@@ -2914,10 +2871,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   className="w-full h-72 md:h-80 object-cover rounded-2xl border border-slate-200 shadow-sm"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    if (previewArticle.featuredImage && previewArticle.featuredImage.includes('drive.google.com') && !target.dataset.triedThumbnail) {
+                    const imgStr = typeof previewArticle.featuredImage === 'string' ? previewArticle.featuredImage : previewArticle.featuredImage?.secureUrl || '';
+                    if (imgStr && imgStr.includes('drive.google.com') && !target.dataset.triedThumbnail) {
                       target.dataset.triedThumbnail = 'true';
-                      const match = previewArticle.featuredImage.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || previewArticle.featuredImage.match(/id=([a-zA-Z0-9_-]+)/);
-                      if (match && match[1]) target.src = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+                      const match = imgStr.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || imgStr.match(/id=([a-zA-Z0-9_-]+)/);
+                      if (match && match[1]) target.src = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w2000`;
                     }
                   }}
                 />
@@ -3071,6 +3029,55 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   className="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black rounded-xl cursor-pointer"
                 >
                   Đóng lại
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================================= */}
+      {/* CONTENT IMAGE INSERTER MODAL */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {showInsertContentImageModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-4xl rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto text-slate-900"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-blue-600" /> Chèn ảnh từ Cloudinary vào bài viết
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowInsertContentImageModal(false)}
+                  className="text-slate-400 hover:text-slate-600 text-xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+
+              <MediaLibraryView
+                articles={articles}
+                isSelectionMode={true}
+                onSelectImageForArticle={(img) => {
+                  const imgTag = `\n<img src="${img.secureUrl}" alt="${img.alt || 'Ảnh bài viết'}" class="max-w-full h-auto rounded-2xl my-4 shadow-sm" />\n`;
+                  setArtContent(prev => prev + imgTag);
+                  setShowInsertContentImageModal(false);
+                }}
+              />
+
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowInsertContentImageModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl"
+                >
+                  Hủy bỏ
                 </button>
               </div>
             </motion.div>

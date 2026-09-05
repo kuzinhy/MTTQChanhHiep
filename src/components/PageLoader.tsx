@@ -1,57 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ShieldCheck, Sparkles, Cpu, Globe, Database, CheckCircle2 } from 'lucide-react';
+import { OptimizedImage } from './common/OptimizedImage';
+import { bootstrapManager, BootstrapState } from '../lib/AppBootstrapManager';
 
 interface PageLoaderProps {
   onLoaded?: () => void;
-  minDurationMs?: number;
 }
 
-export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded, minDurationMs = 1400 }) => {
-  const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('Đang khởi tạo kết nối bảo mật SSL...');
-  const [activeStep, setActiveStep] = useState(1);
+export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
+  const [state, setState] = useState<BootstrapState>(() => ({
+    status: 'idle',
+    progress: 0,
+    currentTask: 'Khởi tạo hệ thống...',
+    ready: false,
+    error: null,
+  }));
 
   useEffect(() => {
-    const startTime = Date.now();
-    
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const rawPct = Math.min(100, Math.floor((elapsed / minDurationMs) * 100));
-      
-      setProgress(rawPct);
+    bootstrapManager.subscribe(setState);
+    bootstrapManager.runBootstrap().then(() => {
+        if (onLoaded) onLoaded();
+    });
+  }, [onLoaded]);
 
-      if (rawPct < 25) {
-        setActiveStep(1);
-        setStatusText('Đang nạp tài nguyên lõi vào bộ nhớ trình duyệt...');
-      } else if (rawPct < 55) {
-        setActiveStep(2);
-        setStatusText('Đồng bộ CSDL Cổng thông tin & 21 Khu phố số...');
-      } else if (rawPct < 85) {
-        setActiveStep(3);
-        setStatusText('Kiểm tra xác thực Văn phòng số & Quyền truy cập...');
-      } else {
-        setActiveStep(4);
-        setStatusText('Hệ thống đã sẵn sàng kết nối toàn diện!');
-      }
-
-      if (elapsed >= minDurationMs) {
-        clearInterval(interval);
-        try {
-          localStorage.setItem('mttq_chanh_hiep_cached', 'true');
-          localStorage.setItem('mttq_chanh_hiep_cache_time', new Date().toISOString());
-        } catch (e) {
-          console.error(e);
-        }
-
-        if (onLoaded) {
-          setTimeout(onLoaded, 250);
-        }
-      }
-    }, 35);
-
-    return () => clearInterval(interval);
-  }, [minDurationMs, onLoaded]);
+  const { progress, currentTask, statusText = currentTask, error } = state;
+  const activeStep = progress < 25 ? 1 : progress < 85 ? 2 : 4;
 
   return (
     <motion.div
@@ -111,13 +85,12 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded, minDurationMs 
           
           <div className="relative w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 p-1 shadow-[0_0_40px_rgba(34,211,238,0.7)]">
             <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center p-3 sm:p-3.5 border-2 border-cyan-300/80 overflow-hidden shadow-inner">
-              <img 
+              <OptimizedImage 
                 src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png" 
                 alt="Logo MTTQ Việt Nam" 
+                variant="thumbnail"
+                priority={true}
                 className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.95)] rounded-full"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://sv2.anhsieuviet.com/2026/09/02/862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713.png';
-                }}
               />
             </div>
           </div>

@@ -49,6 +49,7 @@ import { InteractiveGoogleMap } from './InteractiveGoogleMap';
 import { AppStorageEngine } from '../../lib/storage';
 import { StaffUser } from '../../types';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 interface DigitalCommunityMapProps {
   initialNeighborhoodId?: string;
@@ -1226,9 +1227,11 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
             {/* Body Content */}
             <div className="p-6 overflow-y-auto space-y-4">
               <div className="w-full h-44 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                <img
+                <OptimizedImage
                   src={activeLocation.image_url || ARTICLE_BANNERS.default}
                   alt={activeLocation.name}
+                  variant="card"
+                  priority={true}
                   className="w-full h-full object-cover"
                 />
               </div>

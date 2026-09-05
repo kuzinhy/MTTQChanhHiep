@@ -59,6 +59,7 @@ import { SessionLockScreen } from './components/office/SessionLockScreen';
 import { ToastContainer } from './components/ToastNotification';
 import { PageLoader } from './components/PageLoader';
 import { notificationMasterService } from './lib/notificationMasterService';
+import { OptimizedImage } from './components/common/OptimizedImage';
 
 import { 
   INITIAL_COMPETITIONS, 
@@ -1122,10 +1123,11 @@ export default function App() {
                         >
                           <div className="relative z-10 flex items-center gap-3">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-500 shadow-md shrink-0 border border-amber-300/90 group-hover:scale-105 transition-transform">
-                              <img
+                              <OptimizedImage
                                 src="https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png"
                                 alt="Chủ tịch Hồ Chí Minh"
-                                referrerPolicy="no-referrer"
+                                variant="avatar"
+                                priority={true}
                                 className="w-full h-full object-cover object-top rounded-full"
                               />
                             </div>

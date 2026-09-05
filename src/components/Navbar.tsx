@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
+import { OptimizedImage } from './common/OptimizedImage';
 
 interface NavbarProps {
   activeTab: string;
@@ -80,9 +81,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Agency Title */}
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveTab('home')}>
             <div className="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border-2 border-amber-400 transition-all duration-300 group-hover:scale-105">
-              <img
+              <OptimizedImage
                 src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
                 alt="Logo Ủy ban Mặt trận Tổ quốc Việt Nam"
+                variant="thumbnail"
+                priority={true}
                 className="w-full h-full object-contain"
               />
             </div>

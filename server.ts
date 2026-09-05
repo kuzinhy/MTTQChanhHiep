@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { aiWorkspaceRouter } from './server/aiWorkspaceRouter';
 import { analyticsRouter } from './server/analyticsRouter';
+import { mediaRouter } from './server/mediaRouter';
 
 dotenv.config({ override: true });
 
@@ -42,6 +43,9 @@ async function startServer() {
 
   // Analytics & Active Presence Traffic Counter API Router
   app.use('/api/analytics', analyticsRouter);
+
+  // Cloudinary Admin Media Upload API Router
+  app.use('/api/admin/media', mediaRouter);
 
   // API Health Check
   app.get('/api/health', (_req: Request, res: Response) => {

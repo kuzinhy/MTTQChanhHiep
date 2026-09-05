@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Trophy, Flag, Cpu, Leaf, Heart, Sparkles, Award, Star, ShieldCheck } from 'lucide-react';
+import { OptimizedImage } from './common/OptimizedImage';
 
 export interface BannerTheme {
   id: string;
@@ -165,9 +166,11 @@ export const CompetitionBanner: React.FC<CompetitionBannerProps> = ({
   return (
     <div className={`relative w-full overflow-hidden bg-slate-900 select-none ${className}`}>
       {isCustomImage ? (
-        <img
+        <OptimizedImage
           src={bannerUrl}
           alt={title}
+          variant="banner"
+          priority={true}
           onError={() => setImageError(true)}
           className="w-full h-full object-cover opacity-90 transition-opacity duration-300"
         />

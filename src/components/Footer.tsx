@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, ExternalLink, ShieldCheck, Globe, Zap, Users, Activity, Scale, Info, BarChart2 } from 'lucide-react';
 import { VisitorTrackerEngine, VisitorStats } from '../lib/visitorTracker';
 import { VisitorStatsModal } from './VisitorStatsModal';
+import { OptimizedImage } from './common/OptimizedImage';
 
 export const Footer: React.FC<{
   onSelectTab?: (tab: string) => void;
@@ -38,9 +39,11 @@ export const Footer: React.FC<{
         <div className="space-y-3.5 md:col-span-1">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border-2 border-amber-400">
-              <img
+              <OptimizedImage
                 src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
                 alt="Logo MTTQ"
+                variant="thumbnail"
+                priority={true}
                 className="w-full h-full object-contain"
               />
             </div>

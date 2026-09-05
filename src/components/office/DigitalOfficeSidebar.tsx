@@ -23,6 +23,7 @@ import {
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { canAccessView } from '../../lib/rbac';
 import { UserRole } from '../../types';
 
@@ -113,9 +114,11 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       <div className="p-4 border-b border-blue-500/30 bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-600 text-white shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border border-amber-300">
-            <img
+            <OptimizedImage
               src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
               alt="Logo MTTQ"
+              variant="thumbnail"
+              priority={true}
               className="w-full h-full object-contain"
             />
           </div>

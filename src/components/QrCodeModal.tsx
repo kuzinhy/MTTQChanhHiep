@@ -6,6 +6,7 @@ interface QrCodeModalProps {
   onClose: () => void;
   title: string;
   itemUrl?: string;
+  url?: string;
   category?: string;
 }
 
@@ -13,16 +14,19 @@ export const QrCodeModal: React.FC<QrCodeModalProps> = ({
   isOpen,
   onClose,
   title,
-  itemUrl = window.location.href,
+  itemUrl,
+  url,
   category = 'Nội dung MTTQ'
 }) => {
   const [copied, setCopied] = useState(false);
 
+  const targetUrl = itemUrl || url || window.location.href;
+
   if (!isOpen) return null;
 
-  // Generate an SVG QR code placeholder using quick visual matrices
-  const encodedText = encodeURIComponent(itemUrl);
-  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodedText}&color=1d4ed8&bgcolor=ffffff`;
+  // High-resolution QR code generator (500x500 for crisp rendering on HiDPI/Retina screens)
+  const encodedText = encodeURIComponent(targetUrl);
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodedText}&color=1d4ed8&bgcolor=ffffff&margin=10`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(itemUrl);
