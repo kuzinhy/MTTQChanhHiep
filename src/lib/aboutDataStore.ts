@@ -65,6 +65,7 @@ export const DEFAULT_ABOUT_DATA: AboutPageData = {
       unit: 'Ủy ban MTTQ VN phường',
       name: 'Nguyễn Công Lý',
       position: 'Chủ tịch UB MTTQ VN phường',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/656671184_1329639585864840_6808310529982809241_n.jpg',
       isMainLeader: true
     },
     {
@@ -73,7 +74,8 @@ export const DEFAULT_ABOUT_DATA: AboutPageData = {
       unit: 'Ủy ban MTTQ VN phường',
       name: 'Trần Văn Phong',
       position: 'Phó Chủ tịch UB MTTQ VN phường',
-      secondaryPosition: 'Chủ tịch Hội CCB phường'
+      secondaryPosition: 'Chủ tịch Hội CCB phường',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/Thiet-ke-chua-co-ten-4.png'
     },
     {
       id: 'member-3',
@@ -81,7 +83,8 @@ export const DEFAULT_ABOUT_DATA: AboutPageData = {
       unit: 'Ủy ban MTTQ VN phường',
       name: 'Nguyễn Thị Trúc Chi',
       position: 'Phó Chủ tịch UB MTTQ VN phường',
-      secondaryPosition: 'Chủ tịch công đoàn phường'
+      secondaryPosition: 'Chủ tịch công đoàn phường',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/1756517483138_183541955972247973_5059442926877888287_b65946a2e662f6b0f24f3db7157aae0b40b2e854dc5dde7a.jpg'
     },
     {
       id: 'member-4',
@@ -89,14 +92,16 @@ export const DEFAULT_ABOUT_DATA: AboutPageData = {
       unit: 'Ủy ban MTTQ VN phường',
       name: 'Phạm Thị Hồng Quế',
       position: 'Phó Chủ tịch UBMTTQ VN phường',
-      secondaryPosition: 'Chủ tịch Hội LHPN phường'
+      secondaryPosition: 'Chủ tịch Hội LHPN phường',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/1759245766573_183541955972247973_6357347805632093712_1fdacd72fbda014a852213fac3db646cd8965914de8f9168.jpg'
     },
     {
       id: 'member-5',
       stt: 5,
       unit: 'Ủy ban MTTQ VN phường',
       name: 'Bùi Văn Huy',
-      position: 'Bí thư Đoàn Thanh niên phường'
+      position: 'Bí thư Đoàn Thanh niên phường',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/z6603328537006_3f47e44b82f6fd1bef15706923268e61.jpg'
     }
   ]
 };
@@ -109,11 +114,23 @@ export function loadStoredAboutData(): AboutPageData {
     const raw = localStorage.getItem(KEY_ABOUT_DATA);
     if (!raw) return DEFAULT_ABOUT_DATA;
     const parsed = JSON.parse(raw);
+    const loadedMembers = Array.isArray(parsed.members) ? parsed.members : DEFAULT_ABOUT_DATA.members;
+
+    // Sync avatarUrls for standard committee members
+    const mergedMembers = DEFAULT_ABOUT_DATA.members.map(def => {
+      const found = loadedMembers.find((m: StandingCommitteeMember) => m.name === def.name || m.id === def.id);
+      if (!found) return def;
+      return {
+        ...found,
+        avatarUrl: def.avatarUrl || found.avatarUrl
+      };
+    });
+
     return {
       ...DEFAULT_ABOUT_DATA,
       ...parsed,
       pillars: Array.isArray(parsed.pillars) ? parsed.pillars : DEFAULT_ABOUT_DATA.pillars,
-      members: Array.isArray(parsed.members) ? parsed.members : DEFAULT_ABOUT_DATA.members
+      members: mergedMembers
     };
   } catch (err) {
     console.error('Error loading about page data:', err);

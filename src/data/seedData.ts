@@ -982,7 +982,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     fullname: 'Bùi Văn Huy',
     position: 'Phó Chủ tịch MTTQ',
     department: 'Ban Thường trực',
-    avatar: getOfficialCadreAvatarSvg('Bùi Văn Huy', 'Phó Chủ tịch'),
+    avatar: 'https://sv2.anhsieuviet.com/2026/09/05/z6603328537006_3f47e44b82f6fd1bef15706923268e61.jpg',
     phone: '0907.123.456',
     bio: 'Phó Chủ tịch Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.',
     role: 'ADMIN',
