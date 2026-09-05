@@ -57,7 +57,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
-    { id: 'hcm_space', label: 'KGVH Hồ Chí Minh', icon: Landmark, isSpecial: true },
     { id: 'map', label: 'Bản đồ số', icon: MapPin },
     { id: 'about', label: 'Giới thiệu', icon: Info },
     { id: 'organizations', label: 'Tổ chức thành viên', icon: Users },

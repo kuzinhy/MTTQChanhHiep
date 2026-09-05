@@ -10,6 +10,10 @@ import {
   QrCode,
   BookOpen,
   ArrowRight,
+  ArrowLeft,
+  MessageSquare,
+  Send,
+  Copy,
   X,
   Plus,
   Search,
@@ -28,34 +32,56 @@ import {
   Globe,
   Lock,
   Building,
-  Image as ImageIcon
+  Image as ImageIcon,
+  List,
+  LayoutGrid
 } from 'lucide-react';
 import { QrCodeModal } from './QrCodeModal';
 import { FrontInitiative, ChanhHiepActionModel, FRONT_INITIATIVE_DATA } from '../data/hcmVerifiedMuseumData';
 import { loadStoredInitiatives, saveStoredInitiatives, loadStoredChanhHiepActions } from '../lib/hcmDataStore';
 import { UniversalHcmEditorModal } from './cultural/UniversalHcmEditorModal';
+import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
 
 interface InitiativesSectionProps {
   isAdmin?: boolean;
 }
 
-const DEFAULT_FALLBACK_COVER = 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80';
+const DEFAULT_FALLBACK_COVER = 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1200&q=80';
+
+const createVietnameseBannerSvg = (title: string = 'Mô hình sáng kiến', unit: string = 'MTTQ Phường Chánh Hiệp'): string => {
+  const safeTitle = (title || 'Mô hình sáng kiến').replace(/[<>&'"]/g, '').slice(0, 45);
+  const safeUnit = (unit || 'Phường Chánh Hiệp').replace(/[<>&'"]/g, '').slice(0, 35);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+    <defs>
+      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0f172a"/>
+        <stop offset="50%" stop-color="#1e3a8a"/>
+        <stop offset="100%" stop-color="#1e1b4b"/>
+      </linearGradient>
+      <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#f59e0b"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#bgGrad)"/>
+    <circle cx="700" cy="80" r="200" fill="#3b82f6" opacity="0.12"/>
+    <circle cx="100" cy="380" r="160" fill="#f59e0b" opacity="0.1"/>
+    <path d="M400,60 L412,95 L448,95 L418,116 L429,150 L400,128 L371,150 L382,116 L352,95 L388,95 Z" fill="url(#goldGrad)"/>
+    <rect x="50" y="185" width="700" height="3" fill="url(#goldGrad)" opacity="0.8"/>
+    <text x="400" y="240" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#ffffff" text-anchor="middle">${safeTitle}</text>
+    <rect x="250" y="275" width="300" height="36" rx="18" fill="url(#goldGrad)"/>
+    <text x="400" y="299" font-family="system-ui, sans-serif" font-weight="800" font-size="14" fill="#0f172a" text-anchor="middle">${safeUnit}</text>
+    <text x="400" y="375" font-family="system-ui, sans-serif" font-weight="700" font-size="13" fill="#93c5fd" text-anchor="middle">MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
 
 const getInitiativeCardImage = (item: FrontInitiative): string => {
-  if (item.imageUrl && !item.imageUrl.includes('anhsieuviet.com')) {
-    return item.imageUrl;
+  if (item && item.imageUrl && item.imageUrl.trim() !== '') {
+    const converted = getGoogleDriveDirectImageUrl(item.imageUrl.trim());
+    if (converted) return converted;
   }
-  const titleLower = item.title ? item.title.toLowerCase() : '';
-  if (item.id === 'model-01-padlet' || titleLower.includes('padlet') || titleLower.includes('kết nối số')) {
-    return 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80';
-  }
-  if (item.id === 'model-02-hopthu' || titleLower.includes('hộp thư') || titleLower.includes('điều em muốn nói')) {
-    return 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80';
-  }
-  if (item.id === 'model-03-sohoaditich' || titleLower.includes('số hóa') || titleLower.includes('di tích')) {
-    return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80';
-  }
-  return DEFAULT_FALLBACK_COVER;
+  return createVietnameseBannerSvg(item?.title, item?.unit);
 };
 
 export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin = true }) => {
@@ -69,7 +95,7 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
   const [selectedUnitFilter, setSelectedUnitFilter] = useState<string>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'NEWEST' | 'LIKES' | 'TITLE'>('NEWEST');
-  const [viewLayout, setViewLayout] = useState<'GRID' | 'TABLE'>('GRID');
+  const [viewLayout, setViewLayout] = useState<'LIST' | 'GRID' | 'TABLE'>('LIST');
 
   // Modals
   const [qrModalItem, setQrModalItem] = useState<{ title: string; url: string } | null>(null);
@@ -164,6 +190,9 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
     
     persistUpdatedList(updatedList);
     setHcmActions(loadStoredChanhHiepActions());
+    if (selectedArticleDetail && selectedArticleDetail.id === updatedArticle.id) {
+      setSelectedArticleDetail(updatedArticle);
+    }
     setEditingItem(null);
   };
 
@@ -226,6 +255,343 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
   const featuredCount = initiatives.filter((i) => i.isFeatured).length;
   const totalLikesCount = initiatives.reduce((sum, i) => sum + (i.likes || 0), 0);
 
+  // =========================================================================
+  // TRANG TIN CHI TIẾT MÔ HÌNH SÁNG KIẾN (FULL PAGE VIEW - KHÔNG DÙNG POPUP)
+  // =========================================================================
+  if (selectedArticleDetail) {
+    const cardImg = getInitiativeCardImage(selectedArticleDetail);
+    const relatedList = initiatives
+      .filter((i) => i.id !== selectedArticleDetail.id && i.status !== 'DRAFT')
+      .slice(0, 3);
+
+    return (
+      <div className="py-8 px-4 max-w-5xl mx-auto space-y-8 animate-fadeIn">
+        {/* Universal Editor Modal for Admin */}
+        {editingItem && (
+          <UniversalHcmEditorModal
+            isOpen={!!editingItem}
+            onClose={() => setEditingItem(null)}
+            itemType="front_initiative"
+            itemData={editingItem}
+            onSave={handleSaveEditedArticle}
+          />
+        )}
+
+        {/* QR Code Modal */}
+        {qrModalItem && (
+          <QrCodeModal
+            isOpen={!!qrModalItem}
+            onClose={() => setQrModalItem(null)}
+            title={qrModalItem.title}
+            url={qrModalItem.url}
+          />
+        )}
+
+        {/* Header Navigation & Breadcrumbs Bar */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 overflow-x-auto py-1">
+            <span 
+              onClick={() => {
+                setSelectedArticleDetail(null);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              className="hover:text-blue-600 transition cursor-pointer flex items-center gap-1 font-bold text-slate-700 shrink-0"
+            >
+              <Lightbulb className="w-4 h-4 text-amber-500 fill-amber-400" />
+              Sáng kiến 21 Khu phố
+            </span>
+            <span>/</span>
+            <span className="text-slate-900 font-extrabold truncate max-w-xs sm:max-w-md">
+              {selectedArticleDetail.title}
+            </span>
+          </div>
+
+          <button
+            onClick={() => {
+              setSelectedArticleDetail(null);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition cursor-pointer flex items-center gap-2 shrink-0 shadow-sm"
+          >
+            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <span>Trở về Danh sách Mô hình</span>
+          </button>
+        </div>
+
+        {/* Main Full News Article Container */}
+        <article className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden space-y-6">
+          {/* Cover Header Image */}
+          <div className="relative h-64 sm:h-80 md:h-96 w-full bg-slate-950 overflow-hidden">
+            <img
+              src={cardImg}
+              alt={selectedArticleDetail.title}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = createVietnameseBannerSvg(selectedArticleDetail.title, selectedArticleDetail.unit);
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+
+            <div className="absolute bottom-6 left-6 right-6 text-white space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3.5 py-1 rounded-full bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-sm">
+                  {selectedArticleDetail.unit}
+                </span>
+                {selectedArticleDetail.isFeatured && (
+                  <span className="px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1 shadow-sm">
+                    <Star className="w-3.5 h-3.5 fill-slate-950" />
+                    <span>Mô hình Tiêu biểu</span>
+                  </span>
+                )}
+                <span className="px-3 py-1 rounded-full bg-emerald-500/90 backdrop-blur-md text-white font-bold text-xs flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Đã nghiệm thu thực tiễn</span>
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight drop-shadow-md">
+                {selectedArticleDetail.title}
+              </h1>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-10 space-y-8">
+            {/* Article Metadata Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 py-3.5 px-5 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 font-medium">
+              <div className="flex flex-wrap items-center gap-4">
+                {selectedArticleDetail.author && (
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                    <User className="w-4 h-4 text-blue-600" />
+                    <span>{selectedArticleDetail.author}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <span>Ban hành: {selectedArticleDetail.date}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 text-blue-700 font-extrabold">
+                  <ThumbsUp className="w-4 h-4" />
+                  <span>{selectedArticleDetail.likes} Lượt đánh giá hữu ích</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Eye className="w-4 h-4 text-slate-400" />
+                  <span>1.240 lượt xem</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Linked HCM Topic Card */}
+            {selectedArticleDetail.linkedHcmTopicTitle && (
+              <div
+                onClick={(e) => handleViewHcmAction(selectedArticleDetail.linkedHcmActionId, selectedArticleDetail.linkedHcmTopicTitle, e)}
+                className="p-4 rounded-2xl bg-gradient-to-r from-rose-50 to-amber-50 border-2 border-rose-200 hover:border-rose-400 transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center font-black shrink-0">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <div className="text-xs space-y-0.5">
+                    <span className="font-extrabold text-rose-800 uppercase tracking-wider text-[11px] block">
+                      Liên thông Chuyên đề Học tập và Làm theo Bác:
+                    </span>
+                    <span className="text-slate-900 font-serif italic text-sm font-bold">
+                      "{selectedArticleDetail.linkedHcmTopicTitle}"
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-rose-700 font-black text-xs shrink-0 bg-white/80 px-3 py-1.5 rounded-xl border border-rose-200">
+                  <span>Xem chuyên đề</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            )}
+
+            {/* Highlight Summary Box */}
+            <div className="p-6 rounded-3xl bg-blue-50/80 border-2 border-blue-200 space-y-2">
+              <div className="text-xs font-black uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-amber-500 fill-amber-400" />
+                <span>Tóm tắt giải pháp &amp; Cách làm hay</span>
+              </div>
+              <p className="text-sm sm:text-base font-semibold text-slate-900 leading-relaxed">
+                {selectedArticleDetail.summary}
+              </p>
+            </div>
+
+            {/* Practical Impact Box */}
+            <div className="p-6 rounded-3xl bg-emerald-50/90 border-2 border-emerald-200 space-y-3">
+              <div className="text-xs font-black uppercase tracking-wider text-emerald-900 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <span>Kết quả &amp; Tác động thực tiễn mang lại cho nhân dân</span>
+              </div>
+              <p className="text-sm sm:text-base font-bold text-emerald-950 leading-relaxed">
+                {selectedArticleDetail.impact}
+              </p>
+            </div>
+
+            {/* Detailed Article Body Content */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-wide border-b border-slate-200 pb-2 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <span>Nội dung chi tiết &amp; Các bước triển khai mô hình</span>
+              </h3>
+              
+              <div className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-relaxed font-normal whitespace-pre-line space-y-4">
+                {selectedArticleDetail.fullContent || selectedArticleDetail.summary}
+              </div>
+            </div>
+
+            {/* Tags */}
+            {selectedArticleDetail.tags?.length > 0 && (
+              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-slate-500 mr-2 flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5" /> Từ khóa:
+                </span>
+                {selectedArticleDetail.tags.map((tag) => (
+                  <span key={tag} className="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Bottom Interaction & Share Action Bar */}
+            <div className="p-5 bg-slate-900 text-white rounded-3xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={(e) => handleLike(selectedArticleDetail.id, e)}
+                  className="px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs transition cursor-pointer flex items-center gap-2 shadow-md active:scale-95"
+                >
+                  <ThumbsUp className="w-4 h-4 fill-white" />
+                  <span>Đánh giá Hữu ích ({selectedArticleDetail.likes})</span>
+                </button>
+
+                <button
+                  onClick={() => setQrModalItem({ title: selectedArticleDetail.title, url: window.location.href })}
+                  className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-2"
+                >
+                  <QrCode className="w-4 h-4 text-amber-400" />
+                  <span>Tạo mã QR</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {isAdminMode && (
+                  <button
+                    onClick={() => {
+                      const target = selectedArticleDetail;
+                      setEditingItem(target);
+                    }}
+                    className="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition cursor-pointer flex items-center gap-2"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Chỉnh sửa nội dung</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setSelectedArticleDetail(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Trở về Danh sách</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Citizen Feedback & Discussion Box */}
+            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 space-y-4">
+              <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-blue-600" />
+                <span>Ý kiến &amp; Đóng góp thực tiễn về Mô hình này</span>
+              </h4>
+              <p className="text-xs text-slate-600">
+                Ý kiến nhân dân và cán bộ khu phố góp phần đánh giá hiệu quả, đề xuất giải pháp nhân rộng mô hình trên địa bàn phường.
+              </p>
+              <div className="space-y-3">
+                <textarea
+                  rows={3}
+                  placeholder="Nhập ý kiến, đóng góp kinh nghiệm triển khai mô hình..."
+                  className="w-full p-3.5 text-xs bg-white border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      alert('Cảm ơn Ông/Bà đã đóng góp ý kiến xây dựng mô hình! Ý kiến đã được chuyển tới Ban Chỉ đạo Mặt trận.');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer"
+                  >
+                    Gửi đóng góp
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        {/* Related Initiatives Grid */}
+        {relatedList.length > 0 && (
+          <div className="space-y-4 pt-4 border-t border-slate-200">
+            <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-500 fill-amber-400" />
+              <span>Các Mô hình &amp; Sáng kiến tiêu biểu khác</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {relatedList.map((rel) => {
+                const relImg = getInitiativeCardImage(rel);
+                return (
+                  <div
+                    key={rel.id}
+                    onClick={() => {
+                      setSelectedArticleDetail(rel);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="bg-white rounded-3xl border border-slate-200 hover:border-blue-400 shadow-xs hover:shadow-md transition-all cursor-pointer overflow-hidden flex flex-col justify-between group"
+                  >
+                    <div className="space-y-3">
+                      <div className="h-36 w-full bg-slate-900 relative overflow-hidden">
+                        <img
+                          src={relImg}
+                          alt={rel.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        />
+                        <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-md bg-blue-600/90 backdrop-blur-md text-white font-bold text-[10px]">
+                          {rel.unit}
+                        </div>
+                      </div>
+
+                      <div className="p-4 space-y-2">
+                        <h4 className="font-extrabold text-sm text-slate-900 group-hover:text-blue-700 transition leading-snug line-clamp-2">
+                          {rel.title}
+                        </h4>
+                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                          {rel.summary}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 pt-0 flex items-center justify-between text-xs font-bold text-blue-600">
+                      <span>Xem trang chi tiết</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <section className="py-8 px-4 max-w-7xl mx-auto space-y-6">
       {/* Editor Modal */}
@@ -286,40 +652,45 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
         </div>
       </div>
 
-      {/* DASHBOARD THỐNG KÊ QUẢN TRỊ (Hiển thị khi Admin Mode Bật) */}
-      {isAdminMode && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tổng Bài Viết</span>
-            <p className="text-2xl font-black text-slate-900">{totalArticles}</p>
-            <span className="text-[10px] text-blue-600 font-semibold">Tất cả bài viết sáng kiến</span>
+      {/* COMPACT STATS SUMMARY BAR (Thu gọn tối đa để ưu tiên không gian cho Mô hình) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50/90 px-3.5 py-2 rounded-2xl border border-slate-200/90 text-xs shadow-2xs">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-slate-200 font-bold text-slate-800 shadow-2xs">
+            <span className="text-[11px] text-slate-500">Mô hình:</span>
+            <span className="text-blue-700 font-extrabold">{totalArticles}</span>
           </div>
 
-          <div className="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 shadow-2xs space-y-1">
-            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Đã Xuất Bản</span>
-            <p className="text-2xl font-black text-emerald-950">{publishedCount}</p>
-            <span className="text-[10px] text-emerald-700 font-semibold">🟢 Công khai rộng rãi</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 font-bold text-emerald-900 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            <span className="text-[11px] text-emerald-700">Công khai:</span>
+            <span className="font-extrabold">{publishedCount}</span>
           </div>
 
-          <div className="bg-rose-50/80 p-4 rounded-2xl border border-rose-200 shadow-2xs space-y-1">
-            <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block">Bản Nháp / Nội Bộ</span>
-            <p className="text-2xl font-black text-rose-950">{draftCount}</p>
-            <span className="text-[10px] text-rose-700 font-semibold">🔴 Chưa duyệt xuất bản</span>
+          {isAdminMode && (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-50 border border-rose-200 font-bold text-rose-900 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+              <span className="text-[11px] text-rose-700">Bản nháp:</span>
+              <span className="font-extrabold">{draftCount}</span>
+            </div>
+          )}
+
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200 font-bold text-amber-900 shadow-2xs">
+            <Star className="w-3 h-3 fill-amber-500 text-amber-500 shrink-0" />
+            <span className="text-[11px] text-amber-800">Nổi bật:</span>
+            <span className="font-extrabold">{featuredCount}</span>
           </div>
 
-          <div className="bg-amber-50/80 p-4 rounded-2xl border border-amber-200 shadow-2xs space-y-1">
-            <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Ghim Nổi Bật</span>
-            <p className="text-2xl font-black text-amber-950">{featuredCount}</p>
-            <span className="text-[10px] text-amber-700 font-semibold">⭐ Ưu tiên trang đầu</span>
-          </div>
-
-          <div className="bg-blue-50/80 p-4 rounded-2xl border border-blue-200 shadow-2xs space-y-1">
-            <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider block">Lượt Đánh Giá</span>
-            <p className="text-2xl font-black text-blue-950">{totalLikesCount}</p>
-            <span className="text-[10px] text-blue-700 font-semibold">👍 Lượt thích hữu ích</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 font-bold text-blue-900 shadow-2xs">
+            <ThumbsUp className="w-3 h-3 text-blue-600 shrink-0" />
+            <span className="text-[11px] text-blue-800">Đánh giá thích:</span>
+            <span className="font-extrabold">{totalLikesCount}</span>
           </div>
         </div>
-      )}
+
+        <div className="text-[11px] text-slate-500 font-medium ml-auto hidden md:block">
+          Hiển thị <strong className="text-blue-700 font-bold">{filteredInitiatives.length}</strong> / {totalArticles} mô hình
+        </div>
+      </div>
 
       {/* TOOLBAR TÌM KIẾM & BỘ LỌC BÀI VIẾT QUẢN TRỊ */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
@@ -392,29 +763,41 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
               </select>
             </div>
 
-            {/* Layout Switcher (Grid vs Table in Admin Mode) */}
-            {isAdminMode && (
-              <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-                <button
-                  onClick={() => setViewLayout('GRID')}
-                  className={`p-1.5 rounded-lg text-xs font-bold transition ${
-                    viewLayout === 'GRID' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                  title="Giao diện Thẻ"
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                </button>
+            {/* Layout Switcher (List vs Grid vs Table) */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+              <button
+                onClick={() => setViewLayout('LIST')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  viewLayout === 'LIST' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="Giao diện Danh sách Gọn"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Danh sách gọn</span>
+              </button>
+              <button
+                onClick={() => setViewLayout('GRID')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  viewLayout === 'GRID' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="Giao diện Thẻ Grid"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Dạng Thẻ</span>
+              </button>
+              {isAdminMode && (
                 <button
                   onClick={() => setViewLayout('TABLE')}
-                  className={`p-1.5 rounded-lg text-xs font-bold transition ${
-                    viewLayout === 'TABLE' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    viewLayout === 'TABLE' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
                   }`}
-                  title="Giao diện Bảng Quản trị"
+                  title="Giao diện Bảng Báo cáo Chi tiết"
                 >
                   <FileText className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Bảng chi tiết</span>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Restore Sample Data Button */}
             {isAdminMode && (
@@ -464,7 +847,162 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
         </div>
       )}
 
-      {/* VIEW LAYOUT 1: GRID VIEW */}
+      {/* VIEW LAYOUT 1: COMPACT LIST VIEW */}
+      {viewLayout === 'LIST' && filteredInitiatives.length > 0 && (
+        <div className="space-y-2.5">
+          {filteredInitiatives.map((item) => {
+            const isLiked = likedMap[item.id];
+            const isDraft = item.status === 'DRAFT';
+            const cardImg = getInitiativeCardImage(item);
+
+            return (
+              <div
+                key={item.id}
+                onClick={() => setSelectedArticleDetail(item)}
+                className={`bg-white p-3 sm:p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group cursor-pointer hover:shadow-md ${
+                  item.isFeatured
+                    ? 'border-amber-300 ring-1 ring-amber-400/30 bg-amber-50/20'
+                    : 'border-slate-200/90 hover:border-blue-300'
+                } ${isDraft ? 'bg-slate-50/90 border-dashed border-rose-300' : ''}`}
+              >
+                {/* Left Thumbnail + Basic Compact Info */}
+                <div className="flex items-center gap-3 min-w-0 flex-1 w-full sm:w-auto">
+                  {/* Thumbnail Image */}
+                  <div className="relative w-20 h-16 sm:w-28 sm:h-20 rounded-xl bg-slate-900 overflow-hidden shrink-0 shadow-2xs">
+                    <img
+                      src={cardImg}
+                      alt={item.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = createVietnameseBannerSvg(item.title, item.unit);
+                      }}
+                    />
+                  </div>
+
+                  {/* Title & Key Specs */}
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 font-bold text-[10px] border border-blue-100">
+                        {item.unit}
+                      </span>
+                      {item.isFeatured && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-extrabold text-[10px] flex items-center gap-0.5 border border-amber-200">
+                          <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                          <span>Nổi bật</span>
+                        </span>
+                      )}
+                      {isDraft && (
+                        <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-0.5 border border-rose-200">
+                          <Lock className="w-3 h-3" />
+                          <span>Bản nháp</span>
+                        </span>
+                      )}
+                      <span className="text-[10px] text-slate-400 font-medium ml-auto sm:ml-0">{item.date}</span>
+                    </div>
+
+                    <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-blue-700 transition line-clamp-1 leading-snug">
+                      {item.title}
+                    </h3>
+
+                    {item.summary && (
+                      <p className="text-[11px] text-slate-500 line-clamp-1 hidden md:block">
+                        {item.summary}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Action Buttons */}
+                <div 
+                  className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={(e) => handleLike(item.id, e)}
+                      className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
+                        isLiked ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                      title="Lượt thích"
+                    >
+                      <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-white' : ''}`} />
+                      <span>{item.likes}</span>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQrModalItem({ title: item.title, url: window.location.href });
+                      }}
+                      className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition cursor-pointer"
+                      title="Mã QR"
+                    >
+                      <QrCode className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {isAdminMode ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => handleToggleFeatured(item.id, e)}
+                        className={`p-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          item.isFeatured ? 'bg-amber-100 text-amber-900' : 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                        }`}
+                        title={item.isFeatured ? 'Bỏ ghim nổi bật' : 'Ghim nổi bật'}
+                      >
+                        <Star className={`w-4 h-4 ${item.isFeatured ? 'fill-amber-500' : ''}`} />
+                      </button>
+
+                      <button
+                        onClick={(e) => handleTogglePublishStatus(item.id, e)}
+                        className={`p-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          isDraft ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                        title={isDraft ? 'Xuất bản công khai' : 'Chuyển về bản nháp'}
+                      >
+                        {isDraft ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingItem(item);
+                        }}
+                        className="p-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl transition cursor-pointer"
+                        title="Sửa mô hình / bài viết"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingId(item.id);
+                        }}
+                        className="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl transition cursor-pointer"
+                        title="Xóa mô hình"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedArticleDetail(item)}
+                      className="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Xem</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* VIEW LAYOUT 2: GRID VIEW */}
       {viewLayout === 'GRID' && filteredInitiatives.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {filteredInitiatives.map((item) => {
@@ -508,7 +1046,7 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = DEFAULT_FALLBACK_COVER;
+                          (e.target as HTMLImageElement).src = createVietnameseBannerSvg(item.title, item.unit);
                         }}
                       />
                       <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-bold text-[10px] backdrop-blur-xs border border-white/10 shadow-xs">
@@ -805,211 +1343,6 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                 })}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
-
-      {/* FULL ARTICLE READER MODAL (`selectedArticleDetail`) */}
-      {selectedArticleDetail && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden relative my-8">
-            {/* Cover Header Image */}
-            <div className="relative h-60 w-full bg-slate-900 overflow-hidden">
-              <img
-                src={getInitiativeCardImage(selectedArticleDetail)}
-                alt={selectedArticleDetail.title}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = DEFAULT_FALLBACK_COVER;
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-              <div className="absolute bottom-4 left-6 right-6 text-white space-y-1">
-                  <span className="px-3 py-1 rounded-full bg-blue-600 text-white font-bold text-xs">
-                    {selectedArticleDetail.unit}
-                  </span>
-                  <h2 className="text-xl font-black text-white leading-tight">
-                    {selectedArticleDetail.title}
-                  </h2>
-                </div>
-              </div>
-
-            <button
-              onClick={() => setSelectedArticleDetail(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/50 hover:bg-slate-900/80 text-white transition cursor-pointer z-10"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="p-6 space-y-5">
-              {!selectedArticleDetail.imageUrl && (
-                <div className="space-y-2">
-                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-900 font-bold text-xs border border-blue-200 inline-block">
-                    {selectedArticleDetail.unit}
-                  </span>
-                  <h2 className="text-xl font-black text-slate-900 leading-tight">
-                    {selectedArticleDetail.title}
-                  </h2>
-                </div>
-              )}
-
-              {/* Meta information */}
-              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1 border-b border-slate-100 pb-3">
-                {selectedArticleDetail.author && (
-                  <span className="flex items-center gap-1 font-semibold text-slate-700">
-                    <User className="w-3.5 h-3.5 text-blue-600" />
-                    <span>{selectedArticleDetail.author}</span>
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Ngày ban hành: {selectedArticleDetail.date}</span>
-                </span>
-                <span className="flex items-center gap-1 text-blue-700 font-bold">
-                  <ThumbsUp className="w-3.5 h-3.5" />
-                  <span>{selectedArticleDetail.likes} Lượt hữu ích</span>
-                </span>
-              </div>
-
-              {/* Trường thông tin ảnh đại diện mô hình */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/90 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-16 h-12 rounded-xl overflow-hidden border border-slate-200 bg-slate-900 shrink-0 shadow-2xs">
-                    {selectedArticleDetail.imageUrl ? (
-                      <img
-                        src={selectedArticleDetail.imageUrl}
-                        alt="Ảnh đại diện"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <ImageIcon className="w-5 h-5" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-0.5 text-xs overflow-hidden">
-                    <span className="font-bold text-slate-900 block text-[11px] flex items-center gap-1">
-                      <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Ảnh đại diện mô hình:</span>
-                    </span>
-                    <span className="text-slate-500 text-[11px] truncate block font-mono">
-                      {selectedArticleDetail.imageUrl || 'Chưa cập nhật link ảnh'}
-                    </span>
-                  </div>
-                </div>
-                {selectedArticleDetail.imageUrl && (
-                  <a
-                    href={selectedArticleDetail.imageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] shrink-0 transition whitespace-nowrap"
-                  >
-                    Xem ảnh gốc ↗
-                  </a>
-                )}
-              </div>
-
-              {/* Linked HCM Topic Card */}
-              {selectedArticleDetail.linkedHcmTopicTitle && (
-                <div
-                  onClick={(e) => handleViewHcmAction(selectedArticleDetail.linkedHcmActionId, selectedArticleDetail.linkedHcmTopicTitle, e)}
-                  className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer flex items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-rose-700 shrink-0" />
-                    <div className="text-xs">
-                      <span className="font-bold text-rose-900 block">Chuyên đề Học Bác Liên Thông:</span>
-                      <span className="text-rose-950 font-serif italic">{selectedArticleDetail.linkedHcmTopicTitle}</span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-rose-700 shrink-0" />
-                </div>
-              )}
-
-              {/* Summary */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs leading-relaxed text-slate-800 space-y-1">
-                <span className="font-bold text-slate-900 block uppercase tracking-wider text-[10px]">Tóm tắt nội dung giải pháp:</span>
-                <p>{selectedArticleDetail.summary}</p>
-              </div>
-
-              {/* Full Content Body */}
-              {selectedArticleDetail.fullContent && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Nội dung chi tiết &amp; Các bước triển khai:</h4>
-                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line font-normal">
-                    {selectedArticleDetail.fullContent}
-                  </p>
-                </div>
-              )}
-
-              {/* Impact Box */}
-              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1.5">
-                <div className="text-xs font-black uppercase text-emerald-900 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Kết quả &amp; Tác động thực tiễn</span>
-                </div>
-                <p className="text-xs font-semibold text-emerald-950 leading-relaxed">
-                  {selectedArticleDetail.impact}
-                </p>
-              </div>
-
-              {/* Tags */}
-              {selectedArticleDetail.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedArticleDetail.tags.map((tag) => (
-                    <span key={tag} className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Footer Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => handleLike(selectedArticleDetail.id, e)}
-                    className="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition cursor-pointer flex items-center gap-1.5"
-                  >
-                    <ThumbsUp className="w-4 h-4 fill-white" />
-                    <span>Hữu ích ({selectedArticleDetail.likes})</span>
-                  </button>
-
-                  <button
-                    onClick={() => setQrModalItem({ title: selectedArticleDetail.title, url: window.location.href })}
-                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
-                  >
-                    <QrCode className="w-4 h-4" />
-                    <span>Mã QR</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {isAdminMode && (
-                    <button
-                      onClick={() => {
-                        const target = selectedArticleDetail;
-                        setSelectedArticleDetail(null);
-                        setEditingItem(target);
-                      }}
-                      className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                      <span>Chỉnh sửa bài viết</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => setSelectedArticleDetail(null)}
-                    className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition cursor-pointer"
-                  >
-                    Đóng
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )}

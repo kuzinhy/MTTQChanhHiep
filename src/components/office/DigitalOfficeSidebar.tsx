@@ -57,7 +57,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   // 1. NHÓM TỔNG QUAN & ĐIỀU HÀNH
   const overviewItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
-    { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: '21 KP' },
+    { id: 'neighborhood_map', label: 'Bản đồ khu phố', icon: Building2, badge: '21 KP' },
     { id: 'tasks', label: 'Quản lý Công việc', icon: CheckSquare },
     { id: 'calendar', label: 'Lịch công tác Phường', icon: Calendar },
     { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },

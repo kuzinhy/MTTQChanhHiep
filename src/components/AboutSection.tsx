@@ -53,18 +53,6 @@ export const AboutSection: React.FC<{
             {aboutData.headerSubtitle}
           </p>
         </div>
-
-        {isAdmin && onGoToTab && (
-          <div className="relative z-10 shrink-0">
-            <button
-              onClick={() => onGoToTab('cms_about')}
-              className="px-4 py-2.5 rounded-2xl bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg hover:bg-amber-300 transition cursor-pointer"
-            >
-              <Edit3 className="w-4 h-4" />
-              <span>Quản trị Trang Giới thiệu</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Pillars Summary */}
@@ -99,15 +87,6 @@ export const AboutSection: React.FC<{
             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl">
               {aboutData.members?.length || 0} Đồng chí Thường trực
             </span>
-            {isAdmin && onGoToTab && (
-              <button
-                onClick={() => onGoToTab('cms_about')}
-                className="px-3 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center gap-1.5 hover:bg-slate-800 transition cursor-pointer"
-              >
-                <Edit3 className="w-3.5 h-3.5 text-amber-400" />
-                <span>Chỉnh sửa nhân sự</span>
-              </button>
-            )}
           </div>
         </div>
 

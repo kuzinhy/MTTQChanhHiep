@@ -18,7 +18,7 @@ const KEY_QUOTES = 'mttq_chanhhiep_hcm_quotes_v1';
 const KEY_AUDIOS = 'mttq_chanhhiep_hcm_audios_v1';
 const KEY_FOOTSTEPS = 'mttq_chanhhiep_hcm_footsteps_v1';
 const KEY_CHANH_HIEP_ACTIONS = 'mttq_chanhhiep_hcm_chanh_hiep_actions_v4';
-const KEY_FRONT_INITIATIVES = 'mttq_chanhhiep_hcm_front_initiatives_v3';
+const KEY_FRONT_INITIATIVES = 'mttq_chanhhiep_hcm_front_initiatives_v5';
 
 // --- WORKS STORE ---
 export function loadStoredWorks(): HistoricalWork[] {
