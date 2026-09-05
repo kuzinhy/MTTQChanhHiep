@@ -91,17 +91,23 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
   const chapterEvents = useMemo(() => {
     if (!activeChapter) return [];
     
+    // Combine museum data and governance data
+    const allEvents = [...HISTORICAL_EVENTS, ...governanceEvents];
+    
     // Match events based on chapter order and time periods
-    return HISTORICAL_EVENTS.filter((ev) => {
-      if (activeChapter.order === 1) return ev.year >= 1890 && ev.year <= 1911;
-      if (activeChapter.order === 2) return ev.year >= 1911 && ev.year <= 1920;
-      if (activeChapter.order === 3) return ev.year >= 1921 && ev.year <= 1930;
-      if (activeChapter.order === 4) return ev.year >= 1930 && ev.year <= 1945;
-      if (activeChapter.order === 5) return ev.year >= 1945 && ev.year <= 1954;
-      if (activeChapter.order === 6) return ev.year >= 1954 && ev.year <= 1969;
+    return allEvents.filter((ev) => {
+      // Need to normalize date access for both EventCardSchema and HistoricalEvent
+      const year = 'date_start' in ev ? new Date(ev.date_start).getFullYear() : (ev as any).year;
+      
+      if (activeChapter.order === 1) return year >= 1890 && year <= 1911;
+      if (activeChapter.order === 2) return year >= 1911 && year <= 1920;
+      if (activeChapter.order === 3) return year >= 1921 && year <= 1930;
+      if (activeChapter.order === 4) return year >= 1930 && year <= 1945;
+      if (activeChapter.order === 5) return year >= 1945 && year <= 1954;
+      if (activeChapter.order === 6) return year >= 1954 && year <= 1969;
       return true;
     });
-  }, [activeChapter]);
+  }, [activeChapter, governanceEvents]);
 
   // Filter chapters by search query if typed
   const filteredChapters = useMemo(() => {
@@ -396,11 +402,11 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
                     >
                       <div className="flex items-center justify-between text-xs">
                         <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-900 font-bold border border-rose-200">
-                          {ev.dateLabel}
+                          {'dateLabel' in ev ? ev.dateLabel : ev.date_display}
                         </span>
                         <span className="text-rose-700 font-bold flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-rose-600" />
-                          {ev.locationName}
+                          {'locationName' in ev ? ev.locationName : ev.location}
                         </span>
                       </div>
 

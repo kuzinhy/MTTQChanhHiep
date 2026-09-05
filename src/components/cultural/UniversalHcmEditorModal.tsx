@@ -8,6 +8,7 @@ import {
   ChanhHiepActionModel
 } from '../../data/hcmVerifiedMuseumData';
 import { BiographyChapter, EventCardSchema, CoverConfig } from '../../data/hcmGovernanceSchema';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 export type EditableHcmItemType =
   | 'work'
@@ -92,14 +93,11 @@ const ImageInputWithPreview: React.FC<{
 
       {value && (
         <div className="relative h-32 w-full mt-2 rounded-xl overflow-hidden border border-rose-300/80 bg-slate-900 flex items-center justify-center group">
-          <img
+          <OptimizedImage
             src={value}
             alt="Preview Avatar"
-            referrerPolicy="no-referrer"
+            variant="card"
             className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLElement).style.display = 'none';
-            }}
           />
           <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[10px] font-bold">
             Xem trước ảnh đại diện

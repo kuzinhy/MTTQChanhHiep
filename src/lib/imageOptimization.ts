@@ -112,18 +112,18 @@ export function getOptimalImageUrl(
     if (variant === 'original') {
       return rawUrl; // Return unmodified master source
     }
-    // High-fidelity transformations: f_auto,q_auto:best or q_100, maintaining high DPR
+    // High-fidelity transformations: Avoid aggressive compression
     if (variant === 'hero') {
-      return buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_2560,c_limit');
+      return buildCloudinaryUrl(rawUrl, 'w_2560,q_95');
     }
     if (variant === 'article') {
-      return buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_2000,c_limit');
+      return buildCloudinaryUrl(rawUrl, 'w_2000,q_95');
     }
     if (variant === 'card') {
-      return buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_1200,c_limit');
+      return buildCloudinaryUrl(rawUrl, 'w_1200,q_95');
     }
     if (variant === 'thumbnail') {
-      return buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_600,c_limit');
+      return buildCloudinaryUrl(rawUrl, 'w_600,q_90');
     }
   }
 
@@ -178,10 +178,10 @@ export function getResponsiveImageSources(
   // Build responsive srcSet for Cloudinary
   if (rawUrl.includes('res.cloudinary.com')) {
     const srcSet = [
-      `${buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_600,c_limit')} 600w`,
-      `${buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_1200,c_limit')} 1200w`,
-      `${buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_1800,c_limit')} 1800w`,
-      `${buildCloudinaryUrl(rawUrl, 'f_auto,q_auto:best,w_2560,c_limit')} 2560w`
+      `${buildCloudinaryUrl(rawUrl, 'w_600,q_90')} 600w`,
+      `${buildCloudinaryUrl(rawUrl, 'w_1200,q_95')} 1200w`,
+      `${buildCloudinaryUrl(rawUrl, 'w_1800,q_95')} 1800w`,
+      `${buildCloudinaryUrl(rawUrl, 'w_2560,q_95')} 2560w`
     ].join(', ');
 
     return {

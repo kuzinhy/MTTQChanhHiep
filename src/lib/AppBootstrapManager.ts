@@ -8,6 +8,7 @@ export interface BootstrapState {
   status: BootstrapStatus;
   progress: number;
   currentTask: string;
+  statusText?: string;
   ready: boolean;
   error: string | null;
 }
