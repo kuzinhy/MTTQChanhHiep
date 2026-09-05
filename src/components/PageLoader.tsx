@@ -97,20 +97,20 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded, minDurationMs 
       <div className="relative z-10 max-w-lg w-full bg-transparent border-0 rounded-3xl p-6 sm:p-8 text-center space-y-6">
         
         {/* Top Floating Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-300/40 text-cyan-200 text-[10px] font-black tracking-widest uppercase shadow-md mx-auto">
+        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full bg-cyan-500/20 border border-cyan-300/40 text-cyan-200 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-md mx-auto max-w-[95%] sm:max-w-full">
           <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center border border-yellow-300 shadow-xs shrink-0">
             <span className="text-[10px] text-yellow-300 font-black leading-none">★</span>
           </div>
-          <span className="whitespace-nowrap">Cổng Thông Tin Số • Ủy Ban MTTQ Việt Nam Phường Chánh Hiệp</span>
+          <span className="text-center leading-snug">Cổng Thông Tin Số • Ủy Ban MTTQ Việt Nam Phường Chánh Hiệp</span>
         </div>
 
         {/* MTTQ Emblem Logo Right in the Center of Concentric Rings inside Glass Card */}
-        <div className="relative mx-auto w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center">
+        <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center mt-2 sm:mt-0">
           {/* Pulsing ring aura */}
           <div className="absolute inset-0 rounded-full bg-cyan-400/40 blur-xl animate-pulse" />
           
           <div className="relative w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 p-1 shadow-[0_0_40px_rgba(34,211,238,0.7)]">
-            <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center p-3.5 border-2 border-cyan-300/80 overflow-hidden shadow-inner">
+            <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center p-3 sm:p-3.5 border-2 border-cyan-300/80 overflow-hidden shadow-inner">
               <img 
                 src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png" 
                 alt="Logo MTTQ Việt Nam" 
@@ -124,14 +124,14 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded, minDurationMs 
         </div>
 
         {/* Titles & System Branding */}
-        <div className="space-y-1.5 w-full overflow-x-auto no-scrollbar py-1">
-          <h1 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-white uppercase leading-tight drop-shadow-md whitespace-nowrap">
+        <div className="space-y-1.5 w-full pt-2">
+          <h1 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-white uppercase leading-tight drop-shadow-md">
             Ủy Ban Mặt Trận Tổ Quốc Việt Nam
           </h1>
-          <p className="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-widest drop-shadow whitespace-nowrap">
+          <p className="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-widest drop-shadow">
             Phường Chánh Hiệp • TP. Hồ Chí Minh
           </p>
-          <p className="text-[11px] sm:text-xs text-blue-200/90 font-semibold tracking-wide whitespace-nowrap">
+          <p className="text-[11px] sm:text-xs text-blue-200/90 font-semibold tracking-wide mt-1">
             Hệ Thống Quản Trị Trực Tuyến &amp; Cổng Dịch Vụ An Sinh Số
           </p>
         </div>
