@@ -39,8 +39,7 @@ import {
   Organization,
   OrganizationNode,
   NeighborhoodMigrationResult,
-  CulturalMedia,
-  SystemSettings
+  CulturalMedia
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -75,8 +74,7 @@ const STORAGE_KEYS = {
   AREAS: 'mttq_chanhhiep_areas_v3',
   ORGANIZATIONS: 'mttq_chanhhiep_organizations_v4',
   NEIGHBORHOODS_MIGRATION_V3: 'mttq_chanhhiep_migration_ward_only_v7',
-  CULTURAL_MEDIA: 'mttq_chanhhiep_cultural_media_v1',
-  SYSTEM_SETTINGS: 'mttq_chanhhiep_system_settings_v1'
+  CULTURAL_MEDIA: 'mttq_chanhhiep_cultural_media_v1'
 };
 
 // In-Memory Storage Cache to prevent redundant serialization & disk writes
@@ -1159,30 +1157,7 @@ export const AppStorageEngine = {
       return null;
     }
   },
-  saveCurrentUser: (user: StaffUser | null) => {
-    saveStorageData(STORAGE_KEYS.CURRENT_USER, user);
-    if (typeof document !== 'undefined') {
-      if (user) {
-        document.cookie = 'mttq_staff_session=1; path=/; max-age=86400; SameSite=Lax';
-      } else {
-        document.cookie = 'mttq_staff_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-      }
-    }
-  },
-
-  getSystemSettings: (): SystemSettings | null => {
-    try {
-      return loadInitialData<SystemSettings | null>(STORAGE_KEYS.SYSTEM_SETTINGS, null);
-    } catch {
-      return null;
-    }
-  },
-  saveSystemSettings: (settings: SystemSettings | null) => {
-    saveStorageData(STORAGE_KEYS.SYSTEM_SETTINGS, settings);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('mttq_system_settings_changed', { detail: settings }));
-    }
-  },
+  saveCurrentUser: (user: StaffUser | null) => saveStorageData(STORAGE_KEYS.CURRENT_USER, user),
 
   getLastBackupTime: (): string => {
     try {

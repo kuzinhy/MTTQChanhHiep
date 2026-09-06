@@ -8,7 +8,6 @@ import { aiWorkspaceRouter } from './server/aiWorkspaceRouter';
 import { analyticsRouter } from './server/analyticsRouter';
 import { mediaRouter } from './server/mediaRouter';
 import { mediaProxyHandler } from './server/mediaProxyRouter';
-import { systemSettingsRouter, maintenanceMiddleware } from './server/systemSettingsRouter';
 
 dotenv.config({ override: true });
 
@@ -39,18 +38,6 @@ async function startServer() {
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-  // Primary Health Check endpoints for Cloud Run and dev supervisor
-  app.get(['/api/health', '/healthz', '/health', '/ping'], (_req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime() });
-  });
-
-  // System Settings & Maintenance Mode API Router
-  app.use('/api/system', systemSettingsRouter);
-  app.use('/api', systemSettingsRouter);
-
-  // System Maintenance Mode Guard Middleware (intercepts public routes when maintenance is active)
-  app.use(maintenanceMiddleware);
 
   // MTTQ AI Workspace API Router (16 Professional Tools)
   app.use('/api/ai/workspace', aiWorkspaceRouter);

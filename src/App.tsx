@@ -53,8 +53,6 @@ import { MemberOrganizationsAdminView } from './components/office/MemberOrganiza
 import { CulturalSpaceAdminView } from './components/cultural/CulturalSpaceAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
 import { NotificationAdminView } from './components/office/NotificationAdminView';
-import { SystemSettingsAdminView } from './components/office/SystemSettingsAdminView';
-import { MaintenancePage } from './components/MaintenancePage';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
@@ -70,7 +68,7 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent, MemberOrganization, Area, Organization, SystemSettings } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent, MemberOrganization, Area, Organization } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -117,8 +115,7 @@ export const VALID_OFFICE_VIEWS = [
   'users',
   'analytics',
   'audit_logs',
-  'notifications',
-  'system_settings'
+  'notifications'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -166,10 +163,6 @@ export default function App() {
   const [portalTab, setPortalTab] = useState<string>('home');
   const [officeView, setOfficeView] = useState<string>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // System Settings & Maintenance Mode State
-  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(() => AppStorageEngine.getSystemSettings());
-  const [isAdminMaintenancePreview, setIsAdminMaintenancePreview] = useState<boolean>(false);
 
   // 404 & Invalid Route State
   const [notFoundRoute, setNotFoundRoute] = useState<{ isNotFound: boolean; attemptedPath?: string; message?: string } | null>(null);
@@ -317,57 +310,6 @@ export default function App() {
     });
   }, []);
 
-  // Fetch and periodically poll System Settings & Maintenance Mode
-  useEffect(() => {
-    const fetchSystemStatus = async () => {
-      try {
-        const res = await fetch('/api/system/status', {
-          headers: { 'Cache-Control': 'no-cache, no-store' }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.settings) {
-            setSystemSettings(data.settings);
-            AppStorageEngine.saveSystemSettings(data.settings);
-          }
-        }
-      } catch (err) {
-        console.warn('[App] System status error:', err);
-      }
-    };
-
-    fetchSystemStatus();
-    // Fast polling (5 seconds) for rapid reaction to maintenance mode toggles
-    const interval = setInterval(fetchSystemStatus, 5000);
-
-    // Immediate check on tab focus/visibility
-    const handleVisibility = () => {
-      if (!document.hidden) fetchSystemStatus();
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    // Synchronize across tabs when local storage changes
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'mttq_chanhhiep_system_settings_v1') {
-        const updated = AppStorageEngine.getSystemSettings();
-        if (updated) setSystemSettings(updated);
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-
-    const handleCustomChange = (e: any) => {
-      if (e.detail) setSystemSettings(e.detail);
-    };
-    window.addEventListener('mttq_system_settings_changed', handleCustomChange);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('mttq_system_settings_changed', handleCustomChange);
-    };
-  }, []);
-
   // Auto-Sync state changes to Local Storage
   useEffect(() => { AppStorageEngine.saveArticles(articles); }, [articles]);
   useEffect(() => { AppStorageEngine.saveDocuments(documents); }, [documents]);
@@ -390,25 +332,6 @@ export default function App() {
   // Unified Hash-based Router with 404 & Deep Linking
   useEffect(() => {
     const handleHashRouting = () => {
-      // Check if accessed directly via pathname e.g. /admin or /van-phong-so
-      const currentPath = window.location.pathname || '';
-      if (currentPath === '/admin' || currentPath === '/admin/' || currentPath.startsWith('/admin/')) {
-        const subView = currentPath.replace(/^\/admin\/?/, '').trim();
-        window.history.replaceState(null, '', subView ? `/#/admin/${subView}` : '/#/admin');
-        setNotFoundRoute(null);
-        setCurrentSpace('OFFICE');
-        setOfficeView(subView || 'dashboard');
-        return;
-      }
-      if (currentPath === '/van-phong-so' || currentPath === '/van-phong-so/' || currentPath.startsWith('/van-phong-so/')) {
-        const subView = currentPath.replace(/^\/van-phong-so\/?/, '').trim();
-        window.history.replaceState(null, '', subView ? `/#/van-phong-so/${subView}` : '/#/van-phong-so');
-        setNotFoundRoute(null);
-        setCurrentSpace('OFFICE');
-        setOfficeView(subView || 'dashboard');
-        return;
-      }
-
       const rawHash = window.location.hash || '';
       
       // Default empty or root routes
@@ -513,19 +436,11 @@ export default function App() {
         return;
       }
 
-      // 5. Digital Office route: #/admin or #/van-phong-so
-      if (rawHash === '#/admin' || rawHash === '#/admin/' || rawHash === '#/van-phong-so' || rawHash === '#/van-phong-so/dashboard') {
+      // 5. Digital Office route: #/van-phong-so or #/van-phong-so/:view
+      if (rawHash === '#/van-phong-so' || rawHash === '#/van-phong-so/dashboard') {
         setNotFoundRoute(null);
         setCurrentSpace('OFFICE');
         setOfficeView('dashboard');
-        return;
-      }
-
-      if (rawHash.startsWith('#/admin/')) {
-        const viewPart = rawHash.replace('#/admin/', '').trim();
-        setCurrentSpace('OFFICE');
-        setNotFoundRoute(null);
-        setOfficeView(viewPart || 'dashboard');
         return;
       }
 
@@ -1104,38 +1019,14 @@ export default function App() {
       <AnimatePresence mode="wait">
         {/* PUBLIC PORTAL SPACE */}
         {currentSpace === 'PORTAL' ? (
-          systemSettings?.maintenanceMode && !isAdminMaintenancePreview ? (
-            <MaintenancePage
-              settings={systemSettings}
-              onGoToAdmin={() => {
-                setCurrentSpace('OFFICE');
-                window.location.hash = '#/admin';
-              }}
-            />
-          ) : isAdminMaintenancePreview ? (
-            <MaintenancePage
-              settings={systemSettings || {
-                maintenanceMode: true,
-                maintenanceTitle: 'XEM TRƯỚC TRANG BẢO TRÌ',
-                maintenanceMessage: 'Đang hiển thị mẫu trang bảo trì gửi Nhân dân.',
-                updatedAt: new Date().toISOString()
-              }}
-              isAdminPreview={true}
-              onExitPreview={() => {
-                setIsAdminMaintenancePreview(false);
-                setCurrentSpace('OFFICE');
-                setOfficeView('system_settings');
-              }}
-            />
-          ) : (
-            <motion.div 
-              key="portal-space"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: 'easeInOut' }}
-              className="flex flex-col min-h-screen"
-            >
+          <motion.div 
+            key="portal-space"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="flex flex-col min-h-screen"
+          >
             <Navbar
               activeTab={portalTab}
               setActiveTab={handleSelectPortalTab}
@@ -1428,7 +1319,6 @@ export default function App() {
             <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
             <AiAssistantWidget />
           </motion.div>
-          )
         ) : (
           /* DIGITAL OFFICE SPACE */
           !currentStaffUser ? (
@@ -1993,20 +1883,6 @@ export default function App() {
                       <NotificationAdminView
                         currentUserId={currentStaffUser?.id || 'admin'}
                         onTriggerToast={(title, msg) => handleTriggerSystemToast(title, msg)}
-                      />
-                    )}
-
-                    {officeView === 'system_settings' && (
-                      <SystemSettingsAdminView
-                        currentUser={currentStaffUser}
-                        onSettingsUpdated={(updated) => setSystemSettings(updated)}
-                        onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Lỗi hệ thống' : 'Cài đặt hệ thống', msg)}
-                        onPreviewMaintenance={(previewSettings) => {
-                          setSystemSettings(previewSettings);
-                          setIsAdminMaintenancePreview(true);
-                          setCurrentSpace('PORTAL');
-                          handleTriggerSystemToast('Chế độ xem trước', 'Đang hiển thị trang bảo trì ở chế độ xem trước dành cho Quản trị viên.');
-                        }}
                       />
                     )}
 

@@ -896,16 +896,4 @@ export interface NotificationLog {
   metadata?: Record<string, any>;
 }
 
-export interface SystemSettings {
-  maintenanceMode: boolean;
-  maintenanceTitle: string;
-  maintenanceMessage: string;
-  maintenanceStartAt?: string;
-  maintenanceEndAt?: string;
-  showScheduledTime?: boolean;
-  updatedAt: string;
-  updatedBy?: string;
-  updatedByName?: string;
-}
-
 
