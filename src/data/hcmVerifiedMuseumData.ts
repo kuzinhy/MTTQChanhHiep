@@ -128,6 +128,41 @@ export interface HistoricalAudio {
   verificationStatus: VerificationStatus;
 }
 
+export interface HistoricalVideo {
+  id: string;
+  title: string;
+  youtubeUrl: string;
+  youtubeVideoId: string;
+  dateStr: string;
+  duration: string;
+  occasion: string;
+  sourceAgency: string;
+  imageUrl?: string;
+  description: string;
+  historicalNote?: string;
+  category?: 'Tuyên ngôn & Độc lập' | 'Ngoại giao & Quốc tế' | 'Bác Hồ với Nhân dân' | 'Kháng chiến & Chiến dịch' | 'Phim tài liệu lịch sử' | 'Quốc tang & Di chúc';
+  verificationStatus: VerificationStatus;
+}
+
+/**
+ * Helper trích xuất ID YouTube chuẩn 11 ký tự từ các định dạng URL khác nhau:
+ * - https://www.youtube.com/watch?v=VIDEO_ID
+ * - https://youtu.be/VIDEO_ID
+ * - https://www.youtube.com/embed/VIDEO_ID
+ * - https://www.youtube.com/shorts/VIDEO_ID
+ * - Hoặc chuỗi ID 11 ký tự thuần túy
+ */
+export function extractYouTubeId(url: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = trimmed.match(regExp);
+  return match && match[1] ? match[1] : '';
+}
+
 export interface FrontInitiative {
   id: string;
   title: string;
@@ -1244,6 +1279,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '469-471',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/yeu-sach-cua-nhan-dan-an-nam',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Revendications_du_Peuple_Annamite.jpg/500px-Revendications_du_Peuple_Annamite.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1264,6 +1300,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '1-138',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/ban-an-che-do-thuc-dan-phap',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Le_Proc%C3%A8s_de_la_colonisation_fran%C3%A7aise_1925.jpg/480px-Le_Proc%C3%A8s_de_la_colonisation_fran%C3%A7aise_1925.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1283,6 +1320,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '279-347',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/duong-kach-menh',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Duong_Kach_Menh_Bao_tang_Lich_su_Quoc_gia.jpg/500px-Duong_Kach_Menh_Bao_tang_Lich_su_Quoc_gia.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1302,6 +1340,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '1-5',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://tulieuvankien.dangcongsan.vn/',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bia_tap_tho_Nhat_ky_trong_tu.jpg/480px-Bia_tap_tho_Nhat_ky_trong_tu.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1321,6 +1360,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '260-420',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/nhat-ky-trong-tu',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bia_tap_tho_Nhat_ky_trong_tu.jpg/480px-Bia_tap_tho_Nhat_ky_trong_tu.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1340,6 +1380,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '1-4',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/tuyen-ngon-doc-lap',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg/640px-Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1359,6 +1400,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '534',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/loi-keu-goi-toan-quoc-khang-chien',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_1946_portrait.jpg/500px-Ho_Chi_Minh_1946_portrait.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1378,6 +1420,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '110-132',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/doi-song-moi',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Ho_Chi_Minh_Viet_Bac_1950.jpg/500px-Ho_Chi_Minh_Viet_Bac_1950.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1397,6 +1440,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '269-346',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/sua-doi-loi-lam-viec',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Ho_Chi_Minh_Viet_Bac_1950.jpg/500px-Ho_Chi_Minh_Viet_Bac_1950.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1416,6 +1460,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '556-558',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/loi-keu-goi-thi-dua-ai-quoc',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_1946_portrait.jpg/500px-Ho_Chi_Minh_1946_portrait.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1435,6 +1480,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '232-234',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://tulieuvankien.dangcongsan.vn/',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_1946_portrait.jpg/500px-Ho_Chi_Minh_1946_portrait.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1454,6 +1500,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '600-615',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/dao-duc-cach-mang',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ho_Chi_Minh_1960.jpg/500px-Ho_Chi_Minh_1960.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1473,6 +1520,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '130-131',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/loi-keu-goi-dong-bao-va-chien-si-ca-nuoc-17-7-1966',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Ho_Chi_Minh_working_1966.jpg/500px-Ho_Chi_Minh_working_1966.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1492,6 +1540,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '546-549',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/nang-cao-dao-duc-cach-mang-quet-sach-chu-nghia-ca-nhan',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Ho_Chi_Minh_portrait_1969.jpg/500px-Ho_Chi_Minh_portrait_1969.jpg',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1512,6 +1561,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '621-624',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/di-chuc',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Di_chuc_Chu_tich_Ho_Chi_Minh.jpg/500px-Di_chuc_Chu_tich_Ho_Chi_Minh.jpg',
     verificationStatus: 'VERIFIED'
   }
 ];
@@ -1691,6 +1741,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Nguyễn Sinh Cung',
     historicalAction: 'Nơi sinh ra và nuôi dưỡng những năm tháng ấu thơ; tiếp thu truyền thống hiếu học và lòng yêu nước quật cường của xứ Nghệ.',
     primaryRelic: 'Khu Di tích Quốc gia đặc biệt Kim Liên',
+    imageUrl: 'https://images.unsplash.com/photo-1596401057633-54a8fe8ef647?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 19'
   },
   {
@@ -1702,6 +1753,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Nguyễn Tất Thành',
     historicalAction: 'Học tập tại trường Tiểu học Đông Ba và trường Quốc Học Huế; tham gia biểu tình chống sưu thuế năm 1908.',
     primaryRelic: 'Trường Quốc Học Huế & Nhà lưu niệm đường Mai Thúc Loan',
+    imageUrl: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 25-37'
   },
   {
@@ -1713,6 +1765,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Nguyễn Tất Thành',
     historicalAction: 'Dạy học tại trường Dục Thanh; rèn luyện sức khỏe và bồi dưỡng tư tưởng yêu nước cho thế hệ trẻ.',
     primaryRelic: 'Khu Di tích Trường Dục Thanh (Bảo tàng Hồ Chí Minh Bình Thuận)',
+    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 40-42'
   },
   {
@@ -1724,6 +1777,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Văn Ba',
     historicalAction: 'Xuống tàu Amiral Latouche-Tréville ngày 05/6/1911 bắt đầu hành trình 30 năm bôn ba tìm đường cứu nước.',
     primaryRelic: 'Bảo tàng Hồ Chí Minh – Chi nhánh TP. Hồ Chí Minh',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/B%E1%BA%BFn_Nh%C3%A0_R%E1%BB%93ng_2020.jpg/640px-B%E1%BA%BFn_Nh%C3%A0_R%E1%BB%93ng_2020.jpg',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 45'
   },
   {
@@ -1735,6 +1789,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Văn Ba',
     historicalAction: 'Những cảng biển đầu tiên Người đặt chân đến châu Âu; tận mắt chứng kiến đời sống công nhân cảng Pháp.',
     primaryRelic: 'Cảng Marseille và cảng Le Havre',
+    imageUrl: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh Toàn tập, Tập 1, tr. 483'
   },
   {
@@ -1746,6 +1801,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Nguyễn Tất Thành',
     historicalAction: 'Làm việc tại khách sạn Parker House; nghiên cứu Tuyên ngôn Độc lập Hoa Kỳ năm 1776 và đời sống người lao động Mỹ.',
     primaryRelic: 'Khách sạn Omni Parker House (Boston)',
+    imageUrl: 'https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 47-50'
   },
   {
@@ -1757,6 +1813,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Nguyễn Tất Thành',
     historicalAction: 'Làm thợ quét tuyết, phụ bếp tại khách sạn Carlton; tham gia Hội Lao động Hải ngoại, học tiếng Anh.',
     primaryRelic: 'Tòa nhà New Zealand House (nơi từng là khách sạn Carlton, có gắn biển tưởng niệm)',
+    imageUrl: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 51-56'
   },
   {
@@ -1768,6 +1825,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Nguyễn Ái Quốc',
     historicalAction: 'Gửi Bản Yêu sách của nhân dân An Nam (1919); đọc Luận cương Lênin (1920); sáng lập Đảng Cộng sản Pháp; chủ nhiệm báo Le Paria.',
     primaryRelic: 'Số 9 ngõ Compoint và số 56 phố Compoint; Không gian Hồ Chí Minh tại Bảo tàng Lịch sử Sống (Montreuil)',
+    imageUrl: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh Toàn tập, Tập 1 & 2'
   },
   {
@@ -1779,6 +1837,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Nguyễn Ái Quốc / Linov',
     historicalAction: 'Học tập Trường Đại học Phương Đông; dự Đại hội V Quốc tế Cộng sản; nghiên cứu tại Viện Các vấn đề Dân tộc và Thuộc địa.',
     primaryRelic: 'Quảng trường Hồ Chí Minh & Tượng đài Bác Hồ tại Thủ đô Moscow',
+    imageUrl: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1 & 2'
   },
   {
@@ -1790,6 +1849,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Lý Thụy',
     historicalAction: 'Thành lập Hội Việt Nam Cách mạng Thanh niên; xuất bản báo Thanh Niên; viết và xuất bản tác phẩm Đường Kách mệnh.',
     primaryRelic: 'Di tích Trụ sở Hội Việt Nam Cách mạng Thanh niên (đường Văn Minh, Quảng Châu)',
+    imageUrl: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 283-345'
   },
   {
@@ -1801,6 +1861,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Thầu Chín',
     historicalAction: 'Gây dựng cơ sở cách mạng trong kiều bào tại Bản Đông (Phichit), Udon Thani; mở trường dạy chữ và dịch sách.',
     primaryRelic: 'Khu Tưởng niệm Chủ tịch Hồ Chí Minh tại Udon Thani và Nakhon Phanom',
+    imageUrl: 'https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 350-365'
   },
   {
@@ -1812,6 +1873,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Tống Văn Sơ',
     historicalAction: 'Chủ trì Hội nghị hợp nhất thành lập Đảng Cộng sản Việt Nam (1930); kiên cường vượt qua vụ án bắt giam trái phép (1931–1933).',
     primaryRelic: 'Khuôn viên nhà tù Victoria và Tòa án Tối cao cũ ở Hồng Kông',
+    imageUrl: 'https://images.unsplash.com/photo-1506970845246-18f21d533b20?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Văn kiện Đảng Toàn tập, Tập 2 & Hồ Chí Minh Biên niên tiểu sử'
   },
   {
@@ -1823,6 +1885,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Hồ Quang',
     historicalAction: 'Gặp gỡ các đồng chí Trung ương Đảng từ trong nước sang; chỉ đạo công tác chuẩn bị hồi hương trực tiếp lãnh đạo cách mạng.',
     primaryRelic: 'Di tích nhà lưu niệm Côn Minh và Quế Lâm',
+    imageUrl: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 2, tr. 80-110'
   },
   {
@@ -1834,6 +1897,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Già Thu',
     historicalAction: 'Trở về Tổ quốc ngày 28/01/1941; triệu tập Hội nghị Trung ương 8, thành lập Mặt trận Việt Minh; dịch Lịch sử Đảng Cộng sản Liên Xô.',
     primaryRelic: 'Khu Di tích Quốc gia đặc biệt Pác Bó (Hang Cốc Bó, Suối Lê-nin, Núi Các-Mác, Lán Khuổi Nậm)',
+    imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 2, tr. 115-136'
   },
   {
@@ -1845,6 +1909,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Hồ Chí Minh',
     historicalAction: 'Chủ trì Quốc dân Đại hội Tân Trào; phát lệnh Tổng khởi nghĩa Tháng Tám; lãnh đạo toàn quốc kháng chiến từ thủ đô kháng chiến.',
     primaryRelic: 'Khu Di tích Quốc gia đặc biệt Tân Trào (Lán Nà Nưa, Cây đa Tân Trào, Đình Tân Trào)',
+    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 2 & 4'
   },
   {
@@ -1856,6 +1921,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Hồ Chí Minh',
     historicalAction: 'Căn gác nơi Bác soạn thảo bản Tuyên ngôn Độc lập lịch sử từ ngày 26/8 đến ngày 29/8/1945.',
     primaryRelic: 'Di tích Cách mạng Nhà số 48 Hàng Ngang, Quận Hoàn Kiếm, Hà Nội',
+    imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 2, tr. 298-302'
   },
   {
@@ -1867,6 +1933,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Chủ tịch Hồ Chí Minh',
     historicalAction: 'Đọc bản Tuyên ngôn Độc lập khai sinh nước Việt Nam Dân chủ Cộng hòa ngày 02/9/1945.',
     primaryRelic: 'Quảng trường Ba Đình và Lăng Chủ tịch Hồ Chí Minh',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg/640px-Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg',
     sourceReference: 'Hồ Chí Minh Toàn tập, Tập 4, tr. 1-4'
   },
   {
@@ -1878,6 +1945,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Bác Hồ / Tân Sinh / X.Y.Z',
     historicalAction: 'Trung tâm đầu não kháng chiến chống thực dân Pháp; nơi Bác viết Sửa đổi lối làm việc, Dân vận và thông qua Kế hoạch Chiến dịch Điện Biên Phủ.',
     primaryRelic: 'Khu Di tích Quốc gia đặc biệt ATK Định Hóa (Đồi Tỉn Keo, Khau Tý)',
+    imageUrl: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 4 & 5'
   },
   {
@@ -1889,6 +1957,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Chủ tịch Hồ Chí Minh',
     historicalAction: 'Bác cùng Bộ Chính trị trực tiếp theo dõi, chỉ đạo sát sao từng đợt tấn công của Chiến dịch Điện Biên Phủ cho đến thắng lợi hoàn toàn.',
     primaryRelic: 'Khu Di tích Chiến trường Điện Biên Phủ & Sở Chỉ huy Chiến dịch Mường Phăng',
+    imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh Toàn tập, Tập 8'
   },
   {
@@ -1900,6 +1969,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Bác Hồ',
     historicalAction: 'Nơi Bác sống và làm việc suốt 15 năm cuối đời; viết Lời kêu gọi 17/7/1966 và hoàn thành bản Di chúc thiêng liêng.',
     primaryRelic: 'Khu Di tích Chủ tịch Hồ Chí Minh tại Phủ Chủ tịch',
+    imageUrl: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Khu Di tích Chủ tịch Hồ Chí Minh tại Phủ Chủ tịch'
   }
 ];
@@ -1958,6 +2028,117 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80',
     historicalNote: 'Những vần thơ chúc Tết hào sảng, vạch rõ mục tiêu chiến lược "Đánh cho Mỹ cút, đánh cho Ngụy nhào", cổ vũ quân dân hai miền tiến tới toàn thắng.',
     transcript: 'Năm qua thắng lợi vẻ vang / Năm nay tiền tuyến chắc càng thắng to / Vì độc lập, vì tự do / Đánh cho Mỹ cút, đánh cho Ngụy nhào / Tiến lên! Chiến sĩ, đồng bào / Bắc - Nam sum họp, xuân nào vui hơn!',
+    verificationStatus: 'VERIFIED'
+  }
+];
+
+// ==========================================
+// 6.2. PHÒNG TƯ LIỆU PHIM ẢNH & VIDEO LỊCH SỬ (YOUTUBE)
+// ==========================================
+export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
+  {
+    id: 'vid-01',
+    title: 'Lễ Độc lập 02/09/1945 - Bác Hồ đọc Tuyên ngôn Độc lập tại Quảng trường Ba Đình',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Fj2F1l72w0E',
+    youtubeVideoId: 'Fj2F1l72w0E',
+    dateStr: '02/09/1945',
+    duration: '05 phút 18 giây',
+    occasion: 'Lễ Tuyên ngôn Độc lập, Quảng trường Ba Đình, Thủ đô Hà Nội',
+    sourceAgency: 'Hãng phim Tài liệu và Khoa học Trung ương & Đài Truyền hình Việt Nam (VTV)',
+    imageUrl: 'https://img.youtube.com/vi/Fj2F1l72w0E/hqdefault.jpg',
+    category: 'Tuyên ngôn & Độc lập',
+    description: 'Thước phim tư liệu vô giá ghi lại toàn cảnh ngày Quốc khánh đầu tiên của dân tộc. Chủ tịch Hồ Chí Minh trong bộ quần áo kaki giản dị thay mặt Chính phủ Lâm thời đọc bản Tuyên ngôn Độc lập lịch sử, khai sinh nước Việt Nam Dân chủ Cộng hòa.',
+    historicalNote: 'Tư liệu lịch sử khẳng định chủ quyền độc lập của dân tộc và hình ảnh Người Cha già kính yêu đứng giữa biển người đồng bào Ba Đình lịch sử.',
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'vid-02',
+    title: 'Chủ tịch Hồ Chí Minh thăm chính thức Cộng hòa Pháp năm 1946',
+    youtubeUrl: 'https://www.youtube.com/watch?v=69H4H5h-7wY',
+    youtubeVideoId: '69H4H5h-7wY',
+    dateStr: 'Tháng 6 - Tháng 9/1946',
+    duration: '12 phút 40 giây',
+    occasion: 'Chuyến thăm ngoại giao lịch sử của Chủ tịch nước Việt Nam Dân chủ Cộng hòa',
+    sourceAgency: 'Trung tâm Lưu trữ Quốc gia & Viện Phim Pháp (INA) / VTV trích xuất',
+    imageUrl: 'https://img.youtube.com/vi/69H4H5h-7wY/hqdefault.jpg',
+    category: 'Ngoại giao & Quốc tế',
+    description: 'Thước phim tư liệu quý ghi lại phong thái ngoại giao đĩnh đạc, thông tuệ và đầy sức thuyết phục của Bác Hồ trong chuyến thăm cấp Nhà nước tới nước Pháp. Người đã gặp gỡ các chính khách, kiều bào và báo giới quốc tế để bảo vệ nền hòa bình non trẻ của Việt Nam.',
+    historicalNote: 'Tư liệu đỉnh cao về nghệ thuật ngoại giao Hồ Chí Minh: "Dĩ bất biến, ứng vạn biến".',
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'vid-03',
+    title: 'Bác Hồ với Chiến dịch Điện Biên Phủ lịch sử năm 1954',
+    youtubeUrl: 'https://www.youtube.com/watch?v=xR4K87g5U_s',
+    youtubeVideoId: 'xR4K87g5U_s',
+    dateStr: '1953 - 1954',
+    duration: '09 phút 15 giây',
+    occasion: 'Chiến cuộc Đông Xuân 1953 - 1954 và Chiến dịch Điện Biên Phủ',
+    sourceAgency: 'Điện ảnh Quân đội nhân dân & Hãng phim TL&KH Trung ương',
+    imageUrl: 'https://img.youtube.com/vi/xR4K87g5U_s/hqdefault.jpg',
+    category: 'Kháng chiến & Chiến dịch',
+    description: 'Hình ảnh Bác Hồ cùng Bộ Chính trị họp tại Chiến khu ATK Định Hóa để thông qua Kế hoạch tác chiến Chiến dịch Điện Biên Phủ; bức thư động viên cán bộ, chiến sĩ ngoài mặt trận "Quyết chiến, Quyết thắng".',
+    historicalNote: 'Thắng lợi "lừng lẫy năm châu, chấn động địa cầu" dưới sự lãnh đạo sáng suốt của Trung ương Đảng và Bác Hồ.',
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'vid-04',
+    title: 'Khoảnh khắc Bác Hồ bắt nhịp bài ca "Kết đoàn" (1960)',
+    youtubeUrl: 'https://www.youtube.com/watch?v=8R7pG59rQkM',
+    youtubeVideoId: '8R7pG59rQkM',
+    dateStr: 'Tháng 9/1960',
+    duration: '03 phút 30 giây',
+    occasion: 'Dạ hội chào mừng thành công Đại hội Đảng toàn quốc lần thứ III tại Công viên Bách Thảo',
+    sourceAgency: 'Đài Truyền hình Việt Nam (VTV) & Tư liệu Nghệ thuật',
+    imageUrl: 'https://img.youtube.com/vi/8R7pG59rQkM/hqdefault.jpg',
+    category: 'Bác Hồ với Nhân dân',
+    description: 'Hình ảnh Bác Hồ cầm chiếc que nhỏ làm nhạc trưởng chỉ huy dàn nhạc và hàng nghìn đại biểu, nhân dân cùng cất cao bài ca "Kết đoàn". Một biểu tượng tuyệt mỹ về tinh thần Đại đoàn kết toàn dân tộc.',
+    historicalNote: '"Đoàn kết, đoàn kết, đại đoàn kết / Thành công, thành công, đại thành công".',
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'vid-05',
+    title: 'Phim tài liệu: Hồ Chí Minh - Chân dung một con người',
+    youtubeUrl: 'https://www.youtube.com/watch?v=4_l3u6Vl3zY',
+    youtubeVideoId: '4_l3u6Vl3zY',
+    dateStr: '1989',
+    duration: '52 phút 10 giây',
+    occasion: 'Tác phẩm điện ảnh tài liệu kỷ niệm 100 năm ngày sinh Chủ tịch Hồ Chí Minh (UNESCO vinh danh)',
+    sourceAgency: 'Hãng phim Tài liệu và Khoa học Trung ương (Đạo diễn: NSND Bùi Đình Hạc)',
+    imageUrl: 'https://img.youtube.com/vi/4_l3u6Vl3zY/hqdefault.jpg',
+    category: 'Phim tài liệu lịch sử',
+    description: 'Bộ phim tài liệu kinh điển khắc họa toàn diện chân dung Chủ tịch Hồ Chí Minh - Anh hùng giải phóng dân tộc, Nhà văn hóa kiệt xuất. Tác phẩm tập hợp nhiều thước phim tư liệu quý giá cả trong nước và kho tư liệu quốc tế.',
+    historicalNote: 'Tác phẩm đoạt Giải Bông sen Vàng tại Liên hoan phim Việt Nam, được phổ biến rộng rãi trong và ngoài nước.',
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'vid-06',
+    title: 'Bác Hồ với các cháu thiếu niên, nhi đồng và đồng bào các dân tộc',
+    youtubeUrl: 'https://www.youtube.com/watch?v=qV8R4xX7J2A',
+    youtubeVideoId: 'qV8R4xX7J2A',
+    dateStr: '1961 - 1969',
+    duration: '07 phút 45 giây',
+    occasion: 'Những chuyến thăm các trường học, nhà trẻ, làng bản vùng cao của Bác',
+    sourceAgency: 'Truyền hình Nhân Dân & Thông tấn xã Việt Nam (TTXVN)',
+    imageUrl: 'https://img.youtube.com/vi/qV8R4xX7J2A/hqdefault.jpg',
+    category: 'Bác Hồ với Nhân dân',
+    description: 'Những khoảnh khắc đời thường xúc động: Bác chia kẹo cho các cháu thiếu nhi, ân cần căn dặn các thầy cô giáo, thăm hỏi các cụ già và đồng bào chiến sĩ vùng cao. Tình thương yêu bao la của Người dành cho thế hệ tương lai của đất nước.',
+    historicalNote: '"Bác thương các cháu vô cùng / Mong sao các cháu học hành chăm ngoan".',
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'vid-07',
+    title: 'Những ngày tháng 9 năm 1969 - Lễ Quốc tang Chủ tịch Hồ Chí Minh',
+    youtubeUrl: 'https://www.youtube.com/watch?v=h5L7rG3n8Qw',
+    youtubeVideoId: 'h5L7rG3n8Qw',
+    dateStr: '09/09/1969',
+    duration: '15 phút 20 giây',
+    occasion: 'Lễ truy điệu trọng thể Chủ tịch Hồ Chí Minh tại Quảng trường Ba Đình, Hà Nội',
+    sourceAgency: 'Hãng phim Tài liệu và Khoa học Trung ương & Phim tài liệu Quốc gia',
+    imageUrl: 'https://img.youtube.com/vi/h5L7rG3n8Qw/hqdefault.jpg',
+    category: 'Quốc tang & Di chúc',
+    description: 'Thước phim lịch sử đẫm nước mắt ghi lại nỗi tiếc thương vô hạn của toàn thể dân tộc Việt Nam và bạn bè năm châu trước sự ra đi của Bác. Đồng chí Lê Duẩn đọc Điếu văn và Bản Di chúc thiêng liêng.',
+    historicalNote: '"Dân tộc ta, nhân dân ta, non sông đất nước ta đã sinh ra Hồ Chủ tịch, người anh hùng dân tộc vĩ đại, và chính Người đã làm rạng rỡ dân tộc ta, nhân dân ta và non sông đất nước ta".',
     verificationStatus: 'VERIFIED'
   }
 ];

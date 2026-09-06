@@ -389,42 +389,63 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                 <div
                   key={work.id}
                   onClick={() => setSelectedWork(work)}
-                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative group ${
+                  className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative group ${
                     isSelected
                       ? 'bg-gradient-to-br from-rose-800 via-pink-700 to-rose-900 text-white border-amber-300 shadow-md ring-2 ring-amber-300/30'
                       : 'bg-gradient-to-br from-white via-rose-50/50 to-amber-50/30 border-rose-200 text-rose-950 hover:border-rose-400 hover:shadow-xs'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-md font-serif font-extrabold text-xs ${
-                        isSelected
-                          ? 'bg-amber-300 text-rose-950'
-                          : 'bg-rose-100 text-rose-900 border border-rose-200'
-                      }`}
-                    >
-                      {work.year}
-                    </span>
-                    <span
-                      className={`text-xs font-bold ${
-                        isSelected ? 'text-amber-100' : 'text-rose-700'
-                      }`}
-                    >
-                      Tập {work.volume} (Tr. {work.pageRange})
-                    </span>
+                  <div className="flex items-start gap-3">
+                    {/* Thumbnail bìa tác phẩm */}
+                    <div className="w-14 h-20 rounded-lg overflow-hidden shrink-0 border border-rose-200/60 shadow-2xs bg-rose-100/40 flex items-center justify-center">
+                      {work.imageUrl ? (
+                        <img
+                          src={work.imageUrl}
+                          alt={work.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-rose-400 p-1 text-center">
+                          <BookOpen className="w-5 h-5 mb-0.5" />
+                          <span className="text-[9px] font-bold">{work.year}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          className={`px-2 py-0.5 rounded-md font-serif font-extrabold text-[11px] ${
+                            isSelected
+                              ? 'bg-amber-300 text-rose-950'
+                              : 'bg-rose-100 text-rose-900 border border-rose-200'
+                          }`}
+                        >
+                          {work.year}
+                        </span>
+                        <span
+                          className={`text-[11px] font-bold ${
+                            isSelected ? 'text-amber-100' : 'text-rose-700'
+                          }`}
+                        >
+                          Tập {work.volume} (Tr. {work.pageRange})
+                        </span>
+                      </div>
+
+                      <h4 className="font-serif font-bold text-xs sm:text-sm leading-snug mb-1 line-clamp-2">
+                        {work.title}
+                      </h4>
+
+                      <p
+                        className={`text-xs line-clamp-2 leading-relaxed ${
+                          isSelected ? 'text-rose-100' : 'text-rose-900/80'
+                        }`}
+                      >
+                        {work.summary}
+                      </p>
+                    </div>
                   </div>
-
-                  <h4 className="font-serif font-bold text-xs sm:text-sm leading-snug mb-1">
-                    {work.title}
-                  </h4>
-
-                  <p
-                    className={`text-xs line-clamp-2 leading-relaxed ${
-                      isSelected ? 'text-rose-100' : 'text-rose-900/80'
-                    }`}
-                  >
-                    {work.summary}
-                  </p>
 
                   {isAdmin && (
                     <div className="mt-2 pt-2 border-t border-rose-300/20 flex justify-end">
@@ -469,15 +490,40 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                   )}
                 </div>
 
-                <div className="space-y-1">
-                  <h3 className="text-xl font-serif font-extrabold text-rose-950 leading-tight">
-                    {selectedWork.title}
-                  </h3>
-                  {selectedWork.penName && (
-                    <p className="text-xs font-bold text-rose-800">
-                      Bút danh / Tác giả: {selectedWork.penName}
-                    </p>
+                {/* Header & Ảnh bìa tác phẩm */}
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  {selectedWork.imageUrl && (
+                    <div className="w-24 sm:w-32 h-36 sm:h-44 rounded-2xl overflow-hidden shrink-0 border-2 border-rose-200 shadow-md bg-rose-100/50">
+                      <img
+                        src={selectedWork.imageUrl}
+                        alt={selectedWork.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   )}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <h3 className="text-xl sm:text-2xl font-serif font-extrabold text-rose-950 leading-tight">
+                      {selectedWork.title}
+                    </h3>
+                    {selectedWork.originalTitle && (
+                      <p className="text-xs font-serif italic text-rose-800/90">
+                        Nguyên tác: {selectedWork.originalTitle}
+                      </p>
+                    )}
+                    {selectedWork.penName && (
+                      <p className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                        <Feather className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Bút danh / Tác giả: {selectedWork.penName}</span>
+                      </p>
+                    )}
+                    {selectedWork.publishedPlace && (
+                      <p className="text-xs text-rose-900/80 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>Nơi xuất bản / Lưu hành: {selectedWork.publishedPlace}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Hoàn cảnh ra đời & Tóm tắt */}

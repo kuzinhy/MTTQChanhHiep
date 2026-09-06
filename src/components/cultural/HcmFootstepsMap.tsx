@@ -89,15 +89,34 @@ export const HcmFootstepsMap: React.FC<HcmFootstepsMapProps> = ({ isResearchMode
                     : 'bg-gradient-to-br from-white via-rose-50/50 to-amber-50/30 border-rose-200 text-rose-950 hover:border-rose-400 hover:shadow-xs'
                 }`}
               >
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
-                    isSelected
-                      ? 'bg-amber-300 text-rose-950 shadow-md'
-                      : 'bg-rose-100 text-rose-900 border border-rose-200'
-                  }`}
-                >
-                  {idx + 1}
-                </div>
+                {/* Thumbnail địa danh / số thứ tự */}
+                {loc.imageUrl ? (
+                  <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-rose-200 shadow-2xs bg-rose-100/50 relative">
+                    <img
+                      src={loc.imageUrl}
+                      alt={loc.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                    <span
+                      className={`absolute top-0.5 left-0.5 px-1 rounded text-[9px] font-bold ${
+                        isSelected ? 'bg-amber-300 text-rose-950' : 'bg-rose-950/80 text-white'
+                      }`}
+                    >
+                      {idx + 1}
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
+                      isSelected
+                        ? 'bg-amber-300 text-rose-950 shadow-md'
+                        : 'bg-rose-100 text-rose-900 border border-rose-200'
+                    }`}
+                  >
+                    {idx + 1}
+                  </div>
+                )}
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1 mb-0.5">
@@ -184,17 +203,31 @@ export const HcmFootstepsMap: React.FC<HcmFootstepsMapProps> = ({ isResearchMode
               )}
             </div>
 
-            <h3 className="text-xl font-serif font-extrabold text-rose-950 leading-tight">
-              {selectedLocation.name}
-            </h3>
-
-            {/* Bí danh / Bút danh sử dụng */}
-            {selectedLocation.aliasUsed && (
-              <div className="p-3 rounded-xl bg-amber-100 border border-amber-300 text-xs text-amber-950 font-bold flex items-center gap-2">
-                <User className="w-4 h-4 text-amber-800" />
-                <span>Bí danh / Tên gọi giai đoạn này: {selectedLocation.aliasUsed}</span>
+            {/* Header & Ảnh địa danh */}
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              {selectedLocation.imageUrl && (
+                <div className="w-full sm:w-44 h-36 sm:h-32 rounded-2xl overflow-hidden shrink-0 border-2 border-rose-200 shadow-sm bg-rose-100/40">
+                  <img
+                    src={selectedLocation.imageUrl}
+                    alt={selectedLocation.name}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex-1 min-w-0 space-y-2">
+                <h3 className="text-xl sm:text-2xl font-serif font-extrabold text-rose-950 leading-tight">
+                  {selectedLocation.name}
+                </h3>
+                {/* Bí danh / Bút danh sử dụng */}
+                {selectedLocation.aliasUsed && (
+                  <div className="p-2.5 rounded-xl bg-amber-100 border border-amber-300 text-xs text-amber-950 font-bold flex items-center gap-2">
+                    <User className="w-4 h-4 text-amber-800 shrink-0" />
+                    <span>Bí danh / Tên gọi giai đoạn này: {selectedLocation.aliasUsed}</span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Hoạt động lịch sử cốt lõi */}
             <div className="p-4 rounded-2xl bg-white border border-rose-200 space-y-1">

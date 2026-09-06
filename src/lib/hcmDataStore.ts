@@ -5,6 +5,9 @@ import {
   VERIFIED_QUOTES,
   HistoricalAudio,
   HISTORICAL_AUDIOS,
+  HistoricalVideo,
+  HISTORICAL_VIDEOS,
+  extractYouTubeId,
   FootstepLocation,
   FOOTSTEP_LOCATIONS,
   ChanhHiepActionModel,
@@ -16,6 +19,7 @@ import {
 const KEY_WORKS = 'mttq_chanhhiep_hcm_works_v1';
 const KEY_QUOTES = 'mttq_chanhhiep_hcm_quotes_v1';
 const KEY_AUDIOS = 'mttq_chanhhiep_hcm_audios_v1';
+const KEY_VIDEOS = 'mttq_chanhhiep_hcm_videos_v1';
 const KEY_FOOTSTEPS = 'mttq_chanhhiep_hcm_footsteps_v1';
 const KEY_CHANH_HIEP_ACTIONS = 'mttq_chanhhiep_hcm_chanh_hiep_actions_v4';
 const KEY_FRONT_INITIATIVES = 'mttq_chanhhiep_hcm_front_initiatives_v5';
@@ -27,7 +31,18 @@ export function loadStoredWorks(): HistoricalWork[] {
     const raw = localStorage.getItem(KEY_WORKS);
     if (!raw) return HISTORICAL_WORKS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : HISTORICAL_WORKS;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item: HistoricalWork) => {
+        if (!item.imageUrl) {
+          const defaultItem = HISTORICAL_WORKS.find(d => d.id === item.id);
+          if (defaultItem?.imageUrl) {
+            return { ...item, imageUrl: defaultItem.imageUrl };
+          }
+        }
+        return item;
+      });
+    }
+    return HISTORICAL_WORKS;
   } catch (err) {
     console.error('Error loading stored works:', err);
     return HISTORICAL_WORKS;
@@ -100,6 +115,58 @@ export function saveStoredAudios(data: HistoricalAudio[]): void {
   }
 }
 
+// --- VIDEOS STORE ---
+export function loadStoredVideos(): HistoricalVideo[] {
+  if (typeof window === 'undefined') return HISTORICAL_VIDEOS;
+  try {
+    const raw = localStorage.getItem(KEY_VIDEOS);
+    if (!raw) return HISTORICAL_VIDEOS;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item: HistoricalVideo) => {
+        // Hydrate youtubeVideoId if missing
+        const videoId = item.youtubeVideoId || extractYouTubeId(item.youtubeUrl || '');
+        // Hydrate imageUrl from YouTube thumbnail if missing
+        let imageUrl = item.imageUrl;
+        if (!imageUrl && videoId) {
+          imageUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        } else if (!imageUrl) {
+          const defaultItem = HISTORICAL_VIDEOS.find(d => d.id === item.id);
+          if (defaultItem?.imageUrl) imageUrl = defaultItem.imageUrl;
+        }
+        return {
+          ...item,
+          youtubeVideoId: videoId,
+          imageUrl: imageUrl || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+        };
+      });
+    }
+    return HISTORICAL_VIDEOS;
+  } catch (err) {
+    console.error('Error loading stored videos:', err);
+    return HISTORICAL_VIDEOS;
+  }
+}
+
+export function saveStoredVideos(data: HistoricalVideo[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(KEY_VIDEOS, JSON.stringify(data));
+  } catch (err) {
+    console.error('Error saving stored videos:', err);
+  }
+}
+
+export function resetStoredVideos(): HistoricalVideo[] {
+  if (typeof window === 'undefined') return HISTORICAL_VIDEOS;
+  try {
+    localStorage.removeItem(KEY_VIDEOS);
+  } catch (err) {
+    console.error('Error resetting stored videos:', err);
+  }
+  return HISTORICAL_VIDEOS;
+}
+
 // --- FOOTSTEPS STORE ---
 export function loadStoredFootsteps(): FootstepLocation[] {
   if (typeof window === 'undefined') return FOOTSTEP_LOCATIONS;
@@ -107,7 +174,18 @@ export function loadStoredFootsteps(): FootstepLocation[] {
     const raw = localStorage.getItem(KEY_FOOTSTEPS);
     if (!raw) return FOOTSTEP_LOCATIONS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : FOOTSTEP_LOCATIONS;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item: FootstepLocation) => {
+        if (!item.imageUrl) {
+          const defaultItem = FOOTSTEP_LOCATIONS.find(d => d.id === item.id);
+          if (defaultItem?.imageUrl) {
+            return { ...item, imageUrl: defaultItem.imageUrl };
+          }
+        }
+        return item;
+      });
+    }
+    return FOOTSTEP_LOCATIONS;
   } catch (err) {
     console.error('Error loading stored footsteps:', err);
     return FOOTSTEP_LOCATIONS;
@@ -130,7 +208,18 @@ export function loadStoredChanhHiepActions(): ChanhHiepActionModel[] {
     const raw = localStorage.getItem(KEY_CHANH_HIEP_ACTIONS);
     if (!raw) return CHANH_HIEP_ACTION_MODELS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : CHANH_HIEP_ACTION_MODELS;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item: ChanhHiepActionModel) => {
+        if (!item.imageUrl) {
+          const defaultItem = CHANH_HIEP_ACTION_MODELS.find(d => d.id === item.id);
+          if (defaultItem?.imageUrl) {
+            return { ...item, imageUrl: defaultItem.imageUrl };
+          }
+        }
+        return item;
+      });
+    }
+    return CHANH_HIEP_ACTION_MODELS;
   } catch (err) {
     console.error('Error loading stored Chanh Hiep actions:', err);
     return CHANH_HIEP_ACTION_MODELS;

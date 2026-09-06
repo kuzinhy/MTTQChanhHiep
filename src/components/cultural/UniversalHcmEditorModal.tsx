@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Edit3, ShieldCheck, Sparkles, Image as ImageIcon, Upload, Trash2, Star, Volume2, Music, Play, AlertCircle } from 'lucide-react';
+import { X, Save, Edit3, ShieldCheck, Sparkles, Image as ImageIcon, Upload, Trash2, Star, Volume2, Music, Play, AlertCircle, Video, Film, ExternalLink } from 'lucide-react';
 import {
   HistoricalWork,
   VerifiedQuote,
   HistoricalAudio,
+  HistoricalVideo,
+  extractYouTubeId,
   FootstepLocation,
   ChanhHiepActionModel
 } from '../../data/hcmVerifiedMuseumData';
@@ -15,6 +17,7 @@ export type EditableHcmItemType =
   | 'work'
   | 'quote'
   | 'audio'
+  | 'video'
   | 'footstep'
   | 'chanh_hiep_action'
   | 'front_initiative'
@@ -230,6 +233,90 @@ const AudioInputWithPreview: React.FC<{
           )}
         </div>
       )}
+    </div>
+  );
+};
+
+const YouTubeInputWithPreview: React.FC<{
+  label: string;
+  value: string;
+  onChange: (url: string, videoId: string) => void;
+  placeholder?: string;
+}> = ({ label, value, onChange, placeholder = 'Dán link YouTube (https://www.youtube.com/watch?v=... hoặc https://youtu.be/...)' }) => {
+  const videoId = extractYouTubeId(value || '');
+
+  return (
+    <div className="space-y-1.5 p-3 rounded-2xl bg-red-50/80 border border-red-200/90 shadow-2xs">
+      <label className="block text-xs font-bold text-red-950 flex items-center justify-between">
+        <span className="flex items-center gap-1.5">
+          <Film className="w-3.5 h-3.5 text-red-600" />
+          <span>{label}</span>
+        </span>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange('', '')}
+            className="text-[10px] text-red-700 hover:text-red-900 hover:underline flex items-center gap-1 font-semibold"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>Xóa link</span>
+          </button>
+        )}
+      </label>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => {
+            const val = e.target.value;
+            const extracted = extractYouTubeId(val);
+            onChange(val, extracted);
+          }}
+          placeholder={placeholder}
+          className="flex-1 px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white text-slate-800"
+          required
+        />
+      </div>
+
+      {videoId ? (
+        <div className="p-3 bg-white rounded-xl border border-red-200/80 space-y-2.5">
+          <div className="flex items-center justify-between text-[11px] text-red-950 font-bold">
+            <span className="flex items-center gap-1.5 text-emerald-700">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Đã nhận diện Video ID: <strong className="font-mono bg-red-100 text-red-900 px-1.5 py-0.5 rounded">{videoId}</strong></span>
+            </span>
+            <a
+              href={`https://www.youtube.com/watch?v=${videoId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-red-600 hover:underline text-[10px] font-semibold flex items-center gap-1"
+            >
+              <span>Mở kiểm tra</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+
+          <div className="relative aspect-video rounded-xl overflow-hidden bg-black/90 shadow-xs border border-red-200 flex items-center justify-center">
+            <img
+              src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+              alt="YouTube Preview"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg">
+                <Play className="w-5 h-5 fill-white ml-0.5" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : value ? (
+        <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-amber-100/70 p-2 rounded-lg">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+          <span>Vui lòng dán liên kết YouTube hợp lệ (ví dụ: https://www.youtube.com/watch?v=... hoặc https://youtu.be/...).</span>
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -938,6 +1025,127 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
                 onChange={(e) => handleChange('historicalNote', e.target.value)}
                 placeholder="Ý nghĩa lịch sử, âm vang thời đại của bản ghi âm..."
                 className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
+              />
+            </div>
+          </>
+        );
+
+      case 'video':
+        return (
+          <>
+            <div>
+              <label className="block text-xs font-bold text-red-950 mb-1">Tiêu đề thước phim / Video tư liệu</label>
+              <input
+                type="text"
+                value={formState.title || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Ví dụ: Lễ Độc lập 02/09/1945 - Bác Hồ đọc Tuyên ngôn Độc lập"
+                className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
+                required
+              />
+            </div>
+
+            <YouTubeInputWithPreview
+              label="Đường dẫn Video YouTube"
+              value={formState.youtubeUrl || ''}
+              onChange={(url, videoId) => {
+                handleChange('youtubeUrl', url);
+                handleChange('youtubeVideoId', videoId);
+                // Auto-fill thumbnail if not provided
+                if (!formState.imageUrl && videoId) {
+                  handleChange('imageUrl', `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
+                }
+              }}
+            />
+
+            <ImageInputWithPreview
+              label="Ảnh đại diện / Thumbnail tùy chỉnh (tùy chọn, để trống sẽ tự lấy từ YouTube)"
+              value={formState.imageUrl || ''}
+              onChange={(val) => handleChange('imageUrl', val)}
+            />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-red-950 mb-1">Thời điểm / Năm lịch sử</label>
+                <input
+                  type="text"
+                  value={formState.dateStr || ''}
+                  onChange={(e) => handleChange('dateStr', e.target.value)}
+                  placeholder="Ví dụ: 02/09/1945 hoặc Năm 1946"
+                  className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-red-950 mb-1">Thời lượng video</label>
+                <input
+                  type="text"
+                  value={formState.duration || ''}
+                  onChange={(e) => handleChange('duration', e.target.value)}
+                  placeholder="Ví dụ: 05 phút 18 giây"
+                  className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-red-950 mb-1">Thể loại tư liệu</label>
+                <select
+                  value={formState.category || 'Phim tài liệu lịch sử'}
+                  onChange={(e) => handleChange('category', e.target.value)}
+                  className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
+                >
+                  <option value="Tuyên ngôn & Độc lập">Tuyên ngôn & Độc lập</option>
+                  <option value="Ngoại giao & Quốc tế">Ngoại giao & Quốc tế</option>
+                  <option value="Bác Hồ với Nhân dân">Bác Hồ với Nhân dân</option>
+                  <option value="Kháng chiến & Chiến dịch">Kháng chiến & Chiến dịch</option>
+                  <option value="Phim tài liệu lịch sử">Phim tài liệu lịch sử</option>
+                  <option value="Quốc tang & Di chúc">Quốc tang & Di chúc</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-red-950 mb-1">Cơ quan lưu trữ / Sản xuất</label>
+                <input
+                  type="text"
+                  value={formState.sourceAgency || ''}
+                  onChange={(e) => handleChange('sourceAgency', e.target.value)}
+                  placeholder="Ví dụ: VTV, Hãng phim TL&KH TW..."
+                  className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-red-950 mb-1">Bối cảnh lịch sử / Sự kiện</label>
+              <input
+                type="text"
+                value={formState.occasion || ''}
+                onChange={(e) => handleChange('occasion', e.target.value)}
+                placeholder="Ví dụ: Quảng trường Ba Đình, Lễ Tuyên ngôn Độc lập..."
+                className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-red-950 mb-1">Tóm tắt nội dung thước phim</label>
+              <textarea
+                rows={3}
+                value={formState.description || ''}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Mô tả tóm tắt những hình ảnh, diễn biến trong thước phim tư liệu..."
+                className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white leading-relaxed"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-red-950 mb-1">Ý nghĩa lịch sử &amp; Giá trị giáo dục</label>
+              <textarea
+                rows={2}
+                value={formState.historicalNote || ''}
+                onChange={(e) => handleChange('historicalNote', e.target.value)}
+                placeholder="Ghi chú ý nghĩa lịch sử, giáo dục truyền thống..."
+                className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
               />
             </div>
           </>

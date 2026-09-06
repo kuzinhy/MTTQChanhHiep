@@ -26,7 +26,8 @@ import {
   Quote,
   HeartHandshake,
   Box,
-  Landmark
+  Landmark,
+  Film
 } from 'lucide-react';
 import { StaffUser } from '../../types';
 import {
@@ -44,6 +45,7 @@ import { HcmWorksLibrary } from './HcmWorksLibrary';
 import { HcmVerifiedQuotes } from './HcmVerifiedQuotes';
 import { HcmFootstepsMap } from './HcmFootstepsMap';
 import { HcmAudioArchive } from './HcmAudioArchive';
+import { HcmVideoArchive } from './HcmVideoArchive';
 import { HcmChanhHiepAction } from './HcmChanhHiepAction';
 import { HcmBiographyView } from './HcmBiographyView';
 import { OptimizedImage } from '../common/OptimizedImage';
@@ -78,6 +80,7 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
     | 'quotes'
     | 'footsteps'
     | 'audio'
+    | 'video'
     | 'chanh-hiep'
     | 'virtual-3d';
 
@@ -1016,6 +1019,18 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
             </button>
 
             <button
+              onClick={() => setActiveMuseumTab('video')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeMuseumTab === 'video'
+                  ? 'bg-red-700 text-white shadow-xs'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+            >
+              <Film className="w-3.5 h-3.5" />
+              <span>Tư Liệu Video</span>
+            </button>
+
+            <button
               onClick={() => setActiveMuseumTab('chanh-hiep')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 activeMuseumTab === 'chanh-hiep'
@@ -1759,6 +1774,13 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
 
               {activeMuseumTab === 'audio' && (
                 <HcmAudioArchive
+                  isResearchMode={isResearchMode}
+                  isAdmin={isSuperAdminMode || isUserSuperAdmin}
+                />
+              )}
+
+              {activeMuseumTab === 'video' && (
+                <HcmVideoArchive
                   isResearchMode={isResearchMode}
                   isAdmin={isSuperAdminMode || isUserSuperAdmin}
                 />

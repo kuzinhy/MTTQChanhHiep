@@ -27,12 +27,16 @@ import {
   Clock,
   Layers,
   Image as ImageIcon,
-  Camera
+  Camera,
+  Film,
+  Video
 } from 'lucide-react';
 import {
   HistoricalAudio,
   HistoricalWork,
   VerifiedQuote,
+  HistoricalVideo,
+  HISTORICAL_VIDEOS,
   FootstepLocation,
   ChanhHiepActionModel,
   HISTORICAL_AUDIOS,
@@ -44,6 +48,9 @@ import {
 import {
   loadStoredAudios,
   saveStoredAudios,
+  loadStoredVideos,
+  saveStoredVideos,
+  resetStoredVideos,
   loadStoredWorks,
   saveStoredWorks,
   loadStoredQuotes,
@@ -67,13 +74,14 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
   onOpenSpaceModal
 }) => {
   // Navigation Sub-tab
-  const [subTab, setSubTab] = useState<'audios' | 'works' | 'quotes' | 'footsteps' | 'actions'>('audios');
+  const [subTab, setSubTab] = useState<'audios' | 'videos' | 'works' | 'quotes' | 'footsteps' | 'actions'>('audios');
 
   // Search keyword
   const [searchTerm, setSearchTerm] = useState('');
 
   // Stores
   const [audios, setAudios] = useState<HistoricalAudio[]>(() => loadStoredAudios());
+  const [videos, setVideos] = useState<HistoricalVideo[]>(() => loadStoredVideos());
   const [works, setWorks] = useState<HistoricalWork[]>(() => loadStoredWorks());
   const [quotes, setQuotes] = useState<VerifiedQuote[]>(() => loadStoredQuotes());
   const [footsteps, setFootsteps] = useState<FootstepLocation[]>(() => loadStoredFootsteps());
@@ -259,6 +267,22 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
         transcript: '',
         verificationStatus: 'VERIFIED'
       };
+    } else if (type === 'video') {
+      defaultItem = {
+        id: `vid-${timestamp}`,
+        title: '',
+        youtubeUrl: '',
+        youtubeVideoId: '',
+        duration: '',
+        dateStr: `${new Date().getFullYear()}`,
+        occasion: '',
+        sourceAgency: 'Đài Truyền hình Việt Nam (VTV)',
+        category: 'Phim tài liệu lịch sử',
+        imageUrl: '',
+        description: '',
+        historicalNote: '',
+        verificationStatus: 'VERIFIED'
+      };
     } else if (type === 'work') {
       defaultItem = {
         id: `wk-${timestamp}`,
@@ -328,6 +352,14 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
       setAudios(updated);
       saveStoredAudios(updated);
       triggerNotify('Đã cập nhật âm thanh', `Bản ghi "${savedItem.title}" đã được lưu trữ thành công.`);
+    } else if (editorItemType === 'video') {
+      const exists = videos.some(v => v.id === savedItem.id);
+      const updated = exists
+        ? videos.map(v => v.id === savedItem.id ? savedItem : v)
+        : [savedItem, ...videos];
+      setVideos(updated);
+      saveStoredVideos(updated);
+      triggerNotify('Đã cập nhật video', `Tư liệu video "${savedItem.title}" đã được lưu trữ thành công.`);
     } else if (editorItemType === 'work') {
       const exists = works.some(w => w.id === savedItem.id);
       const updated = exists
@@ -378,6 +410,14 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
     triggerNotify('Đã xóa âm thanh', `Đã xóa bản ghi âm "${title}".`);
   };
 
+  const handleDeleteVideo = (id: string, title: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa video tư liệu "${title}" khỏi hệ thống?`)) return;
+    const updated = videos.filter(v => v.id !== id);
+    setVideos(updated);
+    saveStoredVideos(updated);
+    triggerNotify('Đã xóa video', `Đã xóa video tư liệu "${title}".`);
+  };
+
   const handleDeleteWork = (id: string, title: string) => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa tác phẩm "${title}"?`)) return;
     const updated = works.filter(w => w.id !== id);
@@ -423,6 +463,15 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
     a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.occasion.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.transcript.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredVideos = videos.filter(v =>
+    !searchTerm ||
+    v.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.occasion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.sourceAgency.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredWorks = works.filter(w =>
@@ -520,7 +569,7 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
       </div>
 
       {/* Mini Stats Counter */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
         <div
           onClick={() => setSubTab('audios')}
           className={`p-4 rounded-2xl border transition-all cursor-pointer ${
@@ -535,6 +584,22 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
           </div>
           <p className="text-2xl font-black text-slate-900 mt-1">{audios.length}</p>
           <span className="text-[10px] text-slate-500">Giọng đọc &amp; phát thanh</span>
+        </div>
+
+        <div
+          onClick={() => setSubTab('videos')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+            subTab === 'videos'
+              ? 'bg-red-50 border-red-300 ring-2 ring-red-400 shadow-xs'
+              : 'bg-white border-slate-200 hover:border-red-200'
+          }`}
+        >
+          <div className="flex items-center justify-between text-red-700">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Tư liệu Video</span>
+            <Film className="w-4 h-4" />
+          </div>
+          <p className="text-2xl font-black text-slate-900 mt-1">{videos.length}</p>
+          <span className="text-[10px] text-slate-500">YouTube &amp; Thước phim</span>
         </div>
 
         <div
@@ -618,6 +683,18 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
           </button>
 
           <button
+            onClick={() => { setSubTab('videos'); setSearchTerm(''); }}
+            className={`px-4 py-2 text-xs font-black rounded-xl transition cursor-pointer flex items-center gap-2 ${
+              subTab === 'videos'
+                ? 'bg-red-700 text-white shadow-xs'
+                : 'text-slate-700 hover:bg-white hover:text-red-700'
+            }`}
+          >
+            <Film className="w-4 h-4" />
+            <span>Kho Video YouTube ({videos.length})</span>
+          </button>
+
+          <button
             onClick={() => { setSubTab('works'); setSearchTerm(''); }}
             className={`px-4 py-2 text-xs font-black rounded-xl transition cursor-pointer flex items-center gap-2 ${
               subTab === 'works'
@@ -678,6 +755,16 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
             </button>
           )}
 
+          {subTab === 'videos' && (
+            <button
+              onClick={() => openAddModal('video')}
+              className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Thêm Video Tư Liệu</span>
+            </button>
+          )}
+
           {subTab === 'works' && (
             <button
               onClick={() => openAddModal('work')}
@@ -730,6 +817,8 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
             placeholder={
               subTab === 'audios'
                 ? 'Tìm theo tên bài phát thanh, bối cảnh, trích đoạn...'
+                : subTab === 'videos'
+                ? 'Tìm theo tên thước phim, sự kiện, nguồn tư liệu...'
                 : subTab === 'works'
                 ? 'Tìm theo tên tác phẩm, bút danh, năm sáng tác...'
                 : subTab === 'quotes'
@@ -1009,7 +1098,182 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
       )}
 
       {/* ===================================================================== */}
-      {/* 2. SUB-TAB: WORKS (TÁC PHẨM TIÊU BIỂU) */}
+      {/* 2. SUB-TAB: VIDEOS (KHO TƯ LIỆU VIDEO YOUTUBE) */}
+      {/* ===================================================================== */}
+      {subTab === 'videos' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredVideos.map((video) => {
+              const videoId = video.youtubeVideoId || '';
+              const thumbUrl = video.imageUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '');
+
+              return (
+                <div
+                  key={video.id}
+                  className="p-5 rounded-2xl border border-slate-200 bg-white hover:border-red-300 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    {/* Video Thumbnail with Play Overlay */}
+                    <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-200 group">
+                      {thumbUrl ? (
+                        <img
+                          src={thumbUrl}
+                          alt={video.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                          <Film className="w-8 h-8 mb-1" />
+                          <span className="text-xs">Chưa có ảnh đại diện</span>
+                        </div>
+                      )}
+
+                      {/* Dark overlay & Play Button */}
+                      <a
+                        href={video.youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 bg-black/35 group-hover:bg-black/20 transition-all flex items-center justify-center cursor-pointer"
+                        title="Mở xem trên YouTube"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-red-600 group-hover:bg-red-700 text-white flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                          <Play className="w-5 h-5 fill-white ml-0.5" />
+                        </div>
+                      </a>
+
+                      {/* Badges on Thumbnail */}
+                      <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold">
+                          {video.category}
+                        </span>
+                      </div>
+
+                      {video.duration && (
+                        <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-xs text-white text-[10px] font-mono font-bold flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-amber-300" />
+                          <span>{video.duration}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Metadata Badges */}
+                    <div className="flex items-center justify-between text-xs text-slate-500 gap-2 flex-wrap">
+                      <span className="flex items-center gap-1 text-red-700 font-bold">
+                        <Calendar className="w-3.5 h-3.5 text-red-600" />
+                        <span>{video.dateStr}</span>
+                      </span>
+
+                      <span className="px-2 py-0.5 rounded-md bg-red-50 text-red-900 font-semibold text-[11px] truncate max-w-[200px]" title={video.sourceAgency}>
+                        {video.sourceAgency}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="font-serif font-black text-base text-slate-900 leading-snug">
+                      {video.title}
+                    </h3>
+
+                    {/* Occasion */}
+                    {video.occasion && (
+                      <p className="text-xs text-slate-600 italic">
+                        Bối cảnh: {video.occasion}
+                      </p>
+                    )}
+
+                    {/* Description */}
+                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+                      {video.description}
+                    </p>
+
+                    {/* YouTube URL indicator */}
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 truncate pt-1 border-t border-slate-100">
+                      <span className="font-bold text-red-800 shrink-0 flex items-center gap-1">
+                        <Film className="w-3 h-3 text-red-600" />
+                        YouTube:
+                      </span>
+                      <a
+                        href={video.youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-xs text-blue-700 hover:text-blue-900 truncate underline flex items-center gap-1"
+                        title={video.youtubeUrl}
+                      >
+                        <span className="truncate">{video.youtubeUrl}</span>
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Actions Buttons */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(video.youtubeUrl, video.id)}
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition flex items-center gap-1 cursor-pointer"
+                      title="Sao chép liên kết YouTube"
+                    >
+                      {copiedId === video.id ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-600" />
+                          <span className="text-emerald-700 text-[11px]">Đã chép link</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span className="text-[11px]">Chép link</span>
+                        </>
+                      )}
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href={video.youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-red-700" />
+                        <span>Xem</span>
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => openEditor('video', video)}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition flex items-center gap-1 cursor-pointer"
+                        title="Chỉnh sửa chi tiết thông tin và link YouTube"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Sửa</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteVideo(video.id, video.title)}
+                        className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold transition cursor-pointer"
+                        title="Xóa video tư liệu này"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredVideos.length === 0 && (
+              <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-slate-300 space-y-2">
+                <Film className="w-10 h-10 text-slate-400 mx-auto" />
+                <p className="font-bold text-slate-700">Không tìm thấy video tư liệu nào phù hợp</p>
+                <p className="text-xs text-slate-500">Thử tìm kiếm với từ khóa khác hoặc bấm "Thêm Video Tư Liệu".</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* 3. SUB-TAB: WORKS (TÁC PHẨM TIÊU BIỂU) */}
       {/* ===================================================================== */}
       {subTab === 'works' && (
         <div className="space-y-4">

@@ -20,7 +20,8 @@ import {
   Layers,
   CheckCircle2,
   BookmarkCheck,
-  Edit3
+  Edit3,
+  Film
 } from 'lucide-react';
 import {
   HISTORICAL_PERIODS,
@@ -28,6 +29,7 @@ import {
   HISTORICAL_WORKS,
   VERIFIED_QUOTES,
   HISTORICAL_AUDIOS,
+  HISTORICAL_VIDEOS,
   FOOTSTEP_LOCATIONS
 } from '../../data/hcmVerifiedMuseumData';
 import {
@@ -329,10 +331,24 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
           </div>
           <p className="text-[11px] text-rose-700 mt-1">Ghi âm giọng Bác Hồ</p>
         </div>
+
+        <div
+          onClick={() => onNavigateTab('video')}
+          className="p-4 rounded-2xl bg-gradient-to-br from-white via-rose-50/60 to-amber-50/40 border-2 border-rose-200 hover:border-rose-400 hover:shadow-md transition-all cursor-pointer group"
+        >
+          <div className="flex items-center justify-between text-rose-800 mb-1">
+            <span className="text-xs font-bold">Tư liệu video</span>
+            <Film className="w-4 h-4 text-rose-700 group-hover:scale-110 transition-transform" />
+          </div>
+          <div className="text-2xl font-extrabold text-rose-950 font-serif">
+            {HISTORICAL_VIDEOS.length}
+          </div>
+          <p className="text-[11px] text-rose-700 mt-1">YouTube &amp; Thước phim</p>
+        </div>
       </section>
 
       {/* CHUYỂN HƯỚNG NHANH CÁC PHÂN HỆ TƯ LIỆU */}
-      <section aria-label="Danh mục phân hệ chính" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <section aria-label="Danh mục phân hệ chính" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <div
           onClick={() => onNavigateTab('biography')}
           className="p-5 rounded-3xl bg-gradient-to-br from-white via-rose-50/70 to-amber-50/40 border-2 border-rose-200 hover:border-rose-400 shadow-sm hover:shadow-md transition-all cursor-pointer group space-y-3"
@@ -382,6 +398,30 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
         </div>
 
         <div
+          onClick={() => onNavigateTab('video')}
+          className="p-5 rounded-3xl bg-gradient-to-br from-white via-rose-50/70 to-amber-50/40 border-2 border-rose-200 hover:border-rose-400 shadow-sm hover:shadow-md transition-all cursor-pointer group space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <div className="p-3 rounded-2xl bg-red-700 text-white shadow-md">
+              <Film className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-bold text-rose-900 bg-rose-100 px-3 py-1 rounded-full border border-rose-200">
+              {HISTORICAL_VIDEOS.length} Thước phim quý
+            </span>
+          </div>
+          <h3 className="text-lg font-bold font-serif text-rose-950 group-hover:text-red-700 transition-colors">
+            3. Thước Phim Tư Liệu Lịch Sử
+          </h3>
+          <p className="text-xs text-rose-900/80 leading-relaxed">
+            Các thước phim tài liệu quý giá từ VTV, TTXVN ghi lại những khoảnh khắc lịch sử của Bác Hồ phát trực tiếp qua YouTube.
+          </p>
+          <div className="pt-2 flex items-center text-xs font-bold text-rose-800 group-hover:translate-x-1 transition-transform">
+            <span>Xem phim tư liệu</span>
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </div>
+        </div>
+
+        <div
           onClick={() => onNavigateTab('chanh-hiep')}
           className="p-5 rounded-3xl bg-gradient-to-br from-white via-rose-50/70 to-amber-50/40 border-2 border-rose-200 hover:border-rose-400 shadow-sm hover:shadow-md transition-all cursor-pointer group space-y-3"
         >
@@ -394,7 +434,7 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
             </span>
           </div>
           <h3 className="text-lg font-bold font-serif text-rose-950 group-hover:text-amber-800 transition-colors">
-            3. Chánh Hiệp Học &amp; Làm Theo Bác
+            4. Chánh Hiệp Học &amp; Làm Theo Bác
           </h3>
           <p className="text-xs text-rose-900/80 leading-relaxed">
             Các mô hình thực tiễn, việc làm thiết thực của cán bộ, đảng viên và nhân dân Phường Chánh Hiệp áp dụng tư tưởng Hồ Chí Minh.
