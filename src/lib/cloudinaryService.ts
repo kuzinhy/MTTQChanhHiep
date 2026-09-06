@@ -64,22 +64,25 @@ export async function uploadMediaToCloudinary(
 ): Promise<UploadMediaResponse> {
   // Client-side file validation before sending
   if (!file) {
-    return { success: false, error: 'Vui lòng chọn tệp tin ảnh.' };
+    return { success: false, error: 'Vui lòng chọn tệp tin cần tải lên.' };
   }
 
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) {
+  const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
+  const isAudio = file.type.startsWith('audio/') || /\.(mp3|m4a|wav|ogg|aac|flac)$/i.test(file.name);
+  const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(file.name);
+
+  if (!isImage && !isAudio && !isVideo) {
     return {
       success: false,
-      error: 'Định dạng tệp không hợp lệ. Hệ thống chỉ hỗ trợ tệp ảnh JPG, PNG, WEBP.'
+      error: 'Định dạng tệp không được hỗ trợ. Hệ thống chấp nhận: Ảnh (JPG, PNG, WEBP, GIF, SVG), Âm thanh (MP3, M4A, WAV, OGG), Video (MP4, WEBM, MOV).'
     };
   }
 
-  const maxSizeBytes = 10 * 1024 * 1024; // 10MB
+  const maxSizeBytes = 50 * 1024 * 1024; // 50MB
   if (file.size > maxSizeBytes) {
     return {
       success: false,
-      error: 'Kích thước ảnh vượt quá giới hạn 10MB. Vui lòng nén bớt hoặc chọn tệp nhỏ hơn.'
+      error: 'Kích thước tệp vượt quá giới hạn 50MB. Vui lòng chọn tệp nhỏ hơn.'
     };
   }
 

@@ -157,6 +157,16 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
           </button>
         )}
 
+        {/* Cloud Sync Status Check */}
+        <button
+          onClick={() => alert(`Trạng thái Firestore: ${typeof window !== 'undefined' && 'firebase' in window ? 'Đã khởi tạo' : 'Chưa sẵn sàng hoặc đang lỗi'}\nKiểm tra Console DevTools để xem chi tiết log lỗi.`)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-extrabold text-[11px] rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
+          title="Kiểm tra trạng thái đồng bộ Firestore"
+        >
+          <Activity className="w-3.5 h-3.5 text-amber-600" />
+          <span className="hidden sm:inline">Kiểm tra trạng thái đồng bộ</span>
+        </button>
+
         {/* Quick AI Trigger */}
         <div className="p-[1px] rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-xs hover:shadow-md transition-all">
           <button

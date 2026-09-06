@@ -24,8 +24,10 @@ import {
   RefreshCw,
   Search,
   BookOpen,
-  Info
+  Info,
+  Volume2
 } from 'lucide-react';
+import { CulturalMediaAdminSection } from './CulturalMediaAdminSection';
 import {
   VerificationStatus,
   HistoricalSource,
@@ -48,9 +50,9 @@ import {
 import { OptimizedImage } from '../common/OptimizedImage';
 
 export const CulturalSpaceAdminView: React.FC = () => {
-  // Navigation Tabs: 7 Required Menus
+  // Navigation Tabs: 8 Menus (including Kho Âm Thanh & Tư Liệu)
   const [activeTab, setActiveTab] = useState<
-    'cover' | 'biography' | 'timeline' | 'media' | 'sources' | 'review' | 'history'
+    'cover' | 'biography' | 'timeline' | 'media' | 'sources' | 'review' | 'history' | 'cultural_archive'
   >('cover');
 
   // State Stores
@@ -340,7 +342,8 @@ export const CulturalSpaceAdminView: React.FC = () => {
           { id: 'media', label: '4. Kho Media & Bản quyền', icon: ImageIcon },
           { id: 'sources', label: '5. Quản lý Nguồn', icon: Link },
           { id: 'review', label: '6. Quy trình Kiểm duyệt', icon: ShieldCheck },
-          { id: 'history', label: '7. Lịch sử chỉnh sửa', icon: History }
+          { id: 'history', label: '7. Lịch sử chỉnh sửa', icon: History },
+          { id: 'cultural_archive', label: '8. Kho Âm Thanh & Tư Liệu', icon: Volume2 }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -850,6 +853,11 @@ export const CulturalSpaceAdminView: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* TAB 8: KHO ÂM THANH & TƯ LIỆU VĂN HÓA HỒ CHÍ MINH */}
+      {activeTab === 'cultural_archive' && (
+        <CulturalMediaAdminSection />
       )}
 
       {/* MODAL: NHẬP TỪ URL */}

@@ -73,7 +73,18 @@ export function loadStoredAudios(): HistoricalAudio[] {
     const raw = localStorage.getItem(KEY_AUDIOS);
     if (!raw) return HISTORICAL_AUDIOS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : HISTORICAL_AUDIOS;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item: HistoricalAudio) => {
+        if (!item.imageUrl) {
+          const defaultItem = HISTORICAL_AUDIOS.find(d => d.id === item.id);
+          if (defaultItem?.imageUrl) {
+            return { ...item, imageUrl: defaultItem.imageUrl };
+          }
+        }
+        return item;
+      });
+    }
+    return HISTORICAL_AUDIOS;
   } catch (err) {
     console.error('Error loading stored audios:', err);
     return HISTORICAL_AUDIOS;

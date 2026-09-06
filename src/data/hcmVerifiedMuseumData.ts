@@ -122,6 +122,7 @@ export interface HistoricalAudio {
   occasion: string;
   sourceAgency: string;
   audioUrl?: string;
+  imageUrl?: string;
   transcript: string;
   historicalNote: string;
   verificationStatus: VerificationStatus;
@@ -1914,6 +1915,8 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     duration: '04 phút 35 giây',
     occasion: 'Đọc tại Lễ Độc lập, Quảng trường Ba Đình, Hà Nội',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV) & Trung tâm Lưu trữ Quốc gia III',
+    audioUrl: 'https://hochiminh.vn/upload/3000001/20251024/cd80510c4c31f8f1b26e234bcfa7658c01_-_Tuyen_ngon_doc_lap_103854.mp3',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg/640px-Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg',
     historicalNote: 'Bản thu âm thanh gốc giọng đọc ấm áp, truyền cảm của Bác trước hàng chục vạn đồng bào trong ngày Tết Độc lập đầu tiên của dân tộc.',
     transcript: 'Hỡi đồng bào cả nước! Tất cả mọi người đều sinh ra có quyền bình đẳng. Tạo hóa cho họ những quyền không ai có thể xâm phạm được; trong những quyền ấy, có quyền được sống, quyền tự do và quyền mưu cầu hạnh phúc... Nước Việt Nam có quyền hưởng tự do và độc lập, và sự thật đã thành một nước tự do, độc lập. Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng, tính mạng và của cải để giữ vững quyền tự do, độc lập ấy!',
     verificationStatus: 'VERIFIED'
@@ -1925,6 +1928,8 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     duration: '03 phút 12 giây',
     occasion: 'Phát thanh truyền đi toàn quốc mở đầu Toàn quốc kháng chiến',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV)',
+    audioUrl: '',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ho_Chi_Minh_1946.jpg/480px-Ho_Chi_Minh_1946.jpg',
     historicalNote: 'Lời hịch non sông đanh thép, khẳng định ý chí quật cường của dân tộc Việt Nam thà hy sinh tất cả chứ nhất định không chịu mất nước.',
     transcript: 'Hỡi đồng bào toàn quốc! Chúng ta muốn hòa bình, chúng ta phải nhân nhượng. Nhưng chúng ta càng nhân nhượng, thực dân Pháp càng lấn tới, vì chúng quyết tâm cướp nước ta lần nữa! Không! Chúng ta thà hy sinh tất cả, chứ nhất định không chịu mất nước, nhất định không chịu làm nô lệ! Hỡi đồng bào! Chúng ta phải đứng lên!...',
     verificationStatus: 'VERIFIED'
@@ -1936,6 +1941,8 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     duration: '05 phút 20 giây',
     occasion: 'Phát thanh trong cao điểm chống chiến tranh phá hoại miền Bắc',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV) & Báo Nhân Dân',
+    audioUrl: '',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_conducting_the_orchestra.jpg/640px-Ho_Chi_Minh_conducting_the_orchestra.jpg',
     historicalNote: 'Khắc ghi câu nói bất hủ đã trở thành biểu tượng cho khát vọng của toàn dân tộc: "Không có gì quý hơn độc lập, tự do!".',
     transcript: 'Chiến tranh có thể kéo dài 5 năm, 10 năm, 20 năm hoặc lâu hơn nữa. Hà Nội, Hải Phòng và một số thành phố, xí nghiệp có thể bị tàn phá, song nhân dân Việt Nam quyết không sợ! Không có gì quý hơn độc lập, tự do! Đến ngày thắng lợi, nhân dân ta sẽ xây dựng lại đất nước ta đàng hoàng hơn, to đẹp hơn!...',
     verificationStatus: 'VERIFIED'
@@ -1947,6 +1954,8 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     duration: '01 phút 45 giây',
     occasion: 'Thơ chúc Tết cuối cùng của Bác gửi đồng bào và chiến sĩ cả nước',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV)',
+    audioUrl: '',
+    imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80',
     historicalNote: 'Những vần thơ chúc Tết hào sảng, vạch rõ mục tiêu chiến lược "Đánh cho Mỹ cút, đánh cho Ngụy nhào", cổ vũ quân dân hai miền tiến tới toàn thắng.',
     transcript: 'Năm qua thắng lợi vẻ vang / Năm nay tiền tuyến chắc càng thắng to / Vì độc lập, vì tự do / Đánh cho Mỹ cút, đánh cho Ngụy nhào / Tiến lên! Chiến sĩ, đồng bào / Bắc - Nam sum họp, xuân nào vui hơn!',
     verificationStatus: 'VERIFIED'

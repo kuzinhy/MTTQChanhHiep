@@ -60,6 +60,7 @@ import { ToastContainer } from './components/ToastNotification';
 import { PageLoader } from './components/PageLoader';
 import { notificationMasterService } from './lib/notificationMasterService';
 import { OptimizedImage } from './components/common/OptimizedImage';
+import { HcmQuoteRotator } from './components/common/HcmQuoteRotator';
 
 import { 
   INITIAL_COMPETITIONS, 

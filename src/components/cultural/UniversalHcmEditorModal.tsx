@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Edit3, ShieldCheck, Sparkles, Image as ImageIcon, Upload, Trash2, Star } from 'lucide-react';
+import { X, Save, Edit3, ShieldCheck, Sparkles, Image as ImageIcon, Upload, Trash2, Star, Volume2, Music, Play, AlertCircle } from 'lucide-react';
 import {
   HistoricalWork,
   VerifiedQuote,
@@ -9,6 +9,7 @@ import {
 } from '../../data/hcmVerifiedMuseumData';
 import { BiographyChapter, EventCardSchema, CoverConfig } from '../../data/hcmGovernanceSchema';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { uploadMediaToCloudinary } from '../../lib/cloudinaryService';
 
 export type EditableHcmItemType =
   | 'work'
@@ -35,20 +36,25 @@ const ImageInputWithPreview: React.FC<{
   onChange: (val: string) => void;
   placeholder?: string;
 }> = ({ label, value, onChange, placeholder = 'Dán đường dẫn URL ảnh (https://...) hoặc bấm Tải ảnh từ máy' }) => {
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Kích thước tập tin ảnh vượt quá 5MB. Vui lòng chọn ảnh nhỏ hơn.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          onChange(reader.result);
+      setUploading(true);
+      try {
+        const result = await uploadMediaToCloudinary(file, 'cultural-images');
+        if (result.success && result.image) {
+          onChange(result.image.secureUrl || result.image.url);
+        } else {
+          alert(result.error || 'Có lỗi xảy ra khi tải ảnh lên.');
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Upload failed:', err);
+        alert('Tải ảnh thất bại. Vui lòng thử lại.');
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
@@ -79,9 +85,9 @@ const ImageInputWithPreview: React.FC<{
           placeholder={placeholder}
           className="flex-1 px-3 py-1.5 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white text-slate-800"
         />
-        <label className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 hover:brightness-105 text-rose-950 font-bold text-xs flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs">
+        <label className={`px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 hover:brightness-105 text-rose-950 font-bold text-xs flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           <Upload className="w-3.5 h-3.5" />
-          <span>Tải ảnh</span>
+          <span>{uploading ? 'Đang tải...' : 'Tải ảnh'}</span>
           <input
             type="file"
             accept="image/*"
@@ -102,6 +108,126 @@ const ImageInputWithPreview: React.FC<{
           <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[10px] font-bold">
             Xem trước ảnh đại diện
           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const AudioInputWithPreview: React.FC<{
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+}> = ({ label, value, onChange, placeholder = 'Dán đường dẫn URL âm thanh (https://...) hoặc bấm Tải tệp từ máy' }) => {
+  const [uploading, setUploading] = useState(false);
+  const [playError, setPlayError] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploading(true);
+      setPlayError(false);
+      try {
+        const result = await uploadMediaToCloudinary(file, 'cultural-audio');
+        if (result.success && result.image) {
+          onChange(result.image.secureUrl || result.image.url);
+        } else {
+          alert(result.error || 'Có lỗi xảy ra khi tải âm thanh lên.');
+        }
+      } catch (err) {
+        console.error('Upload failed:', err);
+        alert('Tải âm thanh thất bại. Vui lòng thử lại.');
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
+
+  const resolvedAudioSrc = value && value.startsWith('http') && !value.includes(window.location.host) && (value.includes('hochiminh.vn') || value.includes('baochinhphu.vn'))
+    ? `/api/media/proxy?url=${encodeURIComponent(value)}`
+    : value;
+
+  return (
+    <div className="space-y-2 p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/90 to-rose-50/70 border border-amber-200/90 shadow-2xs">
+      <label className="block text-xs font-bold text-amber-950 flex items-center justify-between">
+        <span className="flex items-center gap-1.5">
+          <Volume2 className="w-4 h-4 text-amber-700" />
+          <span>{label}</span>
+          <span className="text-[10px] text-amber-700/80 font-normal">(MP3, M4A, WAV, OGG)</span>
+        </span>
+        {value && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange('');
+              setPlayError(false);
+            }}
+            className="text-[10px] text-rose-700 hover:text-rose-900 hover:underline flex items-center gap-1 font-semibold"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>Xóa âm thanh</span>
+          </button>
+        )}
+      </label>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setPlayError(false);
+          }}
+          placeholder={placeholder}
+          className="flex-1 px-3 py-2 border border-amber-200 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 bg-white text-slate-800"
+        />
+        <label className={`px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:brightness-105 text-amber-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs transition ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Upload className="w-3.5 h-3.5" />
+          <span>{uploading ? 'Đang tải lên...' : 'Tải tệp âm thanh'}</span>
+          <input
+            type="file"
+            accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </label>
+      </div>
+
+      {value && (
+        <div className="p-3 bg-white rounded-xl border border-amber-200/80 space-y-2">
+          <div className="flex items-center justify-between text-[11px] text-amber-900 font-bold">
+            <span className="flex items-center gap-1.5">
+              <Music className="w-3.5 h-3.5 text-amber-600" />
+              <span>Nghe thử tệp âm thanh trước khi lưu:</span>
+            </span>
+            <a
+              href={value}
+              target="_blank"
+              rel="noreferrer"
+              className="text-amber-700 hover:underline text-[10px] font-normal truncate max-w-[200px]"
+            >
+              Mở link gốc
+            </a>
+          </div>
+
+          <audio
+            key={value}
+            controls
+            src={resolvedAudioSrc}
+            onError={() => setPlayError(true)}
+            onPlay={() => setPlayError(false)}
+            className="w-full h-8 outline-hidden accent-amber-600"
+          />
+
+          {playError && (
+            <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-amber-100/70 p-2 rounded-lg">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+              <span>
+                Lưu ý: Tệp nguồn có thể yêu cầu mở qua proxy hoặc phát trực tiếp từ trình duyệt. Tệp vẫn sẽ được lưu an toàn.
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -432,6 +558,17 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
                 className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
               />
             </div>
+
+            <div>
+              <label className="block text-xs font-bold text-rose-900 mb-1">Tư liệu chuyên nghiệp (Link/Mô tả)</label>
+              <textarea
+                rows={2}
+                value={formState.professionalNote || ''}
+                onChange={(e) => handleChange('professionalNote', e.target.value)}
+                className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
+                placeholder="Nhập thông tin tư liệu chuyên nghiệp (link, tài liệu tham khảo...)"
+              />
+            </div>
           </>
         );
 
@@ -710,12 +847,11 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
             </div>
           </>
         );
-
       case 'audio':
         return (
           <>
             <div>
-              <label className="block text-xs font-bold text-rose-900 mb-1">Tiêu đề bản ghi âm</label>
+              <label className="block text-xs font-bold text-rose-900 mb-1">Tiêu đề bản ghi âm lịch sử</label>
               <input
                 type="text"
                 value={formState.title || ''}
@@ -731,33 +867,76 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
               onChange={(val) => handleChange('imageUrl', val)}
             />
 
+            <AudioInputWithPreview
+              label="Tải lên tệp âm thanh hoặc dán link URL"
+              value={formState.audioUrl || ''}
+              onChange={(val) => handleChange('audioUrl', val)}
+            />
+
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-rose-900 mb-1">Thời điểm / Ngày</label>
+                <label className="block text-xs font-bold text-rose-900 mb-1">Thời điểm / Ngày đọc</label>
                 <input
                   type="text"
                   value={formState.dateStr || ''}
                   onChange={(e) => handleChange('dateStr', e.target.value)}
+                  placeholder="Ví dụ: 02/09/1945 hoặc Đêm 19/12/1946"
                   className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-rose-900 mb-1">Thời lượng</label>
+                <label className="block text-xs font-bold text-rose-900 mb-1">Thời lượng bản thu</label>
                 <input
                   type="text"
                   value={formState.duration || ''}
                   onChange={(e) => handleChange('duration', e.target.value)}
+                  placeholder="Ví dụ: 04 phút 35 giây"
+                  className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-rose-900 mb-1">Hoàn cảnh lịch sử / Dịp phát thanh</label>
+                <input
+                  type="text"
+                  value={formState.occasion || ''}
+                  onChange={(e) => handleChange('occasion', e.target.value)}
+                  placeholder="Ví dụ: Lễ Độc lập, Quảng trường Ba Đình"
+                  className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-rose-900 mb-1">Cơ quan lưu trữ nguồn gốc</label>
+                <input
+                  type="text"
+                  value={formState.sourceAgency || ''}
+                  onChange={(e) => handleChange('sourceAgency', e.target.value)}
+                  placeholder="Ví dụ: Đài Tiếng nói Việt Nam (VOV)"
                   className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-rose-900 mb-1">Lời thoại ghi âm (Transcript)</label>
+              <label className="block text-xs font-bold text-rose-900 mb-1">Bản ghi transcript chữ viết toàn văn</label>
               <textarea
                 rows={4}
                 value={formState.transcript || ''}
                 onChange={(e) => handleChange('transcript', e.target.value)}
+                placeholder="Toàn văn lời nói của Bác Hồ trong bản ghi âm..."
+                className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white leading-relaxed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-rose-900 mb-1">Ghi chú &amp; Ý nghĩa lịch sử</label>
+              <textarea
+                rows={2}
+                value={formState.historicalNote || ''}
+                onChange={(e) => handleChange('historicalNote', e.target.value)}
+                placeholder="Ý nghĩa lịch sử, âm vang thời đại của bản ghi âm..."
                 className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white"
               />
             </div>

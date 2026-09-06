@@ -12,11 +12,11 @@ cloudinary.config({
 
 const router = express.Router();
 
-// Memory storage for file uploads
+// Memory storage for file uploads with 50MB limit
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 50 * 1024 * 1024 // 50MB limit for high-res images, audio & video
   }
 });
 
@@ -55,7 +55,7 @@ router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: Nex
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({
           success: false,
-          error: 'Kích thước tệp quá lớn. Giới hạn tối đa là 10MB.'
+          error: 'Kích thước tệp quá lớn. Giới hạn tối đa là 50MB.'
         });
       }
       return res.status(400).json({
@@ -71,28 +71,29 @@ router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: Nex
     if (!file) {
       return res.status(400).json({
         success: false,
-        error: 'Không tìm thấy tệp tin ảnh trong request.'
+        error: 'Không tìm thấy tệp tin trong request.'
       });
     }
 
-    // MIME type check: strictly allow image/jpeg, image/png, image/webp
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedMimes.includes(file.mimetype)) {
+    const isImage = file.mimetype.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.originalname);
+    const isAudio = file.mimetype.startsWith('audio/') || /\.(mp3|m4a|wav|ogg|aac|flac)$/i.test(file.originalname);
+    const isVideo = file.mimetype.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(file.originalname);
+
+    if (!isImage && !isAudio && !isVideo) {
       return res.status(400).json({
         success: false,
-        error: 'Định dạng tệp không hợp lệ. Chỉ chấp nhận tệp ảnh JPG, PNG, WEBP.'
+        error: 'Định dạng tệp không hợp lệ. Chỉ chấp nhận tệp ảnh (JPG, PNG, WEBP, GIF, SVG), âm thanh (MP3, M4A, WAV, OGG) hoặc video (MP4, WEBM, MOV).'
       });
     }
 
     // Folder path sanitization and validation
     let folder = req.body.folder || 'articles';
-    // Remove any path traversal
     folder = folder.replace(/\.\./g, '').replace(/[^\w\-\/]/g, '').replace(/^\/+|\/+$/g, '');
     
     // Allowed folder subpaths
-    const allowedSubfolders = ['articles', 'banners', 'events', 'digital-map', 'ho-chi-minh-space', 'avatars'];
+    const allowedSubfolders = ['articles', 'banners', 'events', 'digital-map', 'ho-chi-minh-space', 'avatars', 'cultural-audio', 'cultural-images', 'cultural-media'];
     const subfolderName = folder.split('/').pop() || 'articles';
-    const targetSubfolder = allowedSubfolders.includes(subfolderName) ? subfolderName : 'articles';
+    const targetSubfolder = allowedSubfolders.includes(subfolderName) ? subfolderName : 'ho-chi-minh-space';
     const fullFolder = `mttq-phuong-chanh-hiep/${targetSubfolder}`;
 
     // Verify Cloudinary credentials
@@ -100,51 +101,79 @@ router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: Nex
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-    if (!cloudName || !apiKey || !apiSecret) {
-      return res.status(400).json({
-        success: false,
-        error: 'Chưa cấu hình Cloudinary API Keys trên máy chủ (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET). Vui lòng thêm các biến môi trường này trong Cài đặt / Secrets.'
-      });
+    if (cloudName && apiKey && apiSecret) {
+      try {
+        cloudinary.config({
+          cloud_name: cloudName,
+          api_key: apiKey,
+          api_secret: apiSecret,
+          secure: true
+        });
+
+        // For Cloudinary, audio and video use 'video' or 'auto'
+        const resourceType = (isAudio || isVideo) ? 'video' : 'image';
+
+        const uploadResult: any = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: fullFolder,
+              resource_type: resourceType,
+              use_filename: false,
+              unique_filename: true,
+              overwrite: false
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(file.buffer);
+        });
+
+        return res.json({
+          success: true,
+          image: {
+            url: uploadResult.url,
+            secureUrl: uploadResult.secure_url,
+            publicId: uploadResult.public_id,
+            assetId: uploadResult.asset_id,
+            width: uploadResult.width,
+            height: uploadResult.height,
+            format: uploadResult.format,
+            bytes: uploadResult.bytes,
+            resourceType: uploadResult.resource_type
+          }
+        });
+      } catch (cloudErr: any) {
+        console.warn('Cloudinary upload failed, falling back to local storage:', cloudErr?.message);
+      }
     }
 
-    // Configure Cloudinary dynamically with active environment variables
-    cloudinary.config({
-      cloud_name: cloudName,
-      api_key: apiKey,
-      api_secret: apiSecret,
-      secure: true
-    });
+    // Local Disk Fallback
+    const fs = await import('fs');
+    const path = await import('path');
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
-    // Stream upload to Cloudinary using official Node.js SDK
-    const uploadResult: any = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: fullFolder,
-          resource_type: 'image',
-          use_filename: false,
-          unique_filename: true,
-          overwrite: false
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-      uploadStream.end(file.buffer);
-    });
+    const ext = path.extname(file.originalname) || (isAudio ? '.mp3' : isVideo ? '.mp4' : '.jpg');
+    const cleanFileName = `media_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+    const filePath = path.join(uploadDir, cleanFileName);
+    fs.writeFileSync(filePath, file.buffer);
 
+    const localUrl = `/uploads/${cleanFileName}`;
     return res.json({
       success: true,
       image: {
-        url: uploadResult.url,
-        secureUrl: uploadResult.secure_url,
-        publicId: uploadResult.public_id,
-        assetId: uploadResult.asset_id,
-        width: uploadResult.width,
-        height: uploadResult.height,
-        format: uploadResult.format,
-        bytes: uploadResult.bytes
-      }
+        url: localUrl,
+        secureUrl: localUrl,
+        publicId: cleanFileName,
+        format: ext.replace('.', ''),
+        bytes: file.size,
+        resourceType: isAudio ? 'audio' : isVideo ? 'video' : 'image'
+      },
+      isLocal: true
     });
   } catch (error: any) {
     console.error('Cloudinary upload error details:', error);

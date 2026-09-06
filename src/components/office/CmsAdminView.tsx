@@ -19,6 +19,7 @@ import { InitiativesSection } from '../InitiativesSection';
 import { AboutAdminView } from './AboutAdminView';
 import { MediaUploader } from './MediaUploader';
 import { MediaLibraryView } from './MediaLibraryView';
+import { CulturalMediaAdminSection } from '../cultural/CulturalMediaAdminSection';
 import { inspectImageFile, formatBytes, getOptimalImageUrl } from '../../lib/imageOptimization';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
@@ -181,7 +182,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onForceCloudSync,
   onShowToast
 }) => {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA'>(
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'CULTURAL_MEDIA'>(
     (initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT' ? 'ABOUT' : (initialTab as any) || 'ARTICLES'
   );
 
@@ -1157,28 +1158,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         </div>
       </div>
 
-      {/* Mini Stats Bar for Articles */}
-      {activeTab === 'ARTICLES' && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tổng số tin bài</p>
-            <p className="text-xl font-black text-slate-900 mt-1">{articles.length}</p>
-          </div>
-          <div className="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 shadow-2xs">
-            <p className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Đã xuất bản</p>
-            <p className="text-xl font-black text-emerald-900 mt-1">{publishedCount}</p>
-          </div>
-          <div className="bg-amber-50/80 p-4 rounded-2xl border border-amber-200 shadow-2xs">
-            <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Bản nháp chờ duyệt</p>
-            <p className="text-xl font-black text-amber-900 mt-1">{draftCount}</p>
-          </div>
-          <div className="bg-rose-50/80 p-4 rounded-2xl border border-rose-200 shadow-2xs">
-            <p className="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Tin nổi bật trang đầu</p>
-            <p className="text-xl font-black text-rose-900 mt-1">{featuredCount}</p>
-          </div>
-        </div>
-      )}
-
       {/* Tabs Navigation (Fit on 1 line across Desktop/Tablet) */}
       <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-2 md:grid-cols-6 gap-2 shadow-2xs">
         <button
@@ -1276,6 +1255,18 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           <ImageIcon className="w-4 h-4 shrink-0 text-emerald-400" />
           <span className="truncate">Thư Viện Ảnh (Cloudinary)</span>
         </button>
+
+        <button
+          onClick={() => { setActiveTab('CULTURAL_MEDIA'); setSelectedCategory('ALL'); setSearchTerm(''); }}
+          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
+            activeTab === 'CULTURAL_MEDIA'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 shrink-0 text-purple-400" />
+          <span className="truncate">Tư Liệu Văn Hóa</span>
+        </button>
       </div>
 
       {/* ========================================================================= */}
@@ -1286,6 +1277,15 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           documents={documents}
           feedbackList={opinions}
           articles={articles}
+        />
+      )}
+
+      {/* ========================================================================= */}
+      {/* 8. CULTURAL MEDIA TAB */}
+      {/* ========================================================================= */}
+      {activeTab === 'CULTURAL_MEDIA' && (
+        <CulturalMediaAdminSection
+          onShowToast={(title, msg) => showSuccessBanner(`${title}: ${msg}`)}
         />
       )}
 

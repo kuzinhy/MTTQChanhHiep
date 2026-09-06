@@ -288,6 +288,37 @@ export interface AuditLog {
   timestamp: string;
 }
 
+export type MediaType = 'image' | 'audio' | 'video' | 'youtube';
+export type MediaStatus = 'draft' | 'pending' | 'approved' | 'published' | 'hidden';
+
+export interface CulturalMedia {
+  id: string;
+  type: MediaType;
+  title: string;
+  shortTitle?: string;
+  description: string;
+  historicalDate?: string;
+  category: string;
+  mediaUrl: string;
+  sourcePageUrl?: string;
+  mimeType: string;
+  fileSize?: string;
+  duration?: string;
+  thumbnailUrl?: string;
+  altText: string;
+  transcript?: string;
+  subtitleUrl?: string;
+  sourceName?: string;
+  authorName?: string;
+  copyrightInfo?: string;
+  order: number;
+  status: MediaStatus;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+}
+
 export interface DriveFileItem {
   id: string;
   fileId: string;

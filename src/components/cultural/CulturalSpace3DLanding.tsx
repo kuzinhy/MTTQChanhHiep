@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Globe, BookOpen, Layers, Shield, Award, Users, Compass, ExternalLink, ArrowRight, Play, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { HcmQuoteRotator } from '../common/HcmQuoteRotator';
 
 interface CulturalSpace3DLandingProps {
   onEnter3D: () => void;
@@ -41,6 +42,9 @@ export const CulturalSpace3DLanding: React.FC<CulturalSpace3DLandingProps> = ({ 
           <p className="text-sm sm:text-base lg:text-lg text-slate-300 max-w-2xl mx-auto font-medium leading-relaxed">
             Trải nghiệm không gian trưng bày ảo đa chiều, khám phá lịch sử, truyền thống văn hóa, các phong trào Mặt trận và 21 khu phố trực tiếp trên trình duyệt mà không cần cài đặt phần mềm.
           </p>
+          <div className="mt-4">
+            <HcmQuoteRotator />
+          </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
             <motion.button

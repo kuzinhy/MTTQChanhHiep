@@ -38,7 +38,8 @@ import {
   AreaNode,
   Organization,
   OrganizationNode,
-  NeighborhoodMigrationResult
+  NeighborhoodMigrationResult,
+  CulturalMedia
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -72,7 +73,8 @@ const STORAGE_KEYS = {
   MEMBER_ORGANIZATIONS: 'mttq_chanhhiep_member_orgs_v5',
   AREAS: 'mttq_chanhhiep_areas_v3',
   ORGANIZATIONS: 'mttq_chanhhiep_organizations_v4',
-  NEIGHBORHOODS_MIGRATION_V3: 'mttq_chanhhiep_migration_ward_only_v7'
+  NEIGHBORHOODS_MIGRATION_V3: 'mttq_chanhhiep_migration_ward_only_v7',
+  CULTURAL_MEDIA: 'mttq_chanhhiep_cultural_media_v1'
 };
 
 // In-Memory Storage Cache to prevent redundant serialization & disk writes
@@ -382,6 +384,15 @@ export const AppStorageEngine = {
   },
   saveKnowledgeNotes: (notes: KnowledgeNote[]) => {
     saveStorageData(STORAGE_KEYS.KNOWLEDGE_NOTES, notes || []);
+  },
+
+  getCulturalMedia: (): CulturalMedia[] => {
+    const raw = loadInitialData(STORAGE_KEYS.CULTURAL_MEDIA, []);
+    return (raw || []).filter(m => m && m.id);
+  },
+  saveCulturalMedia: (media: CulturalMedia[]) => {
+    const filtered = (media || []).filter(m => m && m.id);
+    saveStorageData(STORAGE_KEYS.CULTURAL_MEDIA, filtered);
   },
 
   getMapLocations: (): MapLocation[] => {

@@ -7,6 +7,7 @@ import cors from 'cors';
 import { aiWorkspaceRouter } from './server/aiWorkspaceRouter';
 import { analyticsRouter } from './server/analyticsRouter';
 import { mediaRouter } from './server/mediaRouter';
+import { mediaProxyHandler } from './server/mediaProxyRouter';
 
 dotenv.config({ override: true });
 
@@ -46,6 +47,13 @@ async function startServer() {
 
   // Cloudinary Admin Media Upload API Router
   app.use('/api/admin/media', mediaRouter);
+
+  // Static files for locally uploaded media
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+  // Media Proxy Route
+  app.get('/api/media/proxy', mediaProxyHandler);
+
 
   // API Health Check
   app.get('/api/health', (_req: Request, res: Response) => {

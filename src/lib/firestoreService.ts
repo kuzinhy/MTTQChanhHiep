@@ -46,7 +46,8 @@ import {
   KnowledgeNote,
   MemberOrganization,
   Area,
-  Organization
+  Organization,
+  CulturalMedia
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -90,7 +91,8 @@ export const FirestoreCollections = {
   KNOWLEDGE_NOTES: 'knowledgeNotes',
   MEMBER_ORGANIZATIONS: 'memberOrganizations',
   AREAS: 'areas',
-  ORGANIZATIONS: 'organizations'
+  ORGANIZATIONS: 'organizations',
+  CULTURAL_MEDIA: 'culturalMedia'
 };
 
 class CloudSyncService {
@@ -591,6 +593,29 @@ class CloudSyncService {
       return true;
     } catch (err) {
       console.error('[Firestore] Error deleting document:', err);
+      return false;
+    }
+  }
+
+  // Cultural Media
+  async saveCulturalMedia(media: CulturalMedia): Promise<boolean> {
+    try {
+      const mDoc = doc(db, FirestoreCollections.CULTURAL_MEDIA, media.id);
+      await setDoc(mDoc, cleanFirestoreData(media), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving cultural media:', err);
+      return false;
+    }
+  }
+
+  async deleteCulturalMedia(mediaId: string): Promise<boolean> {
+    try {
+      const mDoc = doc(db, FirestoreCollections.CULTURAL_MEDIA, mediaId);
+      await deleteDoc(mDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting cultural media:', err);
       return false;
     }
   }
