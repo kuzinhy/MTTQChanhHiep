@@ -168,7 +168,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // System Settings & Maintenance Mode State
-  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(() => AppStorageEngine.getSystemSettings());
   const [isAdminMaintenancePreview, setIsAdminMaintenancePreview] = useState<boolean>(false);
 
   // 404 & Invalid Route State
@@ -322,12 +322,13 @@ export default function App() {
     const fetchSystemStatus = async () => {
       try {
         const res = await fetch('/api/system/status', {
-          headers: { 'Cache-Control': 'no-cache' }
+          headers: { 'Cache-Control': 'no-cache, no-store' }
         });
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.settings) {
             setSystemSettings(data.settings);
+            AppStorageEngine.saveSystemSettings(data.settings);
           }
         }
       } catch (err) {
@@ -336,8 +337,35 @@ export default function App() {
     };
 
     fetchSystemStatus();
-    const interval = setInterval(fetchSystemStatus, 15000);
-    return () => clearInterval(interval);
+    // Fast polling (5 seconds) for rapid reaction to maintenance mode toggles
+    const interval = setInterval(fetchSystemStatus, 5000);
+
+    // Immediate check on tab focus/visibility
+    const handleVisibility = () => {
+      if (!document.hidden) fetchSystemStatus();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Synchronize across tabs when local storage changes
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'mttq_chanhhiep_system_settings_v1') {
+        const updated = AppStorageEngine.getSystemSettings();
+        if (updated) setSystemSettings(updated);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    const handleCustomChange = (e: any) => {
+      if (e.detail) setSystemSettings(e.detail);
+    };
+    window.addEventListener('mttq_system_settings_changed', handleCustomChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('mttq_system_settings_changed', handleCustomChange);
+    };
   }, []);
 
   // Auto-Sync state changes to Local Storage

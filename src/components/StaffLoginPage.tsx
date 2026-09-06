@@ -128,13 +128,29 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
         processAuthenticatedUser(user.email, user.displayName, user.photoURL);
       }
     } catch (err: any) {
-      console.error('Google login error:', err);
-      if (err.code === 'auth/unauthorized-domain') {
+      // Gracefully handle popup cancellation - not a system error
+      if (
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request' ||
+        err?.message?.includes('popup-closed-by-user')
+      ) {
+        // User closed or cancelled popup window, simply finish loading gracefully
+        return;
+      }
+
+      if (err?.code === 'auth/popup-blocked') {
+        setErrorMsg('Cửa sổ đăng nhập Google bị trình duyệt chặn. Vui lòng cho phép mở cửa sổ (popup) cho trang web này.');
+        return;
+      }
+
+      if (err?.code === 'auth/unauthorized-domain') {
         const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'máy chủ web';
         setUnauthorizedDomain(currentHost);
-      } else if (err.code !== 'auth/popup-closed-by-user') {
-        setErrorMsg('Đăng nhập Google không thành công: ' + (err.message || 'Lỗi mạng hoặc phân quyền.'));
+        return;
       }
+
+      console.error('Google login error:', err);
+      setErrorMsg('Đăng nhập Google không thành công: ' + (err.message || 'Lỗi mạng hoặc phân quyền.'));
     } finally {
       setIsLoading(false);
     }

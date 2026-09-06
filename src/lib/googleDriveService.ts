@@ -100,6 +100,13 @@ export async function getDriveAccessToken(forcePrompt = false): Promise<string> 
     cachedAccessToken = credential.accessToken;
     return cachedAccessToken;
   } catch (err: any) {
+    if (
+      err?.code === 'auth/popup-closed-by-user' ||
+      err?.code === 'auth/cancelled-popup-request' ||
+      err?.message?.includes('popup-closed-by-user')
+    ) {
+      throw new Error('Cửa sổ đăng nhập Google đã được đóng.');
+    }
     console.error('[GoogleDriveService] Lỗi xác thực Google OAuth:', err);
     throw new Error(err?.message || 'Không thể đăng nhập tài khoản Google để tải tệp lên Drive.');
   }

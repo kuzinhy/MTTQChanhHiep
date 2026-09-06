@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { SystemSettings, StaffUser } from '../../types';
 import { CloudDatabase } from '../../lib/firestoreService';
+import { AppStorageEngine } from '../../lib/storage';
 
 interface SystemSettingsAdminViewProps {
   currentUser?: StaffUser | null;
@@ -85,6 +86,7 @@ export const SystemSettingsAdminView: React.FC<SystemSettingsAdminViewProps> = (
 
   const applySettingsToState = (st: SystemSettings) => {
     setSettings(st);
+    AppStorageEngine.saveSystemSettings(st);
     setTitleInput(st.maintenanceTitle || DEFAULT_SETTINGS.maintenanceTitle);
     setMessageInput(st.maintenanceMessage || DEFAULT_SETTINGS.maintenanceMessage);
     setShowScheduled(!!st.showScheduledTime);
