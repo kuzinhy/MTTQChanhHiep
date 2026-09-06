@@ -54,6 +54,8 @@ import { OptimizedImage } from '../common/OptimizedImage';
 export type { ExhibitItem, ExhibitPart };
 export const HCM_EXHIBITS = DEFAULT_HCM_EXHIBITS;
 
+export type PageStatus = 'loading' | 'validating' | 'ready' | 'empty' | 'error';
+
 export interface HoChiMinhCulturalSpaceModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -89,6 +91,27 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
 
   // Dynamic Exhibits state with local storage persistence
   const [exhibits, setExhibits] = useState<ExhibitItem[]>(() => loadStoredHcmExhibits());
+
+  // Page Status State Machine: DATA FIRST -> VALIDATE -> LOAD MEDIA -> READY
+  const [pageStatus, setPageStatus] = useState<PageStatus>('loading');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPageStatus('loading');
+      return;
+    }
+
+    setPageStatus('validating');
+    const timer = setTimeout(() => {
+      if (!exhibits || exhibits.length === 0) {
+        setPageStatus('empty');
+      } else {
+        setPageStatus('ready');
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, activeMuseumTab, exhibits]);
 
   // SuperAdmin mode & editing state
   const isUserSuperAdmin = currentStaffUser?.role === 'SUPER_ADMIN' || currentStaffUser?.role === 'ADMIN';
@@ -200,7 +223,7 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
       z: Math.floor(Math.random() * 200 - 100),
       year: '2026',
       quote: '“Đoàn kết, đoàn kết, đại đoàn kết. Thành công, thành công, đại thành công!”',
-      imageUrl: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: '',
       description: 'Mô tả chi tiết về hiện vật văn hóa mới được số hóa và đưa vào Không gian Văn hóa...',
       details: [
         'Ý nghĩa lịch sử giáo dục truyền thống cho thế hệ trẻ phường Chánh Hiệp.',

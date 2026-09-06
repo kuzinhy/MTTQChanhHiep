@@ -20,6 +20,9 @@ import {
   Bell, 
   Lightbulb,
   Info,
+  Server,
+  Sliders,
+  Shield,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -304,6 +307,66 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
               )}
             </AnimatePresence>
           </div>
+        </div>
+
+        {/* NHÓM 3: HỆ THỐNG & CÀI ĐẶT */}
+        <div className="space-y-1 pt-1">
+          <h3 className="px-3 text-[10px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center justify-between">
+            <span>HỆ THỐNG &amp; CÀI ĐẶT</span>
+            <span className="text-[8px] bg-red-100 text-red-800 font-bold px-1.5 py-0.2 rounded-full">ADMIN</span>
+          </h3>
+
+          {[
+            { id: 'system_settings', label: 'Bật/Tắt Website (Bảo trì)', icon: Server, badge: 'HỆ THỐNG' },
+            { id: 'users', label: 'Tài khoản & Phân quyền', icon: Users, badge: 'TÀI KHOẢN' },
+            { id: 'analytics', label: 'Báo cáo & Thống kê', icon: BarChart3 },
+            { id: 'audit_logs', label: 'Nhật ký Hệ thống', icon: Shield, badge: 'AUDIT' }
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
+            const isAllowed = canAccessView(userRole, item.id);
+
+            return (
+              <motion.button
+                key={item.id}
+                whileHover={{ x: isAllowed ? 3 : 0 }}
+                whileTap={{ scale: isAllowed ? 0.98 : 1 }}
+                onClick={() => {
+                  if (isAllowed) setCurrentView(item.id);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer relative ${
+                  isActive 
+                    ? 'text-white font-extrabold shadow-md' 
+                    : isAllowed 
+                      ? 'text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-semibold' 
+                      : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="active-sys-tab-indicator"
+                    className="absolute inset-0 bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 rounded-xl border border-blue-400 shadow-md"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <div className="flex items-center gap-2.5 relative z-10">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
+                </div>
+                
+                <div className="flex items-center gap-1 relative z-10">
+                  {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
+                  {item.badge && isAllowed && (
+                    <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${
+                      isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
 
       </div>

@@ -15,6 +15,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { ExhibitItem, ExhibitPart } from '../../data/hcmCulturalData';
+import { VerifiedCultureImage } from './VerifiedCultureImage';
 
 interface SuperadminExhibitEditorModalProps {
   isOpen: boolean;
@@ -251,18 +252,15 @@ export const SuperadminExhibitEditorModal: React.FC<SuperadminExhibitEditorModal
                     value={formData.imageUrl}
                     onChange={(e) => handleChange('imageUrl', e.target.value)}
                     className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all text-xs"
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="https://... (URL ảnh tư liệu từ nguồn chính thống)"
                   />
                 </div>
                 {formData.imageUrl && (
                   <div className="mt-2 relative rounded-lg border border-slate-200 overflow-hidden h-28 bg-slate-100 flex items-center justify-center">
-                    <img
+                    <VerifiedCultureImage
                       src={formData.imageUrl}
                       alt="Preview"
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
                     />
                     <span className="absolute bottom-1 right-2 text-[10px] bg-black/60 text-white px-2 py-0.5 rounded">
                       Xem trước ảnh mô hình

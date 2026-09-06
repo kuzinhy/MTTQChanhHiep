@@ -25,10 +25,13 @@ const KEY_FOOTSTEPS = 'mttq_chanhhiep_hcm_footsteps_v1';
 const KEY_CHANH_HIEP_ACTIONS = 'mttq_chanhhiep_hcm_chanh_hiep_actions_v4';
 const KEY_FRONT_INITIATIVES = 'mttq_chanhhiep_hcm_front_initiatives_v5';
 
-// Helper to sanitize broken Wikimedia URLs from older localStorage cache
+// Helper to sanitize broken Wikimedia or Unsplash stock URLs from older localStorage cache
 function sanitizeImage(url?: string, fallback?: string): string | undefined {
-  if (!url || url.includes('upload.wikimedia.org')) {
-    return fallback || url;
+  if (!url || url.includes('upload.wikimedia.org') || url.includes('unsplash.com')) {
+    if (fallback && !fallback.includes('unsplash.com')) {
+      return fallback;
+    }
+    return undefined;
   }
   return url;
 }
@@ -170,7 +173,7 @@ export function loadStoredVideos(): HistoricalVideo[] {
         
         let imageUrl = sanitizeImage(item.imageUrl);
         if (!imageUrl) {
-          imageUrl = defaultItem?.imageUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80');
+          imageUrl = (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : sanitizeImage(defaultItem?.imageUrl));
         }
 
         return {

@@ -71,16 +71,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       {/* Top Banner Header - Zalo Electric Blue Tech Government Branding */}
-      <div className="bg-gradient-to-r from-[#0052cc] via-[#0068ff] to-[#0088ff] text-white px-4 py-2.5 border-b border-blue-400/30 relative overflow-hidden shadow-sm">
+      <div className="bg-gradient-to-r from-[#0052cc] via-[#0068ff] to-[#0088ff] text-white px-3 sm:px-4 py-1.5 sm:py-2 border-b border-blue-400/30 relative overflow-hidden shadow-sm">
         {/* Subtle Blue/Cyan Ambient Glow */}
         <div className="absolute -top-10 -left-10 w-44 h-44 bg-cyan-300/20 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute -bottom-10 right-1/4 w-44 h-44 bg-sky-300/20 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 relative z-10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3 relative z-10 flex-wrap md:flex-nowrap">
           
           {/* Logo & Agency Title */}
-          <div className="flex items-center gap-3 cursor-pointer group shrink-0" onClick={() => setActiveTab('home')}>
-            <div className="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border-2 border-amber-400 transition-all duration-300 group-hover:scale-105">
+          <div className="flex items-center gap-2.5 cursor-pointer group shrink-0" onClick={() => setActiveTab('home')}>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border-2 border-amber-400 transition-all duration-300 group-hover:scale-105">
               <OptimizedImage
                 src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
                 alt="Logo Ủy ban Mặt trận Tổ quốc Việt Nam"
@@ -90,21 +90,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             <div className="min-w-0 shrink-0">
-              <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
+              <div className="flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
                 <h1 className="text-[11px] sm:text-xs md:text-sm font-black tracking-tight uppercase leading-tight text-white drop-shadow-xs whitespace-nowrap inline-block shrink-0">
                   ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG&nbsp;CHÁNH&nbsp;HIỆP
                 </h1>
-                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#f5a623] text-slate-950 shadow-xs whitespace-nowrap shrink-0">
+                <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md bg-[#f5a623] text-slate-950 shadow-2xs whitespace-nowrap shrink-0">
                   <Star className="w-2.5 h-2.5 fill-slate-950 shrink-0" /> SỐ HÓA 4.0
                 </span>
               </div>
-              <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
-                <p className="text-[11px] text-blue-100 font-bold tracking-wide whitespace-nowrap shrink-0">
+              <div className="flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
+                <p className="text-[10px] sm:text-[11px] text-blue-100 font-bold tracking-wide whitespace-nowrap shrink-0">
                   THÀNH PHỐ HỒ CHÍ MINH
                 </p>
                 <span className="text-blue-300 hidden sm:inline shrink-0">•</span>
-                <span className="inline-flex items-center gap-1 text-[11px] text-blue-100 font-semibold whitespace-nowrap shrink-0">
-                  <Clock className="w-3.5 h-3.5 text-cyan-200 shrink-0" />
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-blue-100 font-semibold whitespace-nowrap shrink-0">
+                  <Clock className="w-3 h-3 text-cyan-200 shrink-0" />
                   <span className="capitalize whitespace-nowrap">{new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
                 </span>
               </div>
@@ -112,68 +112,68 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Quick Search & Actions */}
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-nowrap shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto justify-end flex-nowrap shrink-0">
             {/* PWA Install Button */}
             <PWAInstallButton />
 
             {/* Notification Bell */}
             <button
               onClick={onOpenNotificationCenter}
-              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white relative transition cursor-pointer border border-white/20 shrink-0"
+              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white relative transition cursor-pointer border border-white/20 shrink-0"
               title="Trung tâm Thông báo"
             >
-              <Bell className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white animate-pulse" />
+              <Bell className="w-3.5 h-3.5" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full border border-white animate-pulse" />
             </button>
 
             {/* Không gian VH Hồ Chí Minh Quick Button */}
             <button
               onClick={onOpenHcmSpaceModal}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-xl shadow-md border border-amber-300/40 transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-lg shadow-xs border border-amber-300/40 transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
               title="Khám phá Không gian Văn hóa Hồ Chí Minh 3D"
             >
-              <Star className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300 animate-pulse shrink-0" />
+              <Star className="w-3 h-3 text-yellow-300 fill-yellow-300 animate-pulse shrink-0" />
               <span className="whitespace-nowrap">Không gian VH Hồ Chí Minh</span>
             </button>
 
             {/* Volunteer Signup */}
             <button
               onClick={onOpenVolunteerModal}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
+              className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-lg shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
             >
-              <HeartHandshake className="w-4 h-4 text-slate-950 shrink-0" />
+              <HeartHandshake className="w-3.5 h-3.5 text-slate-950 shrink-0" />
               <span className="whitespace-nowrap">Đăng ký TNV</span>
             </button>
 
             {/* Quick Search */}
-            <div className="relative flex-1 md:w-48 shrink-0">
+            <div className="relative flex-1 md:w-44 shrink-0">
               <input
                 type="text"
                 placeholder="Tìm tin tức, văn bản..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-1.5 bg-blue-900/60 border border-blue-400/40 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:bg-blue-950 focus:border-cyan-300 transition-all font-medium"
+                className="w-full text-xs pl-7 pr-2.5 py-1 bg-blue-900/60 border border-blue-400/40 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:bg-blue-950 focus:border-cyan-300 transition-all font-medium"
               />
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-blue-200" />
+              <Search className="w-3 h-3 absolute left-2 top-1.5 text-blue-200" />
             </div>
 
             {/* Login / Digital Office Button */}
             {isStaffLoggedIn ? (
               <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={onGoToOffice}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-lg shadow-2xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-white animate-pulse shrink-0" />
                 <span className="whitespace-nowrap">Văn phòng số</span>
               </motion.button>
             ) : (
               <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={onOpenLoginModal}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-100 border border-blue-400/30 font-bold text-xs rounded-xl shadow-2xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-900/80 hover:bg-blue-800 text-blue-100 border border-blue-400/30 font-bold text-xs rounded-lg shadow-2xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
               >
                 <LogIn className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
                 <span className="whitespace-nowrap">Cán bộ</span>

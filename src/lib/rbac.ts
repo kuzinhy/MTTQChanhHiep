@@ -39,6 +39,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   cultural_space_admin: 'STAFF',
   analytics: 'MANAGER',
   users: 'ADMIN',
+  system_settings: 'ADMIN',
   audit_logs: 'SUPER_ADMIN'
 };
 

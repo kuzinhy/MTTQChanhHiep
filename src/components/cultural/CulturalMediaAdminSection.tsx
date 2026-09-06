@@ -45,6 +45,7 @@ import {
   FOOTSTEP_LOCATIONS,
   CHANH_HIEP_ACTION_MODELS
 } from '../../data/hcmVerifiedMuseumData';
+import { VerifiedCultureImage } from './VerifiedCultureImage';
 import {
   loadStoredAudios,
   saveStoredAudios,
@@ -904,11 +905,10 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
                   <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 border-2 border-amber-200/80 bg-gradient-to-br from-rose-50 to-amber-50 shadow-xs group">
                     {audio.imageUrl ? (
                       <>
-                        <img
+                        <VerifiedCultureImage
                           src={audio.imageUrl}
                           alt={audio.title}
                           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                          referrerPolicy="no-referrer"
                         />
                         <label
                           className={`absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer p-1.5 text-center backdrop-blur-2xs ${
@@ -1138,19 +1138,11 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
                   <div className="space-y-3">
                     {/* Video Thumbnail with Play Overlay */}
                     <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-200 group">
-                      {thumbUrl ? (
-                        <img
-                          src={thumbUrl}
-                          alt={video.title}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                          <Film className="w-8 h-8 mb-1" />
-                          <span className="text-xs">Chưa có ảnh đại diện</span>
-                        </div>
-                      )}
+                      <VerifiedCultureImage
+                        src={thumbUrl}
+                        alt={video.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
 
                       {/* Dark overlay & Play Button */}
                       <a
@@ -1313,11 +1305,10 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
                     <div className="relative w-20 h-28 rounded-xl overflow-hidden shrink-0 border border-amber-200 bg-amber-50 shadow-2xs group">
                       {work.imageUrl ? (
                         <>
-                          <img
+                          <VerifiedCultureImage
                             src={work.imageUrl}
                             alt={work.title}
                             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                            referrerPolicy="no-referrer"
                           />
                           <label
                             className={`absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer p-1 text-center backdrop-blur-2xs ${
@@ -1544,11 +1535,10 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
                     <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-blue-200 bg-blue-50 shadow-2xs group">
                       {footstep.imageUrl ? (
                         <>
-                          <img
+                          <VerifiedCultureImage
                             src={footstep.imageUrl}
                             alt={footstep.name}
                             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform"
-                            referrerPolicy="no-referrer"
                           />
                           <label
                             className={`absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer p-1 text-center backdrop-blur-2xs ${
@@ -1670,11 +1660,10 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
                     <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-emerald-200 bg-emerald-50 shadow-2xs group">
                       {action.imageUrl ? (
                         <>
-                          <img
+                          <VerifiedCultureImage
                             src={action.imageUrl}
                             alt={action.title}
                             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform"
-                            referrerPolicy="no-referrer"
                           />
                           <label
                             className={`absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer p-1 text-center backdrop-blur-2xs ${

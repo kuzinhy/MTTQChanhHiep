@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { FOOTSTEP_LOCATIONS, FootstepLocation } from '../../data/hcmVerifiedMuseumData';
 import { loadStoredFootsteps, saveStoredFootsteps } from '../../lib/hcmDataStore';
+import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
 
@@ -103,10 +104,9 @@ export const HcmFootstepsMap: React.FC<HcmFootstepsMapProps> = ({ isResearchMode
                 {/* Thumbnail địa danh / số thứ tự */}
                 {loc.imageUrl ? (
                   <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-rose-200 shadow-2xs bg-rose-100/50 relative">
-                    <img
+                    <VerifiedCultureImage
                       src={loc.imageUrl}
                       alt={loc.name}
-                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                     />
                     <span
@@ -218,10 +218,9 @@ export const HcmFootstepsMap: React.FC<HcmFootstepsMapProps> = ({ isResearchMode
             <div className="flex flex-col sm:flex-row items-start gap-4">
               {selectedLocation.imageUrl && (
                 <div className="w-full sm:w-44 h-36 sm:h-32 rounded-2xl overflow-hidden shrink-0 border-2 border-rose-200 shadow-sm bg-rose-100/40">
-                  <img
+                  <VerifiedCultureImage
                     src={selectedLocation.imageUrl}
                     alt={selectedLocation.name}
-                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                   />
                 </div>

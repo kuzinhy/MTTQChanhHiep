@@ -38,6 +38,7 @@ import {
   detectVideoSource,
   getVideoThumbnail
 } from '../../data/hcmVerifiedMuseumData';
+import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { loadStoredVideos, saveStoredVideos, resetStoredVideos } from '../../lib/hcmDataStore';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
@@ -150,12 +151,8 @@ export const HcmVideoArchive: React.FC<HcmVideoArchiveProps> = ({ isResearchMode
     const videoId = updated.youtubeVideoId || extractYouTubeId(updated.youtubeUrl || '') || detected.youtubeId;
 
     let imageUrl = updated.imageUrl;
-    if (!imageUrl) {
-      if (videoId) {
-        imageUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-      } else if (finalSourceType === 'HOCHIMINH_VN') {
-        imageUrl = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80';
-      }
+    if (!imageUrl && videoId) {
+      imageUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     }
 
     const finalVideo: HistoricalVideo = {
@@ -586,10 +583,9 @@ export const HcmVideoArchive: React.FC<HcmVideoArchiveProps> = ({ isResearchMode
                 />
               ) : selectedVideo?.hoChiMinhVnUrl ? (
                 <div className="w-full h-full relative flex flex-col items-center justify-center text-white p-6 text-center space-y-3 bg-gradient-to-br from-rose-950 via-slate-950 to-amber-950">
-                  <img
+                  <VerifiedCultureImage
                     src={getVideoThumbnail(selectedVideo)}
                     alt={selectedVideo.title}
-                    referrerPolicy="no-referrer"
                     className="absolute inset-0 w-full h-full object-cover opacity-25 filter blur-xs"
                   />
                   <div className="relative z-10 max-w-md space-y-3">
@@ -773,18 +769,11 @@ export const HcmVideoArchive: React.FC<HcmVideoArchiveProps> = ({ isResearchMode
                     >
                       {/* Thumbnail 16:9 với nút Play & Badge nguồn */}
                       <div className="w-28 sm:w-32 aspect-video rounded-xl overflow-hidden shrink-0 relative bg-black/80 border border-rose-200/60 shadow-2xs">
-                        {thumbUrl ? (
-                          <img
-                            src={thumbUrl}
-                            alt={item.title}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-rose-300 bg-rose-950">
-                            <Film className="w-6 h-6" />
-                          </div>
-                        )}
+                        <VerifiedCultureImage
+                          src={thumbUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
 
                         {/* Nút Play overlay */}
                         <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 flex items-center justify-center transition-all">

@@ -126,17 +126,24 @@ class CloudSyncService {
     this.isInitialized = true;
 
     try {
-      // 1. Initial check & auto-seed if cloud database is empty, plus purge demo articles
-      await this.ensureSeedData();
-      await this.purgeDemoArticles();
-      await this.pullCloudToLocal();
+      // 1. Mark initial state and trigger background seed/purge tasks without blocking listener setup
       this.isConnected = true;
+      (async () => {
+        try {
+          await this.ensureSeedData();
+          await this.purgeDemoArticles();
+          await this.purgeLegacyAreas();
+        } catch (err) {
+          console.warn('[Firestore] Background maintenance tasks warning (operating in offline mode):', err);
+        }
+      })();
 
-      // 2. Setup Realtime Listeners with Firestore as Master Source of Truth
+      // 2. Setup Realtime Listeners with Firestore as Master Source of Truth (works seamlessly online & offline)
       
       // Articles Listener
       if (callbacks.onArticlesUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.ARTICLES), (snapshot) => {
+          this.isConnected = true;
           const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
           const remoteArticles: Article[] = snapshot.docs
             .map(d => ({ ...(d.data() as Article), id: d.id }))
@@ -146,7 +153,8 @@ class CloudSyncService {
           AppStorageEngine.saveArticles(sorted);
           callbacks.onArticlesUpdate?.(sorted);
         }, (err) => {
-          console.warn('[Firestore] Articles sync error:', err);
+          console.warn('[Firestore] Articles sync offline fallback:', err);
+          callbacks.onArticlesUpdate?.(AppStorageEngine.getArticles());
         });
         this.syncListeners.push(unsub);
       }

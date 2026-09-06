@@ -26,23 +26,23 @@ export const CulturalSpace3DViewer: React.FC<CulturalSpace3DViewerProps> = ({ on
 
   const sampleExhibits: Record<string, any[]> = {
     lobby: [
-      { id: 'lb-1', title: 'Cổng chính Văn phòng MTTQ Phường Chánh Hiệp', desc: 'Trung tâm chỉ đạo và phối hợp hành động chung của khối đại đoàn kết toàn dân tộc.', image: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80' },
-      { id: 'lb-2', title: 'Huân chương Lao động hạng Ba', desc: 'Phần thưởng cao quý ghi nhận thành tích xuất sắc trong công tác Mặt trận giai đoạn 2020 - 2025.', image: 'https://images.unsplash.com/photo-1567427017947-545c5f2d16ad?auto=format&fit=crop&w=800&q=80' }
+      { id: 'lb-1', title: 'Cổng chính Văn phòng MTTQ Phường Chánh Hiệp', desc: 'Trung tâm chỉ đạo và phối hợp hành động chung của khối đại đoàn kết toàn dân tộc.', image: '' },
+      { id: 'lb-2', title: 'Huân chương Lao động hạng Ba', desc: 'Phần thưởng cao quý ghi nhận thành tích xuất sắc trong công tác Mặt trận giai đoạn 2020 - 2025.', image: '' }
     ],
     history: [
-      { id: 'hist-1', title: 'Dòng thời gian 60 năm hình thành và phát triển', desc: 'Những cột mốc lịch sử hào hùng của nhân dân và cán bộ phường Chánh Hiệp qua các thời kỳ kháng chiến và xây dựng đổi mới.', image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80' }
+      { id: 'hist-1', title: 'Dòng thời gian 60 năm hình thành và phát triển', desc: 'Những cột mốc lịch sử hào hùng của nhân dân và cán bộ phường Chánh Hiệp qua các thời kỳ kháng chiến và xây dựng đổi mới.', image: '' }
     ],
     mttq: [
-      { id: 'mttq-1', title: 'Đại hội đại biểu MTTQ Việt Nam Phường', desc: 'Nghị quyết đại hội và phương hướng nhiệm kỳ mới với khát vọng vươn lên mạnh mẽ.', image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80' }
+      { id: 'mttq-1', title: 'Đại hội đại biểu MTTQ Việt Nam Phường', desc: 'Nghị quyết đại hội và phương hướng nhiệm kỳ mới với khát vọng vươn lên mạnh mẽ.', image: '' }
     ],
     neighborhoods: [
-      { id: 'nh-1', title: 'Mô hình tự quản 21 Khu phố', desc: 'Toàn phường có 21 khu phố đoàn kết, đồng lòng xây dựng đô thị văn minh, an toàn và nghĩa tình.', image: 'https://images.unsplash.com/photo-1517732306149-e8f829eb588a?auto=format&fit=crop&w=800&q=80' }
+      { id: 'nh-1', title: 'Mô hình tự quản 21 Khu phố', desc: 'Toàn phường có 21 khu phố đoàn kết, đồng lòng xây dựng đô thị văn minh, an toàn và nghĩa tình.', image: '' }
     ],
     heritage: [
-      { id: 'her-1', title: 'Địa chỉ đỏ giáo dục truyền thống', desc: 'Các di tích lịch sử cách mạng và điểm đến tâm linh, sinh hoạt chính trị cho thế hệ trẻ.', image: 'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&w=800&q=80' }
+      { id: 'her-1', title: 'Địa chỉ đỏ giáo dục truyền thống', desc: 'Các di tích lịch sử cách mạng và điểm đến tâm linh, sinh hoạt chính trị cho thế hệ trẻ.', image: '' }
     ],
     exhibition: [
-      { id: 'ex-1', title: 'Triển lãm chuyên đề "Tự hào truyền thống Mặt trận"', desc: 'Không gian trưng bày các ấn phẩm, tư liệu và hình ảnh hoạt động nổi bật của các tổ chức thành viên.', image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=800&q=80' }
+      { id: 'ex-1', title: 'Triển lãm chuyên đề "Tự hào truyền thống Mặt trận"', desc: 'Không gian trưng bày các ấn phẩm, tư liệu và hình ảnh hoạt động nổi bật của các tổ chức thành viên.', image: '' }
     ]
   };
 

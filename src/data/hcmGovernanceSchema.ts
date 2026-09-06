@@ -252,7 +252,7 @@ export const DEFAULT_VERIFIED_EVENTS: EventCardSchema[] = [
     media: [
       {
         id: 'med-01',
-        file: 'https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?auto=format&fit=crop&w=800&q=80',
+        file: '',
         title: 'Quê ngoại Hoàng Trù',
         caption: 'Cụm di tích quê ngoại Hoàng Trù – Nơi lưu giữ ký ức tuổi thơ của Bác Hồ',
         alt: 'Di tích quê ngoại Hoàng Trù Kim Liên',
@@ -289,7 +289,7 @@ export const DEFAULT_VERIFIED_EVENTS: EventCardSchema[] = [
     media: [
       {
         id: 'med-02',
-        file: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+        file: '',
         title: 'Trường Dục Thanh Phan Thiết',
         caption: 'Khuôn viên di tích Trường Dục Thanh bên dòng sông Cà Ty (Bình Thuận)',
         alt: 'Trường Dục Thanh Phan Thiết',
@@ -325,7 +325,7 @@ export const DEFAULT_VERIFIED_EVENTS: EventCardSchema[] = [
     media: [
       {
         id: 'med-03',
-        file: 'https://images.unsplash.com/photo-1509718443690-d8e2fb3474b7?auto=format&fit=crop&w=800&q=80',
+        file: '',
         title: 'Bến Nhà Rồng lịch sử',
         caption: 'Bến cảng Nhà Rồng – Nơi khởi đầu cuộc hành trình cứu nước của Chủ tịch Hồ Chí Minh',
         alt: 'Bến Nhà Rồng TP Hồ Chí Minh',
@@ -362,7 +362,7 @@ export const DEFAULT_VERIFIED_EVENTS: EventCardSchema[] = [
     media: [
       {
         id: 'med-04',
-        file: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80',
+        file: '',
         title: 'Đại hội Tours 1920',
         caption: 'Đồng chí Nguyễn Ái Quốc tại Đại hội Tours (Pháp), tháng 12/1920',
         alt: 'Đồng chí Nguyễn Ái Quốc Đại hội Tours',
@@ -398,7 +398,7 @@ export const DEFAULT_VERIFIED_EVENTS: EventCardSchema[] = [
     media: [
       {
         id: 'med-05',
-        file: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80',
+        file: '',
         title: 'Hội nghị thành lập Đảng 1930',
         caption: 'Hương Cảng – Nơi diễn ra Hội nghị thành lập Đảng Cộng sản Việt Nam ngày 03/02/1930',
         alt: 'Thành lập Đảng 1930',
@@ -435,7 +435,7 @@ export const DEFAULT_VERIFIED_EVENTS: EventCardSchema[] = [
     media: [
       {
         id: 'med-06',
-        file: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+        file: '',
         title: 'Khu di tích Pác Bó Cao Bằng',
         caption: 'Suối Lê-nin và Núi Các Mác tại Pác Bó (Cao Bằng) – Cội nguồn cách mạng',
         alt: 'Di tích Pác Bó Cao Bằng',
@@ -507,7 +507,7 @@ export const DEFAULT_VERIFIED_EVENTS: EventCardSchema[] = [
     media: [
       {
         id: 'med-08',
-        file: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80',
+        file: '',
         title: 'Chiến thắng Điện Biên Phủ',
         caption: 'Chiến thắng Điện Biên Phủ (07/05/1954) – Đỉnh cao của nghệ thuật chiến tranh nhân dân',
         alt: 'Chiến dịch Điện Biên Phủ 1954',

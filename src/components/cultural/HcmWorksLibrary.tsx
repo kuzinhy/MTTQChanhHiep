@@ -28,6 +28,7 @@ import {
   GOOGLE_DRIVE_HCM_TOAN_TAP_URL
 } from '../../data/hcmVerifiedMuseumData';
 import { loadStoredWorks, saveStoredWorks } from '../../lib/hcmDataStore';
+import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
 
@@ -410,19 +411,11 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                   <div className="flex items-start gap-3">
                     {/* Thumbnail bìa tác phẩm */}
                     <div className="w-14 h-20 rounded-lg overflow-hidden shrink-0 border border-rose-200/60 shadow-2xs bg-rose-100/40 flex items-center justify-center">
-                      {work.imageUrl ? (
-                        <img
-                          src={work.imageUrl}
-                          alt={work.title}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-rose-400 p-1 text-center">
-                          <BookOpen className="w-5 h-5 mb-0.5" />
-                          <span className="text-[9px] font-bold">{work.year}</span>
-                        </div>
-                      )}
+                      <VerifiedCultureImage
+                        src={work.imageUrl}
+                        alt={work.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -520,10 +513,9 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   {selectedWork.imageUrl && (
                     <div className="w-24 sm:w-32 h-36 sm:h-44 rounded-2xl overflow-hidden shrink-0 border-2 border-rose-200 shadow-md bg-rose-100/50">
-                      <img
+                      <VerifiedCultureImage
                         src={selectedWork.imageUrl}
                         alt={selectedWork.title}
-                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                       />
                     </div>

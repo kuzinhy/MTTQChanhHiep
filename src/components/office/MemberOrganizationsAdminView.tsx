@@ -37,7 +37,10 @@ import {
   CornerDownRight,
   ShieldCheck,
   Check,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Image as ImageIcon,
+  CheckCheck
 } from 'lucide-react';
 import { uploadFileToGoogleDrive } from '../../lib/googleDriveService';
 import { INITIAL_MEMBER_ORGANIZATIONS, INITIAL_ORGANIZATIONS, INITIAL_AREAS } from '../../data/seedData';
@@ -46,6 +49,7 @@ import { AppStorageEngine } from '../../lib/storage';
 import { exportOrganizationsToCsv } from '../../lib/exportUtils';
 import { Download, LayoutGrid } from 'lucide-react';
 import { OrgDiagramChart } from './OrgDiagramChart';
+import { OFFICIAL_ORG_LOGOS, OfficialOrgLogo } from '../../data/officialOrgLogos';
 
 interface MemberOrganizationsAdminViewProps {
   organizations: MemberOrganization[];
@@ -116,6 +120,46 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
   // Modal State for Area
   const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
   const [areaFormData, setAreaFormData] = useState<Partial<Area>>({});
+
+  // Logo Library Gallery Modal & Pickers
+  const [isLogoGalleryOpen, setIsLogoGalleryOpen] = useState(false);
+  const [logoCategoryFilter, setLogoCategoryFilter] = useState<string>('all');
+  const [logoSearchQuery, setLogoSearchQuery] = useState<string>('');
+  const [copiedLogoId, setCopiedLogoId] = useState<string | null>(null);
+
+  // Filtered preset logos
+  const filteredPresetLogos = useMemo(() => {
+    return OFFICIAL_ORG_LOGOS.filter(logo => {
+      const matchesCategory = logoCategoryFilter === 'all' || logo.category === logoCategoryFilter;
+      const matchesSearch = !logoSearchQuery.trim() || 
+        logo.name.toLowerCase().includes(logoSearchQuery.toLowerCase()) || 
+        logo.shortName.toLowerCase().includes(logoSearchQuery.toLowerCase()) ||
+        logo.categoryLabel.toLowerCase().includes(logoSearchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [logoCategoryFilter, logoSearchQuery]);
+
+  const handleCopyLogoUrl = (logo: OfficialOrgLogo) => {
+    try {
+      navigator.clipboard.writeText(logo.url);
+      setCopiedLogoId(logo.id);
+      if (onShowToast) onShowToast(`Đã sao chép URL biểu trưng: ${logo.shortName}`, 'success');
+      setTimeout(() => setCopiedLogoId(null), 2500);
+    } catch {
+      if (onShowToast) onShowToast(logo.url, 'info');
+    }
+  };
+
+  const handleSelectPresetLogoForForm = (logo: OfficialOrgLogo, autoFill = false) => {
+    setFormData(prev => ({
+      ...prev,
+      avatarUrl: logo.url,
+      ...(autoFill || !prev.name ? { name: logo.defaultName || prev.name } : {}),
+      ...(autoFill || !prev.shortName ? { shortName: logo.shortName || prev.shortName } : {}),
+      ...(autoFill || !prev.leaderPosition ? { leaderPosition: logo.defaultPosition || prev.leaderPosition } : {})
+    }));
+    if (onShowToast) onShowToast(`Đã áp dụng biểu trưng: ${logo.shortName}`, 'info');
+  };
 
   // Sort member organizations by displayOrder ascending
   const sortedOrgs = useMemo(() => {
@@ -631,6 +675,14 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
             >
               <ExternalLink className="w-3.5 h-3.5 text-cyan-300" />
               <span>Giao diện Công khai</span>
+            </button>
+            <button
+              onClick={() => setIsLogoGalleryOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/40 text-amber-200 hover:text-white text-xs font-bold transition-all border border-amber-300/40 backdrop-blur-xs cursor-pointer"
+              title="Mở kho thư viện biểu trưng & logo chuẩn của các tổ chức đoàn thể (Đoàn, Phụ nữ, CCB, Công đoàn,...)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Thư viện Icon ({OFFICIAL_ORG_LOGOS.length})</span>
             </button>
             <button
               onClick={() => {
@@ -1566,7 +1618,156 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
             <form onSubmit={handleSaveForm} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               {/* TAB 1: THÔNG TIN CHUNG */}
               {modalTab === 'info' && (
-                <div className="space-y-4 animate-fadeIn">
+                <div className="space-y-5 animate-fadeIn">
+                  {/* Preset Logos Quick Selector */}
+                  <div className="p-4 bg-gradient-to-br from-blue-50/90 via-indigo-50/60 to-slate-50 rounded-2xl border border-blue-100/90 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                          <ImageIcon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-black text-slate-800 block">
+                            Thư viện Biểu trưng / Logo Đoàn thể có sẵn
+                          </label>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            Chọn biểu trưng chuẩn để tự động nhận dạng logo và điền tên tổ chức
+                          </span>
+                        </div>
+                      </div>
+
+                      {formData.avatarUrl && (
+                        <div className="flex items-center gap-2 bg-white px-2.5 py-1 rounded-xl border border-blue-200 shadow-xs">
+                          <img src={formData.avatarUrl} alt="Logo" className="w-6 h-6 object-contain rounded-md" />
+                          <span className="text-[11px] font-bold text-blue-900">Đã chọn logo</span>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, avatarUrl: '' }))}
+                            className="text-slate-400 hover:text-red-500 ml-1 cursor-pointer"
+                            title="Xóa logo này"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Quick Category Chips for Selector */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setLogoCategoryFilter('all')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 cursor-pointer ${
+                          logoCategoryFilter === 'all'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
+                        }`}
+                      >
+                        Tất cả ({OFFICIAL_ORG_LOGOS.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLogoCategoryFilter('CHINH_TRI_XA_HOI')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 cursor-pointer ${
+                          logoCategoryFilter === 'CHINH_TRI_XA_HOI'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
+                        }`}
+                      >
+                        Chính trị - Xã hội
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLogoCategoryFilter('DOAN_THANH_NIEN_THIEU_NHI')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 cursor-pointer ${
+                          logoCategoryFilter === 'DOAN_THANH_NIEN_THIEU_NHI'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
+                        }`}
+                      >
+                        Đoàn - Đội - Thanh thiếu nhi
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLogoCategoryFilter('XA_HOI_NGHE_NGHIEP')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 cursor-pointer ${
+                          logoCategoryFilter === 'XA_HOI_NGHE_NGHIEP'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
+                        }`}
+                      >
+                        Xã hội - Nhân đạo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLogoCategoryFilter('BIEU_TRUNG_NHA_NUOC')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 cursor-pointer ${
+                          logoCategoryFilter === 'BIEU_TRUNG_NHA_NUOC'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white text-slate-600 hover:bg-blue-50 border border-slate-200'
+                        }`}
+                      >
+                        Nhà nước & Pháp luật
+                      </button>
+                    </div>
+
+                    {/* Logo Grid */}
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 gap-2 max-h-44 overflow-y-auto p-2 bg-white/95 rounded-xl border border-slate-200/90 shadow-inner">
+                      {filteredPresetLogos.map((logo) => {
+                        const isSelected = formData.avatarUrl === logo.url;
+                        return (
+                          <button
+                            key={logo.id}
+                            type="button"
+                            onClick={() => handleSelectPresetLogoForForm(logo, false)}
+                            onDoubleClick={() => handleSelectPresetLogoForForm(logo, true)}
+                            className={`group relative p-1.5 rounded-xl border transition-all flex flex-col items-center justify-center text-center cursor-pointer ${
+                              isSelected
+                                ? 'border-blue-600 ring-2 ring-blue-500 bg-blue-50 text-blue-900 shadow-xs'
+                                : 'border-slate-200 hover:border-blue-400 bg-white hover:bg-slate-50 text-slate-700'
+                            }`}
+                            title={`${logo.name} (Nhấp đúp để tự động điền thông tin)`}
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center p-1 group-hover:scale-105 transition-transform">
+                              <img src={logo.url} alt={logo.shortName} className="w-full h-full object-contain" />
+                            </div>
+                            <span className="text-[10px] font-bold line-clamp-1 mt-1 leading-tight w-full">
+                              {logo.shortName}
+                            </span>
+                            {isSelected && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-xs">
+                                <Check className="w-2.5 h-2.5 stroke-[3]" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Quick Autofill Helper action if a preset logo is selected */}
+                    {formData.avatarUrl && (
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-blue-100/80 text-xs text-slate-600">
+                        <span className="text-[11px] text-slate-500">
+                          Mẹo: Bấm nút bên dưới để tự động điền chuẩn tên tổ chức và chức vụ.
+                        </span>
+                        {(() => {
+                          const matchedLogo = OFFICIAL_ORG_LOGOS.find(l => l.url === formData.avatarUrl);
+                          if (!matchedLogo) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => handleSelectPresetLogoForForm(matchedLogo, true)}
+                              className="px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <Sparkles className="w-3 h-3 text-amber-300" />
+                              <span>Tự động điền thông tin "{matchedLogo.shortName}"</span>
+                            </button>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="sm:col-span-2 space-y-1">
                       <label className="text-xs font-bold text-slate-700">Tên đầy đủ tổ chức (*)</label>
@@ -1936,41 +2137,33 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
 
                     {/* Preset Logos Library Selection */}
                     <div className="pt-2 border-t border-slate-200 space-y-2">
-                      <label className="text-[11px] font-extrabold text-slate-700 block">
-                        📚 Thư viện Logo các Đoàn thể & Cơ quan chuẩn (Chọn nhanh để chèn):
-                      </label>
-                      <div className="grid grid-cols-6 sm:grid-cols-9 gap-2 max-h-36 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200">
-                        {[
-                          { name: 'Chữ thập đỏ', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-chu-thap-do.png' },
-                          { name: 'Đội TNTP Hồ Chí Minh', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Doi-Thieu-nien-Tien-phong-Ho-Chi-Minh.png' },
-                          { name: 'Mặt trận Tổ quốc', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-mt-tran---Copy.png' },
-                          { name: 'Hoa Phượng Đỏ', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Chien-Dich-Hoa-Phuong-Do.webp' },
-                          { name: 'Mùa Hè Xanh', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Chien-Dich-Mua-He-Xanh.webp' },
-                          { name: 'Hội LHTN Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-hoi-lien-hiep-thanh-nien-viet-nam-1392x1392.png' },
-                          { name: 'Tòa án / Pháp luật', url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-toa-an-inkythuatso-01.png' },
-                          { name: 'Người cao tuổi', url: 'https://sv2.anhsieuviet.com/2026/09/04/nguoicaotuoi.png' },
-                          { name: 'Hội Liên hiệp Phụ nữ', url: 'https://sv2.anhsieuviet.com/2026/09/04/phu-nu.png' },
-                          { name: 'Cảnh sát giao thông', url: 'https://sv2.anhsieuviet.com/2026/09/04/Phu_hieu_canh_sat_giao_thong.png' },
-                          { name: 'Quốc huy Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/quc-huy.png' },
-                          { name: 'Huy hiệu Đoàn TNCS', url: 'https://sv2.anhsieuviet.com/2026/09/04/snapedit_1706697500696.png' },
-                          { name: 'Huy hiệu ĐV / Biểu trưng', url: 'https://sv2.anhsieuviet.com/2026/09/04/zyro-image-1.png' },
-                          { name: 'Hội Sinh viên Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/400px-Huy_hieu_Hoi_SVVN.svg.png' },
-                          { name: 'Công đoàn Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/congdoan.png' },
-                          { name: 'Hội Nông dân Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/hoi-nong-dan.png' },
-                          { name: 'Cựu chiến binh Việt Nam', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Cu-Chien-Binh-Viet-Nam-Mu-1.png' },
-                          { name: 'Xuân Tình Nguyện', url: 'https://sv2.anhsieuviet.com/2026/09/04/Logo-Chien-Dich-Xuan-Tinh-Nguyen.png' }
-                        ].map((logo, idx) => (
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-extrabold text-slate-700 block">
+                          📚 Thư viện Logo các Đoàn thể chuẩn ({OFFICIAL_ORG_LOGOS.length} biểu trưng):
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setIsLogoGalleryOpen(true)}
+                          className="text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <Sparkles className="w-3 h-3 text-amber-500" />
+                          <span>Xem toàn bộ thư viện</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-6 sm:grid-cols-9 gap-2 max-h-40 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200">
+                        {OFFICIAL_ORG_LOGOS.map((logo) => (
                           <button
-                            key={idx}
+                            key={logo.id}
                             type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, avatarUrl: logo.url }))}
-                            className={`group relative p-1 rounded-xl border transition-all flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 ${
+                            onClick={() => handleSelectPresetLogoForForm(logo, false)}
+                            className={`group relative p-1 rounded-xl border transition-all flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 cursor-pointer ${
                               formData.avatarUrl === logo.url ? 'border-blue-600 ring-2 ring-blue-400 bg-blue-50/50' : 'border-slate-200'
                             }`}
-                            title={logo.name}
+                            title={`${logo.name} (${logo.categoryLabel})`}
                           >
                             <img src={logo.url} alt={logo.name} className="w-10 h-10 object-contain rounded-lg" />
-                            <span className="text-[9px] font-bold text-slate-600 truncate max-w-full mt-1 text-center">{logo.name}</span>
+                            <span className="text-[9px] font-bold text-slate-600 truncate max-w-full mt-1 text-center">{logo.shortName}</span>
                           </button>
                         ))}
                       </div>
@@ -2189,6 +2382,228 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FULL LOGO & ICON LIBRARY MODAL (THƯ VIỆN BIỂU TRƯNG ĐOÀN THỂ CHUẨN) */}
+      {/* ========================================================================= */}
+      {isLogoGalleryOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 px-6 py-4 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-lg shadow-amber-400/20">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-base text-white">Thư Viện Biểu Trưng & Logo Đoàn Thể</h3>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[11px] font-bold">
+                      {OFFICIAL_ORG_LOGOS.length} biểu trưng
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-200 font-medium">
+                    Huy hiệu chuẩn các tổ chức chính trị - xã hội, thanh thiếu nhi, nhân đạo và cơ quan nhà nước
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsLogoGalleryOpen(false)}
+                className="p-2 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
+                title="Đóng thư viện"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="p-4 bg-slate-50 border-b border-slate-200 space-y-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative flex-1 w-full">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm theo tên tổ chức, từ khóa (VD: Đoàn thanh niên, Phụ nữ, Công đoàn, Cựu chiến binh...)"
+                    value={logoSearchQuery}
+                    onChange={(e) => setLogoSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  {logoSearchQuery && (
+                    <button
+                      onClick={() => setLogoSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 text-xs">
+                  <button
+                    onClick={() => setLogoCategoryFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+                      logoCategoryFilter === 'all'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    Tất cả ({OFFICIAL_ORG_LOGOS.length})
+                  </button>
+                  <button
+                    onClick={() => setLogoCategoryFilter('CHINH_TRI_XA_HOI')}
+                    className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+                      logoCategoryFilter === 'CHINH_TRI_XA_HOI'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    Chính trị - Xã hội
+                  </button>
+                  <button
+                    onClick={() => setLogoCategoryFilter('DOAN_THANH_NIEN_THIEU_NHI')}
+                    className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+                      logoCategoryFilter === 'DOAN_THANH_NIEN_THIEU_NHI'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    Đoàn - Đội - Thanh niên
+                  </button>
+                  <button
+                    onClick={() => setLogoCategoryFilter('XA_HOI_NGHE_NGHIEP')}
+                    className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+                      logoCategoryFilter === 'XA_HOI_NGHE_NGHIEP'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    Xã hội - Nhân đạo
+                  </button>
+                  <button
+                    onClick={() => setLogoCategoryFilter('BIEU_TRUNG_NHA_NUOC')}
+                    className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+                      logoCategoryFilter === 'BIEU_TRUNG_NHA_NUOC'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    Nhà nước & Pháp luật
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Gallery Cards Grid */}
+            <div className="p-6 overflow-y-auto flex-1">
+              {filteredPresetLogos.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 space-y-2">
+                  <ImageIcon className="w-12 h-12 mx-auto text-slate-300" />
+                  <p className="text-sm font-bold">Không tìm thấy biểu trưng phù hợp với từ khóa</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPresetLogos.map((logo) => {
+                    const isCopied = copiedLogoId === logo.id;
+                    return (
+                      <div
+                        key={logo.id}
+                        className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-lg transition-all flex flex-col justify-between group"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 p-2 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                              <img src={logo.url} alt={logo.name} className="w-full h-full object-contain" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold mb-1">
+                                {logo.categoryLabel}
+                              </span>
+                              <h4 className="font-bold text-slate-900 text-xs leading-snug line-clamp-2">
+                                {logo.name}
+                              </h4>
+                              <p className="text-[11px] text-blue-600 font-semibold mt-0.5">
+                                Viết tắt: {logo.shortName}
+                              </p>
+                            </div>
+                          </div>
+
+                          {logo.defaultPosition && (
+                            <div className="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                              <span className="font-semibold text-slate-700">Chức vụ đại diện:</span> {logo.defaultPosition}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pt-3 mt-3 border-t border-slate-100 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyLogoUrl(logo)}
+                            className="flex-1 py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                            title="Sao chép đường dẫn ảnh"
+                          >
+                            {isCopied ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <span className="text-emerald-700 font-bold">Đã chép</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Sao chép link</span>
+                              </>
+                            )}
+                          </button>
+
+                          {(isEditing || isCreating) ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSelectPresetLogoForForm(logo, true);
+                                setIsLogoGalleryOpen(false);
+                              }}
+                              className="flex-1 py-1.5 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <CheckCheck className="w-3.5 h-3.5" />
+                              <span>Áp dụng vào Form</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsLogoGalleryOpen(false);
+                                handleOpenCreateModal();
+                                setTimeout(() => {
+                                  handleSelectPresetLogoForForm(logo, true);
+                                }, 50);
+                              }}
+                              className="flex-1 py-1.5 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Tạo tổ chức</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 shrink-0">
+              <span>Biểu trưng chính thống dành cho MTTQ và các Đoàn thể phường Chánh Hiệp.</span>
+              <button
+                type="button"
+                onClick={() => setIsLogoGalleryOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold cursor-pointer"
+              >
+                Đóng thư viện
+              </button>
+            </div>
           </div>
         </div>
       )}

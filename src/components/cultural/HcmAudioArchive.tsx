@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { HISTORICAL_AUDIOS, HistoricalAudio } from '../../data/hcmVerifiedMuseumData';
 import { loadStoredAudios, saveStoredAudios } from '../../lib/hcmDataStore';
+import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
 
@@ -320,24 +321,11 @@ export const HcmAudioArchive: React.FC<HcmAudioArchiveProps> = ({ isResearchMode
                 }`}
               >
                 <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 mt-0.5 border border-rose-200/80 shadow-2xs">
-                  {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-full h-full object-cover object-center"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div
-                      className={`w-full h-full flex items-center justify-center ${
-                        isSelected
-                          ? 'bg-amber-300 text-rose-950'
-                          : 'bg-rose-100 text-rose-900'
-                      }`}
-                    >
-                      <Volume2 className="w-5 h-5" />
-                    </div>
-                  )}
+                  <VerifiedCultureImage
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover object-center"
+                  />
                   {isSelected && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                       <Volume2 className={`w-5 h-5 text-amber-300 ${isPlaying ? 'animate-bounce' : ''}`} />
@@ -442,11 +430,10 @@ export const HcmAudioArchive: React.FC<HcmAudioArchiveProps> = ({ isResearchMode
             <div className="flex flex-col sm:flex-row items-start gap-4">
               {selectedAudio?.imageUrl && (
                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 border-2 border-amber-300/80 shadow-md bg-amber-50">
-                  <img
+                  <VerifiedCultureImage
                     src={selectedAudio.imageUrl}
                     alt={selectedAudio.title}
                     className="w-full h-full object-cover object-center"
-                    referrerPolicy="no-referrer"
                   />
                   {isPlaying && (
                     <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full bg-rose-700/90 text-amber-200 text-[9px] font-black tracking-wider uppercase backdrop-blur-xs flex items-center gap-1 animate-pulse">

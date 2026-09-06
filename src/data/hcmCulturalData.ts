@@ -41,7 +41,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: 140,
     year: '1945',
     quote: '“Nước Việt Nam có quyền hưởng tự do và độc lập, và sự thật đã thành một nước tự do, độc lập.”',
-    imageUrl: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png',
     description: 'Trưng bày trang trọng tượng Chủ tịch Hồ Chí Minh trong tư thế đọc Bản Tuyên ngôn Độc lập tại Quảng trường Ba Đình lịch sử ngày 2/9/1945, cùng cờ Tổ quốc và các văn bản tái hiện.',
     details: [
       'Bản Tuyên ngôn Độc lập khẳng định quyền bình đẳng, quyền sống, quyền tự do và quyền mưu cầu hạnh phúc của dân tộc Việt Nam.',
@@ -114,7 +114,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: 80,
     year: '1969',
     quote: '“Đoàn kết là một truyền thống cực kỳ quý báu của Đảng và của dân ta... Phải giữ gìn sự đoàn kết nhất trí như giữ gìn con ngươi của mắt mình.”',
-    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: '',
     description: 'Bản phục dựng bút tích Di chúc của Bác Hồ, đặc biệt là những lời dặn dò tâm huyết về việc chăm lo đời sống nhân dân, tinh thần đoàn kết trong Đảng và Mặt trận Tổ quốc.',
     details: [
       'Được Bác khởi thảo từ tháng 5/1965 và hoàn thiện qua các năm cho đến khi Người đi xa.',
@@ -172,7 +172,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: 80,
     year: '1930 - 1969',
     quote: '“Đoàn kết, đoàn kết, đại đoàn kết. Thành công, thành công, đại thành công!”',
-    imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: '',
     description: 'Bộ sưu tập hình ảnh Bác Hồ gặp gỡ các nhân sĩ, trí thức, chức sắc tôn giáo, đồng bào các dân tộc thiểu số và chiến sĩ miền Nam, khẳng định sức mạnh vô địch của lòng dân.',
     details: [
       'Tư tưởng Hồ Chí Minh coi Mặt trận Tổ quốc là ngôi nhà chung của toàn thể người Việt Nam yêu nước.',
@@ -230,7 +230,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: -40,
     year: 'Xuất bản & Số hóa 2026',
     quote: '“Học để làm việc, làm người, làm cán bộ. Học để phụng sự đoàn thể, phụng sự giai cấp và nhân dân, phụng sự Tổ quốc và nhân loại.”',
-    imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: '',
     description: 'Tủ sách trực tuyến lưu trữ các tác phẩm: Đường Kách mệnh (1927), Sửa đổi lối làm việc (1947), Nâng cao đạo đức cách mạng, quét sạch chủ nghĩa cá nhân (1969), Dân vận (1949).',
     details: [
       'Cung cấp bản đọc số hóa tương tác cho cán bộ, đảng viên, đoàn viên thanh niên và người dân tra cứu phục vụ sinh hoạt chuyên đề.',
@@ -287,7 +287,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: -40,
     year: '1946 - 1969',
     quote: '“Nam Bộ là máu của máu Việt Nam, là thịt của thịt Việt Nam. Sông có thể cạn, núi có thể mòn, song chân lý ấy không bao giờ thay đổi!”',
-    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: '',
     description: 'Hình ảnh Bác đón tiếp các đoàn dũng sĩ miền Nam ra thăm miền Bắc, cùng chiếc huy hiệu và những bức thư động viên quân và dân miền Nam vượt qua bão lửa kháng chiến.',
     details: [
       'Khắc họa lời hứa sắt son của Người: Khi miền Nam chưa được giải phóng, Bác ăn không ngon, ngủ không yên.',
@@ -345,7 +345,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: -130,
     year: '1930 - 1975',
     quote: '“Uống nước nhớ nguồn - Ăn quả nhớ kẻ trồng cây.”',
-    imageUrl: 'https://images.unsplash.com/photo-1590402494587-44b71d7772f6?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: '',
     description: 'Bản đồ di tích và các căn cứ kháng chiến xưa trên địa bàn phường Chánh Hiệp, tôn vinh những gia đình cơ sở cách mạng nuôi giấu cán bộ Mặt trận Giải phóng.',
     details: [
       'Gắn kết 21 khu phố thông qua các hoạt động về nguồn, thắp nến tri ân tại Nghĩa trang liệt sĩ và Nhà bia tưởng niệm.',
@@ -403,7 +403,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: -130,
     year: '1960 - 1975',
     quote: '“Thi đua là yêu nước, yêu nước thì phải thi đua, những người thi đua là những người yêu nước nhất.”',
-    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: '',
     description: 'Tủ kính 3D phục dựng các kỷ vật thiêng liêng: Huy hiệu Bác Hồ, Huân chương Độc lập, khăn rằn Nam Bộ, đèn dầu thấu sáng địa đạo và thư tay của cán bộ Mặt trận thời kỳ kháng chiến.',
     details: [
       'Mỗi hiện vật là một chứng tích sống động về đức tính tiết kiệm, giản dị và tinh thần cống hiến quên mình vì dân tộc.',
@@ -461,7 +461,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: -60,
     year: '1911 - 1941',
     quote: '“Tôi muốn đi ra ngoài, xem nước Pháp và các nước khác. Sau khi xem xét họ làm như thế nào, tôi sẽ trở về giúp đồng bào chúng ta.”',
-    imageUrl: 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: '',
     description: 'Sa bàn tương tác 3D mô phỏng tuyến đường từ Bến Nhà Rồng đến Pháp, Anh, Mỹ, Liên Xô, Trung Quốc rồi trở về Pác Bó (Cao Bằng) trực tiếp lãnh đạo cách mạng Việt Nam.',
     details: [
       'Hiển thị trực quan từng mốc thời gian: Ngày 5/6/1911 người thanh niên Nguyễn Tất Thành rời Tổ quốc trên con tàu Amiral Latouche-Tréville.',
