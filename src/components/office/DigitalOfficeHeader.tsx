@@ -127,12 +127,12 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
             className="w-full h-full object-contain"
           />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight line-clamp-1">
-              HỆ THỐNG VĂN PHÒNG SỐ MTTQ PHƯỜNG CHÁNH HIỆP
+        <div className="min-w-0 shrink-0">
+          <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
+            <h1 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight whitespace-nowrap inline-block shrink-0">
+              HỆ THỐNG VĂN PHÒNG SỐ MTTQ PHƯỜNG&nbsp;CHÁNH&nbsp;HIỆP
             </h1>
-            <span className="hidden sm:inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-full">
+            <span className="hidden sm:inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-full shrink-0">
               Studio Admin
             </span>
           </div>

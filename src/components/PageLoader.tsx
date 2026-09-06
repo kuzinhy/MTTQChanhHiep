@@ -71,11 +71,13 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
       <div className="relative z-10 max-w-lg w-full bg-transparent border-0 rounded-3xl p-6 sm:p-8 text-center space-y-6">
         
         {/* Top Floating Badge */}
-        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full bg-cyan-500/20 border border-cyan-300/40 text-cyan-200 text-[9px] sm:text-[10px] font-black tracking-widest uppercase shadow-md mx-auto max-w-[95%] sm:max-w-full">
+        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-cyan-500/20 border border-cyan-300/40 text-cyan-200 text-[9px] sm:text-[10.5px] font-black tracking-wider uppercase shadow-md mx-auto whitespace-nowrap flex-nowrap shrink-0">
           <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center border border-yellow-300 shadow-xs shrink-0">
             <span className="text-[10px] text-yellow-300 font-black leading-none">★</span>
           </div>
-          <span className="text-center leading-snug">Cổng Thông Tin Số • Ủy Ban MTTQ Việt Nam Phường Chánh Hiệp</span>
+          <span className="text-center whitespace-nowrap font-black">
+            CỔNG THÔNG TIN SỐ • ỦY BAN MTTQ VIỆT NAM PHƯỜNG&nbsp;CHÁNH&nbsp;HIỆP
+          </span>
         </div>
 
         {/* MTTQ Emblem Logo Right in the Center of Concentric Rings inside Glass Card */}
@@ -98,13 +100,13 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
 
         {/* Titles & System Branding */}
         <div className="space-y-1.5 w-full pt-2">
-          <h1 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-white uppercase leading-tight drop-shadow-md">
+          <h1 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-white uppercase leading-tight drop-shadow-md whitespace-nowrap">
             Ủy Ban Mặt Trận Tổ Quốc Việt Nam
           </h1>
-          <p className="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-widest drop-shadow">
-            Phường Chánh Hiệp • TP. Hồ Chí Minh
+          <p className="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-widest drop-shadow whitespace-nowrap">
+            Phường&nbsp;Chánh&nbsp;Hiệp • TP.&nbsp;Hồ&nbsp;Chí&nbsp;Minh
           </p>
-          <p className="text-[11px] sm:text-xs text-blue-200/90 font-semibold tracking-wide mt-1">
+          <p className="text-[11px] sm:text-xs text-blue-200/90 font-semibold tracking-wide mt-1 whitespace-nowrap">
             Hệ Thống Quản Trị Trực Tuyến &amp; Cổng Dịch Vụ An Sinh Số
           </p>
         </div>

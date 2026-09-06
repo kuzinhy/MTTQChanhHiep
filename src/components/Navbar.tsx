@@ -89,10 +89,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="w-full h-full object-contain"
               />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 shrink-0">
               <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
-                <h1 className="text-xs sm:text-sm font-black tracking-tight uppercase leading-tight text-white drop-shadow-xs whitespace-nowrap">
-                  ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG CHÁNH HIỆP
+                <h1 className="text-[11px] sm:text-xs md:text-sm font-black tracking-tight uppercase leading-tight text-white drop-shadow-xs whitespace-nowrap inline-block shrink-0">
+                  ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG&nbsp;CHÁNH&nbsp;HIỆP
                 </h1>
                 <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#f5a623] text-slate-950 shadow-xs whitespace-nowrap shrink-0">
                   <Star className="w-2.5 h-2.5 fill-slate-950 shrink-0" /> SỐ HÓA 4.0
