@@ -283,7 +283,7 @@ export const HISTORICAL_PERIODS: HistoricalPeriod[] = [
       '02/09/1945: Đọc bản Tuyên ngôn Độc lập tại Quảng trường Ba Đình (Hà Nội)'
     ],
     themeColor: 'from-red-800 to-amber-700',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg/640px-Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'period-6',
@@ -319,7 +319,7 @@ export const HISTORICAL_PERIODS: HistoricalPeriod[] = [
       '02/09/1969: Chủ tịch Hồ Chí Minh từ trần tại Thủ đô Hà Nội'
     ],
     themeColor: 'from-slate-800 to-rose-900',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_conducting_the_orchestra.jpg/640px-Ho_Chi_Minh_conducting_the_orchestra.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'period-8',
@@ -335,7 +335,7 @@ export const HISTORICAL_PERIODS: HistoricalPeriod[] = [
       'Nghị quyết 24C/18.65 (1987) của UNESCO ghi nhận: Anh hùng giải phóng dân tộc và Nhà văn hóa kiệt xuất'
     ],
     themeColor: 'from-amber-600 to-red-800',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Stilt_House_of_Ho_Chi_Minh.jpg/640px-Stilt_House_of_Ho_Chi_Minh.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80'
   }
 ];
 
@@ -1276,10 +1276,10 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
       'Đánh dấu sự xuất hiện của tên tuổi Nguyễn Ái Quốc trên trường quốc tế'
     ],
     volume: 1,
-    pageRange: '469-471',
+    pageRange: '435-438',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/yeu-sach-cua-nhan-dan-an-nam',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Revendications_du_Peuple_Annamite.jpg/500px-Revendications_du_Peuple_Annamite.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1300,7 +1300,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '1-138',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/ban-an-che-do-thuc-dan-phap',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Le_Proc%C3%A8s_de_la_colonisation_fran%C3%A7aise_1925.jpg/480px-Le_Proc%C3%A8s_de_la_colonisation_fran%C3%A7aise_1925.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1320,7 +1320,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '279-347',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/duong-kach-menh',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Duong_Kach_Menh_Bao_tang_Lich_su_Quoc_gia.jpg/500px-Duong_Kach_Menh_Bao_tang_Lich_su_Quoc_gia.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1340,7 +1340,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '1-5',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://tulieuvankien.dangcongsan.vn/',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bia_tap_tho_Nhat_ky_trong_tu.jpg/480px-Bia_tap_tho_Nhat_ky_trong_tu.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1360,7 +1360,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '260-420',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/nhat-ky-trong-tu',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bia_tap_tho_Nhat_ky_trong_tu.jpg/480px-Bia_tap_tho_Nhat_ky_trong_tu.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1380,7 +1380,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '1-4',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/tuyen-ngon-doc-lap',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg/640px-Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1400,7 +1400,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '534',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/loi-keu-goi-toan-quoc-khang-chien',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_1946_portrait.jpg/500px-Ho_Chi_Minh_1946_portrait.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1420,7 +1420,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '110-132',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/doi-song-moi',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Ho_Chi_Minh_Viet_Bac_1950.jpg/500px-Ho_Chi_Minh_Viet_Bac_1950.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1440,7 +1440,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '269-346',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/sua-doi-loi-lam-viec',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Ho_Chi_Minh_Viet_Bac_1950.jpg/500px-Ho_Chi_Minh_Viet_Bac_1950.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1460,7 +1460,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '556-558',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/loi-keu-goi-thi-dua-ai-quoc',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_1946_portrait.jpg/500px-Ho_Chi_Minh_1946_portrait.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1480,7 +1480,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '232-234',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://tulieuvankien.dangcongsan.vn/',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_1946_portrait.jpg/500px-Ho_Chi_Minh_1946_portrait.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1517732306149-e8f829eb588a?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1500,7 +1500,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '600-615',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/dao-duc-cach-mang',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ho_Chi_Minh_1960.jpg/500px-Ho_Chi_Minh_1960.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1520,7 +1520,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '130-131',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/loi-keu-goi-dong-bao-va-chien-si-ca-nuoc-17-7-1966',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Ho_Chi_Minh_working_1966.jpg/500px-Ho_Chi_Minh_working_1966.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1540,7 +1540,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '546-549',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/nang-cao-dao-duc-cach-mang-quet-sach-chu-nghia-ca-nhan',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Ho_Chi_Minh_portrait_1969.jpg/500px-Ho_Chi_Minh_portrait_1969.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   },
   {
@@ -1561,7 +1561,7 @@ export const HISTORICAL_WORKS: HistoricalWork[] = [
     pageRange: '621-624',
     publisher: 'NXB Chính trị quốc gia Sự thật',
     officialSourceUrl: 'https://hochiminh.vn/tac-pham/di-chuc',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Di_chuc_Chu_tich_Ho_Chi_Minh.jpg/500px-Di_chuc_Chu_tich_Ho_Chi_Minh.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80',
     verificationStatus: 'VERIFIED'
   }
 ];
@@ -1777,7 +1777,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Văn Ba',
     historicalAction: 'Xuống tàu Amiral Latouche-Tréville ngày 05/6/1911 bắt đầu hành trình 30 năm bôn ba tìm đường cứu nước.',
     primaryRelic: 'Bảo tàng Hồ Chí Minh – Chi nhánh TP. Hồ Chí Minh',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/B%E1%BA%BFn_Nh%C3%A0_R%E1%BB%93ng_2020.jpg/640px-B%E1%BA%BFn_Nh%C3%A0_R%E1%BB%93ng_2020.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh – Biên niên tiểu sử, Tập 1, tr. 45'
   },
   {
@@ -1933,7 +1933,7 @@ export const FOOTSTEP_LOCATIONS: FootstepLocation[] = [
     aliasUsed: 'Chủ tịch Hồ Chí Minh',
     historicalAction: 'Đọc bản Tuyên ngôn Độc lập khai sinh nước Việt Nam Dân chủ Cộng hòa ngày 02/9/1945.',
     primaryRelic: 'Quảng trường Ba Đình và Lăng Chủ tịch Hồ Chí Minh',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg/640px-Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80',
     sourceReference: 'Hồ Chí Minh Toàn tập, Tập 4, tr. 1-4'
   },
   {
@@ -1985,8 +1985,8 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     duration: '04 phút 35 giây',
     occasion: 'Đọc tại Lễ Độc lập, Quảng trường Ba Đình, Hà Nội',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV) & Trung tâm Lưu trữ Quốc gia III',
-    audioUrl: 'https://hochiminh.vn/upload/3000001/20251024/cd80510c4c31f8f1b26e234bcfa7658c01_-_Tuyen_ngon_doc_lap_103854.mp3',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg/640px-Ho_Chi_Minh_reads_the_Declaration_of_Independence.jpg',
+    audioUrl: '/audio/tuyen_ngon_doc_lap_1945.mp3',
+    imageUrl: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80',
     historicalNote: 'Bản thu âm thanh gốc giọng đọc ấm áp, truyền cảm của Bác trước hàng chục vạn đồng bào trong ngày Tết Độc lập đầu tiên của dân tộc.',
     transcript: 'Hỡi đồng bào cả nước! Tất cả mọi người đều sinh ra có quyền bình đẳng. Tạo hóa cho họ những quyền không ai có thể xâm phạm được; trong những quyền ấy, có quyền được sống, quyền tự do và quyền mưu cầu hạnh phúc... Nước Việt Nam có quyền hưởng tự do và độc lập, và sự thật đã thành một nước tự do, độc lập. Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng, tính mạng và của cải để giữ vững quyền tự do, độc lập ấy!',
     verificationStatus: 'VERIFIED'
@@ -1999,7 +1999,7 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     occasion: 'Phát thanh truyền đi toàn quốc mở đầu Toàn quốc kháng chiến',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV)',
     audioUrl: '',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Ho_Chi_Minh_1946.jpg/480px-Ho_Chi_Minh_1946.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80',
     historicalNote: 'Lời hịch non sông đanh thép, khẳng định ý chí quật cường của dân tộc Việt Nam thà hy sinh tất cả chứ nhất định không chịu mất nước.',
     transcript: 'Hỡi đồng bào toàn quốc! Chúng ta muốn hòa bình, chúng ta phải nhân nhượng. Nhưng chúng ta càng nhân nhượng, thực dân Pháp càng lấn tới, vì chúng quyết tâm cướp nước ta lần nữa! Không! Chúng ta thà hy sinh tất cả, chứ nhất định không chịu mất nước, nhất định không chịu làm nô lệ! Hỡi đồng bào! Chúng ta phải đứng lên!...',
     verificationStatus: 'VERIFIED'
@@ -2012,7 +2012,7 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     occasion: 'Phát thanh trong cao điểm chống chiến tranh phá hoại miền Bắc',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV) & Báo Nhân Dân',
     audioUrl: '',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ho_Chi_Minh_conducting_the_orchestra.jpg/640px-Ho_Chi_Minh_conducting_the_orchestra.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
     historicalNote: 'Khắc ghi câu nói bất hủ đã trở thành biểu tượng cho khát vọng của toàn dân tộc: "Không có gì quý hơn độc lập, tự do!".',
     transcript: 'Chiến tranh có thể kéo dài 5 năm, 10 năm, 20 năm hoặc lâu hơn nữa. Hà Nội, Hải Phòng và một số thành phố, xí nghiệp có thể bị tàn phá, song nhân dân Việt Nam quyết không sợ! Không có gì quý hơn độc lập, tự do! Đến ngày thắng lợi, nhân dân ta sẽ xây dựng lại đất nước ta đàng hoàng hơn, to đẹp hơn!...',
     verificationStatus: 'VERIFIED'

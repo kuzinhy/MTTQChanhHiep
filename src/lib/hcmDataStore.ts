@@ -24,6 +24,14 @@ const KEY_FOOTSTEPS = 'mttq_chanhhiep_hcm_footsteps_v1';
 const KEY_CHANH_HIEP_ACTIONS = 'mttq_chanhhiep_hcm_chanh_hiep_actions_v4';
 const KEY_FRONT_INITIATIVES = 'mttq_chanhhiep_hcm_front_initiatives_v5';
 
+// Helper to sanitize broken Wikimedia URLs from older localStorage cache
+function sanitizeImage(url?: string, fallback?: string): string | undefined {
+  if (!url || url.includes('upload.wikimedia.org')) {
+    return fallback || url;
+  }
+  return url;
+}
+
 // --- WORKS STORE ---
 export function loadStoredWorks(): HistoricalWork[] {
   if (typeof window === 'undefined') return HISTORICAL_WORKS;
@@ -33,13 +41,12 @@ export function loadStoredWorks(): HistoricalWork[] {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
       return parsed.map((item: HistoricalWork) => {
-        if (!item.imageUrl) {
-          const defaultItem = HISTORICAL_WORKS.find(d => d.id === item.id);
-          if (defaultItem?.imageUrl) {
-            return { ...item, imageUrl: defaultItem.imageUrl };
-          }
-        }
-        return item;
+        const defaultItem = HISTORICAL_WORKS.find(d => d.id === item.id);
+        const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
+        return {
+          ...item,
+          imageUrl: cleanImg || defaultItem?.imageUrl
+        };
       });
     }
     return HISTORICAL_WORKS;
@@ -90,13 +97,13 @@ export function loadStoredAudios(): HistoricalAudio[] {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
       return parsed.map((item: HistoricalAudio) => {
-        if (!item.imageUrl) {
-          const defaultItem = HISTORICAL_AUDIOS.find(d => d.id === item.id);
-          if (defaultItem?.imageUrl) {
-            return { ...item, imageUrl: defaultItem.imageUrl };
-          }
-        }
-        return item;
+        const defaultItem = HISTORICAL_AUDIOS.find(d => d.id === item.id);
+        const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
+        return {
+          ...item,
+          imageUrl: cleanImg || defaultItem?.imageUrl,
+          audioUrl: item.audioUrl || defaultItem?.audioUrl || ''
+        };
       });
     }
     return HISTORICAL_AUDIOS;
@@ -127,7 +134,7 @@ export function loadStoredVideos(): HistoricalVideo[] {
         // Hydrate youtubeVideoId if missing
         const videoId = item.youtubeVideoId || extractYouTubeId(item.youtubeUrl || '');
         // Hydrate imageUrl from YouTube thumbnail if missing
-        let imageUrl = item.imageUrl;
+        let imageUrl = sanitizeImage(item.imageUrl);
         if (!imageUrl && videoId) {
           imageUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
         } else if (!imageUrl) {
@@ -176,13 +183,12 @@ export function loadStoredFootsteps(): FootstepLocation[] {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
       return parsed.map((item: FootstepLocation) => {
-        if (!item.imageUrl) {
-          const defaultItem = FOOTSTEP_LOCATIONS.find(d => d.id === item.id);
-          if (defaultItem?.imageUrl) {
-            return { ...item, imageUrl: defaultItem.imageUrl };
-          }
-        }
-        return item;
+        const defaultItem = FOOTSTEP_LOCATIONS.find(d => d.id === item.id);
+        const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
+        return {
+          ...item,
+          imageUrl: cleanImg || defaultItem?.imageUrl
+        };
       });
     }
     return FOOTSTEP_LOCATIONS;
@@ -210,13 +216,12 @@ export function loadStoredChanhHiepActions(): ChanhHiepActionModel[] {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
       return parsed.map((item: ChanhHiepActionModel) => {
-        if (!item.imageUrl) {
-          const defaultItem = CHANH_HIEP_ACTION_MODELS.find(d => d.id === item.id);
-          if (defaultItem?.imageUrl) {
-            return { ...item, imageUrl: defaultItem.imageUrl };
-          }
-        }
-        return item;
+        const defaultItem = CHANH_HIEP_ACTION_MODELS.find(d => d.id === item.id);
+        const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
+        return {
+          ...item,
+          imageUrl: cleanImg || defaultItem?.imageUrl
+        };
       });
     }
     return CHANH_HIEP_ACTION_MODELS;
