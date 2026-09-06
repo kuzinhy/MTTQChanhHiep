@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Landmark, ImageOff, Maximize2, ShieldCheck } from 'lucide-react';
+import { Landmark, Maximize2, ShieldCheck, RefreshCw, ExternalLink } from 'lucide-react';
+import { resolveMediaUrl, getProxiedMediaUrl, BACKEND_CLOUD_RUN_ORIGIN } from '../../lib/imageOptimization';
 
 export interface VerifiedCultureImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
   src?: string | null;
@@ -15,7 +16,7 @@ export interface VerifiedCultureImageProps extends Omit<React.ImgHTMLAttributes<
 
 /**
  * Validates whether an image URL is a legitimate, non-mock, non-stock image.
- * Strictly rejects Unsplash random stock photos, lorem picsum, placeholder URLs, and AI/mock image strings.
+ * Strictly rejects generic placeholder stock photos while preserving historical photos, government archives, and uploads.
  */
 export function isValidCultureImageUrl(url?: string | null): boolean {
   if (!url || typeof url !== 'string') return false;
@@ -25,18 +26,13 @@ export function isValidCultureImageUrl(url?: string | null): boolean {
   // Reject stock/placeholder/mock domains & patterns
   const forbiddenPatterns = [
     'images.unsplash.com',
-    'unsplash.com',
     'picsum.photos',
     'via.placeholder.com',
     'placeholder.com',
     'dummyimage.com',
     'loremflickr.com',
     'placekitten.com',
-    'fakeimg.pl',
-    'example.com',
-    'ai-generated',
-    'mock-image',
-    'demo-image'
+    'fakeimg.pl'
   ];
 
   for (const pattern of forbiddenPatterns) {
@@ -68,29 +64,66 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
   ...restProps
 }) => {
   const [loadingStatus, setLoadingStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
+  const [currentSrc, setCurrentSrc] = useState<string>('');
+  const [triedProxy, setTriedProxy] = useState<boolean>(false);
+  const [triedBackend, setTriedBackend] = useState<boolean>(false);
 
-  const isValidUrl = isValidCultureImageUrl(src);
-
+  // Initialize and resolve the URL
   useEffect(() => {
-    if (!isValidUrl) {
+    if (!src || !isValidCultureImageUrl(src)) {
       setLoadingStatus('error');
-    } else {
-      setLoadingStatus('loading');
+      setCurrentSrc('');
+      return;
     }
-  }, [src, isValidUrl]);
+
+    const resolved = resolveMediaUrl(src);
+    setCurrentSrc(resolved);
+    setTriedProxy(false);
+    setTriedBackend(false);
+    setLoadingStatus('loading');
+  }, [src]);
 
   const handleImageLoad = () => {
     setLoadingStatus('loaded');
   };
 
   const handleImageError = () => {
+    // 1. Auto-healing attempt 1: If it's a local /uploads/ file and we haven't tried the Cloud Run backend directly
+    if (currentSrc && currentSrc.startsWith('/uploads/') && !triedBackend) {
+      setTriedBackend(true);
+      setCurrentSrc(`${BACKEND_CLOUD_RUN_ORIGIN}${currentSrc}`);
+      setLoadingStatus('loading');
+      return;
+    }
+
+    // 2. Auto-healing attempt 2: If it's an external HTTP/HTTPS link and we haven't tried the proxy yet
+    if (
+      currentSrc &&
+      (currentSrc.startsWith('http://') || currentSrc.startsWith('https://')) &&
+      !currentSrc.includes('/api/media/proxy') &&
+      !triedProxy
+    ) {
+      setTriedProxy(true);
+      setCurrentSrc(getProxiedMediaUrl(currentSrc));
+      setLoadingStatus('loading');
+      return;
+    }
+
+    // If all auto-healing attempts failed
     setLoadingStatus('error');
   };
 
+  const handleManualRetryProxy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!src) return;
+    setLoadingStatus('loading');
+    setCurrentSrc(getProxiedMediaUrl(src));
+  };
+
   const handleImageClick = (e: React.MouseEvent) => {
-    if (enableLightbox && onOpenLightbox && src && isValidUrl && loadingStatus === 'loaded') {
+    if (enableLightbox && onOpenLightbox && currentSrc && loadingStatus === 'loaded') {
       e.stopPropagation();
-      onOpenLightbox(src, alt);
+      onOpenLightbox(currentSrc, alt);
     }
   };
 
@@ -100,11 +133,11 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
       {loadingStatus === 'loading' && (
         <div className="absolute inset-0 bg-slate-800/60 animate-pulse flex flex-col items-center justify-center p-4 text-slate-400 z-10">
           <Landmark className="w-8 h-8 text-amber-500/40 animate-bounce mb-2" />
-          <span className="text-[11px] font-medium text-amber-200/70">Đang kiểm tra hình ảnh tư liệu...</span>
+          <span className="text-[11px] font-medium text-amber-200/70">Đang kiểm tra & tối ưu hình ảnh tư liệu...</span>
         </div>
       )}
 
-      {/* 2. Error / Missing Image Neutral Frame */}
+      {/* 2. Error / Missing Image Neutral Frame with Self-Healing Action */}
       {loadingStatus === 'error' && (
         <div className="w-full h-full min-h-[140px] bg-gradient-to-br from-slate-900 via-rose-950/30 to-slate-900 border border-slate-700/50 rounded-xl flex flex-col items-center justify-center p-4 text-center select-none">
           <div className="p-2.5 rounded-full bg-slate-800/80 border border-amber-500/20 mb-2">
@@ -115,16 +148,43 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
           </p>
           <span className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            Nguồn tin cậy (Nội dung văn bản đã xác thực)
+            Nội dung tư liệu lịch sử xác thực
           </span>
+
+          {src && (
+            <div className="flex items-center gap-2 mt-3 z-10">
+              <button
+                type="button"
+                onClick={handleManualRetryProxy}
+                className="px-2.5 py-1 text-[10px] font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                title="Thử tải lại qua máy chủ Proxy"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Tải lại qua Proxy
+              </button>
+              {(src.startsWith('http://') || src.startsWith('https://')) && (
+                <a
+                  href={src}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-2 py-1 text-[10px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-md transition-colors flex items-center gap-1"
+                  title="Mở liên kết ảnh gốc trong tab mới"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Link gốc
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* 3. Real Valid Image */}
-      {isValidUrl && loadingStatus !== 'error' && (
+      {currentSrc && loadingStatus !== 'error' && (
         <>
           <img
-            src={src || undefined}
+            src={currentSrc}
             alt={alt}
             onLoad={handleImageLoad}
             onError={handleImageError}

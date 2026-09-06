@@ -16,24 +16,30 @@ import {
   FrontInitiative,
   FRONT_INITIATIVE_DATA
 } from '../data/hcmVerifiedMuseumData';
+import { hcmCloudSync, HCM_CLOUD_COLLECTIONS } from './hcmCloudSync';
 
-const KEY_WORKS = 'mttq_chanhhiep_hcm_works_v1';
-const KEY_QUOTES = 'mttq_chanhhiep_hcm_quotes_v1';
-const KEY_AUDIOS = 'mttq_chanhhiep_hcm_audios_v1';
-const KEY_VIDEOS = 'mttq_chanhhiep_hcm_videos_v1';
-const KEY_FOOTSTEPS = 'mttq_chanhhiep_hcm_footsteps_v1';
-const KEY_CHANH_HIEP_ACTIONS = 'mttq_chanhhiep_hcm_chanh_hiep_actions_v4';
-const KEY_FRONT_INITIATIVES = 'mttq_chanhhiep_hcm_front_initiatives_v5';
+export const KEY_WORKS = 'mttq_chanhhiep_hcm_works_v1';
+export const KEY_QUOTES = 'mttq_chanhhiep_hcm_quotes_v1';
+export const KEY_AUDIOS = 'mttq_chanhhiep_hcm_audios_v1';
+export const KEY_VIDEOS = 'mttq_chanhhiep_hcm_videos_v1';
+export const KEY_FOOTSTEPS = 'mttq_chanhhiep_hcm_footsteps_v1';
+export const KEY_CHANH_HIEP_ACTIONS = 'mttq_chanhhiep_hcm_chanh_hiep_actions_v4';
+export const KEY_FRONT_INITIATIVES = 'mttq_chanhhiep_hcm_front_initiatives_v5';
 
-// Helper to sanitize broken Wikimedia or Unsplash stock URLs from older localStorage cache
-function sanitizeImage(url?: string, fallback?: string): string | undefined {
-  if (!url || url.includes('upload.wikimedia.org') || url.includes('unsplash.com')) {
+// Helper to sanitize broken/placeholder stock URLs while strictly preserving valid historical Wikimedia, government, and user-assigned URLs
+export function sanitizeImage(url?: string, fallback?: string): string | undefined {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return fallback;
+
+  // Reject only known generic random stock photos
+  if (trimmed.includes('images.unsplash.com') || trimmed.includes('picsum.photos') || trimmed.includes('via.placeholder.com')) {
     if (fallback && !fallback.includes('unsplash.com')) {
       return fallback;
     }
     return undefined;
   }
-  return url;
+  return trimmed;
 }
 
 // --- WORKS STORE ---
@@ -64,6 +70,10 @@ export function saveStoredWorks(data: HistoricalWork[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(KEY_WORKS, JSON.stringify(data));
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.WORKS, data).catch((e) => {
+      console.warn('[HcmDataStore] Cloud sync works warning:', e);
+    });
+    window.dispatchEvent(new CustomEvent('hcm-works-updated', { detail: data }));
   } catch (err) {
     console.error('Error saving stored works:', err);
   }
@@ -73,6 +83,7 @@ export function resetStoredWorks(): HistoricalWork[] {
   if (typeof window === 'undefined') return HISTORICAL_WORKS;
   try {
     localStorage.removeItem(KEY_WORKS);
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.WORKS, HISTORICAL_WORKS).catch(console.warn);
   } catch (err) {
     console.error('Error resetting stored works:', err);
   }
@@ -97,6 +108,10 @@ export function saveStoredQuotes(data: VerifiedQuote[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(KEY_QUOTES, JSON.stringify(data));
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.QUOTES, data).catch((e) => {
+      console.warn('[HcmDataStore] Cloud sync quotes warning:', e);
+    });
+    window.dispatchEvent(new CustomEvent('hcm-quotes-updated', { detail: data }));
   } catch (err) {
     console.error('Error saving stored quotes:', err);
   }
@@ -106,6 +121,7 @@ export function resetStoredQuotes(): VerifiedQuote[] {
   if (typeof window === 'undefined') return VERIFIED_QUOTES;
   try {
     localStorage.removeItem(KEY_QUOTES);
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.QUOTES, VERIFIED_QUOTES).catch(console.warn);
   } catch (err) {
     console.error('Error resetting stored quotes:', err);
   }
@@ -141,6 +157,10 @@ export function saveStoredAudios(data: HistoricalAudio[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(KEY_AUDIOS, JSON.stringify(data));
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.AUDIOS, data).catch((e) => {
+      console.warn('[HcmDataStore] Cloud sync audios warning:', e);
+    });
+    window.dispatchEvent(new CustomEvent('hcm-audios-updated', { detail: data }));
   } catch (err) {
     console.error('Error saving stored audios:', err);
   }
@@ -150,6 +170,7 @@ export function resetStoredAudios(): HistoricalAudio[] {
   if (typeof window === 'undefined') return HISTORICAL_AUDIOS;
   try {
     localStorage.removeItem(KEY_AUDIOS);
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.AUDIOS, HISTORICAL_AUDIOS).catch(console.warn);
   } catch (err) {
     console.error('Error resetting stored audios:', err);
   }
@@ -196,6 +217,10 @@ export function saveStoredVideos(data: HistoricalVideo[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(KEY_VIDEOS, JSON.stringify(data));
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.VIDEOS, data).catch((e) => {
+      console.warn('[HcmDataStore] Cloud sync videos warning:', e);
+    });
+    window.dispatchEvent(new CustomEvent('hcm-videos-updated', { detail: data }));
   } catch (err) {
     console.error('Error saving stored videos:', err);
   }
@@ -205,6 +230,7 @@ export function resetStoredVideos(): HistoricalVideo[] {
   if (typeof window === 'undefined') return HISTORICAL_VIDEOS;
   try {
     localStorage.removeItem(KEY_VIDEOS);
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.VIDEOS, HISTORICAL_VIDEOS).catch(console.warn);
   } catch (err) {
     console.error('Error resetting stored videos:', err);
   }
@@ -239,6 +265,10 @@ export function saveStoredFootsteps(data: FootstepLocation[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(KEY_FOOTSTEPS, JSON.stringify(data));
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.FOOTSTEPS, data).catch((e) => {
+      console.warn('[HcmDataStore] Cloud sync footsteps warning:', e);
+    });
+    window.dispatchEvent(new CustomEvent('hcm-footsteps-updated', { detail: data }));
   } catch (err) {
     console.error('Error saving stored footsteps:', err);
   }
@@ -248,6 +278,7 @@ export function resetStoredFootsteps(): FootstepLocation[] {
   if (typeof window === 'undefined') return FOOTSTEP_LOCATIONS;
   try {
     localStorage.removeItem(KEY_FOOTSTEPS);
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.FOOTSTEPS, FOOTSTEP_LOCATIONS).catch(console.warn);
   } catch (err) {
     console.error('Error resetting stored footsteps:', err);
   }
@@ -282,6 +313,10 @@ export function saveStoredChanhHiepActions(data: ChanhHiepActionModel[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(KEY_CHANH_HIEP_ACTIONS, JSON.stringify(data));
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.ACTIONS, data).catch((e) => {
+      console.warn('[HcmDataStore] Cloud sync actions warning:', e);
+    });
+    window.dispatchEvent(new CustomEvent('hcm-actions-updated', { detail: data }));
   } catch (err) {
     console.error('Error saving stored Chanh Hiep actions:', err);
   }
@@ -291,6 +326,7 @@ export function resetStoredChanhHiepActions(): ChanhHiepActionModel[] {
   if (typeof window === 'undefined') return CHANH_HIEP_ACTION_MODELS;
   try {
     localStorage.removeItem(KEY_CHANH_HIEP_ACTIONS);
+    hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.ACTIONS, CHANH_HIEP_ACTION_MODELS).catch(console.warn);
   } catch (err) {
     console.error('Error resetting stored actions:', err);
   }

@@ -594,6 +594,14 @@ export const loadStoredCoverConfig = (): CoverConfig => {
 export const saveStoredCoverConfig = (config: CoverConfig) => {
   try {
     localStorage.setItem(STORAGE_KEY_COVER, JSON.stringify(config));
+    import('../lib/hcmCloudSync').then(({ HCM_CLOUD_COLLECTIONS }) => {
+      import('../lib/firebase').then(({ db }) => {
+        import('firebase/firestore').then(({ doc, setDoc }) => {
+          setDoc(doc(db, HCM_CLOUD_COLLECTIONS.COVER, 'main_cover'), config, { merge: true }).catch(console.warn);
+        });
+      });
+    }).catch(console.warn);
+    window.dispatchEvent(new CustomEvent('hcm-cover-updated', { detail: config }));
   } catch (e) {
     console.error('Error saving cover config', e);
   }
@@ -612,6 +620,10 @@ export const loadStoredChapters = (): BiographyChapter[] => {
 export const saveStoredChapters = (chapters: BiographyChapter[]) => {
   try {
     localStorage.setItem(STORAGE_KEY_CHAPTERS, JSON.stringify(chapters));
+    import('../lib/hcmCloudSync').then(({ hcmCloudSync, HCM_CLOUD_COLLECTIONS }) => {
+      hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.CHAPTERS, chapters).catch(console.warn);
+    }).catch(console.warn);
+    window.dispatchEvent(new CustomEvent('hcm-chapters-updated', { detail: chapters }));
   } catch (e) {
     console.error('Error saving chapters', e);
   }
@@ -630,6 +642,10 @@ export const loadStoredEvents = (): EventCardSchema[] => {
 export const saveStoredEvents = (events: EventCardSchema[]) => {
   try {
     localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
+    import('../lib/hcmCloudSync').then(({ hcmCloudSync, HCM_CLOUD_COLLECTIONS }) => {
+      hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.EVENTS, events).catch(console.warn);
+    }).catch(console.warn);
+    window.dispatchEvent(new CustomEvent('hcm-events-updated', { detail: events }));
   } catch (e) {
     console.error('Error saving events', e);
   }

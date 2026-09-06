@@ -2,6 +2,56 @@ import { CloudinaryImageMeta } from '../types';
 import { ARTICLE_BANNERS } from '../utils/officialImages';
 import { extractGoogleDriveFileId } from './googleDriveService';
 
+export const BACKEND_CLOUD_RUN_ORIGIN = 'https://ais-pre-eokzuo3lbp4ijcdgdnvif3-553565080913.asia-southeast1.run.app';
+
+/**
+ * Returns a proxied URL via the backend server proxy to bypass CORS, Referrer restrictions, and Hotlink Protection.
+ */
+export function getProxiedMediaUrl(url: string): string {
+  if (!url) return '';
+  // If already proxied, avoid double-proxying
+  if (url.includes('/api/media/proxy?url=')) return url;
+  return `/api/media/proxy?url=${encodeURIComponent(url.trim())}`;
+}
+
+/**
+ * Resolves any media URL into a clean, universally accessible URL across all domains (Vercel, Cloud Run, Custom Domain)
+ */
+export function resolveMediaUrl(rawUrl?: string | null): string {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return '';
+
+  // 1. Data URLs and Blobs pass directly
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+    return trimmed;
+  }
+
+  // 2. Local uploaded files (/uploads/...)
+  if (trimmed.startsWith('/uploads/')) {
+    // If on external domain without direct backend storage and vercel rewrite is not matched,
+    // we can use the relative path (handled by vercel.json) or absolute backend URL
+    return trimmed;
+  }
+
+  // 3. Google Drive links (convert to direct high-res image stream)
+  const gDriveId = extractGoogleDriveFileId(trimmed);
+  if (gDriveId) {
+    return `https://lh3.googleusercontent.com/d/${gDriveId}=w1600`;
+  }
+
+  // 4. Upgrade plain HTTP to HTTPS for modern browsers
+  if (trimmed.startsWith('http://')) {
+    const withoutProtocol = trimmed.substring(7);
+    // Don't upgrade localhost or raw IP
+    if (!withoutProtocol.startsWith('localhost') && !withoutProtocol.startsWith('127.0.0.1')) {
+      return `https://${withoutProtocol}`;
+    }
+  }
+
+  return trimmed;
+}
+
 export type ImageVariant = 'thumbnail' | 'card' | 'article' | 'hero' | 'original' | 'avatar' | 'banner';
 
 export interface ResponsiveImageSources {

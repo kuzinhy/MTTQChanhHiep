@@ -31,9 +31,9 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(cors({
-    origin: '*', // Allow any origin to connect, or we can restrict it later. It is simple and robust.
+    origin: '*', // Allow any origin to connect (Vercel, custom domain, preview)
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-staff-role', 'x-staff-email', 'x-admin-token', 'Range']
   }));
 
   app.use(express.json({ limit: '50mb' }));
@@ -48,8 +48,13 @@ async function startServer() {
   // Cloudinary Admin Media Upload API Router
   app.use('/api/admin/media', mediaRouter);
 
-  // Static files for locally uploaded media
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  // Static files for locally uploaded media with full CORS support
+  app.use('/uploads', cors(), express.static(path.join(process.cwd(), 'uploads'), {
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }));
 
   // Media Proxy Route
   app.get('/api/media/proxy', mediaProxyHandler);

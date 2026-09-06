@@ -4,6 +4,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://ais-pre-eokzuo3lbp4ijcdgdnvif3-553565080913.asia-southeast1.run.app/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://ais-pre-eokzuo3lbp4ijcdgdnvif3-553565080913.asia-southeast1.run.app/uploads/:path*"
     }
   ]
 }

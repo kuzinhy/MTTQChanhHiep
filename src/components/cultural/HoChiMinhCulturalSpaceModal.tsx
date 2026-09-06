@@ -27,7 +27,10 @@ import {
   HeartHandshake,
   Box,
   Landmark,
-  Film
+  Film,
+  Cloud,
+  CloudCheck,
+  RefreshCw
 } from 'lucide-react';
 import { StaffUser } from '../../types';
 import {
@@ -38,6 +41,7 @@ import {
   saveStoredHcmExhibits,
   resetStoredHcmExhibits
 } from '../../data/hcmCulturalData';
+import { hcmCloudSync } from '../../lib/hcmCloudSync';
 import { SuperadminExhibitEditorModal } from './SuperadminExhibitEditorModal';
 import { HcmMuseumGrandFoyer } from './HcmMuseumGrandFoyer';
 import { HcmTimelineAndPeriods } from './HcmTimelineAndPeriods';
@@ -122,6 +126,33 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
   const [editingExhibit, setEditingExhibit] = useState<ExhibitItem | null>(null);
   const [saveToastMessage, setSaveToastMessage] = useState<string | null>(null);
+  const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
+  const [cloudSyncConnected, setCloudSyncConnected] = useState<boolean>(false);
+
+  // Initialize Cloud Sync with Firestore
+  useEffect(() => {
+    if (!isOpen) return;
+
+    hcmCloudSync.initSync({
+      onExhibitsUpdate: (cloudExhibits) => {
+        setExhibits(cloudExhibits);
+        setCloudSyncConnected(true);
+      }
+    }).then(() => {
+      setCloudSyncConnected(true);
+    }).catch(() => {});
+
+    const handleDataUpdate = (e: any) => {
+      if (e.detail) {
+        setExhibits(e.detail);
+      }
+    };
+
+    window.addEventListener('hcm-exhibits-updated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('hcm-exhibits-updated', handleDataUpdate);
+    };
+  }, [isOpen]);
 
   // 3D Camera / Player State
   const [cameraPos, setCameraPos] = useState<{ x: number; z: number }>({ x: 0, z: -50 });
@@ -293,6 +324,23 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
       setSaveToastMessage(msg);
       if (onTriggerToast) onTriggerToast('Superadmin', msg);
       setTimeout(() => setSaveToastMessage(null), 3500);
+    }
+  };
+
+  // SuperAdmin: Force Push all local content to Cloud Firestore
+  const handleManualCloudSync = async () => {
+    setIsCloudSyncing(true);
+    try {
+      const res = await hcmCloudSync.forcePushAllLocalToCloud();
+      setSaveToastMessage(res.message);
+      if (onTriggerToast) onTriggerToast('Đồng bộ Cloud Firestore', res.message);
+    } catch (e: any) {
+      const err = `Lỗi đồng bộ: ${e.message || 'Không thể kết nối Firestore'}`;
+      setSaveToastMessage(err);
+      if (onTriggerToast) onTriggerToast('Lỗi Cloud', err);
+    } finally {
+      setIsCloudSyncing(false);
+      setTimeout(() => setSaveToastMessage(null), 4000);
     }
   };
 
@@ -859,6 +907,47 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
 
           {/* Header Action Controls */}
           <div className="flex items-center gap-1.5 shrink-0">
+            {/* Research Mode Toggle - Prominently placed in header toolbar */}
+            <button
+              onClick={() => setIsResearchMode((prev) => !prev)}
+              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
+                isResearchMode
+                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300 shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+              }`}
+              title="Bật/tắt chế độ nghiên cứu học thuật: Hiển thị nguồn tập, trang, nhà xuất bản chính thống (Nguồn cấp A)"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden sm:inline">
+                {isResearchMode ? 'Nghiên Cứu: BẬT' : 'Nguồn Cấp A'}
+              </span>
+            </button>
+
+            {/* Cloud Sync Button */}
+            <button
+              onClick={handleManualCloudSync}
+              disabled={isCloudSyncing}
+              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                isCloudSyncing
+                  ? 'bg-blue-100 text-blue-800 border-blue-300 animate-pulse'
+                  : cloudSyncConnected
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+              }`}
+              title="Đồng bộ toàn bộ hình ảnh và tư liệu lên đám mây Firestore để truy cập trên mọi thiết bị và liên kết khác"
+            >
+              {isCloudSyncing ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" />
+              ) : cloudSyncConnected ? (
+                <CloudCheck className="w-3.5 h-3.5 text-emerald-600" />
+              ) : (
+                <Cloud className="w-3.5 h-3.5 text-slate-500" />
+              )}
+              <span className="hidden md:inline">
+                {isCloudSyncing ? 'Đang đồng bộ...' : 'Đồng bộ Đám mây'}
+              </span>
+            </button>
+
             {/* Superadmin Mode Toggle */}
             <button
               onClick={() => setIsSuperAdminMode((prev) => !prev)}
@@ -955,8 +1044,8 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
         </div>
 
         {/* Modern Digital Museum Navigation Tabs */}
-        <div className="bg-slate-50 border-b border-slate-200 px-3 py-1.5 flex items-center justify-between gap-2 overflow-x-auto shrink-0 z-20 scrollbar-none">
-          <div className="flex items-center gap-1.5">
+        <div className="bg-slate-50 border-b border-slate-200 px-3 py-1.5 overflow-x-auto shrink-0 z-20 scrollbar-none">
+          <div className="flex items-center gap-1.5 min-w-max">
             <button
               onClick={() => setActiveMuseumTab('foyer')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
@@ -1075,21 +1164,6 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
             >
               <Box className="w-3.5 h-3.5 text-amber-500" />
               <span>Phòng 3D Tương Tác</span>
-            </button>
-          </div>
-
-          {/* Research Mode toggle */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 shrink-0">
-            <button
-              onClick={() => setIsResearchMode((prev) => !prev)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                isResearchMode
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-              }`}
-              title="Bật/tắt chế độ nghiên cứu học thuật: Hiển thị tập, trang, nhà xuất bản"
-            >
-              <span>{isResearchMode ? '📖 Nghiên Cứu: BẬT' : '📖 Nguồn Cấp A'}</span>
             </button>
           </div>
         </div>

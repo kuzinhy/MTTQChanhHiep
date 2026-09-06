@@ -533,6 +533,12 @@ export function saveStoredHcmExhibits(exhibits: ExhibitItem[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY_HCM_EXHIBITS, JSON.stringify(exhibits));
+    import('../lib/hcmCloudSync').then(({ hcmCloudSync, HCM_CLOUD_COLLECTIONS }) => {
+      hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.EXHIBITS, exhibits).catch((e) => {
+        console.warn('[HcmCulturalData] Cloud sync exhibits warning:', e);
+      });
+    }).catch(console.warn);
+    window.dispatchEvent(new CustomEvent('hcm-exhibits-updated', { detail: exhibits }));
   } catch (err) {
     console.error('Error saving stored HCM exhibits:', err);
   }
@@ -542,6 +548,10 @@ export function resetStoredHcmExhibits(): ExhibitItem[] {
   if (typeof window === 'undefined') return DEFAULT_HCM_EXHIBITS;
   try {
     localStorage.removeItem(STORAGE_KEY_HCM_EXHIBITS);
+    import('../lib/hcmCloudSync').then(({ hcmCloudSync, HCM_CLOUD_COLLECTIONS }) => {
+      hcmCloudSync.saveCollectionToCloud(HCM_CLOUD_COLLECTIONS.EXHIBITS, DEFAULT_HCM_EXHIBITS).catch(console.warn);
+    }).catch(console.warn);
+    window.dispatchEvent(new CustomEvent('hcm-exhibits-updated', { detail: DEFAULT_HCM_EXHIBITS }));
   } catch (err) {
     console.error('Error resetting stored HCM exhibits:', err);
   }

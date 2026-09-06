@@ -2,9 +2,17 @@ import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 
-// Configure Cloudinary from environment variables
+// Configure Cloudinary from environment variables or active product environment
+const getCloudName = () => {
+  const envName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  if (!envName || envName.toLowerCase() === 'chanhhiep') {
+    return 'idt08wyp';
+  }
+  return envName;
+};
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
+  cloud_name: getCloudName(),
   api_key: process.env.CLOUDINARY_API_KEY || '',
   api_secret: process.env.CLOUDINARY_API_SECRET || '',
   secure: true
@@ -97,7 +105,7 @@ router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: Nex
     const fullFolder = `mttq-phuong-chanh-hiep/${targetSubfolder}`;
 
     // Verify Cloudinary credentials
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const cloudName = getCloudName();
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
@@ -163,11 +171,16 @@ router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: Nex
     fs.writeFileSync(filePath, file.buffer);
 
     const localUrl = `/uploads/${cleanFileName}`;
+    const host = req.get('host') || '';
+    const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    const absoluteUrl = host ? `${protocol}://${host}${localUrl}` : localUrl;
+
     return res.json({
       success: true,
       image: {
         url: localUrl,
         secureUrl: localUrl,
+        absoluteUrl,
         publicId: cleanFileName,
         format: ext.replace('.', ''),
         bytes: file.size,
@@ -188,7 +201,7 @@ router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: Nex
 // 2. GET /api/admin/media - Fetch Cloudinary Media Library List
 router.get('/', requireAdminAuth, async (req: Request, res: Response) => {
   try {
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const cloudName = getCloudName();
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
