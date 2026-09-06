@@ -362,6 +362,25 @@ export default function App() {
   // Unified Hash-based Router with 404 & Deep Linking
   useEffect(() => {
     const handleHashRouting = () => {
+      // Check if accessed directly via pathname e.g. /admin or /van-phong-so
+      const currentPath = window.location.pathname || '';
+      if (currentPath === '/admin' || currentPath === '/admin/' || currentPath.startsWith('/admin/')) {
+        const subView = currentPath.replace(/^\/admin\/?/, '').trim();
+        window.history.replaceState(null, '', subView ? `/#/admin/${subView}` : '/#/admin');
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView(subView || 'dashboard');
+        return;
+      }
+      if (currentPath === '/van-phong-so' || currentPath === '/van-phong-so/' || currentPath.startsWith('/van-phong-so/')) {
+        const subView = currentPath.replace(/^\/van-phong-so\/?/, '').trim();
+        window.history.replaceState(null, '', subView ? `/#/van-phong-so/${subView}` : '/#/van-phong-so');
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView(subView || 'dashboard');
+        return;
+      }
+
       const rawHash = window.location.hash || '';
       
       // Default empty or root routes
@@ -1952,6 +1971,7 @@ export default function App() {
                     {officeView === 'system_settings' && (
                       <SystemSettingsAdminView
                         currentUser={currentStaffUser}
+                        onSettingsUpdated={(updated) => setSystemSettings(updated)}
                         onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Lỗi hệ thống' : 'Cài đặt hệ thống', msg)}
                         onPreviewMaintenance={(previewSettings) => {
                           setSystemSettings(previewSettings);

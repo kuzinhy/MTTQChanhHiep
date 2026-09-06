@@ -25,6 +25,7 @@ interface SystemSettingsAdminViewProps {
   currentUser?: StaffUser | null;
   onShowToast?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   onPreviewMaintenance?: (settings: SystemSettings) => void;
+  onSettingsUpdated?: (settings: SystemSettings) => void;
 }
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -40,7 +41,8 @@ const DEFAULT_SETTINGS: SystemSettings = {
 export const SystemSettingsAdminView: React.FC<SystemSettingsAdminViewProps> = ({
   currentUser,
   onShowToast,
-  onPreviewMaintenance
+  onPreviewMaintenance,
+  onSettingsUpdated
 }) => {
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -98,12 +100,18 @@ export const SystemSettingsAdminView: React.FC<SystemSettingsAdminViewProps> = (
     setIsToggling(true);
 
     try {
+      const parseIsoOrUndefined = (val: string) => {
+        if (!val) return undefined;
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      };
+
       const payload = {
         maintenanceMode: targetMaintenanceMode,
         maintenanceTitle: titleInput.trim(),
         maintenanceMessage: messageInput.trim(),
-        maintenanceStartAt: startAtInput ? new Date(startAtInput).toISOString() : undefined,
-        maintenanceEndAt: endAtInput ? new Date(endAtInput).toISOString() : undefined,
+        maintenanceStartAt: parseIsoOrUndefined(startAtInput),
+        maintenanceEndAt: parseIsoOrUndefined(endAtInput),
         showScheduledTime: showScheduled,
         updatedBy: currentUser?.id || 'admin',
         updatedByName: currentUser?.fullname || 'Quản trị viên MTTQ'
@@ -121,6 +129,7 @@ export const SystemSettingsAdminView: React.FC<SystemSettingsAdminViewProps> = (
 
       if (res.ok && data.success && data.settings) {
         applySettingsToState(data.settings);
+        onSettingsUpdated?.(data.settings);
         const actionLabel = targetMaintenanceMode ? 'ĐÃ BẬT BẢO TRÌ WEBSITE' : 'ĐÃ MỞ LẠI WEBSITE';
         onShowToast?.(
           targetMaintenanceMode
@@ -157,11 +166,17 @@ export const SystemSettingsAdminView: React.FC<SystemSettingsAdminViewProps> = (
     setIsSaving(true);
 
     try {
+      const parseIsoOrUndefined = (val: string) => {
+        if (!val) return undefined;
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      };
+
       const payload = {
         maintenanceTitle: titleInput.trim(),
         maintenanceMessage: messageInput.trim(),
-        maintenanceStartAt: startAtInput ? new Date(startAtInput).toISOString() : undefined,
-        maintenanceEndAt: endAtInput ? new Date(endAtInput).toISOString() : undefined,
+        maintenanceStartAt: parseIsoOrUndefined(startAtInput),
+        maintenanceEndAt: parseIsoOrUndefined(endAtInput),
         showScheduledTime: showScheduled,
         updatedBy: currentUser?.id || 'admin',
         updatedByName: currentUser?.fullname || 'Quản trị viên MTTQ'
@@ -179,6 +194,7 @@ export const SystemSettingsAdminView: React.FC<SystemSettingsAdminViewProps> = (
 
       if (res.ok && data.success && data.settings) {
         applySettingsToState(data.settings);
+        onSettingsUpdated?.(data.settings);
         onShowToast?.('Đã lưu nội dung thông báo bảo trì thành công!', 'success');
       } else {
         onShowToast?.(data.error || 'Lỗi khi lưu cấu hình', 'error');
