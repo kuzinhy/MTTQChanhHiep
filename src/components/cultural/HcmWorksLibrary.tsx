@@ -17,7 +17,8 @@ import {
   Layers,
   ArrowUpRight,
   FileText,
-  Edit3
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import {
   HISTORICAL_WORKS,
@@ -60,6 +61,16 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
     setWorksList(updatedList);
     saveStoredWorks(updatedList);
     setSelectedWork(updated);
+    setEditingWork(null);
+  };
+
+  const handleDeleteWork = (id: string) => {
+    const updatedList = worksList.filter((w) => w.id !== id);
+    setWorksList(updatedList);
+    saveStoredWorks(updatedList);
+    if (selectedWork?.id === id) {
+      setSelectedWork(updatedList[0] || null as any);
+    }
     setEditingWork(null);
   };
 
@@ -121,6 +132,7 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
           itemType="work"
           itemData={editingWork}
           onSave={handleSaveWork}
+          onDelete={handleDeleteWork}
         />
       )}
 
@@ -448,7 +460,7 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                   </div>
 
                   {isAdmin && (
-                    <div className="mt-2 pt-2 border-t border-rose-300/20 flex justify-end">
+                    <div className="mt-2 pt-2 border-t border-rose-300/20 flex justify-end gap-1.5">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -462,6 +474,20 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                       >
                         <Edit3 className="w-3 h-3" />
                         <span>Sửa tác phẩm</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteWork(work.id);
+                        }}
+                        className={`p-1 rounded-lg text-[11px] font-bold flex items-center transition ${
+                          isSelected
+                            ? 'bg-rose-900 text-rose-200 hover:bg-rose-950'
+                            : 'bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-300'
+                        }`}
+                        title="Xóa tác phẩm"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}

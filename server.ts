@@ -54,6 +54,109 @@ async function startServer() {
   // Media Proxy Route
   app.get('/api/media/proxy', mediaProxyHandler);
 
+  // Extract Metadata & Auto-Thumbnail from Video URL (YouTube, hochiminh.vn, etc.)
+  app.get('/api/media/extract-metadata', async (req: Request, res: Response) => {
+    const rawUrl = req.query.url as string;
+    if (!rawUrl) {
+      return res.status(400).json({ success: false, error: 'Thiếu tham số url' });
+    }
+
+    try {
+      // 1. If YouTube URL
+      const ytMatch = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/);
+      if (ytMatch && ytMatch[1]) {
+        const id = ytMatch[1];
+        return res.json({
+          success: true,
+          sourceType: 'YOUTUBE',
+          youtubeId: id,
+          imageUrl: `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
+          hdImageUrl: `https://img.youtube.com/vi/${id}/maxresdefault.jpg`,
+          title: ''
+        });
+      }
+
+      // 2. If general web URL / hochiminh.vn
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const response = await fetch(rawUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        }
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        return res.json({
+          success: false,
+          error: `Không thể kết nối đến trang (HTTP ${response.status})`
+        });
+      }
+
+      const html = await response.text();
+
+      // Extract og:image
+      let imageUrl = '';
+      const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i) ||
+                           html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:image["']/i) ||
+                           html.match(/<meta\s+name=["']twitter:image["']\s+content=["']([^"']+)["']/i);
+      
+      if (ogImageMatch && ogImageMatch[1]) {
+        imageUrl = ogImageMatch[1];
+        if (imageUrl.startsWith('//')) {
+          imageUrl = 'https:' + imageUrl;
+        } else if (imageUrl.startsWith('/')) {
+          const origin = new URL(rawUrl).origin;
+          imageUrl = origin + imageUrl;
+        }
+      }
+
+      // Extract title
+      let title = '';
+      const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
+                           html.match(/<title>([^<]+)<\/title>/i);
+      if (ogTitleMatch && ogTitleMatch[1]) {
+        title = ogTitleMatch[1].trim().replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+      }
+
+      // Extract embedded YouTube video inside page if any
+      let embeddedYoutubeId = '';
+      const embeddedYtMatch = html.match(/(?:youtube\.com\/embed\/|youtu\.be\/)([\w-]{11})/i);
+      if (embeddedYtMatch && embeddedYtMatch[1]) {
+        embeddedYoutubeId = embeddedYtMatch[1];
+        if (!imageUrl) {
+          imageUrl = `https://img.youtube.com/vi/${embeddedYoutubeId}/hqdefault.jpg`;
+        }
+      }
+
+      // Extract direct video mp4 if any
+      let videoStreamUrl = '';
+      const mp4Match = html.match(/src=["'](https?:\/\/[^"']+\.mp4(?:\?[^"']*)?)["']/i) ||
+                       html.match(/source\s+src=["'](https?:\/\/[^"']+\.mp4(?:\?[^"']*)?)["']/i);
+      if (mp4Match && mp4Match[1]) {
+        videoStreamUrl = mp4Match[1];
+      }
+
+      return res.json({
+        success: true,
+        sourceType: rawUrl.includes('hochiminh.vn') ? 'HOCHIMINH_VN' : 'WEB',
+        title,
+        imageUrl,
+        youtubeId: embeddedYoutubeId,
+        videoStreamUrl
+      });
+    } catch (err: any) {
+      console.warn('Metadata extraction failed:', err?.message);
+      return res.json({
+        success: false,
+        error: err?.message || 'Lỗi trích xuất dữ liệu'
+      });
+    }
+  });
+
 
   // API Health Check
   app.get('/api/health', (_req: Request, res: Response) => {

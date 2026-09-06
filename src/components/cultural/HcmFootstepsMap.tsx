@@ -42,6 +42,16 @@ export const HcmFootstepsMap: React.FC<HcmFootstepsMapProps> = ({ isResearchMode
     setEditingFootstep(null);
   };
 
+  const handleDeleteFootstep = (id: string) => {
+    const updatedList = footstepsList.filter((f) => f.id !== id);
+    setFootstepsList(updatedList);
+    saveStoredFootsteps(updatedList);
+    if (selectedLocation?.id === id) {
+      setSelectedLocation(updatedList[0] || null as any);
+    }
+    setEditingFootstep(null);
+  };
+
   return (
     <div className="space-y-6 py-2">
       {/* Universal Direct Editor Modal for Admin Editing Footsteps */}
@@ -52,6 +62,7 @@ export const HcmFootstepsMap: React.FC<HcmFootstepsMapProps> = ({ isResearchMode
           itemType="footstep"
           itemData={editingFootstep}
           onSave={handleSaveFootstep}
+          onDelete={handleDeleteFootstep}
         />
       )}
 

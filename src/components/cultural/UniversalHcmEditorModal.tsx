@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Edit3, ShieldCheck, Sparkles, Image as ImageIcon, Upload, Trash2, Star, Volume2, Music, Play, AlertCircle, Video, Film, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Save, Edit3, ShieldCheck, Sparkles, Image as ImageIcon, Upload, Trash2, Star, Volume2, Music, Play, AlertCircle, Video, Film, ExternalLink, Building, Check } from 'lucide-react';
 import {
   HistoricalWork,
   VerifiedQuote,
@@ -31,6 +31,7 @@ export interface UniversalHcmEditorModalProps {
   itemType: EditableHcmItemType;
   itemData: any; // The initial item object
   onSave: (updatedItem: any) => void;
+  onDelete?: (id: string) => void;
 }
 
 const ImageInputWithPreview: React.FC<{
@@ -237,86 +238,452 @@ const AudioInputWithPreview: React.FC<{
   );
 };
 
-const YouTubeInputWithPreview: React.FC<{
-  label: string;
-  value: string;
-  onChange: (url: string, videoId: string) => void;
-  placeholder?: string;
-}> = ({ label, value, onChange, placeholder = 'Dán link YouTube (https://www.youtube.com/watch?v=... hoặc https://youtu.be/...)' }) => {
-  const videoId = extractYouTubeId(value || '');
+const DualSourceVideoInputWithPreview: React.FC<{
+  sourceType: 'YOUTUBE' | 'HOCHIMINH_VN' | 'DIRECT_STREAM';
+  youtubeUrl: string;
+  hoChiMinhVnUrl: string;
+  videoStreamUrl: string;
+  imageUrl: string;
+  onSourceTypeChange: (type: 'YOUTUBE' | 'HOCHIMINH_VN' | 'DIRECT_STREAM') => void;
+  onYouTubeChange: (url: string, videoId: string) => void;
+  onHoChiMinhVnChange: (url: string) => void;
+  onVideoStreamChange: (url: string) => void;
+  onImageChange: (url: string) => void;
+  onAutoFillMeta?: (meta: { title?: string; youtubeId?: string; videoStreamUrl?: string; imageUrl?: string }) => void;
+}> = ({
+  sourceType = 'YOUTUBE',
+  youtubeUrl,
+  hoChiMinhVnUrl,
+  videoStreamUrl,
+  imageUrl,
+  onSourceTypeChange,
+  onYouTubeChange,
+  onHoChiMinhVnChange,
+  onVideoStreamChange,
+  onImageChange,
+  onAutoFillMeta
+}) => {
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [extractingMeta, setExtractingMeta] = useState(false);
+  const [autoThumbSuccess, setAutoThumbSuccess] = useState<string | null>(null);
+  const [ytQuality, setYtQuality] = useState<'hqdefault' | 'maxresdefault' | 'mqdefault'>('hqdefault');
+  
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const videoId = extractYouTubeId(youtubeUrl || '');
+
+  // Auto-generate YouTube thumbnail whenever YouTube URL changes
+  const handleYouTubeInputChange = (val: string) => {
+    const extracted = extractYouTubeId(val);
+    onYouTubeChange(val, extracted);
+    if (extracted) {
+      const generatedThumb = `https://img.youtube.com/vi/${extracted}/${ytQuality}.jpg`;
+      onImageChange(generatedThumb);
+      setAutoThumbSuccess(`Đã tự động tạo ảnh đại diện từ YouTube (${extracted})`);
+    } else {
+      setAutoThumbSuccess(null);
+    }
+  };
+
+  // Switch YouTube thumbnail quality
+  const handleSwitchYtQuality = (quality: 'hqdefault' | 'maxresdefault' | 'mqdefault') => {
+    setYtQuality(quality);
+    if (videoId) {
+      const newThumb = `https://img.youtube.com/vi/${videoId}/${quality}.jpg`;
+      onImageChange(newThumb);
+      setAutoThumbSuccess(`Đã đổi chất lượng ảnh đại diện: ${quality}`);
+    }
+  };
+
+  // Auto-extract metadata & thumbnail from hochiminh.vn or web URL
+  const handleHoChiMinhVnInputChange = async (val: string) => {
+    onHoChiMinhVnChange(val);
+    setAutoThumbSuccess(null);
+
+    // If it's a YouTube link pasted inside the hochiminh.vn field
+    const ytId = extractYouTubeId(val);
+    if (ytId) {
+      onYouTubeChange(val, ytId);
+      const generatedThumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+      onImageChange(generatedThumb);
+      setAutoThumbSuccess('Đã tự động nhận diện Video YouTube và tạo ảnh đại diện tương ứng');
+      return;
+    }
+
+    if (val && val.startsWith('http')) {
+      setExtractingMeta(true);
+      try {
+        const res = await fetch(`/api/media/extract-metadata?url=${encodeURIComponent(val)}`);
+        const data = await res.json();
+        if (data.success) {
+          if (data.imageUrl) {
+            onImageChange(data.imageUrl);
+            setAutoThumbSuccess('Đã tự động tạo ảnh đại diện tương ứng từ Cổng hochiminh.vn');
+          }
+          if (onAutoFillMeta) {
+            onAutoFillMeta({
+              title: data.title,
+              youtubeId: data.youtubeId,
+              videoStreamUrl: data.videoStreamUrl,
+              imageUrl: data.imageUrl
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Auto metadata extraction error:', err);
+      } finally {
+        setExtractingMeta(false);
+      }
+    }
+  };
+
+  // Video file upload
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingVideo(true);
+      try {
+        const result = await uploadMediaToCloudinary(file, 'cultural-videos');
+        if (result.success && result.image) {
+          const videoUrl = result.image.secureUrl || result.image.url;
+          onVideoStreamChange(videoUrl);
+          onSourceTypeChange('DIRECT_STREAM');
+          // If cloudinary generated a thumbnail
+          if (result.image.url && result.image.url.endsWith('.mp4')) {
+            const thumb = result.image.url.replace(/\.mp4$/, '.jpg');
+            onImageChange(thumb);
+            setAutoThumbSuccess('Đã tự động tạo ảnh đại diện từ video tải lên');
+          }
+        } else {
+          alert(result.error || 'Có lỗi khi tải tệp video lên.');
+        }
+      } catch (err) {
+        console.error('Video upload failed:', err);
+        alert('Tải video thất bại. Vui lòng thử lại hoặc sử dụng đường dẫn URL.');
+      } finally {
+        setUploadingVideo(false);
+      }
+    }
+  };
+
+  // Capture video frame from HTML5 video element to canvas
+  const handleCaptureFrame = () => {
+    if (videoRef.current && canvasRef.current) {
+      const vid = videoRef.current;
+      const cvs = canvasRef.current;
+      cvs.width = vid.videoWidth || 640;
+      cvs.height = vid.videoHeight || 360;
+      const ctx = cvs.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(vid, 0, 0, cvs.width, cvs.height);
+        try {
+          const dataUrl = cvs.toDataURL('image/jpeg', 0.85);
+          onImageChange(dataUrl);
+          setAutoThumbSuccess('Đã chụp khung hình video thành công làm ảnh đại diện');
+        } catch (e) {
+          console.warn('Canvas capture CORS notice:', e);
+        }
+      }
+    }
+  };
 
   return (
-    <div className="space-y-1.5 p-3 rounded-2xl bg-red-50/80 border border-red-200/90 shadow-2xs">
-      <label className="block text-xs font-bold text-red-950 flex items-center justify-between">
-        <span className="flex items-center gap-1.5">
-          <Film className="w-3.5 h-3.5 text-red-600" />
-          <span>{label}</span>
+    <div className="space-y-3 p-4 rounded-2xl bg-gradient-to-br from-red-50/90 via-rose-50/70 to-amber-50/60 border border-red-200/90 shadow-2xs">
+      <div className="flex items-center justify-between border-b border-red-200/70 pb-2.5">
+        <span className="text-xs font-bold text-red-950 flex items-center gap-1.5">
+          <Film className="w-4 h-4 text-red-700" />
+          <span>Lựa chọn Nguồn Tư Liệu Video</span>
         </span>
-        {value && (
-          <button
-            type="button"
-            onClick={() => onChange('', '')}
-            className="text-[10px] text-red-700 hover:text-red-900 hover:underline flex items-center gap-1 font-semibold"
-          >
-            <Trash2 className="w-3 h-3" />
-            <span>Xóa link</span>
-          </button>
-        )}
-      </label>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={value || ''}
-          onChange={(e) => {
-            const val = e.target.value;
-            const extracted = extractYouTubeId(val);
-            onChange(val, extracted);
-          }}
-          placeholder={placeholder}
-          className="flex-1 px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white text-slate-800"
-          required
-        />
+        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+          <Sparkles className="w-3 h-3 text-emerald-600" />
+          <span>Tự động tạo ảnh đại diện</span>
+        </span>
       </div>
 
-      {videoId ? (
-        <div className="p-3 bg-white rounded-xl border border-red-200/80 space-y-2.5">
-          <div className="flex items-center justify-between text-[11px] text-red-950 font-bold">
-            <span className="flex items-center gap-1.5 text-emerald-700">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Đã nhận diện Video ID: <strong className="font-mono bg-red-100 text-red-900 px-1.5 py-0.5 rounded">{videoId}</strong></span>
-            </span>
-            <a
-              href={`https://www.youtube.com/watch?v=${videoId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-red-600 hover:underline text-[10px] font-semibold flex items-center gap-1"
-            >
-              <span>Mở kiểm tra</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
+      {/* Tabs chuyển đổi nguồn tư liệu */}
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          onClick={() => onSourceTypeChange('YOUTUBE')}
+          className={`px-2.5 py-2 rounded-xl text-xs font-bold transition flex flex-col items-center justify-center gap-1 cursor-pointer ${
+            sourceType === 'YOUTUBE'
+              ? 'bg-red-600 text-white shadow-md ring-2 ring-red-400'
+              : 'bg-white text-red-900 border border-red-200 hover:bg-red-50'
+          }`}
+        >
+          <Play className="w-3.5 h-3.5 fill-current" />
+          <span className="text-[11px] leading-tight text-center">Nguồn YouTube</span>
+        </button>
 
-          <div className="relative aspect-video rounded-xl overflow-hidden bg-black/90 shadow-xs border border-red-200 flex items-center justify-center">
-            <img
-              src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-              alt="YouTube Preview"
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg">
-                <Play className="w-5 h-5 fill-white ml-0.5" />
+        <button
+          type="button"
+          onClick={() => onSourceTypeChange('HOCHIMINH_VN')}
+          className={`px-2.5 py-2 rounded-xl text-xs font-bold transition flex flex-col items-center justify-center gap-1 cursor-pointer ${
+            sourceType === 'HOCHIMINH_VN'
+              ? 'bg-gradient-to-r from-amber-600 to-rose-700 text-white shadow-md ring-2 ring-amber-400'
+              : 'bg-white text-rose-950 border border-rose-200 hover:bg-rose-50'
+          }`}
+        >
+          <Building className="w-3.5 h-3.5 text-amber-300" />
+          <span className="text-[11px] leading-tight text-center">hochiminh.vn</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSourceTypeChange('DIRECT_STREAM')}
+          className={`px-2.5 py-2 rounded-xl text-xs font-bold transition flex flex-col items-center justify-center gap-1 cursor-pointer ${
+            sourceType === 'DIRECT_STREAM'
+              ? 'bg-rose-900 text-white shadow-md ring-2 ring-rose-400'
+              : 'bg-white text-rose-950 border border-rose-200 hover:bg-rose-50'
+          }`}
+        >
+          <Upload className="w-3.5 h-3.5" />
+          <span className="text-[11px] leading-tight text-center">Tải Video lên</span>
+        </button>
+      </div>
+
+      {/* 1. NGUỒN YOUTUBE */}
+      {sourceType === 'YOUTUBE' && (
+        <div className="space-y-2 pt-1">
+          <label className="block text-xs font-bold text-red-950 flex items-center justify-between">
+            <span>Đường dẫn Video YouTube chính thức:</span>
+            {youtubeUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  onYouTubeChange('', '');
+                  setAutoThumbSuccess(null);
+                }}
+                className="text-[10px] text-red-700 hover:underline flex items-center gap-1 font-semibold"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Xóa link</span>
+              </button>
+            )}
+          </label>
+          <input
+            type="text"
+            value={youtubeUrl || ''}
+            onChange={(e) => handleYouTubeInputChange(e.target.value)}
+            placeholder="Dán link YouTube (ví dụ: https://www.youtube.com/watch?v=... hoặc https://youtu.be/...)"
+            className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white text-slate-800 font-mono"
+          />
+
+          {videoId ? (
+            <div className="p-3 bg-white rounded-xl border border-red-200/80 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-red-950 font-bold">
+                <span className="flex items-center gap-1.5 text-emerald-700">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Video ID: <strong className="font-mono bg-red-100 text-red-900 px-1.5 py-0.5 rounded">{videoId}</strong></span>
+                </span>
+                
+                {/* Chọn chất lượng ảnh đại diện */}
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-slate-600 font-normal">Độ nét:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchYtQuality('hqdefault')}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition ${
+                      ytQuality === 'hqdefault' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    HD
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchYtQuality('maxresdefault')}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition ${
+                      ytQuality === 'maxresdefault' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    1080p
+                  </button>
+                </div>
+              </div>
+
+              {/* Thông báo tự tạo ảnh đại diện */}
+              <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-2 text-emerald-900 text-xs">
+                <div className="flex items-center gap-1.5 font-semibold">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Hệ thống đã tự động tạo ảnh đại diện tương ứng từ YouTube</span>
+                </div>
+                <a
+                  href={`https://www.youtube.com/watch?v=${videoId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-600 hover:underline text-[10px] font-semibold flex items-center gap-1 shrink-0"
+                >
+                  <span>Mở xem</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              <div className="relative aspect-video rounded-xl overflow-hidden bg-black shadow-xs border border-red-200">
+                <img
+                  src={`https://img.youtube.com/vi/${videoId}/${ytQuality}.jpg`}
+                  alt="YouTube Preview"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg">
+                    <Play className="w-5 h-5 fill-white ml-0.5" />
+                  </div>
+                </div>
               </div>
             </div>
+          ) : youtubeUrl ? (
+            <div className="p-2 rounded-lg bg-amber-100 text-amber-900 text-xs flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+              <span>Chưa nhận diện được Video ID hợp lệ từ đường dẫn YouTube trên.</span>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {/* 2. NGUỒN CỔNG TTĐT HỒ CHÍ MINH (hochiminh.vn/tu-lieu-video) */}
+      {sourceType === 'HOCHIMINH_VN' && (
+        <div className="space-y-3 pt-1">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-rose-900 to-amber-950 text-white text-xs space-y-1 shadow-xs border border-amber-400/40">
+            <div className="flex items-center gap-1.5 text-amber-300 font-bold">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Nguồn chính thống: Cổng Thông tin điện tử Hồ Chí Minh (hochiminh.vn)</span>
+            </div>
+            <p className="text-[11px] text-rose-100/90 leading-relaxed">
+              Dán link bài viết tư liệu từ <strong>hochiminh.vn/tu-lieu-video</strong> - Hệ thống sẽ tự động quét và trích xuất ảnh bìa tư liệu đại diện.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-rose-950 mb-1 flex items-center justify-between">
+              <span>Đường dẫn chuyên mục tư liệu tại hochiminh.vn:</span>
+              <a
+                href="https://hochiminh.vn/tu-lieu-video"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-rose-700 hover:underline flex items-center gap-1 font-semibold"
+              >
+                <span>Mở hochiminh.vn/tu-lieu-video</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </label>
+            <input
+              type="text"
+              value={hoChiMinhVnUrl || ''}
+              onChange={(e) => handleHoChiMinhVnInputChange(e.target.value)}
+              placeholder="https://hochiminh.vn/tu-lieu-video/ten-phim-tai-lieu..."
+              className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white text-slate-800"
+            />
+          </div>
+
+          {extractingMeta && (
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2 text-xs text-amber-900 font-medium animate-pulse">
+              <Sparkles className="w-4 h-4 text-amber-600 animate-spin" />
+              <span>Đang kết nối hochiminh.vn và tự động tạo ảnh đại diện tương ứng...</span>
+            </div>
+          )}
+
+          {autoThumbSuccess && !extractingMeta && (
+            <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-1.5 text-emerald-900 text-xs font-semibold">
+              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>{autoThumbSuccess}</span>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-bold text-rose-950 mb-1">
+              Đường dẫn phát Video (Link tệp MP4 hoặc link nhúng YouTube kèm theo bài viết trên cổng):
+            </label>
+            <input
+              type="text"
+              value={videoStreamUrl || youtubeUrl || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.includes('youtube.com') || val.includes('youtu.be')) {
+                  const id = extractYouTubeId(val);
+                  onYouTubeChange(val, id);
+                  if (id) {
+                    onImageChange(`https://img.youtube.com/vi/${id}/hqdefault.jpg`);
+                    setAutoThumbSuccess('Đã tự động cập nhật ảnh đại diện từ YouTube nhúng');
+                  }
+                } else {
+                  onVideoStreamChange(val);
+                }
+              }}
+              placeholder="Dán link phát video MP4 trực tiếp hoặc link YouTube phụ trợ..."
+              className="w-full px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white text-slate-800"
+            />
           </div>
         </div>
-      ) : value ? (
-        <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-amber-100/70 p-2 rounded-lg">
-          <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-          <span>Vui lòng dán liên kết YouTube hợp lệ (ví dụ: https://www.youtube.com/watch?v=... hoặc https://youtu.be/...).</span>
+      )}
+
+      {/* 3. NGUỒN TẢI VIDEO TRỰC TIẾP LÊN */}
+      {sourceType === 'DIRECT_STREAM' && (
+        <div className="space-y-3 pt-1">
+          <label className="block text-xs font-bold text-rose-950 flex items-center justify-between">
+            <span>Tải lên tệp Video số hóa (MP4, WebM, MOV):</span>
+            {videoStreamUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  onVideoStreamChange('');
+                  setAutoThumbSuccess(null);
+                }}
+                className="text-[10px] text-rose-700 hover:underline flex items-center gap-1 font-semibold"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Xóa video</span>
+              </button>
+            )}
+          </label>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={videoStreamUrl || ''}
+              onChange={(e) => onVideoStreamChange(e.target.value)}
+              placeholder="Dán link tệp video MP4 trực tiếp hoặc bấm Tải tệp từ máy"
+              className="flex-1 px-3 py-2 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white text-slate-800"
+            />
+            <label className={`px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-700 to-rose-600 hover:brightness-110 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs transition ${uploadingVideo ? 'opacity-50 pointer-events-none' : ''}`}>
+              <Upload className="w-3.5 h-3.5" />
+              <span>{uploadingVideo ? 'Đang tải lên...' : 'Tải tệp video'}</span>
+              <input
+                type="file"
+                accept="video/*,.mp4,.webm,.m4v,.mov"
+                onChange={handleVideoFileUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {videoStreamUrl && (
+            <div className="p-3 bg-white rounded-xl border border-rose-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-rose-950">Phát thử nghiệm video:</span>
+                <button
+                  type="button"
+                  onClick={handleCaptureFrame}
+                  className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-900 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition"
+                >
+                  <Sparkles className="w-3 h-3 text-rose-700" />
+                  <span>Chụp khung hình làm ảnh đại diện</span>
+                </button>
+              </div>
+
+              <video
+                ref={videoRef}
+                controls
+                crossOrigin="anonymous"
+                src={videoStreamUrl}
+                className="w-full aspect-video rounded-xl bg-black border border-rose-300"
+              />
+              <canvas ref={canvasRef} className="hidden" />
+            </div>
+          )}
         </div>
-      ) : null}
+      )}
     </div>
   );
 };
@@ -326,7 +693,8 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
   onClose,
   itemType,
   itemData,
-  onSave
+  onSave,
+  onDelete
 }) => {
   const [formState, setFormState] = useState<any>({});
 
@@ -349,6 +717,15 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
     e.preventDefault();
     onSave(formState);
     onClose();
+  };
+
+  const handleDeleteItem = () => {
+    if (!itemData?.id || !onDelete) return;
+    const title = formState.title || formState.name || formState.quote || 'mục này';
+    if (window.confirm(`Bạn có chắc chắn muốn xóa "${title}" khỏi hệ thống?`)) {
+      onDelete(itemData.id);
+      onClose();
+    }
   };
 
   const renderFormFields = () => {
@@ -1045,21 +1422,50 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
               />
             </div>
 
-            <YouTubeInputWithPreview
-              label="Đường dẫn Video YouTube"
-              value={formState.youtubeUrl || ''}
-              onChange={(url, videoId) => {
+            <DualSourceVideoInputWithPreview
+              sourceType={formState.sourceType || (formState.hoChiMinhVnUrl ? 'HOCHIMINH_VN' : 'YOUTUBE')}
+              youtubeUrl={formState.youtubeUrl || ''}
+              hoChiMinhVnUrl={formState.hoChiMinhVnUrl || ''}
+              videoStreamUrl={formState.videoStreamUrl || ''}
+              imageUrl={formState.imageUrl || ''}
+              onSourceTypeChange={(type) => handleChange('sourceType', type)}
+              onYouTubeChange={(url, videoId) => {
                 handleChange('youtubeUrl', url);
                 handleChange('youtubeVideoId', videoId);
-                // Auto-fill thumbnail if not provided
-                if (!formState.imageUrl && videoId) {
+                if (videoId) {
                   handleChange('imageUrl', `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
+                }
+              }}
+              onHoChiMinhVnChange={(url) => {
+                handleChange('hoChiMinhVnUrl', url);
+                handleChange('sourceType', 'HOCHIMINH_VN');
+                if (!formState.sourceAgency) {
+                  handleChange('sourceAgency', 'Cổng thông tin điện tử Hồ Chí Minh (hochiminh.vn)');
+                }
+              }}
+              onVideoStreamChange={(url) => {
+                handleChange('videoStreamUrl', url);
+              }}
+              onImageChange={(val) => handleChange('imageUrl', val)}
+              onAutoFillMeta={(meta) => {
+                if (meta.imageUrl) {
+                  handleChange('imageUrl', meta.imageUrl);
+                }
+                if (meta.title && (!formState.title || formState.title.includes('Tư liệu video mới') || formState.title.includes('hochiminh.vn'))) {
+                  handleChange('title', meta.title);
+                }
+                if (meta.youtubeId) {
+                  handleChange('youtubeVideoId', meta.youtubeId);
+                  handleChange('youtubeUrl', `https://www.youtube.com/watch?v=${meta.youtubeId}`);
+                }
+                if (meta.videoStreamUrl) {
+                  handleChange('videoStreamUrl', meta.videoStreamUrl);
                 }
               }}
             />
 
             <ImageInputWithPreview
-              label="Ảnh đại diện / Thumbnail tùy chỉnh (tùy chọn, để trống sẽ tự lấy từ YouTube)"
+              label="Ảnh đại diện / Thumbnail tùy chỉnh (tùy chọn, để trống sẽ tự lấy từ nguồn video)"
               value={formState.imageUrl || ''}
               onChange={(val) => handleChange('imageUrl', val)}
             />
@@ -1096,20 +1502,22 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
                   className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
                 >
                   <option value="Tuyên ngôn & Độc lập">Tuyên ngôn & Độc lập</option>
+                  <option value="Hành trình cứu nước">Hành trình cứu nước</option>
                   <option value="Ngoại giao & Quốc tế">Ngoại giao & Quốc tế</option>
                   <option value="Bác Hồ với Nhân dân">Bác Hồ với Nhân dân</option>
                   <option value="Kháng chiến & Chiến dịch">Kháng chiến & Chiến dịch</option>
                   <option value="Phim tài liệu lịch sử">Phim tài liệu lịch sử</option>
+                  <option value="Di sản tư tưởng">Di sản tư tưởng</option>
                   <option value="Quốc tang & Di chúc">Quốc tang & Di chúc</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-red-950 mb-1">Cơ quan lưu trữ / Sản xuất</label>
+                <label className="block text-xs font-bold text-red-950 mb-1">Cơ quan lưu trữ / Xuất bản</label>
                 <input
                   type="text"
                   value={formState.sourceAgency || ''}
                   onChange={(e) => handleChange('sourceAgency', e.target.value)}
-                  placeholder="Ví dụ: VTV, Hãng phim TL&KH TW..."
+                  placeholder="Ví dụ: hochiminh.vn, VTV, Hãng phim TL&KH TW..."
                   className="w-full px-3 py-2 border border-red-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500 bg-white"
                 />
               </div>
@@ -1185,21 +1593,36 @@ export const UniversalHcmEditorModal: React.FC<UniversalHcmEditorModalProps> = (
           {renderFormFields()}
 
           {/* Buttons */}
-          <div className="pt-4 border-t border-rose-200 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-rose-800 bg-rose-100 hover:bg-rose-200 transition cursor-pointer"
-            >
-              Hủy bỏ
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-700 via-pink-600 to-rose-800 hover:brightness-110 shadow-md flex items-center gap-1.5 transition cursor-pointer active:scale-95"
-            >
-              <Save className="w-4 h-4" />
-              <span>Lưu Thông Tin</span>
-            </button>
+          <div className="pt-4 border-t border-rose-200 flex items-center justify-between gap-3">
+            <div>
+              {onDelete && itemData?.id && (
+                <button
+                  type="button"
+                  onClick={handleDeleteItem}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                  <span>Xóa tư liệu</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-rose-800 bg-rose-100 hover:bg-rose-200 transition cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-700 via-pink-600 to-rose-800 hover:brightness-110 shadow-md flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+              >
+                <Save className="w-4 h-4" />
+                <span>Lưu Thông Tin</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

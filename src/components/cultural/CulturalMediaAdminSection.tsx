@@ -457,6 +457,29 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleDeleteItemFromModal = (id: string) => {
+    switch (editorItemType) {
+      case 'audio':
+        handleDeleteAudio(id, editingItemData?.title || 'bản ghi âm');
+        break;
+      case 'video':
+        handleDeleteVideo(id, editingItemData?.title || 'video');
+        break;
+      case 'work':
+        handleDeleteWork(id, editingItemData?.title || 'tác phẩm');
+        break;
+      case 'quote':
+        handleDeleteQuote(id);
+        break;
+      case 'footstep':
+        handleDeleteFootstep(id, editingItemData?.name || 'tọa độ');
+        break;
+      case 'chanh_hiep_action':
+        handleDeleteAction(id, editingItemData?.title || 'mô hình');
+        break;
+    }
+  };
+
   // Filtered lists
   const filteredAudios = audios.filter(a =>
     !searchTerm ||
@@ -1772,6 +1795,7 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
           itemType={editorItemType}
           itemData={editingItemData}
           onSave={handleSaveItem}
+          onDelete={handleDeleteItemFromModal}
         />
       )}
     </div>

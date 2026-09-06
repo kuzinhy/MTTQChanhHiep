@@ -8,6 +8,7 @@ import {
   HistoricalVideo,
   HISTORICAL_VIDEOS,
   extractYouTubeId,
+  detectVideoSource,
   FootstepLocation,
   FOOTSTEP_LOCATIONS,
   ChanhHiepActionModel,
@@ -37,9 +38,9 @@ export function loadStoredWorks(): HistoricalWork[] {
   if (typeof window === 'undefined') return HISTORICAL_WORKS;
   try {
     const raw = localStorage.getItem(KEY_WORKS);
-    if (!raw) return HISTORICAL_WORKS;
+    if (raw === null) return HISTORICAL_WORKS;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    if (Array.isArray(parsed)) {
       return parsed.map((item: HistoricalWork) => {
         const defaultItem = HISTORICAL_WORKS.find(d => d.id === item.id);
         const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
@@ -65,14 +66,24 @@ export function saveStoredWorks(data: HistoricalWork[]): void {
   }
 }
 
+export function resetStoredWorks(): HistoricalWork[] {
+  if (typeof window === 'undefined') return HISTORICAL_WORKS;
+  try {
+    localStorage.removeItem(KEY_WORKS);
+  } catch (err) {
+    console.error('Error resetting stored works:', err);
+  }
+  return HISTORICAL_WORKS;
+}
+
 // --- QUOTES STORE ---
 export function loadStoredQuotes(): VerifiedQuote[] {
   if (typeof window === 'undefined') return VERIFIED_QUOTES;
   try {
     const raw = localStorage.getItem(KEY_QUOTES);
-    if (!raw) return VERIFIED_QUOTES;
+    if (raw === null) return VERIFIED_QUOTES;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : VERIFIED_QUOTES;
+    return Array.isArray(parsed) ? parsed : VERIFIED_QUOTES;
   } catch (err) {
     console.error('Error loading stored quotes:', err);
     return VERIFIED_QUOTES;
@@ -88,14 +99,24 @@ export function saveStoredQuotes(data: VerifiedQuote[]): void {
   }
 }
 
+export function resetStoredQuotes(): VerifiedQuote[] {
+  if (typeof window === 'undefined') return VERIFIED_QUOTES;
+  try {
+    localStorage.removeItem(KEY_QUOTES);
+  } catch (err) {
+    console.error('Error resetting stored quotes:', err);
+  }
+  return VERIFIED_QUOTES;
+}
+
 // --- AUDIOS STORE ---
 export function loadStoredAudios(): HistoricalAudio[] {
   if (typeof window === 'undefined') return HISTORICAL_AUDIOS;
   try {
     const raw = localStorage.getItem(KEY_AUDIOS);
-    if (!raw) return HISTORICAL_AUDIOS;
+    if (raw === null) return HISTORICAL_AUDIOS;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    if (Array.isArray(parsed)) {
       return parsed.map((item: HistoricalAudio) => {
         const defaultItem = HISTORICAL_AUDIOS.find(d => d.id === item.id);
         const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
@@ -122,29 +143,42 @@ export function saveStoredAudios(data: HistoricalAudio[]): void {
   }
 }
 
+export function resetStoredAudios(): HistoricalAudio[] {
+  if (typeof window === 'undefined') return HISTORICAL_AUDIOS;
+  try {
+    localStorage.removeItem(KEY_AUDIOS);
+  } catch (err) {
+    console.error('Error resetting stored audios:', err);
+  }
+  return HISTORICAL_AUDIOS;
+}
+
 // --- VIDEOS STORE ---
 export function loadStoredVideos(): HistoricalVideo[] {
   if (typeof window === 'undefined') return HISTORICAL_VIDEOS;
   try {
     const raw = localStorage.getItem(KEY_VIDEOS);
-    if (!raw) return HISTORICAL_VIDEOS;
+    if (raw === null) return HISTORICAL_VIDEOS;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    if (Array.isArray(parsed)) {
       return parsed.map((item: HistoricalVideo) => {
-        // Hydrate youtubeVideoId if missing
-        const videoId = item.youtubeVideoId || extractYouTubeId(item.youtubeUrl || '');
-        // Hydrate imageUrl from YouTube thumbnail if missing
+        const defaultItem = HISTORICAL_VIDEOS.find(d => d.id === item.id);
+        const videoUrl = item.youtubeUrl || item.hoChiMinhVnUrl || item.videoStreamUrl || defaultItem?.youtubeUrl || defaultItem?.hoChiMinhVnUrl || '';
+        const detected = detectVideoSource(videoUrl);
+        const sourceType = item.sourceType || (item.hoChiMinhVnUrl ? 'HOCHIMINH_VN' : detected.sourceType);
+        const videoId = item.youtubeVideoId || detected.youtubeId || (defaultItem?.youtubeVideoId);
+        
         let imageUrl = sanitizeImage(item.imageUrl);
-        if (!imageUrl && videoId) {
-          imageUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-        } else if (!imageUrl) {
-          const defaultItem = HISTORICAL_VIDEOS.find(d => d.id === item.id);
-          if (defaultItem?.imageUrl) imageUrl = defaultItem.imageUrl;
+        if (!imageUrl) {
+          imageUrl = defaultItem?.imageUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80');
         }
+
         return {
           ...item,
+          sourceType,
           youtubeVideoId: videoId,
-          imageUrl: imageUrl || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+          hoChiMinhVnUrl: item.hoChiMinhVnUrl || defaultItem?.hoChiMinhVnUrl,
+          imageUrl: imageUrl || defaultItem?.imageUrl
         };
       });
     }
@@ -179,9 +213,9 @@ export function loadStoredFootsteps(): FootstepLocation[] {
   if (typeof window === 'undefined') return FOOTSTEP_LOCATIONS;
   try {
     const raw = localStorage.getItem(KEY_FOOTSTEPS);
-    if (!raw) return FOOTSTEP_LOCATIONS;
+    if (raw === null) return FOOTSTEP_LOCATIONS;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    if (Array.isArray(parsed)) {
       return parsed.map((item: FootstepLocation) => {
         const defaultItem = FOOTSTEP_LOCATIONS.find(d => d.id === item.id);
         const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
@@ -207,14 +241,24 @@ export function saveStoredFootsteps(data: FootstepLocation[]): void {
   }
 }
 
+export function resetStoredFootsteps(): FootstepLocation[] {
+  if (typeof window === 'undefined') return FOOTSTEP_LOCATIONS;
+  try {
+    localStorage.removeItem(KEY_FOOTSTEPS);
+  } catch (err) {
+    console.error('Error resetting stored footsteps:', err);
+  }
+  return FOOTSTEP_LOCATIONS;
+}
+
 // --- CHANH HIEP ACTIONS STORE ---
 export function loadStoredChanhHiepActions(): ChanhHiepActionModel[] {
   if (typeof window === 'undefined') return CHANH_HIEP_ACTION_MODELS;
   try {
     const raw = localStorage.getItem(KEY_CHANH_HIEP_ACTIONS);
-    if (!raw) return CHANH_HIEP_ACTION_MODELS;
+    if (raw === null) return CHANH_HIEP_ACTION_MODELS;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    if (Array.isArray(parsed)) {
       return parsed.map((item: ChanhHiepActionModel) => {
         const defaultItem = CHANH_HIEP_ACTION_MODELS.find(d => d.id === item.id);
         const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
@@ -238,6 +282,16 @@ export function saveStoredChanhHiepActions(data: ChanhHiepActionModel[]): void {
   } catch (err) {
     console.error('Error saving stored Chanh Hiep actions:', err);
   }
+}
+
+export function resetStoredChanhHiepActions(): ChanhHiepActionModel[] {
+  if (typeof window === 'undefined') return CHANH_HIEP_ACTION_MODELS;
+  try {
+    localStorage.removeItem(KEY_CHANH_HIEP_ACTIONS);
+  } catch (err) {
+    console.error('Error resetting stored actions:', err);
+  }
+  return CHANH_HIEP_ACTION_MODELS;
 }
 
 export const loadStoredActions = loadStoredChanhHiepActions;

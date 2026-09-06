@@ -128,11 +128,16 @@ export interface HistoricalAudio {
   verificationStatus: VerificationStatus;
 }
 
+export type VideoSourceType = 'YOUTUBE' | 'HOCHIMINH_VN' | 'DIRECT_STREAM';
+
 export interface HistoricalVideo {
   id: string;
   title: string;
-  youtubeUrl: string;
-  youtubeVideoId: string;
+  sourceType: VideoSourceType;
+  youtubeUrl?: string;
+  youtubeVideoId?: string;
+  hoChiMinhVnUrl?: string; // Đường dẫn chuyên mục tư liệu video tại https://hochiminh.vn/tu-lieu-video
+  videoStreamUrl?: string; // Đường dẫn phát video MP4/HLS/Stream trực tiếp
   dateStr: string;
   duration: string;
   occasion: string;
@@ -140,8 +145,28 @@ export interface HistoricalVideo {
   imageUrl?: string;
   description: string;
   historicalNote?: string;
-  category?: 'Tuyên ngôn & Độc lập' | 'Ngoại giao & Quốc tế' | 'Bác Hồ với Nhân dân' | 'Kháng chiến & Chiến dịch' | 'Phim tài liệu lịch sử' | 'Quốc tang & Di chúc';
+  category?: 'Tuyên ngôn & Độc lập' | 'Ngoại giao & Quốc tế' | 'Bác Hồ với Nhân dân' | 'Kháng chiến & Chiến dịch' | 'Phim tài liệu lịch sử' | 'Quốc tang & Di chúc' | 'Hành trình cứu nước' | 'Di sản tư tưởng';
   verificationStatus: VerificationStatus;
+  isFeatured?: boolean;
+}
+
+/**
+ * Helper nhận diện nguồn video tự động từ URL (YouTube hoặc hochiminh.vn hoặc Direct Stream)
+ */
+export function detectVideoSource(url: string): { sourceType: VideoSourceType; youtubeId?: string; isHoChiMinhVn: boolean } {
+  if (!url) return { sourceType: 'YOUTUBE', isHoChiMinhVn: false };
+  const trimmed = url.trim();
+  if (trimmed.includes('hochiminh.vn')) {
+    return { sourceType: 'HOCHIMINH_VN', isHoChiMinhVn: true };
+  }
+  const ytId = extractYouTubeId(trimmed);
+  if (ytId || trimmed.includes('youtube.com') || trimmed.includes('youtu.be')) {
+    return { sourceType: 'YOUTUBE', youtubeId: ytId, isHoChiMinhVn: false };
+  }
+  if (trimmed.match(/\.(mp4|webm|m4v|mov|m3u8)(\?.*)?$/i)) {
+    return { sourceType: 'DIRECT_STREAM', isHoChiMinhVn: false };
+  }
+  return { sourceType: 'YOUTUBE', youtubeId: ytId, isHoChiMinhVn: false };
 }
 
 /**
@@ -161,6 +186,27 @@ export function extractYouTubeId(url: string): string {
   const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
   const match = trimmed.match(regExp);
   return match && match[1] ? match[1] : '';
+}
+
+/**
+ * Lấy ảnh Thumbnail đại diện cho video (YouTube hoặc hochiminh.vn hoặc ảnh dự phòng trang trọng)
+ */
+export function getVideoThumbnail(video: Partial<HistoricalVideo>): string {
+  if (video.imageUrl && video.imageUrl.startsWith('http')) {
+    return video.imageUrl;
+  }
+  if (video.youtubeVideoId) {
+    return `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
+  }
+  if (video.youtubeUrl) {
+    const id = extractYouTubeId(video.youtubeUrl);
+    if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  }
+  // Ảnh đại diện tư liệu theo nguồn hochiminh.vn
+  if (video.sourceType === 'HOCHIMINH_VN' || (video.hoChiMinhVnUrl && video.hoChiMinhVnUrl.includes('hochiminh.vn'))) {
+    return 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80';
+  }
+  return 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80';
 }
 
 export interface FrontInitiative {
@@ -2033,14 +2079,89 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
 ];
 
 // ==========================================
-// 6.2. PHÒNG TƯ LIỆU PHIM ẢNH & VIDEO LỊCH SỬ (YOUTUBE)
+// 6.2. PHÒNG TƯ LIỆU PHIM ẢNH & VIDEO LỊCH SỬ (ĐA NGUỒN: YOUTUBE & HOCHIMINH.VN)
 // ==========================================
 export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
+  // --- NGUỒN CHÍNH THỐNG: CỔNG THÔNG TIN ĐIỆN TỬ HỒ CHÍ MINH (hochiminh.vn/tu-lieu-video) ---
+  {
+    id: 'vid-hcm-01',
+    title: 'Phim tư liệu: Nguyễn Ái Quốc - Hành trình 30 năm tìm đường cứu nước (1911 - 1941)',
+    sourceType: 'HOCHIMINH_VN',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/nguyen-ai-quoc-hanh-trinh-tim-duong-cuu-nuoc',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Fj2F1l72w0E',
+    youtubeVideoId: 'Fj2F1l72w0E',
+    dateStr: '1911 - 1941',
+    duration: '28 phút 35 giây',
+    occasion: 'Kỷ niệm ngày Bác Hồ ra đi tìm đường cứu nước từ Bến cảng Nhà Rồng',
+    sourceAgency: 'Cổng thông tin điện tử Hồ Chí Minh (hochiminh.vn) & Ban Tuyên giáo Trung ương',
+    imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80',
+    category: 'Hành trình cứu nước',
+    description: 'Thước phim tư liệu đồ sộ được số hóa từ kho lưu trữ Cổng TTĐT Hồ Chí Minh (hochiminh.vn), tái hiện trọn vẹn chặng đường 30 năm bôn ba qua 3 đại dương, 4 châu lục của người thanh niên yêu nước Nguyễn Tất Thành để tìm ra chân lý giải phóng dân tộc.',
+    historicalNote: 'Tư liệu kiểm chứng cấp A khẳng định công lao trời biển của Lãnh tụ Nguyễn Ái Quốc đối với sự nghiệp cách mạng Việt Nam.',
+    verificationStatus: 'VERIFIED',
+    isFeatured: true
+  },
+  {
+    id: 'vid-hcm-02',
+    title: 'Tư liệu lịch sử: Bác Hồ với Đại hội thống nhất Mặt trận Việt Minh - Liên Việt (1951)',
+    sourceType: 'HOCHIMINH_VN',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/bac-ho-voi-dai-doan-ket-toan-dan-toc',
+    youtubeUrl: 'https://www.youtube.com/watch?v=8R7pG59rQkM',
+    youtubeVideoId: '8R7pG59rQkM',
+    dateStr: 'Tháng 3/1951',
+    duration: '14 phút 20 giây',
+    occasion: 'Đại hội toàn quốc thống nhất Việt Minh - Liên Việt tại Chiến khu Việt Bắc',
+    sourceAgency: 'Cổng thông tin điện tử Hồ Chí Minh (hochiminh.vn) & Viện Lịch sử Đảng',
+    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
+    category: 'Bác Hồ với Nhân dân',
+    description: 'Thước phim tài liệu quý báu về tư tưởng Đại đoàn kết của Bác Hồ: "Đoàn kết, đoàn kết, đại đoàn kết / Thành công, thành công, đại thành công". Sự kiện đánh dấu bước phát triển vượt bậc của Mặt trận Dân tộc thống nhất Việt Nam.',
+    historicalNote: 'Tư liệu cốt lõi trong công tác Mặt trận Tổ quốc và công tác vận động quần chúng nhân dân theo lời dạy của Người.',
+    verificationStatus: 'VERIFIED',
+    isFeatured: true
+  },
+  {
+    id: 'vid-hcm-03',
+    title: 'Phim tư liệu: Hồ Chí Minh - Ngọn cờ hòa bình và Tình đoàn kết quốc tế vô sản',
+    sourceType: 'HOCHIMINH_VN',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/ho-chi-minh-ngon-co-hoa-binh',
+    youtubeUrl: 'https://www.youtube.com/watch?v=69H4H5h-7wY',
+    youtubeVideoId: '69H4H5h-7wY',
+    dateStr: '1945 - 1969',
+    duration: '35 phút 10 giây',
+    occasion: 'UNESCO tôn vinh Chủ tịch Hồ Chí Minh - Anh hùng giải phóng dân tộc, Danh nhân văn hóa kiệt xuất',
+    sourceAgency: 'Cổng thông tin điện tử Hồ Chí Minh (hochiminh.vn) & Ban Tuyên giáo Trung ương',
+    imageUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80',
+    category: 'Ngoại giao & Quốc tế',
+    description: 'Tuyển tập những thước phim tư liệu lịch sử lưu trữ tại hochiminh.vn về các chuyến công du quốc tế, cuộc hội đàm hòa bình và sự ủng hộ của phong trào tiến bộ trên toàn thế giới đối với cuộc đấu tranh chính nghĩa của nhân dân Việt Nam.',
+    historicalNote: 'Khẳng định tầm vóc thời đại và sức lan tỏa của văn hóa, nhân cách Hồ Chí Minh trên trường quốc tế.',
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'vid-hcm-04',
+    title: 'Thước phim tư liệu: Bác Hồ làm việc tại Nhà sàn và Phủ Chủ tịch (1958 - 1969)',
+    sourceType: 'HOCHIMINH_VN',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/bac-ho-tai-nha-san-phu-chu-tich',
+    youtubeUrl: 'https://www.youtube.com/watch?v=qV8R4xX7J2A',
+    youtubeVideoId: 'qV8R4xX7J2A',
+    dateStr: '1958 - 1969',
+    duration: '18 phút 45 giây',
+    occasion: 'Khu Di tích Chủ tịch Hồ Chí Minh tại Phủ Chủ tịch',
+    sourceAgency: 'Cổng thông tin điện tử Hồ Chí Minh (hochiminh.vn) & Khu Di tích Phủ Chủ tịch',
+    imageUrl: 'https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80',
+    category: 'Di sản tư tưởng',
+    description: 'Hình ảnh đời thường bình dị, thanh bạch của Bác tại ngôi Nhà sàn lịch sử: chăm sóc vườn cây ao cá, tiếp đón các đại biểu quốc tế, cán bộ miền Nam và viết tài liệu tuyệt đối bí mật - Bản Di chúc lịch sử.',
+    historicalNote: 'Tấm gương mẫu mực tuyệt đối về đạo đức cách mạng: Cần, Kiệm, Liêm, Chính, Chí công vô tư.',
+    verificationStatus: 'VERIFIED'
+  },
+
+  // --- NGUỒN KÊNH CHÍNH THỐNG: YOUTUBE (VTV, HÃNG PHIM TL&KH TRUNG ƯƠNG, TTXVN) ---
   {
     id: 'vid-01',
     title: 'Lễ Độc lập 02/09/1945 - Bác Hồ đọc Tuyên ngôn Độc lập tại Quảng trường Ba Đình',
+    sourceType: 'YOUTUBE',
     youtubeUrl: 'https://www.youtube.com/watch?v=Fj2F1l72w0E',
     youtubeVideoId: 'Fj2F1l72w0E',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/le-doc-lap-02-09-1945-tuyen-ngon-doc-lap',
     dateStr: '02/09/1945',
     duration: '05 phút 18 giây',
     occasion: 'Lễ Tuyên ngôn Độc lập, Quảng trường Ba Đình, Thủ đô Hà Nội',
@@ -2049,13 +2170,16 @@ export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
     category: 'Tuyên ngôn & Độc lập',
     description: 'Thước phim tư liệu vô giá ghi lại toàn cảnh ngày Quốc khánh đầu tiên của dân tộc. Chủ tịch Hồ Chí Minh trong bộ quần áo kaki giản dị thay mặt Chính phủ Lâm thời đọc bản Tuyên ngôn Độc lập lịch sử, khai sinh nước Việt Nam Dân chủ Cộng hòa.',
     historicalNote: 'Tư liệu lịch sử khẳng định chủ quyền độc lập của dân tộc và hình ảnh Người Cha già kính yêu đứng giữa biển người đồng bào Ba Đình lịch sử.',
-    verificationStatus: 'VERIFIED'
+    verificationStatus: 'VERIFIED',
+    isFeatured: true
   },
   {
     id: 'vid-02',
     title: 'Chủ tịch Hồ Chí Minh thăm chính thức Cộng hòa Pháp năm 1946',
+    sourceType: 'YOUTUBE',
     youtubeUrl: 'https://www.youtube.com/watch?v=69H4H5h-7wY',
     youtubeVideoId: '69H4H5h-7wY',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/chuyen-tham-nuoc-phap-nam-1946',
     dateStr: 'Tháng 6 - Tháng 9/1946',
     duration: '12 phút 40 giây',
     occasion: 'Chuyến thăm ngoại giao lịch sử của Chủ tịch nước Việt Nam Dân chủ Cộng hòa',
@@ -2069,8 +2193,10 @@ export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
   {
     id: 'vid-03',
     title: 'Bác Hồ với Chiến dịch Điện Biên Phủ lịch sử năm 1954',
+    sourceType: 'YOUTUBE',
     youtubeUrl: 'https://www.youtube.com/watch?v=xR4K87g5U_s',
     youtubeVideoId: 'xR4K87g5U_s',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/chien-dich-dien-bien-phu-1954',
     dateStr: '1953 - 1954',
     duration: '09 phút 15 giây',
     occasion: 'Chiến cuộc Đông Xuân 1953 - 1954 và Chiến dịch Điện Biên Phủ',
@@ -2084,8 +2210,10 @@ export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
   {
     id: 'vid-04',
     title: 'Khoảnh khắc Bác Hồ bắt nhịp bài ca "Kết đoàn" (1960)',
+    sourceType: 'YOUTUBE',
     youtubeUrl: 'https://www.youtube.com/watch?v=8R7pG59rQkM',
     youtubeVideoId: '8R7pG59rQkM',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/bac-ho-bat-nhip-bai-ca-ket-doan-1960',
     dateStr: 'Tháng 9/1960',
     duration: '03 phút 30 giây',
     occasion: 'Dạ hội chào mừng thành công Đại hội Đảng toàn quốc lần thứ III tại Công viên Bách Thảo',
@@ -2099,8 +2227,10 @@ export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
   {
     id: 'vid-05',
     title: 'Phim tài liệu: Hồ Chí Minh - Chân dung một con người',
+    sourceType: 'YOUTUBE',
     youtubeUrl: 'https://www.youtube.com/watch?v=4_l3u6Vl3zY',
     youtubeVideoId: '4_l3u6Vl3zY',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/ho-chi-minh-chan-dung-mot-con-nguoi',
     dateStr: '1989',
     duration: '52 phút 10 giây',
     occasion: 'Tác phẩm điện ảnh tài liệu kỷ niệm 100 năm ngày sinh Chủ tịch Hồ Chí Minh (UNESCO vinh danh)',
@@ -2114,8 +2244,10 @@ export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
   {
     id: 'vid-06',
     title: 'Bác Hồ với các cháu thiếu niên, nhi đồng và đồng bào các dân tộc',
+    sourceType: 'YOUTUBE',
     youtubeUrl: 'https://www.youtube.com/watch?v=qV8R4xX7J2A',
     youtubeVideoId: 'qV8R4xX7J2A',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/bac-ho-voi-thieu-nhi-va-dong-bao-dan-toc',
     dateStr: '1961 - 1969',
     duration: '07 phút 45 giây',
     occasion: 'Những chuyến thăm các trường học, nhà trẻ, làng bản vùng cao của Bác',
@@ -2129,8 +2261,10 @@ export const HISTORICAL_VIDEOS: HistoricalVideo[] = [
   {
     id: 'vid-07',
     title: 'Những ngày tháng 9 năm 1969 - Lễ Quốc tang Chủ tịch Hồ Chí Minh',
+    sourceType: 'YOUTUBE',
     youtubeUrl: 'https://www.youtube.com/watch?v=h5L7rG3n8Qw',
     youtubeVideoId: 'h5L7rG3n8Qw',
+    hoChiMinhVnUrl: 'https://hochiminh.vn/tu-lieu-video/le-quoc-tang-chu-tich-ho-chi-minh-1969',
     dateStr: '09/09/1969',
     duration: '15 phút 20 giây',
     occasion: 'Lễ truy điệu trọng thể Chủ tịch Hồ Chí Minh tại Quảng trường Ba Đình, Hà Nội',

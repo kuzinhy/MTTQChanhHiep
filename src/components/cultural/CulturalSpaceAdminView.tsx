@@ -281,6 +281,23 @@ export const CulturalSpaceAdminView: React.FC = () => {
     refreshAllData();
   };
 
+  const handleDeleteEvent = (id: string, title: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa sự kiện "${title}" khỏi dòng thời gian?`)) return;
+    const updated = events.filter(ev => ev.id !== id);
+    setEvents(updated);
+    saveStoredEvents(updated);
+    recordVersionChange(id, 'event', 'Biên tập viên', `Xóa sự kiện: ${title}`, null, null);
+    refreshAllData();
+  };
+
+  const handleDeleteSource = (id: string, title: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa nguồn "${title}"?`)) return;
+    const updated = sources.filter(s => s.id !== id);
+    setSources(updated);
+    saveStoredSources(updated);
+    refreshAllData();
+  };
+
   // Helper status color badge
   const getStatusBadge = (status: VerificationStatus) => {
     switch (status) {
@@ -640,6 +657,13 @@ export const CulturalSpaceAdminView: React.FC = () => {
                     >
                       Xuất bản
                     </button>
+                    <button
+                      onClick={() => handleDeleteEvent(ev.id, ev.title)}
+                      className="p-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs transition cursor-pointer"
+                      title="Xóa sự kiện"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -751,7 +775,7 @@ export const CulturalSpaceAdminView: React.FC = () => {
                   <div>Quyền sử dụng: <span className="text-emerald-700 dark:text-emerald-400 font-medium">{src.usage_permission}</span></div>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 flex items-center justify-between">
                   <a
                     href={src.source_url}
                     target="_blank"
@@ -761,6 +785,13 @@ export const CulturalSpaceAdminView: React.FC = () => {
                     <span>{src.source_url}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
+                  <button
+                    onClick={() => handleDeleteSource(src.id, src.source_title)}
+                    className="p-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs transition cursor-pointer"
+                    title="Xóa nguồn"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             ))}

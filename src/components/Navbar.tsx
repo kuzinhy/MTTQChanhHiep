@@ -79,7 +79,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 relative z-10">
           
           {/* Logo & Agency Title */}
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveTab('home')}>
+          <div className="flex items-center gap-3 cursor-pointer group shrink-0" onClick={() => setActiveTab('home')}>
             <div className="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border-2 border-amber-400 transition-all duration-300 group-hover:scale-105">
               <OptimizedImage
                 src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
@@ -89,37 +89,37 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="w-full h-full object-contain"
               />
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xs sm:text-sm font-black tracking-tight uppercase leading-tight text-white drop-shadow-xs">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
+                <h1 className="text-xs sm:text-sm font-black tracking-tight uppercase leading-tight text-white drop-shadow-xs whitespace-nowrap">
                   ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG CHÁNH HIỆP
                 </h1>
-                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#f5a623] text-slate-950 shadow-xs">
-                  <Star className="w-2.5 h-2.5 fill-slate-950" /> SỐ HÓA 4.0
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#f5a623] text-slate-950 shadow-xs whitespace-nowrap shrink-0">
+                  <Star className="w-2.5 h-2.5 fill-slate-950 shrink-0" /> SỐ HÓA 4.0
                 </span>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-[11px] text-blue-100 font-bold tracking-wide">
+              <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
+                <p className="text-[11px] text-blue-100 font-bold tracking-wide whitespace-nowrap shrink-0">
                   THÀNH PHỐ HỒ CHÍ MINH
                 </p>
-                <span className="text-blue-300 hidden sm:inline">•</span>
-                <span className="inline-flex items-center gap-1 text-[11px] text-blue-100 font-semibold">
+                <span className="text-blue-300 hidden sm:inline shrink-0">•</span>
+                <span className="inline-flex items-center gap-1 text-[11px] text-blue-100 font-semibold whitespace-nowrap shrink-0">
                   <Clock className="w-3.5 h-3.5 text-cyan-200 shrink-0" />
-                  <span className="capitalize">{new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
+                  <span className="capitalize whitespace-nowrap">{new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
                 </span>
               </div>
             </div>
           </div>
 
           {/* Quick Search & Actions */}
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-nowrap shrink-0">
             {/* PWA Install Button */}
             <PWAInstallButton />
 
             {/* Notification Bell */}
             <button
               onClick={onOpenNotificationCenter}
-              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white relative transition cursor-pointer border border-white/20"
+              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white relative transition cursor-pointer border border-white/20 shrink-0"
               title="Trung tâm Thông báo"
             >
               <Bell className="w-4 h-4" />
@@ -129,24 +129,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Không gian VH Hồ Chí Minh Quick Button */}
             <button
               onClick={onOpenHcmSpaceModal}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-xl shadow-md border border-amber-300/40 transition-all active:scale-95 shrink-0 cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-xl shadow-md border border-amber-300/40 transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
               title="Khám phá Không gian Văn hóa Hồ Chí Minh 3D"
             >
-              <Star className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300 animate-pulse" />
-              <span>Không gian VH Hồ Chí Minh</span>
+              <Star className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300 animate-pulse shrink-0" />
+              <span className="whitespace-nowrap">Không gian VH Hồ Chí Minh</span>
             </button>
 
             {/* Volunteer Signup */}
             <button
               onClick={onOpenVolunteerModal}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
             >
-              <HeartHandshake className="w-4 h-4 text-slate-950" />
-              <span>Đăng ký TNV</span>
+              <HeartHandshake className="w-4 h-4 text-slate-950 shrink-0" />
+              <span className="whitespace-nowrap">Đăng ký TNV</span>
             </button>
 
             {/* Quick Search */}
-            <div className="relative flex-1 md:w-48">
+            <div className="relative flex-1 md:w-48 shrink-0">
               <input
                 type="text"
                 placeholder="Tìm tin tức, văn bản..."
@@ -163,20 +163,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={onGoToOffice}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs shrink-0 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-white animate-pulse" />
-                <span>Văn phòng số</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-white animate-pulse shrink-0" />
+                <span className="whitespace-nowrap">Văn phòng số</span>
               </motion.button>
             ) : (
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={onOpenLoginModal}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-100 border border-blue-400/30 font-bold text-xs rounded-xl shadow-2xs shrink-0 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-100 border border-blue-400/30 font-bold text-xs rounded-xl shadow-2xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
               >
-                <LogIn className="w-3.5 h-3.5 text-cyan-300" />
-                <span>Cán bộ</span>
+                <LogIn className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+                <span className="whitespace-nowrap">Cán bộ</span>
               </motion.button>
             )}
           </div>
@@ -213,8 +213,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                         : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : isSpecial ? 'text-red-700' : 'text-slate-500'}`} />
-                    <span>{item.label}</span>
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : isSpecial ? 'text-red-700' : 'text-slate-500'}`} />
+                    <span className="whitespace-nowrap">{item.label}</span>
                   </button>
                 );
               })}
@@ -222,13 +222,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile Menu Toggle */}
             <div className="lg:hidden flex items-center justify-between w-full py-1">
-              <span className="text-xs font-black text-blue-900 flex items-center gap-1.5">
-                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                <span>{navItems.find((n) => n.id === activeTab)?.label || 'Trang chủ'}</span>
+              <span className="text-xs font-black text-blue-900 flex items-center gap-1.5 whitespace-nowrap truncate min-w-0">
+                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+                <span className="whitespace-nowrap truncate">{navItems.find((n) => n.id === activeTab)?.label || 'Trang chủ'}</span>
               </span>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1.5 text-slate-700 hover:text-blue-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                className="p-1.5 text-slate-700 hover:text-blue-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>

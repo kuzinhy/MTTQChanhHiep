@@ -12,7 +12,8 @@ import {
   Sparkles,
   Users,
   Award,
-  Edit3
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import { VERIFIED_QUOTES, VerifiedQuote } from '../../data/hcmVerifiedMuseumData';
 import { loadStoredQuotes, saveStoredQuotes } from '../../lib/hcmDataStore';
@@ -39,6 +40,13 @@ export const HcmVerifiedQuotes: React.FC<HcmVerifiedQuotesProps> = ({ isResearch
 
   const handleSaveQuote = (updated: VerifiedQuote) => {
     const updatedList = quotesList.map((q) => (q.id === updated.id ? updated : q));
+    setQuotesList(updatedList);
+    saveStoredQuotes(updatedList);
+    setEditingQuote(null);
+  };
+
+  const handleDeleteQuote = (id: string) => {
+    const updatedList = quotesList.filter((q) => q.id !== id);
     setQuotesList(updatedList);
     saveStoredQuotes(updatedList);
     setEditingQuote(null);
@@ -83,6 +91,7 @@ export const HcmVerifiedQuotes: React.FC<HcmVerifiedQuotesProps> = ({ isResearch
           itemType="quote"
           itemData={editingQuote}
           onSave={handleSaveQuote}
+          onDelete={handleDeleteQuote}
         />
       )}
 
@@ -144,13 +153,22 @@ export const HcmVerifiedQuotes: React.FC<HcmVerifiedQuotesProps> = ({ isResearch
 
                 <div className="flex items-center gap-2">
                   {isAdmin && (
-                    <button
-                      onClick={() => setEditingQuote(item)}
-                      className="px-2.5 py-1 rounded-lg bg-amber-300 text-rose-950 font-extrabold text-[11px] flex items-center gap-1 hover:bg-amber-200 transition shadow-xs cursor-pointer"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      <span>Sửa</span>
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setEditingQuote(item)}
+                        className="px-2.5 py-1 rounded-lg bg-amber-300 text-rose-950 font-extrabold text-[11px] flex items-center gap-1 hover:bg-amber-200 transition shadow-xs cursor-pointer"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Sửa</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteQuote(item.id)}
+                        className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition cursor-pointer"
+                        title="Xóa trích dẫn"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => handleCopyQuote(item)}
