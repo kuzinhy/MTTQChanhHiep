@@ -119,6 +119,19 @@ const LotusFlowerIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-
   </svg>
 );
 
+// Helper to convert ALL CAPS titles into natural Sentence Case
+function formatTitleCase(title: string): string {
+  if (!title) return '';
+  const letters = title.replace(/[^a-zA-ZÀ-ỹ]/g, '');
+  if (letters.length === 0) return title;
+  const upperCount = (letters.match(/[A-ZÀ-Ỹ]/g) || []).length;
+  if (upperCount / letters.length > 0.65) {
+    const lower = title.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }
+  return title;
+}
+
 interface NewsSectionProps {
   articles: Article[];
   searchQuery: string;
@@ -317,6 +330,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
                   variant="article"
                   fallbackCategory={mainHero.category}
                   priority={true}
+                  style={{ objectPosition: mainHero.objectPosition || mainHero.imageFocalPoint || 'center 35%' }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 
@@ -342,7 +356,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               {/* Text content clearly separated beneath the image */}
               <div className="space-y-2 pt-1">
                 <h1 className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">
-                  {mainHero.title}
+                  {formatTitleCase(mainHero.title)}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
                   {mainHero.summary}
@@ -563,7 +577,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
             >
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-500 shadow-xl ring-4 ring-rose-200/90 overflow-hidden relative">
                 <OptimizedImage
-                  src="https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png"
+                  src="/assets/cultural/ho-chi-minh-portrait.jpg"
                   alt="Chủ tịch Hồ Chí Minh (1890 - 1969)"
                   variant="avatar"
                   priority={true}

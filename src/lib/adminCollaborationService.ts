@@ -71,6 +71,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: AdminNotificationPreferences = {
 const DEFAULT_SEED_ADMIN_NOTIFICATIONS: AdminNotification[] = [
   {
     id: 'seed-notif-1',
+    type: 'DOCUMENT',
     actorAdminId: 'staff-1',
     actorName: 'Nguyễn Văn Hùng (Chủ tịch)',
     title: 'Phê duyệt Kế hoạch 08/KH-MTTQ',
@@ -83,6 +84,7 @@ const DEFAULT_SEED_ADMIN_NOTIFICATIONS: AdminNotification[] = [
   },
   {
     id: 'seed-notif-2',
+    type: 'ARTICLE',
     actorAdminId: 'staff-2',
     actorName: 'Trần Thị Mai (Phó Chủ tịch)',
     title: 'Xuất bản Bài viết Tin tức mới',
@@ -95,6 +97,7 @@ const DEFAULT_SEED_ADMIN_NOTIFICATIONS: AdminNotification[] = [
   },
   {
     id: 'seed-notif-3',
+    type: 'ACTIVITY',
     actorAdminId: 'public-user',
     actorName: 'Nguyễn Văn A (Tình nguyện viên)',
     title: 'Gửi Đăng ký Tình nguyện viên',
@@ -107,6 +110,7 @@ const DEFAULT_SEED_ADMIN_NOTIFICATIONS: AdminNotification[] = [
   },
   {
     id: 'seed-notif-4',
+    type: 'MEDIA',
     actorAdminId: 'staff-3',
     actorName: 'Lê Văn Nam (Ủy viên MTTQ)',
     title: 'Cập nhật Không gian Văn hóa Hồ Chí Minh',

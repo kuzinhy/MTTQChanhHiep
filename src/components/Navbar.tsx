@@ -26,7 +26,6 @@ import {
 import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
 import { OptimizedImage } from './common/OptimizedImage';
-import { OfflineSyncStatusWidget } from './common/OfflineSyncStatusWidget';
 
 interface NavbarProps {
   activeTab: string;
@@ -83,7 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-2.5 cursor-pointer group shrink-0" onClick={() => setActiveTab('home')}>
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-xs border-2 border-amber-400 transition-all duration-300 group-hover:scale-105">
               <OptimizedImage
-                src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
+                src="/assets/logos/logo-mttq.svg"
                 alt="Logo Ủy ban Mặt trận Tổ quốc Việt Nam"
                 variant="thumbnail"
                 priority={true}
@@ -114,110 +113,73 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Quick Search & Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto justify-end flex-nowrap shrink-0">
-            {/* PWA Install Button */}
-            <PWAInstallButton />
-
-            {/* Notification Bell */}
-            <button
-              onClick={onOpenNotificationCenter}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white relative transition cursor-pointer border border-white/20 shrink-0"
-              title="Trung tâm Thông báo"
-            >
-              <Bell className="w-3.5 h-3.5" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full border border-white animate-pulse" />
-            </button>
+            {/* Quick Search */}
+            <div className="relative flex-1 md:w-48 shrink-0">
+              <input
+                type="text"
+                placeholder="Tìm tin tức, văn bản..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full text-xs pl-7 pr-2.5 py-1.5 bg-blue-900/70 border border-blue-400/40 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:bg-blue-950 focus:border-cyan-300 transition-all font-medium"
+              />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-blue-200" />
+            </div>
 
             {/* Không gian VH Hồ Chí Minh Quick Button */}
             <button
               onClick={onOpenHcmSpaceModal}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-lg shadow-xs border border-amber-300/40 transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs rounded-xl shadow-xs border border-amber-300/40 transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
               title="Khám phá Không gian Văn hóa Hồ Chí Minh 3D"
             >
-              <Star className="w-3 h-3 text-yellow-300 fill-yellow-300 animate-pulse shrink-0" />
+              <Star className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300 animate-pulse shrink-0" />
               <span className="whitespace-nowrap">Không gian VH Hồ Chí Minh</span>
             </button>
 
             {/* Volunteer Signup */}
             <button
               onClick={onOpenVolunteerModal}
-              className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-lg shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
             >
               <HeartHandshake className="w-3.5 h-3.5 text-slate-950 shrink-0" />
               <span className="whitespace-nowrap">Đăng ký TNV</span>
             </button>
 
-            {/* Quick Search */}
-            <div className="relative flex-1 md:w-44 shrink-0">
-              <input
-                type="text"
-                placeholder="Tìm tin tức, văn bản..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs pl-7 pr-2.5 py-1 bg-blue-900/60 border border-blue-400/40 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:bg-blue-950 focus:border-cyan-300 transition-all font-medium"
-              />
-              <Search className="w-3 h-3 absolute left-2 top-1.5 text-blue-200" />
-            </div>
+            {/* Notification Bell */}
+            <button
+              onClick={onOpenNotificationCenter}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white relative transition cursor-pointer border border-white/20 shrink-0"
+              title="Trung tâm Thông báo"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full border border-white animate-pulse" />
+            </button>
 
-            {/* Offline Sync Widget */}
-            <OfflineSyncStatusWidget />
-
-            {/* Login / Digital Office Button */}
-            {isStaffLoggedIn ? (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onGoToOffice}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-lg shadow-2xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-white animate-pulse shrink-0" />
-                <span className="whitespace-nowrap">Văn phòng số</span>
-              </motion.button>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onOpenLoginModal}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-900/80 hover:bg-blue-800 text-blue-100 border border-blue-400/30 font-bold text-xs rounded-lg shadow-2xs shrink-0 transition-all cursor-pointer whitespace-nowrap"
-              >
-                <LogIn className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
-                <span className="whitespace-nowrap">Cán bộ</span>
-              </motion.button>
-            )}
+            {/* PWA Install Button */}
+            <PWAInstallButton />
           </div>
         </div>
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-white border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-2 sm:px-4">
-          <div className="flex items-center justify-between h-11">
-            <nav className="hidden lg:flex items-center justify-between w-full gap-0.5 xl:gap-1 py-0.5 overflow-x-auto">
+          <div className="flex items-center justify-between h-12">
+            <nav className="hidden lg:flex items-center justify-between w-full gap-1 py-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
-                const isSpecial = (item as any).isSpecial;
 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      if (item.id === 'hcm_space' && onOpenHcmSpaceModal) {
-                        onOpenHcmSpaceModal();
-                      } else {
-                        setActiveTab(item.id);
-                      }
-                    }}
-                    className={`relative flex items-center justify-center gap-1 xl:gap-1.5 px-2 xl:px-2.5 py-1.5 text-[11px] xl:text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    onClick={() => setActiveTab(item.id)}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                       isActive
-                        ? isSpecial
-                          ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-xs'
-                          : 'bg-blue-600 text-white shadow-xs'
-                        : isSpecial
-                        ? 'bg-amber-50/80 text-red-800 border border-amber-300/70 hover:bg-amber-100 hover:text-red-900'
-                        : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
+                        ? 'bg-blue-600 text-white shadow-xs font-black'
+                        : 'text-slate-700 hover:bg-blue-50/90 hover:text-blue-700 font-bold'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : isSpecial ? 'text-red-700' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                     <span className="whitespace-nowrap">{item.label}</span>
                   </button>
                 );
@@ -232,7 +194,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1.5 text-slate-700 hover:text-blue-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
+                className="p-2 text-slate-700 hover:text-blue-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -241,52 +203,45 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Mobile Dropdown Menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden py-3 border-t border-slate-200 space-y-1 animate-fadeIn">
-              <div className="flex items-center gap-2 px-2 pb-2 border-b border-slate-100">
+            <div className="lg:hidden py-3 border-t border-slate-200 space-y-1.5 animate-fadeIn">
+              <div className="flex items-center gap-2 px-1 pb-2 border-b border-slate-100">
                 <button
                   onClick={() => { onOpenDigitalDirectory?.(); setMobileMenuOpen(false); }}
-                  className="flex-1 py-2 bg-blue-50 text-blue-800 text-xs font-bold rounded-xl border border-blue-200 text-center"
+                  className="flex-1 py-2.5 bg-blue-50 text-blue-800 text-xs font-bold rounded-xl border border-blue-200 text-center"
                 >
                   Danh bạ số
                 </button>
                 <button
                   onClick={() => { onOpenVolunteerModal?.(); setMobileMenuOpen(false); }}
-                  className="flex-1 py-2 bg-amber-400 text-slate-950 text-xs font-black rounded-xl text-center"
+                  className="flex-1 py-2.5 bg-amber-400 text-slate-950 text-xs font-black rounded-xl text-center"
                 >
                   Đăng ký TNV
                 </button>
               </div>
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                const isSpecial = (item as any).isSpecial;
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
 
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      if (item.id === 'hcm_space' && onOpenHcmSpaceModal) {
-                        onOpenHcmSpaceModal();
-                      } else {
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
                         setActiveTab(item.id);
-                      }
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all ${
-                      isActive
-                        ? isSpecial
-                          ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-xs'
-                          : 'bg-blue-600 text-white shadow-xs'
-                        : isSpecial
-                        ? 'bg-amber-50 text-red-800 border border-amber-300 hover:bg-amber-100'
-                        : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isSpecial ? 'text-red-600' : 'text-slate-500'}`} />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-xs font-black'
+                          : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

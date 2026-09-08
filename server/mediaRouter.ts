@@ -153,40 +153,27 @@ router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: Nex
           }
         });
       } catch (cloudErr: any) {
-        console.warn('Cloudinary upload failed, falling back to local storage:', cloudErr?.message);
+        console.warn('Cloudinary upload failed, falling back to compressed Data URL:', cloudErr?.message);
       }
     }
 
-    // Local Disk Fallback
-    const fs = await import('fs');
-    const path = await import('path');
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const ext = path.extname(file.originalname) || (isAudio ? '.mp3' : isVideo ? '.mp4' : '.jpg');
-    const cleanFileName = `media_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
-    const filePath = path.join(uploadDir, cleanFileName);
-    fs.writeFileSync(filePath, file.buffer);
-
-    const localUrl = `/uploads/${cleanFileName}`;
-    const host = req.get('host') || '';
-    const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-    const absoluteUrl = host ? `${protocol}://${host}${localUrl}` : localUrl;
+    // Persistent Data URL Fallback (No ephemeral disk writing)
+    const mimeType = isAudio ? 'audio/mp3' : isVideo ? 'video/mp4' : (file.mimetype || 'image/jpeg');
+    const base64Data = file.buffer.toString('base64');
+    const persistentDataUrl = `data:${mimeType};base64,${base64Data}`;
+    const ext = file.originalname.split('.').pop() || 'jpg';
 
     return res.json({
       success: true,
       image: {
-        url: localUrl,
-        secureUrl: localUrl,
-        absoluteUrl,
-        publicId: cleanFileName,
-        format: ext.replace('.', ''),
+        url: persistentDataUrl,
+        secureUrl: persistentDataUrl,
+        publicId: `data-media-${Date.now()}`,
+        format: ext,
         bytes: file.size,
         resourceType: isAudio ? 'audio' : isVideo ? 'video' : 'image'
       },
-      isLocal: true
+      isDataUrl: true
     });
   } catch (error: any) {
     console.error('Cloudinary upload error details:', error);

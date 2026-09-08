@@ -661,15 +661,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         }
       }
 
-      if (file.size > 100 * 1024) {
-        setArtAttachment(URL.createObjectURL(file));
-      } else {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') setArtAttachment(reader.result);
-        };
-        reader.readAsDataURL(file);
-      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') setArtAttachment(reader.result);
+      };
+      reader.readAsDataURL(file);
       showSuccessBanner(`Đã chọn "${file.name}". Bấm nút "Upload lên Google Drive" để lưu trữ trực tiếp!`);
     }
   };
@@ -691,8 +687,12 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           directImageUrl = res.id ? `https://lh3.googleusercontent.com/d/${res.id}` : res.webViewLink;
         }
       } catch (e) {
-        console.warn('Drive upload fallback notice:', e);
-        directImageUrl = URL.createObjectURL(artSelectedFile);
+        console.warn('Drive upload fallback notice, converting to permanent Data URL:', e);
+        directImageUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(artSelectedFile);
+        });
       }
 
       if (artSelectedFile.type.startsWith('image/')) {

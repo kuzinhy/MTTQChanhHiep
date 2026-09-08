@@ -153,7 +153,7 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
         )}
         <div className="hidden xs:flex w-7 h-7 rounded-lg bg-white p-0.5 items-center justify-center shrink-0 border border-slate-200 shadow-2xs">
           <OptimizedImage
-            src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
+            src="/assets/logos/logo-mttq.svg"
             alt="Logo MTTQ"
             variant="thumbnail"
             priority={true}

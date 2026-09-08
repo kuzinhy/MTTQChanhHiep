@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   LayoutDashboard, 
   CheckSquare, 
   Calendar, 
-  HardDrive, 
   Newspaper, 
   Award, 
   MessageSquare, 
@@ -11,7 +10,6 @@ import {
   FileCheck, 
   BarChart3, 
   Users, 
-  ShieldAlert, 
   Building2, 
   Lock, 
   ChevronDown, 
@@ -20,6 +18,12 @@ import {
   Bell, 
   Lightbulb,
   Info,
+  Search,
+  X,
+  Settings,
+  ShieldAlert,
+  PieChart,
+  FolderTree,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -32,6 +36,16 @@ interface SidebarItem {
   label: string;
   icon: LucideIcon;
   badge?: string;
+  badgeStyle?: string;
+}
+
+interface SidebarGroup {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  badgeText?: string;
+  accentColor: 'blue' | 'indigo' | 'amber' | 'emerald';
+  items: SidebarItem[];
 }
 
 interface DigitalOfficeSidebarProps {
@@ -55,50 +69,137 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
 }) => {
   const userRole = (staffRole as UserRole) || 'STAFF';
 
-  // 1. NHÓM TỔNG QUAN & ĐIỀU HÀNH
-  const overviewItems: SidebarItem[] = [
-    { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
-    { id: 'neighborhood_map', label: 'Bản đồ khu phố', icon: Building2, badge: '21 KP' },
-    { id: 'tasks', label: 'Quản lý Công việc', icon: CheckSquare },
-    { id: 'calendar', label: 'Lịch công tác Phường', icon: Calendar },
-    { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
-    { id: 'ai_assistant', label: 'Trợ lý tham mưu MTTQ', icon: Sparkles, badge: 'AI' },
-  ];
+  // State for search query
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // 2. NHÓM QUẢN TRỊ NỘI DUNG & NGHIỆP VỤ (CMS & Nghiệp vụ Mặt trận)
-  const webMenuItems: SidebarItem[] = [
-    { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
-    { id: 'cms_initiatives', label: 'Mô hình', icon: Lightbulb, badge: 'MÔ HÌNH' },
-    { id: 'cms_about', label: 'Giới thiệu', icon: Info, badge: 'GIỚI THIỆU' },
-    { id: 'cms_documents', label: 'Văn bản & Chỉ đạo', icon: FileText, badge: 'VĂN BẢN' },
-    { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
-    { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
-    { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
-    { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
-    { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
-  ];
-
-  const webViewIds = ['cms', 'cms_articles', 'cms_initiatives', 'cms_about', 'cms_documents', 'competitions_admin', 'question_banks', 'surveys_admin', 'opinions', 'member_orgs_admin', 'cultural_space_admin'];
-  const isCurrentViewWeb = webViewIds.includes(currentView);
-
-  // Accordion state for "Quản trị web"
-  const [isWebMenuOpen, setIsWebMenuOpen] = useState<boolean>(true);
-
-  // Auto-expand if the active view is inside web group
-  useEffect(() => {
-    if (isCurrentViewWeb) {
-      setIsWebMenuOpen(true);
+  // Defined Sidebar Groups
+  const groups: SidebarGroup[] = useMemo(() => [
+    {
+      id: 'group_overview',
+      title: 'TỔNG QUAN & ĐIỀU HÀNH',
+      icon: LayoutDashboard,
+      badgeText: 'ĐIỀU HÀNH',
+      accentColor: 'blue',
+      items: [
+        { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
+        { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: '21 KP' },
+        { id: 'tasks', label: 'Quản lý Công việc', icon: CheckSquare },
+        { id: 'calendar', label: 'Lịch công tác Phường', icon: Calendar },
+        { id: 'neighborhood_emulation', label: 'Thi đua 21 Khu phố', icon: Award, badge: 'BẢNG VÀNG' },
+        { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
+      ]
+    },
+    {
+      id: 'group_ai',
+      title: 'THAM MƯU & TRỢ LÝ AI',
+      icon: Sparkles,
+      badgeText: 'AI 2.0',
+      accentColor: 'indigo',
+      items: [
+        { id: 'ai_assistant', label: 'Trợ lý Tham mưu AI', icon: Sparkles, badge: 'WORKSPACE' },
+        { id: 'document_ai_plan_generator', label: 'AI Lập Kế hoạch 2.0', icon: FileText, badge: 'AI 2.0' },
+        { id: 'administrative_report_exporter', label: 'Xuất Báo cáo Thể thức', icon: FileCheck, badge: 'NĐ 30' },
+      ]
+    },
+    {
+      id: 'group_cms',
+      title: 'NGHIỆP VỤ & CỔNG TT',
+      icon: Layers,
+      badgeText: 'MTTQ',
+      accentColor: 'amber',
+      items: [
+        { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
+        { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
+        { id: 'cms_documents', label: 'Văn bản & Chỉ đạo', icon: FileText, badge: 'VĂN BẢN' },
+        { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
+        { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
+        { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
+        { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
+        { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
+        { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
+      ]
+    },
+    {
+      id: 'group_admin',
+      title: 'QUẢN TRỊ HỆ THỐNG',
+      icon: Settings,
+      badgeText: 'HỆ THỐNG',
+      accentColor: 'emerald',
+      items: [
+        { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
+        { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },
+        { id: 'templates', label: 'Kho Mẫu Văn bản', icon: FolderTree, badge: 'MẪU VB' },
+        { id: 'audit_logs', label: 'Nhật ký Hệ thống', icon: ShieldAlert, badge: 'AUDIT' },
+      ]
     }
-  }, [currentView, isCurrentViewWeb]);
+  ], []);
 
-  const hasAnyWebAccess = webMenuItems.some(item => canAccessView(userRole, item.id));
+  // Track expanded groups state
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    group_overview: true,
+    group_ai: true,
+    group_cms: true,
+    group_admin: true
+  });
+
+  // Auto expand group containing the current view
+  useEffect(() => {
+    groups.forEach((group) => {
+      const hasActive = group.items.some(
+        (item) => item.id === currentView || (item.id === 'cms' && currentView === 'cms_articles')
+      );
+      if (hasActive) {
+        setExpandedGroups((prev) => ({ ...prev, [group.id]: true }));
+      }
+    });
+  }, [currentView, groups]);
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
+
+  const handleExpandAll = () => {
+    setExpandedGroups({
+      group_overview: true,
+      group_ai: true,
+      group_cms: true,
+      group_admin: true
+    });
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedGroups({
+      group_overview: false,
+      group_ai: false,
+      group_cms: false,
+      group_admin: false
+    });
+  };
+
+  // Filter items based on search query and permissions
+  const filteredGroups = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return groups.map((group) => {
+      // Filter items that user has permission to see (or display with lock) AND match search query
+      const visibleItems = group.items.filter((item) => {
+        const matchesQuery = query === '' || item.label.toLowerCase().includes(query) || (item.badge && item.badge.toLowerCase().includes(query));
+        return matchesQuery;
+      });
+
+      return {
+        ...group,
+        items: visibleItems
+      };
+    }).filter((group) => group.items.length > 0);
+  }, [groups, searchQuery]);
 
   return (
     <>
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40"
+          className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40"
           onClick={onCloseMobile}
         />
       )}
@@ -111,203 +212,211 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Brand Header */}
-      <div className="p-4 border-b border-blue-500/30 bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-600 text-white shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border border-amber-300">
-            <OptimizedImage
-              src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
-              alt="Logo MTTQ"
-              variant="thumbnail"
-              priority={true}
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-xs font-black text-amber-300 tracking-wider uppercase">VĂN PHÒNG SỐ</h2>
-              <span className="text-[8px] bg-white/20 backdrop-blur-xs text-white font-black px-1.5 py-0.2 rounded-full border border-white/30">V2.0</span>
+        <div className="p-3.5 border-b border-blue-500/30 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 text-white shadow-sm shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border border-amber-300">
+              <OptimizedImage
+                src="/assets/logos/logo-mttq.svg"
+                alt="Logo MTTQ"
+                variant="thumbnail"
+                priority={true}
+                className="w-full h-full object-contain"
+              />
             </div>
-            <p className="text-[10px] text-blue-100 font-semibold mt-0.5">MTTQ Phường Chánh Hiệp</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Links - Clean Streamlined 3 Groups */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3.5 text-xs scrollbar-thin">
-        
-        {/* NHÓM 1: TỔNG QUAN & ĐIỀU HÀNH */}
-        <div className="space-y-1">
-          <h3 className="px-3 text-[10px] font-extrabold text-blue-900 uppercase tracking-wider">
-            TỔNG QUAN &amp; ĐIỀU HÀNH
-          </h3>
-          
-          {overviewItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentView === item.id;
-            const isAllowed = canAccessView(userRole, item.id);
-
-            return (
-              <motion.button
-                key={item.id}
-                whileHover={{ x: isAllowed ? 3 : 0 }}
-                whileTap={{ scale: isAllowed ? 0.98 : 1 }}
-                onClick={() => {
-                  if (isAllowed) setCurrentView(item.id);
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer relative ${
-                  isActive 
-                    ? 'text-white font-extrabold shadow-md' 
-                    : isAllowed 
-                      ? 'text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-semibold' 
-                      : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
-                }`}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="active-main-tab-indicator"
-                    className="absolute inset-0 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-xl border border-blue-400 shadow-md"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <div className="flex items-center gap-2.5 relative z-10">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span className={isActive ? 'text-white font-black' : ''}>{item.label}</span>
-                </div>
-                
-                <div className="flex items-center gap-1 relative z-10">
-                  {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
-                  {item.badge && isAllowed && (
-                    <span className={`font-black text-[9px] px-1.5 py-0.5 rounded-md ${
-                      isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-blue-100 text-blue-800 border border-blue-200'
-                    }`}>
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* NHÓM 2: QUẢN TRỊ NỘI DUNG & NGHIỆP VỤ */}
-        <div className="space-y-1">
-          <h3 className="px-3 text-[10px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center justify-between">
-            <span>NGHIỆP VỤ &amp; CỔNG TT</span>
-            <span className="text-[8px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded-full">MTTQ</span>
-          </h3>
-
-          <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-b from-blue-50/40 to-indigo-50/30 p-1 shadow-2xs">
-            <button
-              onClick={() => {
-                if (hasAnyWebAccess) {
-                  setIsWebMenuOpen(!isWebMenuOpen);
-                  if (!isWebMenuOpen && !isCurrentViewWeb) {
-                    setCurrentView('cms');
-                  }
-                }
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
-                isCurrentViewWeb
-                  ? 'bg-blue-600 text-white font-black shadow-sm'
-                  : 'text-slate-800 hover:bg-white/80 font-bold'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className={`p-1.5 rounded-lg ${isCurrentViewWeb ? 'bg-white/20 text-white' : 'bg-blue-600 text-white shadow-2xs'}`}>
-                  <Layers className="w-3.5 h-3.5" />
-                </div>
-                <div className="text-left">
-                  <div className="text-xs font-black tracking-tight leading-none">Nghiệp vụ Mặt trận</div>
-                  <div className={`text-[9px] mt-0.5 ${isCurrentViewWeb ? 'text-blue-100' : 'text-blue-700 font-medium'}`}>
-                    8 chuyên mục tác nghiệp
-                  </div>
-                </div>
-              </div>
-
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
-                  isCurrentViewWeb ? 'bg-amber-400 text-slate-950 font-black' : 'bg-blue-200/80 text-blue-900'
-                }`}>
-                  8 MỤC
-                </span>
-                <motion.div
-                  animate={{ rotate: isWebMenuOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ChevronDown className={`w-4 h-4 ${isCurrentViewWeb ? 'text-white' : 'text-blue-700'}`} />
-                </motion.div>
+                <h2 className="text-xs font-black text-amber-300 tracking-wider uppercase truncate">VĂN PHÒNG SỐ</h2>
+                <span className="text-[8px] bg-white/20 backdrop-blur-xs text-white font-black px-1.5 py-0.2 rounded-full border border-white/30 shrink-0">V2.0</span>
               </div>
-            </button>
-
-            {/* Submenu Accordion Items */}
-            <AnimatePresence initial={false}>
-              {isWebMenuOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: 'easeInOut' }}
-                  className="overflow-hidden"
-                >
-                  <div className="pt-1.5 pb-1 px-1 space-y-1 border-t border-blue-200/60 mt-1">
-                    {webMenuItems.map((subItem) => {
-                      const Icon = subItem.icon;
-                      const isActive = currentView === subItem.id || (subItem.id === 'cms' && currentView === 'cms_articles');
-                      const isAllowed = canAccessView(userRole, subItem.id);
-
-                      return (
-                        <motion.button
-                          key={subItem.id}
-                          whileHover={{ x: isAllowed ? 3 : 0 }}
-                          whileTap={{ scale: isAllowed ? 0.98 : 1 }}
-                          onClick={() => {
-                            if (isAllowed) {
-                              setCurrentView(subItem.id);
-                            }
-                          }}
-                          className={`w-full flex items-center justify-between pl-3 pr-2.5 py-2 rounded-xl transition-all cursor-pointer text-left text-xs relative ${
-                            isActive
-                              ? 'text-white font-black shadow-sm'
-                              : isAllowed
-                                ? 'text-slate-700 hover:bg-white hover:text-blue-700 font-semibold'
-                                : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
-                          }`}
-                        >
-                          {isActive && (
-                            <motion.div
-                              layoutId="active-submenu-tab-indicator"
-                              className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-800 rounded-xl ring-1 ring-blue-400"
-                              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                            />
-                          )}
-                          <div className="flex items-center gap-2 min-w-0 flex-1 relative z-10">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-amber-300 ring-2 ring-amber-300/40' : 'bg-blue-400'}`} />
-                            <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'}`} />
-                            <span className={`truncate whitespace-nowrap ${isActive ? 'text-white font-black' : ''}`}>{subItem.label}</span>
-                          </div>
-
-                          <div className="flex items-center gap-1 shrink-0 relative z-10">
-                            {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
-                            {subItem.badge && isAllowed && (
-                              <span className={`text-[8px] font-black px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap ${
-                                isActive ? 'bg-amber-300 text-slate-900 shadow-2xs' : 'bg-white/90 text-blue-800 border border-blue-200'
-                              }`}>
-                                {subItem.badge}
-                              </span>
-                            )}
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              <p className="text-[10px] text-blue-100 font-medium truncate mt-0.5">MTTQ Phường Chánh Hiệp</p>
+            </div>
           </div>
         </div>
 
-      </div>
-    </aside>
+        {/* Search Bar & Compact Controls */}
+        <div className="px-3 pt-2.5 pb-1 border-b border-slate-100 bg-slate-50/70 shrink-0 space-y-1.5">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm nhanh chức năng..."
+              className="w-full pl-8 pr-7 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 text-slate-800 placeholder:text-slate-400 font-medium transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold px-0.5">
+            <span>{searchQuery ? `Tìm thấy ${filteredGroups.reduce((acc, g) => acc + g.items.length, 0)} mục` : 'Danh mục quản trị'}</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExpandAll}
+                className="hover:text-blue-600 cursor-pointer transition-colors"
+                title="Mở rộng tất cả nhóm"
+              >
+                Mở tất cả
+              </button>
+              <span className="text-slate-300">•</span>
+              <button
+                onClick={handleCollapseAll}
+                className="hover:text-blue-600 cursor-pointer transition-colors"
+                title="Thu gọn tất cả nhóm"
+              >
+                Thu gọn
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Groups List */}
+        <div className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-2 text-xs scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
+          {filteredGroups.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              <Search className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p>Không tìm thấy chức năng phù hợp</p>
+            </div>
+          ) : (
+            filteredGroups.map((group) => {
+              const GroupIcon = group.icon;
+              const isExpanded = searchQuery !== '' ? true : !!expandedGroups[group.id];
+              const hasActiveItem = group.items.some(
+                (i) => i.id === currentView || (i.id === 'cms' && currentView === 'cms_articles')
+              );
+
+              // Filter out items user strictly cannot access if needed, or show with lock
+              const accessibleItemsCount = group.items.filter(i => canAccessView(userRole, i.id)).length;
+
+              if (accessibleItemsCount === 0 && !searchQuery) {
+                return null; // Skip groups with zero accessible items for this role
+              }
+
+              return (
+                <div 
+                  key={group.id} 
+                  className={`rounded-xl border transition-all ${
+                    hasActiveItem 
+                      ? 'border-blue-200 bg-gradient-to-b from-blue-50/30 to-slate-50/50 shadow-2xs' 
+                      : 'border-slate-200/80 bg-slate-50/40 hover:border-slate-300'
+                  }`}
+                >
+                  {/* Group Header Toggle Button */}
+                  <button
+                    onClick={() => toggleGroup(group.id)}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-left rounded-xl transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className={`p-1 rounded-md shrink-0 transition-colors ${
+                        hasActiveItem ? 'bg-blue-600 text-white' : 'bg-slate-200/80 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-700'
+                      }`}>
+                        <GroupIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[11px] font-black text-slate-800 tracking-tight uppercase truncate">
+                        {group.title}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-full ${
+                        hasActiveItem ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+                      }`}>
+                        {group.items.length}
+                      </span>
+                      <motion.div
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                      </motion.div>
+                    </div>
+                  </button>
+
+                  {/* Group Submenu Items */}
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.18, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-1 pb-1 pt-0.5 space-y-0.5 border-t border-slate-100">
+                          {group.items.map((item) => {
+                            const ItemIcon = item.icon;
+                            const isActive = currentView === item.id || (item.id === 'cms' && currentView === 'cms_articles');
+                            const isAllowed = canAccessView(userRole, item.id);
+
+                            return (
+                              <motion.button
+                                key={item.id}
+                                whileHover={{ x: isAllowed ? 2 : 0 }}
+                                whileTap={{ scale: isAllowed ? 0.98 : 1 }}
+                                onClick={() => {
+                                  if (isAllowed) {
+                                    setCurrentView(item.id);
+                                    if (onCloseMobile) onCloseMobile();
+                                  }
+                                }}
+                                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left text-xs relative cursor-pointer ${
+                                  isActive
+                                    ? 'text-white font-black shadow-xs'
+                                    : isAllowed
+                                      ? 'text-slate-700 hover:bg-white hover:text-blue-700 font-medium'
+                                      : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
+                                }`}
+                              >
+                                {isActive && (
+                                  <motion.div
+                                    layoutId="active-sidebar-pill"
+                                    className="absolute inset-0 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-lg shadow-xs border border-blue-400/40"
+                                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                                  />
+                                )}
+
+                                <div className="flex items-center gap-2 min-w-0 flex-1 relative z-10">
+                                  <ItemIcon className={`w-3.5 h-3.5 shrink-0 ${
+                                    isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'
+                                  }`} />
+                                  <span className={`truncate text-[11px] ${isActive ? 'text-white font-extrabold' : ''}`}>
+                                    {item.label}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-1 shrink-0 relative z-10">
+                                  {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
+                                  {item.badge && isAllowed && (
+                                    <span className={`text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 whitespace-nowrap ${
+                                      isActive 
+                                        ? 'bg-amber-300 text-slate-950 shadow-2xs' 
+                                        : 'bg-slate-100 text-slate-600 border border-slate-200/80'
+                                    }`}>
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </div>
+                              </motion.button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </aside>
     </>
   );
 };
+
+export default DigitalOfficeSidebar;

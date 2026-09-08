@@ -1,15 +1,91 @@
 import { CloudinaryImageMeta } from '../types';
-import { ARTICLE_BANNERS } from '../utils/officialImages';
+import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
 import { extractGoogleDriveFileId } from './googleDriveService';
 
 export const BACKEND_CLOUD_RUN_ORIGIN = 'https://ais-pre-eokzuo3lbp4ijcdgdnvif3-553565080913.asia-southeast1.run.app';
+
+/**
+ * Normalizes any image input (string, object, undefined, null) into a guaranteed valid,
+ * permanent HTTPS or local asset URL. Filters out invalid blob:, localhost, and broken URLs.
+ */
+export function normalizeImageUrl(
+  rawInput?: string | CloudinaryImageMeta | null | undefined,
+  fallbackCategory?: string
+): string {
+  const fallback = fallbackCategory ? getBannerForCategory(fallbackCategory) : ARTICLE_BANNERS.default;
+
+  if (!rawInput) return fallback;
+
+  let url = '';
+  if (typeof rawInput === 'object') {
+    url = rawInput.secureUrl || rawInput.url || '';
+  } else if (typeof rawInput === 'string') {
+    url = rawInput.trim();
+  }
+
+  if (!url || url === 'null' || url === 'undefined' || url === '[object Object]') {
+    return fallback;
+  }
+
+  // 1. Immediately reject invalid ephemeral/local URLs
+  if (
+    url.startsWith('blob:') ||
+    url.startsWith('file:') ||
+    url.includes('localhost') ||
+    url.includes('127.0.0.1') ||
+    url.includes('/tmp/') ||
+    url.startsWith('C:') ||
+    url.startsWith('D:')
+  ) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[IMAGE_NORMALIZER] Discarded non-production URL: "${url}". Replaced with official fallback banner.`);
+    }
+    return fallback;
+  }
+
+  // 2. Data URIs (Base64) pass through directly
+  if (url.startsWith('data:image/')) {
+    return url;
+  }
+
+  // 3. Normalize external fragile image host: sv2.anhsieuviet.com
+  if (url.includes('sv2.anhsieuviet.com')) {
+    if (url.includes('screenshot_1788585720')) {
+      return '/assets/cultural/ho-chi-minh-portrait.jpg';
+    }
+  }
+
+  // 4. Normalize legacy external logo link: mattrancantho.vn
+  if (url.includes('mattrancantho.vn')) {
+    return '/assets/logos/logo-mttq.svg';
+  }
+
+  // 5. Convert Google Drive share/view links to direct high-res stream
+  const gDriveId = extractGoogleDriveFileId(url);
+  if (gDriveId) {
+    return `https://lh3.googleusercontent.com/d/${gDriveId}=w1600`;
+  }
+
+  // 6. Handle local uploads path
+  if (url.startsWith('/uploads/')) {
+    // Relative uploads path is preserved for local dev / proxied backend
+    return url;
+  }
+
+  // 7. Upgrade plain HTTP to HTTPS
+  if (url.startsWith('http://')) {
+    const withoutProtocol = url.substring(7);
+    return `https://${withoutProtocol}`;
+  }
+
+  return url;
+}
 
 /**
  * Returns a proxied URL via the backend server proxy to bypass CORS, Referrer restrictions, and Hotlink Protection.
  */
 export function getProxiedMediaUrl(url: string): string {
   if (!url) return '';
-  // If already proxied, avoid double-proxying
   if (url.includes('/api/media/proxy?url=')) return url;
   return `/api/media/proxy?url=${encodeURIComponent(url.trim())}`;
 }
@@ -17,39 +93,8 @@ export function getProxiedMediaUrl(url: string): string {
 /**
  * Resolves any media URL into a clean, universally accessible URL across all domains (Vercel, Cloud Run, Custom Domain)
  */
-export function resolveMediaUrl(rawUrl?: string | null): string {
-  if (!rawUrl || typeof rawUrl !== 'string') return '';
-  const trimmed = rawUrl.trim();
-  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return '';
-
-  // 1. Data URLs and Blobs pass directly
-  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
-    return trimmed;
-  }
-
-  // 2. Local uploaded files (/uploads/...)
-  if (trimmed.startsWith('/uploads/')) {
-    // If on external domain without direct backend storage and vercel rewrite is not matched,
-    // we can use the relative path (handled by vercel.json) or absolute backend URL
-    return trimmed;
-  }
-
-  // 3. Google Drive links (convert to direct high-res image stream)
-  const gDriveId = extractGoogleDriveFileId(trimmed);
-  if (gDriveId) {
-    return `https://lh3.googleusercontent.com/d/${gDriveId}=w1600`;
-  }
-
-  // 4. Upgrade plain HTTP to HTTPS for modern browsers
-  if (trimmed.startsWith('http://')) {
-    const withoutProtocol = trimmed.substring(7);
-    // Don't upgrade localhost or raw IP
-    if (!withoutProtocol.startsWith('localhost') && !withoutProtocol.startsWith('127.0.0.1')) {
-      return `https://${withoutProtocol}`;
-    }
-  }
-
-  return trimmed;
+export function resolveMediaUrl(rawUrl?: string | null, category?: string): string {
+  return normalizeImageUrl(rawUrl, category);
 }
 
 export type ImageVariant = 'thumbnail' | 'card' | 'article' | 'hero' | 'original' | 'avatar' | 'banner';
@@ -127,19 +172,18 @@ export function getOptimalImageUrl(
   source: string | CloudinaryImageMeta | undefined | null,
   variant: ImageVariant = 'article'
 ): string {
-  const rawUrl = extractRawImageUrl(source);
-  if (!rawUrl) return '';
+  const normalized = normalizeImageUrl(source);
+  if (!normalized) return '';
 
-  // Data URLs, Blobs, and SVGs are delivered directly without alteration
-  if (rawUrl.startsWith('data:image/') || rawUrl.startsWith('blob:')) {
-    return rawUrl;
+  // Data URLs and SVGs pass directly
+  if (normalized.startsWith('data:image/')) {
+    return normalized;
   }
 
   // 1. Google Drive URLs
-  const fileId = extractGoogleDriveFileId(rawUrl);
+  const fileId = extractGoogleDriveFileId(normalized);
   if (fileId) {
     if (variant === 'original') {
-      // Direct raw unscaled file
       return `https://lh3.googleusercontent.com/d/${fileId}=s0`;
     }
     if (variant === 'hero') {
@@ -158,26 +202,25 @@ export function getOptimalImageUrl(
   }
 
   // 2. Cloudinary URLs
-  if (rawUrl.includes('res.cloudinary.com')) {
+  if (normalized.includes('res.cloudinary.com')) {
     if (variant === 'original') {
-      return rawUrl; // Return unmodified master source
+      return normalized;
     }
-    // High-fidelity transformations: Avoid aggressive compression
     if (variant === 'hero') {
-      return buildCloudinaryUrl(rawUrl, 'w_2560,q_95');
+      return buildCloudinaryUrl(normalized, 'w_2560,q_95');
     }
     if (variant === 'article') {
-      return buildCloudinaryUrl(rawUrl, 'w_2000,q_95');
+      return buildCloudinaryUrl(normalized, 'w_2000,q_95');
     }
     if (variant === 'card') {
-      return buildCloudinaryUrl(rawUrl, 'w_1200,q_95');
+      return buildCloudinaryUrl(normalized, 'w_1200,q_95');
     }
     if (variant === 'thumbnail') {
-      return buildCloudinaryUrl(rawUrl, 'w_600,q_90');
+      return buildCloudinaryUrl(normalized, 'w_600,q_90');
     }
   }
 
-  return rawUrl;
+  return normalized;
 }
 
 /**

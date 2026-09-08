@@ -3,7 +3,8 @@ import { CloudinaryImageMeta } from '../../types';
 import { 
   ImageVariant, 
   getResponsiveImageSources, 
-  handleOptimizedImageError 
+  handleOptimizedImageError,
+  normalizeImageUrl 
 } from '../../lib/imageOptimization';
 import { ARTICLE_BANNERS, getBannerForCategory } from '../../utils/officialImages';
 import { Maximize2 } from 'lucide-react';
@@ -40,7 +41,13 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   const fallback = fallbackSrc || (fallbackCategory ? getBannerForCategory(fallbackCategory) : ARTICLE_BANNERS.default);
-  const responsive = getResponsiveImageSources(src || fallback, variant, customSizes);
+  const normalizedSrc = normalizeImageUrl(src, fallbackCategory);
+  const responsive = getResponsiveImageSources(normalizedSrc || fallback, variant, customSizes);
+
+  // Reset error state when src changes
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
 
   // Dev quality diagnostic check
   useEffect(() => {
@@ -72,11 +79,13 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     }
   };
 
+  const finalSrc = hasError ? fallback : responsive.src;
+
   return (
     <div className={`relative ${containerClassName}`}>
       <img
         ref={imgRef}
-        src={hasError ? fallback : responsive.src}
+        src={finalSrc}
         srcSet={hasError ? undefined : responsive.srcSet}
         sizes={hasError ? undefined : responsive.sizes}
         alt={alt}
@@ -84,8 +93,10 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         decoding="async"
         referrerPolicy="no-referrer"
         onError={(e) => {
-          setHasError(true);
-          handleOptimizedImageError(e, fallback);
+          if (!hasError) {
+            setHasError(true);
+            handleOptimizedImageError(e, fallback);
+          }
         }}
         style={{ imageRendering: 'auto' }}
         className={`${className} ${enableLightbox ? 'cursor-zoom-in' : ''}`}

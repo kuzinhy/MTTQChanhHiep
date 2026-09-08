@@ -163,7 +163,7 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
           <div className="space-y-6">
             <div className="w-14 h-14 rounded-2xl bg-blue-600 p-2 flex items-center justify-center shadow-md border border-blue-400">
               <img
-                src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
+                src="/assets/logos/logo-mttq.svg"
                 alt="Logo MTTQ"
                 className="w-full h-full object-contain filter brightness-0 invert"
               />

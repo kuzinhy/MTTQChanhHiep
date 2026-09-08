@@ -57,7 +57,7 @@ const AVATAR_PRESETS = [
   getOfficialCadreAvatarSvg('Cán bộ', 'Tuyên giáo'),
   getOfficialCadreAvatarSvg('Trưởng ban', 'Khu phố'),
   getOfficialCadreAvatarSvg('Chuyên viên', 'Văn phòng'),
-  'https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png'
+  '/assets/logos/logo-mttq.svg'
 ];
 
 

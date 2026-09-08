@@ -27,6 +27,7 @@ import {
   HardDrive
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { ArticleReader } from '../speech/ArticleReader';
 
 interface ArticleDetailPageProps {
   article: Article;
@@ -243,6 +244,13 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
               </p>
             </div>
           )}
+
+          {/* Article Audio Reader Module */}
+          <ArticleReader
+            title={article.title}
+            summary={article.summary}
+            content={article.content}
+          />
 
           {/* Article Lead Summary */}
           <div className="p-5 rounded-2xl bg-blue-50/80 border-l-4 border-blue-600 text-slate-900 text-sm font-semibold leading-relaxed shadow-2xs">

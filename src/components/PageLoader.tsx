@@ -11,26 +11,38 @@ interface PageLoaderProps {
 export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
   const [state, setState] = useState<BootstrapState>(() => ({
     status: 'idle',
-    progress: 0,
+    progress: 5,
     currentTask: 'Khởi tạo hệ thống...',
     ready: false,
     error: null,
   }));
 
   useEffect(() => {
-    bootstrapManager.subscribe(setState);
-    bootstrapManager.runBootstrap().then(() => {
-        if (onLoaded) onLoaded();
+    let timer: NodeJS.Timeout;
+    const unsubscribe = bootstrapManager.subscribe((newState) => {
+      setState(newState);
+      if (newState.ready) {
+        timer = setTimeout(() => {
+          if (onLoaded) onLoaded();
+        }, 300);
+      }
     });
-  }, [onLoaded]);
 
-  const { progress, currentTask, statusText = currentTask, error } = state;
+    bootstrapManager.runBootstrap();
+
+    return () => {
+      unsubscribe();
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  const { progress, currentTask, statusText = currentTask } = state;
   const activeStep = progress < 25 ? 1 : progress < 85 ? 2 : 4;
 
   return (
     <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.5, ease: 'easeInOut' } }}
+      initial={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 1.02, filter: 'blur(8px)', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
       className="fixed inset-0 z-[9999] bg-gradient-to-b from-[#0a45d1] via-[#072db5] to-[#031568] text-white flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-hidden antialiased"
     >
       {/* High-Tech Radar HUD Background Layers */}
@@ -88,7 +100,7 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
           <div className="relative w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 p-1 shadow-[0_0_40px_rgba(34,211,238,0.7)]">
             <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center p-3 sm:p-3.5 border-2 border-cyan-300/80 overflow-hidden shadow-inner">
               <OptimizedImage 
-                src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png" 
+                src="/assets/logos/logo-mttq.svg" 
                 alt="Logo MTTQ Việt Nam" 
                 variant="thumbnail"
                 priority={true}
@@ -138,8 +150,9 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
           <div className="relative w-full h-3 rounded-full bg-slate-900/90 border border-cyan-400/50 overflow-hidden shadow-inner p-0.5 backdrop-blur-md">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 shadow-[0_0_20px_rgba(34,211,238,0.9)]"
-              style={{ width: `${progress}%` }}
-              transition={{ ease: 'easeOut', duration: 0.1 }}
+              initial={{ width: '5%' }}
+              animate={{ width: `${progress}%` }}
+              transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.6 }}
             />
           </div>
 

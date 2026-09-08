@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PublicOpinion, OpinionTopic } from '../types';
 import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
+import { VoiceInputControl } from '../speech/VoiceInputControl';
 
 interface OpinionFormSectionProps {
   opinions: PublicOpinion[];
@@ -185,13 +186,23 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                 </label>
                 <textarea
                   rows={5}
-                  placeholder="Mô tả chi tiết địa điểm, thời gian, sự việc..."
+                  placeholder="Mô tả chi tiết địa điểm, thời gian, sự việc... Hoặc bấm nút 'Nói ý kiến' bên dưới để đọc trực tiếp"
                   value={content}
                   onChange={(e) => {
                     setContent(e.target.value);
                     if (formError) setFormError(null);
                   }}
                   className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden leading-relaxed"
+                />
+                
+                {/* Voice Input Module for Citizen Opinions */}
+                <VoiceInputControl
+                  value={content}
+                  onChange={(val) => {
+                    setContent(val);
+                    if (formError) setFormError(null);
+                  }}
+                  maxLength={2000}
                 />
               </div>
 

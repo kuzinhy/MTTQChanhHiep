@@ -95,6 +95,10 @@ export interface Article {
   attachmentSize?: string;
   driveFolderUrl?: string;
   createdAt?: string;
+  imagePositionX?: string;
+  imagePositionY?: string;
+  imageFocalPoint?: string;
+  objectPosition?: string;
 }
 
 export type DocType = 
@@ -893,7 +897,8 @@ export type NotificationEventType =
   | 'EVENT_REMINDER'
   | 'SYSTEM_ANNOUNCEMENT'
   | 'MEMBER_NOTIFICATION'
-  | 'PERSONAL_NOTIFICATION';
+  | 'PERSONAL_NOTIFICATION'
+  | 'CIVIL_OPINION';
 
 export type NotificationStatus = 
   | 'DRAFT'

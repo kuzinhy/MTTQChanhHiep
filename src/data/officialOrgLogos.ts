@@ -17,7 +17,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Đoàn Thanh niên',
     category: 'DOAN_THANH_NIEN_THIEU_NHI',
     categoryLabel: 'Đoàn - Đội - Thanh thiếu nhi',
-    url: 'https://sv2.anhsieuviet.com/2026/09/04/snapedit_1706697500696.png',
+    url: '/assets/logos/logo-dtn.png',
     defaultName: 'Đoàn TNCS Hồ Chí Minh phường Chánh Hiệp',
     defaultPosition: 'Bí thư Đoàn phường',
     color: 'emerald'
@@ -61,7 +61,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Hội LHTN',
     category: 'DOAN_THANH_NIEN_THIEU_NHI',
     categoryLabel: 'Đoàn - Đội - Thanh thiếu nhi',
-    url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-hoi-lien-hiep-thanh-nien-viet-nam-1392x1392.png',
+    url: '/assets/logos/logo-lhtn.svg',
     defaultName: 'Hội Liên hiệp Thanh niên phường Chánh Hiệp',
     defaultPosition: 'Chủ tịch Hội LHTN',
     color: 'sky'
@@ -72,7 +72,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Ủy ban MTTQ',
     category: 'CHINH_TRI_XA_HOI',
     categoryLabel: 'Chính trị - Xã hội nòng cốt',
-    url: 'https://sv2.anhsieuviet.com/2026/09/04/logo-mt-tran---Copy.png',
+    url: '/assets/logos/logo-mttq.svg',
     defaultName: 'Ủy ban Mặt trận Tổ quốc Việt Nam phường Chánh Hiệp',
     defaultPosition: 'Chủ tịch Ủy ban MTTQ',
     color: 'red'
@@ -138,7 +138,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Quốc huy',
     category: 'BIEU_TRUNG_NHA_NUOC',
     categoryLabel: 'Biểu trưng Nhà nước & Pháp luật',
-    url: 'https://sv2.anhsieuviet.com/2026/09/04/quc-huy.png',
+    url: '/assets/logos/quoc-huy.svg',
     defaultName: 'Ủy ban Nhân dân phường Chánh Hiệp',
     defaultPosition: 'Chủ tịch UBND phường',
     color: 'red'

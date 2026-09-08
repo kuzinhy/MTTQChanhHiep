@@ -42,6 +42,7 @@ import { loadStoredInitiatives, saveStoredInitiatives, loadStoredChanhHiepAction
 import { UniversalHcmEditorModal } from './cultural/UniversalHcmEditorModal';
 import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
 import { OptimizedImage } from './common/OptimizedImage';
+import { ArticleReader } from '../speech/ArticleReader';
 
 interface InitiativesSectionProps {
   isAdmin?: boolean;
@@ -411,6 +412,13 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                 </div>
               </div>
             )}
+
+            {/* Audio Reader for Initiative */}
+            <ArticleReader
+              title={selectedArticleDetail.title}
+              summary={selectedArticleDetail.summary}
+              content={selectedArticleDetail.fullContent || selectedArticleDetail.summary}
+            />
 
             {/* Highlight Summary Box */}
             <div className="p-6 rounded-3xl bg-blue-50/80 border-2 border-blue-200 space-y-2">

@@ -206,6 +206,64 @@ Quy tắc bắt buộc:
     }
   });
 
+  // AI Route: Trợ lý AI Phân tích Chỉ thị & Tự động Lập Kế hoạch 21 Khu phố
+  app.post('/api/ai/directive-to-plan', async (req: Request, res: Response) => {
+    try {
+      const { directiveTitle, directiveText } = req.body;
+      const ai = getGeminiClient();
+
+      const prompt = `Bạn là Trợ lý AI Tham mưu Hành chính Cao cấp của Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Thủ Dầu Một.
+Nhiệm vụ: Phân tích Chỉ thị / Văn bản chỉ đạo sau đây và tự động thiết lập Kế hoạch triển khai hành động chi tiết kèm ma trận Phân công Công việc xuống 21 Ban Công tác Mặt trận Khu phố (Khu phố 1 đến Khu phố 21).
+
+Tiêu đề Văn bản/Chỉ thị: ${directiveTitle || 'Chỉ thị công tác Mặt trận'}
+Nội dung/Trích yếu Văn bản Chỉ đạo:
+"""
+${directiveText}
+"""
+
+Hãy phân tích kỹ và trả về kết quả cấu trúc JSON thuần duy nhất (KHÔNG kèm dấu nháy backtick markdown hay chuỗi dư thừa):
+{
+  "planTitle": "Tên Kế hoạch triển khai (Ví dụ: Kế hoạch Triển khai Chỉ thị...)",
+  "codeDraft": "Dự thảo Số/KH-MTTQ",
+  "summary": "Tóm tắt ngắn gọn 2-3 câu về tinh thần chỉ đạo trọng tâm",
+  "objectives": [
+    "Mục tiêu 1",
+    "Mục tiêu 2",
+    "Mục tiêu 3"
+  ],
+  "targetMetrics": [
+    "Chỉ tiêu 1 (Ví dụ: 100% Ban CTMT Khu phố hoàn thành trước ngày 30/10)",
+    "Chỉ tiêu 2 (Ví dụ: Đạt tối thiểu 50 hộ nghèo được hỗ trợ quà an sinh)"
+  ],
+  "neighborhoodTasks": [
+    {
+      "neighborhoodId": "kp-1",
+      "neighborhoodName": "Khu phố 1",
+      "taskTitle": "Tên công việc cụ thể phân công cho KP 1",
+      "deadline": "YYYY-MM-DD",
+      "targetMetric": "Chỉ tiêu cụ thể của KP 1",
+      "priority": "CAO"
+    },
+    ... (Liệt kê đủ mẫu đại diện hoặc trọn bộ các Khu phố từ KP 1 đến KP 21)
+  ]
+}`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json'
+        }
+      });
+
+      const parsed = JSON.parse(response.text || '{}');
+      res.json({ success: true, data: parsed });
+    } catch (error: any) {
+      console.error('Error in /api/ai/directive-to-plan:', error);
+      res.status(500).json({ success: false, error: error.message || 'Lỗi xử lý lập kế hoạch AI.' });
+    }
+  });
+
   // AI Route: Soạn Bài phát biểu
   app.post('/api/ai/speech', async (req: Request, res: Response) => {
     try {

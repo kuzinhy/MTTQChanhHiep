@@ -76,7 +76,7 @@ const PROFESSIONAL_AVATARS = [
   {
     id: 'av-8',
     label: 'Logo Biểu tượng Mặt trận',
-    url: 'https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png'
+    url: '/assets/logos/logo-mttq.svg'
   }
 ];
 

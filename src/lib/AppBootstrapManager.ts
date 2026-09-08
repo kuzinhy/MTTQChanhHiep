@@ -23,12 +23,18 @@ class AppBootstrapManager {
   };
 
   private listeners: ((state: BootstrapState) => void)[] = [];
+  private isRunning = false;
 
   constructor() {}
 
-  subscribe(listener: (state: BootstrapState) => void) {
-    this.listeners.push(listener);
+  subscribe(listener: (state: BootstrapState) => void): () => void {
+    if (!this.listeners.includes(listener)) {
+      this.listeners.push(listener);
+    }
     listener(this.state);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
   }
 
   private setState(newState: Partial<BootstrapState>) {
@@ -36,80 +42,83 @@ class AppBootstrapManager {
     this.listeners.forEach(l => l(this.state));
   }
 
-  async runBootstrap() {
-    this.setState({ status: 'loading', progress: 0, currentTask: 'Bắt đầu khởi động...' });
+  async runBootstrap(): Promise<void> {
+    if (this.state.ready) {
+      this.setState({ status: 'ready', ready: true, progress: 100 });
+      return;
+    }
+
+    if (this.isRunning) return;
+    this.isRunning = true;
+
+    this.setState({ status: 'loading', progress: 5, currentTask: 'Khởi tạo cấu hình hệ thống...' });
 
     try {
-      // Define Tasks
-      const tasks = [
-        { name: 'Khởi tạo cấu hình', action: this.loadConfig.bind(this), weight: 10 },
-        { name: 'Khôi phục phiên làm việc', action: this.restoreSession.bind(this), weight: 10 },
-        { name: 'Tải dữ liệu trang chủ', action: this.loadHomepageData.bind(this), weight: 30 },
-        { name: 'Chuẩn bị ảnh quan trọng', action: this.preloadCriticalImages.bind(this), weight: 20 },
-        { name: 'Kiểm tra Font & UI', action: this.waitForFonts.bind(this), weight: 10 },
-        { name: 'Đồng bộ Cache hệ thống', action: this.initializeCache.bind(this), weight: 20 },
-      ];
+      // Step 1: Restore Session & Config in parallel
+      this.setState({ progress: 18, currentTask: 'Khôi phục phiên đăng nhập & Cấu hình...' });
+      await Promise.all([
+        this.restoreSession(),
+        this.waitForFonts()
+      ]);
 
-      let completedWeight = 0;
-      const totalWeight = tasks.reduce((sum, t) => sum + t.weight, 0);
+      // Step 2: Preload Critical Images
+      this.setState({ progress: 45, currentTask: 'Đồng bộ biểu tượng & Dữ liệu trang chủ...' });
+      await this.preloadCriticalImages().catch(() => {});
 
-      for (const task of tasks) {
-        this.setState({ currentTask: task.name });
-        await task.action();
-        completedWeight += task.weight;
-        this.setState({ progress: Math.floor((completedWeight / totalWeight) * 100) });
-      }
+      // Step 3: Fast Cache Check
+      this.setState({ progress: 78, currentTask: 'Khởi tạo CSDL & Cache bộ nhớ...' });
+      await new Promise(r => setTimeout(r, 100));
 
-      this.setState({ status: 'ready', ready: true, currentTask: 'Hệ thống sẵn sàng!' });
+      // Step 4: Ready
+      this.setState({ progress: 100, currentTask: 'Hệ thống sẵn sàng!', status: 'ready', ready: true });
     } catch (error) {
       console.error('Bootstrap error:', error);
-      this.setState({ status: 'error', error: 'Không thể tải dữ liệu.' });
+      // Fallback to ready so user is never stuck
+      this.setState({ progress: 100, status: 'ready', ready: true, currentTask: 'Hệ thống sẵn sàng!' });
+    } finally {
+      this.isRunning = false;
     }
-  }
-
-  private async loadConfig() {
-    // Simulate real config loading
-    await new Promise(resolve => setTimeout(resolve, 500)); 
   }
 
   private async restoreSession() {
     return new Promise((resolve) => {
-      onAuthStateChanged(auth, () => {
+      const timeout = setTimeout(() => resolve(true), 600);
+      const unsubscribe = onAuthStateChanged(auth, () => {
+        clearTimeout(timeout);
+        unsubscribe();
         resolve(true);
       });
     });
   }
 
-  private async loadHomepageData() {
-    // Replace with real data fetch
-    await new Promise(resolve => setTimeout(resolve, 800));
-  }
-
   private async preloadCriticalImages() {
-    // Real image decoding
     const imageUrls = [
-      'https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png'
+      '/assets/logos/logo-mttq.svg',
+      '/assets/cultural/ho-chi-minh-portrait.jpg'
     ];
     await Promise.all(imageUrls.map(url => {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const img = new Image();
         img.src = url;
         img.onload = resolve;
-        img.onerror = reject;
+        img.onerror = resolve; // Continue on error
       });
     }));
   }
 
   private async waitForFonts() {
-    if ('fonts' in document) {
-      await (document as any).fonts.ready;
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      try {
+        await Promise.race([
+          (document as any).fonts.ready,
+          new Promise(r => setTimeout(r, 400))
+        ]);
+      } catch {
+        // Fallthrough safely
+      }
     }
-  }
-
-  private async initializeCache() {
-    // Check if cache needs clearing/initializing
-    await new Promise(resolve => setTimeout(resolve, 300));
   }
 }
 
 export const bootstrapManager = new AppBootstrapManager();
+

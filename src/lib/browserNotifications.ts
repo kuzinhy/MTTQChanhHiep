@@ -58,7 +58,7 @@ class BrowserNotificationManager {
     }
 
     try {
-      const defaultIcon = 'https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png';
+      const defaultIcon = '/assets/logos/logo-mttq.svg';
       
       const notification = new Notification(options.title, {
         body: options.body,

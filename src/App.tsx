@@ -52,6 +52,11 @@ import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
 import { CulturalSpaceAdminView } from './components/cultural/CulturalSpaceAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
+import { AdministrativeReportExporter } from './components/office/AdministrativeReportExporter';
+import { DocumentAiPlanGenerator } from './components/office/DocumentAiPlanGenerator';
+import { NeighborhoodEmulationDashboard } from './components/office/NeighborhoodEmulationDashboard';
+import { WelfareCommunityMapModal } from './components/map/WelfareCommunityMapModal';
+import { ShareQrPosterModal } from './components/common/ShareQrPosterModal';
 import { NotificationAdminView } from './components/office/NotificationAdminView';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
@@ -183,6 +188,8 @@ export default function App() {
   const [isDirectoryModalOpen, setIsDirectoryModalOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [isHcmSpaceModalOpen, setIsHcmSpaceModalOpen] = useState(false);
+  const [isWelfareMapOpen, setIsWelfareMapOpen] = useState(false);
+  const [sharePosterData, setSharePosterData] = useState<{ isOpen: boolean; title: string; url?: string } | null>(null);
 
   const handleSelectPortalTab = (tab: string) => {
     setNotFoundRoute(null);
@@ -1175,7 +1182,7 @@ export default function App() {
                               title="Giữ và kéo chuột để di chuyển vị trí ảnh Hồ Chủ Tịch theo ý bạn"
                             >
                               <motion.img
-                                src="https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png"
+                                src="/assets/cultural/ho-chi-minh-portrait.jpg"
                                 alt="Chủ tịch Hồ Chí Minh (Kéo để di chuyển)"
                                 drag
                                 dragConstraints={{ left: -25, right: 25, top: -25, bottom: 25 }}
@@ -1675,6 +1682,18 @@ export default function App() {
                       />
                     )}
 
+                    {officeView === 'administrative_report_exporter' && (
+                      <AdministrativeReportExporter />
+                    )}
+
+                    {officeView === 'document_ai_plan_generator' && (
+                      <DocumentAiPlanGenerator />
+                    )}
+
+                    {officeView === 'neighborhood_emulation' && (
+                      <NeighborhoodEmulationDashboard />
+                    )}
+
                     {(officeView === 'cms' || officeView === 'cms_articles') && (
                       <CmsAdminView
                         articles={articles}
@@ -2110,6 +2129,22 @@ export default function App() {
         currentStaffUser={currentStaffUser}
         onTriggerToast={handleTriggerSystemToast}
       />
+
+      {/* WELFARE & 21 KP COMMUNITY MAP MODAL */}
+      <WelfareCommunityMapModal
+        isOpen={isWelfareMapOpen}
+        onClose={() => setIsWelfareMapOpen(false)}
+      />
+
+      {/* SHARE QR POSTER MODAL */}
+      {sharePosterData && (
+        <ShareQrPosterModal
+          isOpen={sharePosterData.isOpen}
+          onClose={() => setSharePosterData(null)}
+          title={sharePosterData.title}
+          shareUrl={sharePosterData.url}
+        />
+      )}
     </div>
   );
 }
