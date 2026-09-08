@@ -295,7 +295,7 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
           className="p-4 rounded-2xl bg-gradient-to-br from-white via-rose-50/60 to-amber-50/40 border-2 border-rose-200 hover:border-rose-400 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between text-rose-800 mb-1">
-            <span className="text-xs font-bold">Lời dạy &amp; Trích dẫn</span>
+            <span className="text-xs font-bold">Lời Bác dặn</span>
             <Award className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
           </div>
           <div className="text-2xl font-extrabold text-rose-950 font-serif">
@@ -386,7 +386,7 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
             </span>
           </div>
           <h3 className="text-lg font-bold font-serif text-rose-950 group-hover:text-rose-700 transition-colors">
-            2. Thư viện Tác phẩm Kinh điển
+            2. Tác Phẩm &amp; Tủ Sách
           </h3>
           <p className="text-xs text-rose-900/80 leading-relaxed">
             Nội dung tóm tắt và trích trích dẫn chuẩn hóa từ Tuyên ngôn Độc lập, Đường Kách mệnh, Bản Di chúc và các văn kiện chính yếu.

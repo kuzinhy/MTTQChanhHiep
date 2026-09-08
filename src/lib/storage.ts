@@ -1,3 +1,5 @@
+import { doc, setDoc, collection, writeBatch } from 'firebase/firestore';
+import { db } from './firebase';
 import { 
   INITIAL_ARTICLES, 
   INITIAL_DOCUMENTS, 
@@ -49,6 +51,29 @@ import {
   sortEventsNewestFirst
 } from './dateUtils';
 
+// ==========================================
+// OFFLINE STORAGE & SMART CLOUD SYNC ENGINE
+// ==========================================
+
+export interface PendingSyncOperation {
+  id: string;
+  key: string;
+  entityName: string;
+  data: any;
+  timestamp: string;
+  retryCount: number;
+  status: 'PENDING' | 'SYNCING' | 'FAILED' | 'COMPLETED';
+}
+
+export interface StorageSyncStatus {
+  isOnline: boolean;
+  pendingCount: number;
+  syncState: 'IDLE' | 'SYNCING' | 'OFFLINE' | 'SYNC_ERROR' | 'SUCCESS';
+  lastSyncedTime: string | null;
+  lastError?: string;
+  pendingSummary: { entityName: string; count: number }[];
+}
+
 const STORAGE_KEYS = {
   ARTICLES: 'mttq_chanhhiep_articles_v2',
   DOCUMENTS: 'mttq_chanhhiep_documents_v2',
@@ -74,8 +99,145 @@ const STORAGE_KEYS = {
   AREAS: 'mttq_chanhhiep_areas_v3',
   ORGANIZATIONS: 'mttq_chanhhiep_organizations_v4',
   NEIGHBORHOODS_MIGRATION_V3: 'mttq_chanhhiep_migration_ward_only_v7',
-  CULTURAL_MEDIA: 'mttq_chanhhiep_cultural_media_v1'
+  CULTURAL_MEDIA: 'mttq_chanhhiep_cultural_media_v1',
+  VOLUNTEERS: 'mttq_chanhhiep_volunteers_v1',
+  OFFLINE_QUEUE: 'mttq_chanhhiep_offline_queue_v1'
 };
+
+const KEY_ENTITY_NAME_MAP: Record<string, string> = {
+  [STORAGE_KEYS.ARTICLES]: 'Bài viết & Tin tức',
+  [STORAGE_KEYS.DOCUMENTS]: 'Văn bản & Chỉ thị',
+  [STORAGE_KEYS.COMPETITIONS]: 'Hội thi & Cuộc thi',
+  [STORAGE_KEYS.OPINIONS]: 'Ý kiến Phản ánh Dân sinh',
+  [STORAGE_KEYS.TASKS]: 'Công việc & Lịch trình',
+  [STORAGE_KEYS.EVENTS]: 'Sự kiện & Lịch công tác',
+  [STORAGE_KEYS.NOTES]: 'Ghi chú văn phòng',
+  [STORAGE_KEYS.SUBMISSIONS]: 'Bài dự thi hội thi',
+  [STORAGE_KEYS.DRIVE_FILES]: 'Tài liệu Google Drive',
+  [STORAGE_KEYS.STAFF_USERS]: 'Cán bộ & Nhân sự',
+  [STORAGE_KEYS.AUDIT_LOGS]: 'Nhật ký hệ thống',
+  [STORAGE_KEYS.VOLUNTEERS]: 'Đăng ký Tình nguyện viên',
+  [STORAGE_KEYS.CULTURAL_MEDIA]: 'Tư liệu Văn hóa',
+  [STORAGE_KEYS.MEMBER_ORGANIZATIONS]: 'Tổ chức Thành viên',
+  [STORAGE_KEYS.AREAS]: 'Khu phố (21 KP)',
+  [STORAGE_KEYS.ORGANIZATIONS]: 'Tổ chức Chính trị'
+};
+
+const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
+  [STORAGE_KEYS.ARTICLES]: 'articles',
+  [STORAGE_KEYS.DOCUMENTS]: 'official_documents',
+  [STORAGE_KEYS.COMPETITIONS]: 'competitions',
+  [STORAGE_KEYS.OPINIONS]: 'public_opinions',
+  [STORAGE_KEYS.TASKS]: 'tasks',
+  [STORAGE_KEYS.EVENTS]: 'work_events',
+  [STORAGE_KEYS.NOTES]: 'notes',
+  [STORAGE_KEYS.SUBMISSIONS]: 'competition_submissions',
+  [STORAGE_KEYS.VOLUNTEERS]: 'volunteers',
+  [STORAGE_KEYS.CULTURAL_MEDIA]: 'cultural_media'
+};
+
+// Internal Sync Listeners & State
+const syncListeners = new Set<(status: StorageSyncStatus) => void>();
+let currentSyncState: 'IDLE' | 'SYNCING' | 'OFFLINE' | 'SYNC_ERROR' | 'SUCCESS' = typeof navigator !== 'undefined' && !navigator.onLine ? 'OFFLINE' : 'IDLE';
+let lastSyncedTimestamp: string | null = typeof localStorage !== 'undefined' ? localStorage.getItem('mttq_chanhhiep_last_sync_time') : null;
+let lastSyncError: string | undefined = undefined;
+let debouncedSyncTimeout: any = null;
+let isEngineInitialized = false;
+
+function getOfflineQueueFromStorage(): PendingSyncOperation[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.OFFLINE_QUEUE);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveOfflineQueueToStorage(queue: PendingSyncOperation[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.OFFLINE_QUEUE, JSON.stringify(queue));
+    notifySyncListeners();
+  } catch (e) {
+    console.warn('[StorageEngine] Failed to save offline queue:', e);
+  }
+}
+
+function notifySyncListeners(): void {
+  const queue = getOfflineQueueFromStorage();
+  const pendingCount = queue.filter(op => op.status !== 'COMPLETED').length;
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+  const countsMap = new Map<string, number>();
+  queue.forEach(op => {
+    if (op.status !== 'COMPLETED') {
+      countsMap.set(op.entityName, (countsMap.get(op.entityName) || 0) + 1);
+    }
+  });
+
+  const pendingSummary = Array.from(countsMap.entries()).map(([entityName, count]) => ({
+    entityName,
+    count
+  }));
+
+  const status: StorageSyncStatus = {
+    isOnline,
+    pendingCount,
+    syncState: isOnline ? (pendingCount > 0 && currentSyncState === 'SYNCING' ? 'SYNCING' : currentSyncState) : 'OFFLINE',
+    lastSyncedTime: lastSyncedTimestamp,
+    lastError: lastSyncError,
+    pendingSummary
+  };
+
+  syncListeners.forEach(listener => {
+    try {
+      listener(status);
+    } catch (e) {
+      console.error('[StorageEngine] Error in sync listener:', e);
+    }
+  });
+}
+
+function enqueueOfflineOperation(key: string, data: any): void {
+  if (key === STORAGE_KEYS.CURRENT_USER || key === STORAGE_KEYS.LAST_BACKUP_TIME || key === STORAGE_KEYS.OFFLINE_QUEUE) {
+    return;
+  }
+
+  const queue = getOfflineQueueFromStorage();
+  const entityName = KEY_ENTITY_NAME_MAP[key] || key;
+
+  const existingIdx = queue.findIndex(op => op.key === key && op.status !== 'SYNCING');
+  const op: PendingSyncOperation = {
+    id: `sync_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    key,
+    entityName,
+    data,
+    timestamp: new Date().toISOString(),
+    retryCount: 0,
+    status: 'PENDING'
+  };
+
+  if (existingIdx >= 0) {
+    queue[existingIdx] = op;
+  } else {
+    queue.push(op);
+  }
+
+  saveOfflineQueueToStorage(queue);
+
+  if (typeof navigator !== 'undefined' && navigator.onLine) {
+    triggerDebouncedCloudPush();
+  } else {
+    currentSyncState = 'OFFLINE';
+    notifySyncListeners();
+  }
+}
+
+function triggerDebouncedCloudPush(): void {
+  if (debouncedSyncTimeout) clearTimeout(debouncedSyncTimeout);
+  debouncedSyncTimeout = setTimeout(() => {
+    AppStorageEngine.processPendingQueue();
+  }, 1000);
+}
 
 // In-Memory Storage Cache to prevent redundant serialization & disk writes
 const memoryCache = new Map<string, string>();
@@ -117,12 +279,12 @@ export function saveStorageData<T>(key: string, data: T): void {
   try {
     const jsonStr = JSON.stringify(data);
     if (memoryCache.get(key) === jsonStr) {
-      // Data unchanged, skip expensive localStorage writing
       return;
     }
     memoryCache.set(key, jsonStr);
     localStorage.setItem(key, jsonStr);
     localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
+    enqueueOfflineOperation(key, data);
   } catch (err) {
     console.warn(`[StorageEngine] Quota limit exceeded for key "${key}". Sanitizing large payloads...`, err);
     try {
@@ -131,6 +293,7 @@ export function saveStorageData<T>(key: string, data: T): void {
       memoryCache.set(key, sanitizedStr);
       localStorage.setItem(key, sanitizedStr);
       localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
+      enqueueOfflineOperation(key, sanitized);
       console.log(`[StorageEngine] Saved sanitized payload for key "${key}" successfully.`);
     } catch (fallbackErr) {
       console.warn(`[StorageEngine] Secondary quota error for key "${key}". Clearing audit logs cache...`, fallbackErr);
@@ -140,6 +303,7 @@ export function saveStorageData<T>(key: string, data: T): void {
         const sanitizedStr = JSON.stringify(sanitized);
         memoryCache.set(key, sanitizedStr);
         localStorage.setItem(key, sanitizedStr);
+        enqueueOfflineOperation(key, sanitized);
       } catch (finalErr) {
         console.error(`[StorageEngine] Critical storage quota error for key "${key}":`, finalErr);
       }
@@ -242,7 +406,21 @@ export const AppStorageEngine = {
         }
       }
     });
-    return sortCompetitionsNewestFirst(Array.from(compMap.values()));
+
+    const result = Array.from(compMap.values());
+    if (result.length === 0 && INITIAL_COMPETITIONS.length > 0) {
+      // Auto-recover default competitions if list is empty
+      localStorage.removeItem(STORAGE_KEYS.DELETED_COMPS);
+      saveStorageData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
+      return sortCompetitionsNewestFirst([...INITIAL_COMPETITIONS]);
+    }
+
+    return sortCompetitionsNewestFirst(result);
+  },
+  restoreDefaultCompetitions: (): Competition[] => {
+    localStorage.removeItem(STORAGE_KEYS.DELETED_COMPS);
+    saveStorageData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
+    return sortCompetitionsNewestFirst([...INITIAL_COMPETITIONS]);
   },
   saveCompetitions: (competitions: Competition[]) => {
     const deletedIds = AppStorageEngine.getDeletedCompIds();
@@ -1159,6 +1337,15 @@ export const AppStorageEngine = {
   },
   saveCurrentUser: (user: StaffUser | null) => saveStorageData(STORAGE_KEYS.CURRENT_USER, user),
 
+  getVolunteers: (): any[] => {
+    return loadInitialData<any[]>(STORAGE_KEYS.VOLUNTEERS, []);
+  },
+  saveVolunteer: (vol: any) => {
+    const current = AppStorageEngine.getVolunteers();
+    const updated = [vol, ...current.filter(v => v.id !== vol.id)];
+    saveStorageData(STORAGE_KEYS.VOLUNTEERS, updated);
+  },
+
   getLastBackupTime: (): string => {
     try {
       return localStorage.getItem(STORAGE_KEYS.LAST_BACKUP_TIME) || new Date().toISOString();
@@ -1236,6 +1423,162 @@ export const AppStorageEngine = {
 
   resetAllToDefaults: () => {
     localStorage.clear();
+  },
+
+  // ==========================================
+  // SMART OFFLINE SYNC API
+  // ==========================================
+
+  getOfflineQueue: (): PendingSyncOperation[] => getOfflineQueueFromStorage(),
+
+  clearOfflineQueue: () => {
+    saveOfflineQueueToStorage([]);
+    currentSyncState = 'IDLE';
+    notifySyncListeners();
+  },
+
+  isOnline: (): boolean => typeof navigator !== 'undefined' ? navigator.onLine : true,
+
+  getSyncStatus: (): StorageSyncStatus => {
+    const queue = getOfflineQueueFromStorage();
+    const pendingCount = queue.filter(op => op.status !== 'COMPLETED').length;
+    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+    const countsMap = new Map<string, number>();
+    queue.forEach(op => {
+      if (op.status !== 'COMPLETED') {
+        countsMap.set(op.entityName, (countsMap.get(op.entityName) || 0) + 1);
+      }
+    });
+
+    return {
+      isOnline,
+      pendingCount,
+      syncState: isOnline ? (pendingCount > 0 && currentSyncState === 'SYNCING' ? 'SYNCING' : currentSyncState) : 'OFFLINE',
+      lastSyncedTime: lastSyncedTimestamp,
+      lastError: lastSyncError,
+      pendingSummary: Array.from(countsMap.entries()).map(([entityName, count]) => ({ entityName, count }))
+    };
+  },
+
+  subscribeToSyncStatus: (callback: (status: StorageSyncStatus) => void): (() => void) => {
+    syncListeners.add(callback);
+    callback(AppStorageEngine.getSyncStatus());
+    return () => syncListeners.delete(callback);
+  },
+
+  initOfflineSyncEngine: (): (() => void) => {
+    if (isEngineInitialized || typeof window === 'undefined') return () => {};
+    isEngineInitialized = true;
+
+    const handleOnline = () => {
+      console.info('[AppStorageEngine] 🌐 Connection restored! Auto-pushing pending offline data...');
+      currentSyncState = 'SYNCING';
+      notifySyncListeners();
+      AppStorageEngine.processPendingQueue();
+    };
+
+    const handleOffline = () => {
+      console.warn('[AppStorageEngine] 📡 Network disconnected. Entering offline storage mode.');
+      currentSyncState = 'OFFLINE';
+      notifySyncListeners();
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    if (navigator.onLine && getOfflineQueueFromStorage().length > 0) {
+      AppStorageEngine.processPendingQueue();
+    } else {
+      notifySyncListeners();
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  },
+
+  processPendingQueue: async (): Promise<boolean> => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      currentSyncState = 'OFFLINE';
+      notifySyncListeners();
+      return false;
+    }
+
+    const queue = getOfflineQueueFromStorage();
+    const pendingOps = queue.filter(op => op.status !== 'COMPLETED');
+
+    if (pendingOps.length === 0) {
+      currentSyncState = 'IDLE';
+      notifySyncListeners();
+      return true;
+    }
+
+    currentSyncState = 'SYNCING';
+    notifySyncListeners();
+
+    try {
+      const remainingQueue: PendingSyncOperation[] = [];
+
+      for (const op of pendingOps) {
+        op.status = 'SYNCING';
+        saveOfflineQueueToStorage([...remainingQueue, ...pendingOps]);
+
+        const colName = FIRESTORE_COLLECTION_MAP[op.key];
+        let syncSuccess = false;
+
+        if (colName && db) {
+          try {
+            if (Array.isArray(op.data)) {
+              for (const item of op.data.slice(0, 50)) {
+                if (item && item.id) {
+                  const docRef = doc(db, colName, String(item.id));
+                  await setDoc(docRef, JSON.parse(JSON.stringify(item)), { merge: true });
+                }
+              }
+            } else if (op.data && op.data.id) {
+              const docRef = doc(db, colName, String(op.data.id));
+              await setDoc(docRef, JSON.parse(JSON.stringify(op.data)), { merge: true });
+            }
+            syncSuccess = true;
+          } catch (cloudErr: any) {
+            console.warn(`[StorageEngine] Cloud sync failed for key ${op.key}:`, cloudErr);
+            op.retryCount += 1;
+            op.status = 'FAILED';
+            lastSyncError = cloudErr?.message || 'Lỗi kết nối Firestore';
+          }
+        } else {
+          syncSuccess = true;
+        }
+
+        if (syncSuccess) {
+          op.status = 'COMPLETED';
+        } else if (op.retryCount < 5) {
+          remainingQueue.push(op);
+        }
+      }
+
+      const updatedQueue = getOfflineQueueFromStorage().filter(op => op.status !== 'COMPLETED' && remainingQueue.some(r => r.id === op.id));
+      saveOfflineQueueToStorage(updatedQueue);
+
+      lastSyncedTimestamp = new Date().toISOString();
+      localStorage.setItem('mttq_chanhhiep_last_sync_time', lastSyncedTimestamp);
+      currentSyncState = updatedQueue.length === 0 ? 'SUCCESS' : 'SYNC_ERROR';
+      notifySyncListeners();
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('app_storage_synced', { detail: { timestamp: lastSyncedTimestamp } }));
+      }
+
+      return updatedQueue.length === 0;
+    } catch (err: any) {
+      console.error('[StorageEngine] Error processing pending queue:', err);
+      currentSyncState = 'SYNC_ERROR';
+      lastSyncError = err?.message || 'Không thể đồng bộ dữ liệu';
+      notifySyncListeners();
+      return false;
+    }
   }
 };
 

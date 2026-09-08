@@ -101,7 +101,7 @@ export const HcmVerifiedQuotes: React.FC<HcmVerifiedQuotesProps> = ({ isResearch
           <div>
             <h2 className="text-lg sm:text-xl font-bold font-serif text-rose-950 flex items-center gap-2">
               <Quote className="w-5 h-5 text-rose-700" />
-              <span>Kho Trích Dẫn "Lời Người" Đã Kiểm Định Nguồn (Level A)</span>
+              <span>Lời Bác Dặn — Trích Dẫn Đã Kiểm Định Nguồn (Level A)</span>
             </h2>
             <p className="text-xs text-rose-800/80 mt-1">
               Tuyệt đối không lưu truyền các câu nói vô căn cứ; 100% trích dẫn gắn liền xuất xứ, thời điểm và vị trí lưu trữ trong *Hồ Chí Minh Toàn tập*.

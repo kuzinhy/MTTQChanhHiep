@@ -227,7 +227,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                             {item.priority}
                           </span>
                           <span className="text-[10px] text-slate-400 font-medium">
-                            {new Date(item.created_at).toLocaleString('vi-VN')}
+                            {item.created_at && !isNaN(Date.parse(item.created_at))
+                              ? new Date(item.created_at).toLocaleString('vi-VN')
+                              : 'Vừa xong'}
                           </span>
                         </div>
 

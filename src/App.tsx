@@ -57,6 +57,9 @@ import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
 import { ToastContainer } from './components/ToastNotification';
+import { RealtimeActivityToastContainer } from './components/office/RealtimeActivityToastContainer';
+import { LoginSummaryModal } from './components/office/LoginSummaryModal';
+import { adminCollaborationService } from './lib/adminCollaborationService';
 import { PageLoader } from './components/PageLoader';
 import { notificationMasterService } from './lib/notificationMasterService';
 import { OptimizedImage } from './components/common/OptimizedImage';
@@ -76,7 +79,7 @@ import { VisitorTrackerEngine } from './lib/visitorTracker';
 import { canAccessView } from './lib/rbac';
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
-import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle, Landmark, Star } from 'lucide-react';
+import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle, Landmark, Star, Move } from 'lucide-react';
 import { browserNotificationService } from './lib/browserNotifications';
 
 export const VALID_PORTAL_TABS = [
@@ -250,6 +253,34 @@ export default function App() {
     return localStorage.getItem('office_session_locked') === 'true';
   });
 
+  // Realtime Admin Presence Heartbeat Effect
+  useEffect(() => {
+    if (!currentStaffUser?.id || currentSpace !== 'OFFICE') return;
+
+    adminCollaborationService.updateAdminPresence({
+      admin: currentStaffUser,
+      status: 'online',
+      currentRoute: officeView
+    });
+
+    const interval = setInterval(() => {
+      adminCollaborationService.updateAdminPresence({
+        admin: currentStaffUser,
+        status: 'online',
+        currentRoute: officeView
+      });
+    }, 25000);
+
+    return () => {
+      clearInterval(interval);
+      adminCollaborationService.updateAdminPresence({
+        admin: currentStaffUser,
+        status: 'offline',
+        currentRoute: officeView
+      });
+    };
+  }, [currentStaffUser, currentSpace, officeView]);
+
   // Keep lock state synchronized to localStorage
   useEffect(() => {
     localStorage.setItem('office_session_locked', isLocked.toString());
@@ -274,9 +305,10 @@ export default function App() {
   const [aiChats, setAiChats] = useState<AiChatLog[]>(() => AppStorageEngine.getAiChats());
   const [knowledgeNotes, setKnowledgeNotes] = useState<KnowledgeNote[]>(() => AppStorageEngine.getKnowledgeNotes());
 
-  // Initialize real-time visitor & session tracking & Firebase Cloud Sync
+  // Initialize real-time visitor & session tracking, Offline Sync & Firebase Cloud Sync
   useEffect(() => {
     VisitorTrackerEngine.init();
+    const cleanupOfflineSync = AppStorageEngine.initOfflineSyncEngine();
 
     // Start Realtime Cloud Database Sync with Firebase Firestore
     CloudDatabase.initCloudDatabase({
@@ -308,6 +340,10 @@ export default function App() {
       onSubmissionsUpdate: (subs) => setSubmissions(subs),
       onDriveFilesUpdate: (files) => setDriveFiles(files),
     });
+
+    return () => {
+      cleanupOfflineSync();
+    };
   }, []);
 
   // Auto-Sync state changes to Local Storage
@@ -914,6 +950,15 @@ export default function App() {
     CloudDatabase.saveCompetition(updatedComp);
   };
 
+  const handleRestoreDefaultCompetitions = () => {
+    const defaultComps = AppStorageEngine.restoreDefaultCompetitions();
+    setCompetitions(defaultComps);
+    defaultComps.forEach(comp => {
+      CloudDatabase.saveCompetition(comp);
+    });
+    handleTriggerSystemToast('Khôi phục 4 Cuộc Thi', 'Đã nạp lại thành công 4 cuộc thi mặc định trên hệ thống.');
+  };
+
   const handleRestoreDefaultBanners = () => {
     const seedMap = new Map<string, string>();
     INITIAL_COMPETITIONS.forEach(c => {
@@ -1117,78 +1162,88 @@ export default function App() {
                       {/* Quick Services Grid - Vibrant Colorful Modern Cards */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <motion.div 
-                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileHover={{ scale: 1.015, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setIsHcmSpaceModalOpen(true)}
-                          className="bg-gradient-to-br from-amber-50 via-red-50/40 to-amber-100/30 p-4 sm:p-5 rounded-2xl cursor-pointer hover:shadow-xl hover:border-amber-400 transition-all flex items-center justify-between group border border-amber-300/90 shadow-xs relative overflow-hidden"
+                          className="bg-gradient-to-br from-amber-50/90 via-red-50/30 to-amber-100/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-lg hover:border-amber-400 transition-all flex items-center justify-between group border border-amber-300/80 shadow-2xs relative overflow-hidden"
                         >
-                          <div className="relative z-10 flex items-center gap-3">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-500 shadow-md shrink-0 border border-amber-300/90 group-hover:scale-105 transition-transform">
-                              <OptimizedImage
+                          <div className="relative z-10 flex items-center gap-2.5 min-w-0 pr-1">
+                            {/* Draggable Avatar Frame */}
+                            <div 
+                              onClick={(e) => e.stopPropagation()} 
+                              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full p-0.5 bg-gradient-to-tr from-amber-400 via-rose-500 to-amber-500 shadow-sm shrink-0 border border-amber-300/90 overflow-hidden group/avatar cursor-grab active:cursor-grabbing"
+                              title="Giữ và kéo chuột để di chuyển vị trí ảnh Hồ Chủ Tịch theo ý bạn"
+                            >
+                              <motion.img
                                 src="https://sv2.anhsieuviet.com/2026/09/05/screenshot_1788585720.png"
-                                alt="Chủ tịch Hồ Chí Minh"
-                                variant="avatar"
-                                priority={true}
-                                className="w-full h-full object-cover object-top rounded-full"
+                                alt="Chủ tịch Hồ Chí Minh (Kéo để di chuyển)"
+                                drag
+                                dragConstraints={{ left: -25, right: 25, top: -25, bottom: 25 }}
+                                dragElastic={0.15}
+                                whileDrag={{ scale: 1.15, zIndex: 30 }}
+                                className="w-full h-full object-cover object-top rounded-full select-none"
                               />
+                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/avatar:opacity-100 transition-opacity rounded-full flex items-center justify-center pointer-events-none">
+                                <Move className="w-3.5 h-3.5 text-white drop-shadow-xs" />
+                              </div>
                             </div>
-                            <div>
-                              <div className="flex items-center gap-1.5 mb-0.5">
-                                <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                                <span className="text-[10px] font-black uppercase tracking-wider text-red-700 flex items-center gap-1">
-                                  <Star className="w-2.5 h-2.5 fill-red-700" /> Không gian số 3D
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1 mb-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shrink-0"></span>
+                                <span className="text-[9px] font-black uppercase tracking-wider text-red-700 flex items-center gap-0.5 truncate">
+                                  <Star className="w-2 h-2 fill-red-700 shrink-0" /> Không gian số 3D
                                 </span>
                               </div>
-                              <h3 className="font-black text-sm text-slate-900 group-hover:text-red-700 transition-colors">Không gian VH Hồ Chí Minh</h3>
-                              <p className="text-xs text-slate-600 mt-0.5 font-medium">Bảo tàng ảo & hiện vật 3D tương tác</p>
+                              <h3 className="font-black text-xs text-slate-900 group-hover:text-red-700 transition-colors truncate">Không gian VH Hồ Chí Minh</h3>
+                              <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">Bảo tàng ảo 3D & hiện vật</p>
                             </div>
                           </div>
-                          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-amber-600 text-white shadow-md shadow-red-500/30 group-hover:scale-110 transition-transform shrink-0 relative z-10 border border-amber-300/40">
-                            <Landmark className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <div className="p-2 rounded-xl bg-gradient-to-br from-red-600 via-rose-600 to-amber-600 text-white shadow-xs shadow-red-500/20 group-hover:scale-105 transition-transform shrink-0 relative z-10 border border-amber-300/40">
+                            <Landmark className="w-4 h-4" />
                           </div>
-                          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-300/20 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+                          <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-amber-300/20 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
                         </motion.div>
 
                         <motion.div 
-                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileHover={{ scale: 1.015, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectPortalTab('competitions')}
-                          className="bg-gradient-to-br from-amber-50 via-white to-orange-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-amber-200/90 shadow-xs"
+                          className="bg-gradient-to-br from-amber-50/80 via-white to-orange-50/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-md transition-all flex items-center justify-between group border border-amber-200/90 shadow-2xs"
                         >
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">Phong trào thi đua</span>
+                          <div className="min-w-0 pr-1">
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                              <span className="text-[9px] font-black uppercase tracking-wider text-amber-700 truncate">Phong trào thi đua</span>
                             </div>
-                            <h3 className="font-black text-sm text-slate-900 group-hover:text-amber-700 transition-colors">Hội thi Trực tuyến</h3>
-                            <p className="text-xs text-slate-500 mt-0.5 font-medium">Thi trắc nghiệm & giải thưởng</p>
+                            <h3 className="font-black text-xs text-slate-900 group-hover:text-amber-700 transition-colors truncate">Hội thi Trực tuyến</h3>
+                            <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">Thi trắc nghiệm & giải thưởng</p>
                           </div>
-                          <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
-                            <Sparkles className="w-5 h-5" />
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20 group-hover:scale-105 transition-transform shrink-0">
+                            <Sparkles className="w-4 h-4" />
                           </div>
                         </motion.div>
 
                         <motion.div 
-                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileHover={{ scale: 1.015, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectPortalTab('documents')}
-                          className="bg-gradient-to-br from-blue-50 via-white to-sky-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-blue-200/90 shadow-xs"
+                          className="bg-gradient-to-br from-blue-50/80 via-white to-sky-50/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-md transition-all flex items-center justify-between group border border-blue-200/90 shadow-2xs"
                         >
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-blue-700">Tra cứu số hóa</span>
+                          <div className="min-w-0 pr-1">
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                              <span className="text-[9px] font-black uppercase tracking-wider text-blue-700 truncate">Tra cứu số hóa</span>
                             </div>
-                            <h3 className="font-black text-sm text-slate-900 group-hover:text-blue-700 transition-colors">Kho Văn bản Mặt trận</h3>
-                            <p className="text-xs text-slate-500 mt-0.5 font-medium">Kế hoạch & quyết định mới</p>
+                            <h3 className="font-black text-xs text-slate-900 group-hover:text-blue-700 transition-colors truncate">Kho Văn bản Mặt trận</h3>
+                            <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">Kế hoạch & quyết định mới</p>
                           </div>
-                          <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                            <FileText className="w-5 h-5" />
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xs shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
+                            <FileText className="w-4 h-4" />
                           </div>
                         </motion.div>
 
                         <motion.div 
-                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileHover={{ scale: 1.015, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             if (currentStaffUser) {
@@ -1199,20 +1254,20 @@ export default function App() {
                               window.location.hash = '#/dang-nhap-can-bo';
                             }
                           }}
-                          className="bg-gradient-to-br from-emerald-50 via-white to-teal-50/50 p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all flex items-center justify-between group border border-emerald-200/90 shadow-xs"
+                          className="bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-md transition-all flex items-center justify-between group border border-emerald-200/90 shadow-2xs"
                         >
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Không gian điều hành</span>
+                          <div className="min-w-0 pr-1">
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
+                              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 truncate">Điều hành</span>
                             </div>
-                            <h3 className="font-black text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">Văn phòng Số Cán bộ</h3>
-                            <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                              {currentStaffUser ? `Đang đăng nhập: ${currentStaffUser.fullname}` : 'Đăng nhập bảo mật & quản trị'}
+                            <h3 className="font-black text-xs text-slate-900 group-hover:text-emerald-700 transition-colors truncate">Văn phòng Số Cán bộ</h3>
+                            <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">
+                              {currentStaffUser ? `${currentStaffUser.fullname}` : 'Đăng nhập bảo mật'}
                             </p>
                           </div>
-                          <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-                            <ShieldCheck className="w-5 h-5" />
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-xs shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
+                            <ShieldCheck className="w-4 h-4" />
                           </div>
                         </motion.div>
                       </div>
@@ -1424,7 +1479,36 @@ export default function App() {
                 onCloseMobile={() => setIsMobileOfficeSidebarOpen(false)}
               />
 
-              <div className="flex-1 flex flex-col overflow-y-auto">
+              <div className="flex-1 flex flex-col overflow-y-auto relative">
+                {/* Realtime Admin Collaboration Toast Notifications & Login Summary */}
+                <RealtimeActivityToastContainer 
+                  currentAdmin={currentStaffUser} 
+                  onNavigateToEntity={(entityType, entityId, route) => {
+                    if (route) {
+                      handleNavigateOfficeView(route);
+                    } else if (entityType === 'article') {
+                      handleNavigateOfficeView('cms');
+                    } else if (entityType === 'document') {
+                      handleNavigateOfficeView('documents');
+                    } else if (entityType === 'cultural_media') {
+                      handleNavigateOfficeView('cultural_space');
+                    }
+                  }}
+                />
+
+                <LoginSummaryModal
+                  currentAdmin={currentStaffUser}
+                  onNavigateToEntity={(entityType, entityId, route) => {
+                    if (route) {
+                      handleNavigateOfficeView(route);
+                    } else if (entityType === 'article') {
+                      handleNavigateOfficeView('cms');
+                    } else if (entityType === 'document') {
+                      handleNavigateOfficeView('documents');
+                    }
+                  }}
+                />
+
                 <DigitalOfficeHeader
                   staffName={currentStaffUser?.fullname || ''}
                   staffPosition={currentStaffUser?.position || ''}
@@ -1432,7 +1516,19 @@ export default function App() {
                   staffRole={currentStaffUser?.role || 'STAFF'}
                   staffEmail={currentStaffUser?.email}
                   staffDepartment={currentStaffUser?.department}
+                  currentUser={currentStaffUser}
                   onNavigate={(view) => handleNavigateOfficeView(view)}
+                  onNavigateToEntity={(entityType, entityId, route) => {
+                    if (route) {
+                      handleNavigateOfficeView(route);
+                    } else if (entityType === 'article') {
+                      handleNavigateOfficeView('cms');
+                    } else if (entityType === 'document') {
+                      handleNavigateOfficeView('documents');
+                    } else if (entityType === 'cultural_media') {
+                      handleNavigateOfficeView('cultural_space');
+                    }
+                  }}
                   onOpenProfile={() => handleNavigateOfficeView('profile')}
                   onOpenAi={() => handleNavigateOfficeView('ai_assistant')}
                   onGoToPortal={() => {
@@ -1763,6 +1859,7 @@ export default function App() {
                           }}
                           onSelectCompetitionDetail={(id) => setActiveCompetitionId(id)}
                           onRestoreDefaultBanners={handleRestoreDefaultBanners}
+                          onRestoreDefaultCompetitions={handleRestoreDefaultCompetitions}
                         />
                       )
                     )}

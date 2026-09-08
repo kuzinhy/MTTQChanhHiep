@@ -151,7 +151,7 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight leading-tight">
-              Thư Viện Tác Phẩm Hồ Chí Minh Toàn Tập
+              Tủ Sách &amp; Tác Phẩm Hồ Chí Minh Toàn Tập
             </h1>
 
             <p className="text-xs sm:text-sm text-rose-50 leading-relaxed font-normal">

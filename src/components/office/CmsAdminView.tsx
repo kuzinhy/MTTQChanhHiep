@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { adminCollaborationService } from '../../lib/adminCollaborationService';
+import { AppStorageEngine } from '../../lib/storage';
+import { EditingConflictBanner } from './EditingConflictBanner';
 import { 
   uploadFileToGoogleDrive, 
   DEFAULT_DRIVE_FOLDER_ID, 
@@ -92,7 +95,6 @@ import {
   Clipboard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AppStorageEngine } from '../../lib/storage';
 
 interface CmsAdminViewProps {
   articles: Article[];
@@ -718,6 +720,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     const finalSlug = artSlug.trim() || generateSlug(artTitle);
     const finalSummary = artSummary.trim() || artContent.replace(/<[^>]*>?/gm, '').substring(0, 160) + '...';
 
+    const currentUser = AppStorageEngine.getCurrentUser();
+
     if (editingArticle) {
       const updated: Article = {
         ...editingArticle,
@@ -740,6 +744,18 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         driveFolderUrl: artDriveFolderUrl.trim() || DEFAULT_DRIVE_FOLDER_URL
       };
       onUpdateArticle(updated);
+
+      if (currentUser) {
+        adminCollaborationService.publishActivityEvent({
+          actor: { id: currentUser.id, name: currentUser.fullname, avatar: currentUser.avatar },
+          action: 'UPDATE',
+          entity: 'article',
+          entityId: updated.id,
+          entityTitle: updated.title,
+          details: `Đã cập nhật bài viết: "${updated.title}"`,
+          route: 'cms'
+        });
+      }
     } else {
       const newArt: Article = {
         id: 'art-' + Date.now(),
@@ -763,6 +779,18 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         views: 1
       };
       onAddArticle(newArt);
+
+      if (currentUser) {
+        adminCollaborationService.publishActivityEvent({
+          actor: { id: currentUser.id, name: currentUser.fullname, avatar: currentUser.avatar },
+          action: 'CREATE',
+          entity: 'article',
+          entityId: newArt.id,
+          entityTitle: newArt.title,
+          details: `Đã đăng bài viết mới: "${newArt.title}"`,
+          route: 'cms'
+        });
+      }
     }
 
     setIsArticleModalOpen(false);
@@ -772,8 +800,12 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   // Confirm Delete Article
   const handleConfirmDeleteArticle = () => {
     if (!articleToDelete) return;
+    const title = articleToDelete.title;
     onDeleteArticle(articleToDelete.id);
     setArticleToDelete(null);
+    if (onShowToast) {
+      onShowToast('Đã xóa bài viết', `Bài viết "${title}" đã được gỡ thành công.`);
+    }
   };
 
   // Reset Document Form
@@ -919,8 +951,12 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   // Confirm Delete Document
   const handleConfirmDeleteDoc = () => {
     if (!docToDelete) return;
+    const code = docToDelete.codeNumber;
     onDeleteDocument(docToDelete.id);
     setDocToDelete(null);
+    if (onShowToast) {
+      onShowToast('Đã xóa văn bản', `Văn bản số ${code} đã được gỡ khỏi hệ thống.`);
+    }
   };
 
   // Reset Competition Form
@@ -990,8 +1026,12 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   // Confirm Delete Competition
   const handleConfirmDeleteComp = () => {
     if (!compToDelete) return;
+    const title = compToDelete.title;
     if (onDeleteCompetition) onDeleteCompetition(compToDelete.id);
     setCompToDelete(null);
+    if (onShowToast) {
+      onShowToast('Đã xóa cuộc thi', `Cuộc thi "${title}" đã được xóa khỏi hệ thống.`);
+    }
   };
 
   // Submit Opinion Response
@@ -1851,6 +1891,15 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                 </button>
               </div>
 
+              {editingArticle && (
+                <EditingConflictBanner
+                  currentAdmin={AppStorageEngine.getCurrentUser()}
+                  entityType="article"
+                  entityId={editingArticle.id}
+                  entityTitle={editingArticle.title}
+                />
+              )}
+
               <form onSubmit={handleSaveArticle} className="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
                 {/* 1. TOP TOOLBAR: Article Title & AI Link Parser */}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 shrink-0">
@@ -2152,35 +2201,47 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
               className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 text-slate-900"
             >
               <div className="flex items-center gap-3 text-rose-600">
-                <div className="p-3 bg-rose-100 rounded-2xl">
+                <div className="p-3 bg-rose-100 rounded-2xl shrink-0">
                   <Trash2 className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="font-black text-base text-slate-900">Xác nhận xóa bài viết</h3>
-                  <p className="text-xs text-slate-500">Hành động này không thể hoàn tác.</p>
+                  <p className="text-xs text-slate-500">Bài viết sẽ bị gỡ vĩnh viễn khỏi hệ thống.</p>
                 </div>
               </div>
 
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
-                <p className="font-black text-slate-900 line-clamp-2">{articleToDelete.title}</p>
-                <p className="text-slate-500">Chuyên mục: {articleToDelete.category} • Ngày đăng: {articleToDelete.publishDate}</p>
+              <div className="p-3.5 bg-rose-50/50 border border-rose-200/80 rounded-2xl text-xs space-y-2">
+                <p className="font-black text-slate-900 line-clamp-2 leading-snug">{articleToDelete.title}</p>
+                <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium">
+                  <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200 font-bold text-slate-700">
+                    {articleToDelete.category}
+                  </span>
+                  <span>Ngày đăng: {articleToDelete.publishDate}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <p className="font-medium">
+                  Cảnh báo: Hành động này không thể hoàn tác và bài viết sẽ ngừng hiển thị trên cổng tin tức.
+                </p>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setArticleToDelete(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-all active:scale-95"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmDeleteArticle}
-                  className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer flex items-center gap-1.5"
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-95"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Xác nhận xóa ngay</span>
+                  <span>Xác nhận xóa bài viết</span>
                 </button>
               </div>
             </motion.div>
@@ -2614,34 +2675,116 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
               className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 text-slate-900"
             >
               <div className="flex items-center gap-3 text-rose-600">
-                <div className="p-3 bg-rose-100 rounded-2xl">
+                <div className="p-3 bg-rose-100 rounded-2xl shrink-0">
                   <Trash2 className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="font-black text-base text-slate-900">Xác nhận xóa văn bản</h3>
-                  <p className="text-xs text-slate-500">Văn bản sẽ được gỡ khỏi cơ sở dữ liệu.</p>
+                  <p className="text-xs text-slate-500">Văn bản chỉ đạo sẽ bị gỡ khỏi thư viện.</p>
                 </div>
               </div>
 
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
-                <p className="font-black text-blue-700">{docToDelete.codeNumber}</p>
-                <p className="text-slate-800 line-clamp-2">{docToDelete.title}</p>
+              <div className="p-3.5 bg-rose-50/50 border border-rose-200/80 rounded-2xl text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-blue-700 text-xs px-2 py-0.5 bg-blue-50 border border-blue-200 rounded-md">
+                    {docToDelete.codeNumber}
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-500">{docToDelete.docType}</span>
+                </div>
+                <p className="font-bold text-slate-900 line-clamp-2 leading-snug">{docToDelete.title}</p>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-rose-100">
+                  <span>Người ký: {docToDelete.signer || 'UBND Phường'}</span>
+                  <span>Ngày BH: {docToDelete.issueDate}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <p className="font-medium">
+                  Cảnh báo: Văn bản này và các tệp đính kèm sẽ bị xóa hoàn toàn khỏi hệ thống tra cứu.
+                </p>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setDocToDelete(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-all active:scale-95"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmDeleteDoc}
-                  className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer"
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-95"
                 >
-                  Xác nhận xóa
+                  <Trash2 className="w-4 h-4" />
+                  <span>Xác nhận xóa văn bản</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================================= */}
+      {/* CUSTOM DELETE CONFIRMATION FOR COMPETITION */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {compToDelete && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 text-slate-900"
+            >
+              <div className="flex items-center gap-3 text-rose-600">
+                <div className="p-3 bg-rose-100 rounded-2xl shrink-0">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900">Xác nhận xóa cuộc thi</h3>
+                  <p className="text-xs text-slate-500">Hội thi sẽ bị gỡ khỏi hệ thống.</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-rose-50/50 border border-rose-200/80 rounded-2xl text-xs space-y-2">
+                <p className="font-black text-slate-900 line-clamp-2 leading-snug">{compToDelete.title}</p>
+                <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium">
+                  <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200 font-bold text-slate-700">
+                    {compToDelete.type === 'TRIVIA' ? 'Trắc nghiệm trực tuyến' : 'Bài viết tự luận'}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                    compToDelete.status === 'ONGOING' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    {compToDelete.status === 'ONGOING' ? 'Đang diễn ra' : compToDelete.status === 'UPCOMING' ? 'Sắp diễn ra' : 'Đã kết thúc'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <p className="font-medium">
+                  Cảnh báo: Hội thi cùng dữ liệu các bài thi của thí sinh sẽ bị xóa vĩnh viễn.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCompToDelete(null)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-all active:scale-95"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteComp}
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-95"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Xác nhận xóa cuộc thi</span>
                 </button>
               </div>
             </motion.div>

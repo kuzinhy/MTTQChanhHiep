@@ -30,7 +30,26 @@ export const CompetitionsSection: React.FC<CompetitionsSectionProps> = ({
       </div>
 
       {/* Competitions Cards List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {sortedComps.length === 0 ? (
+        <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-4 shadow-2xs">
+          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto">
+            <Trophy className="w-8 h-8" />
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 text-base">Hiện chưa có cuộc thi nào được kích hoạt</h3>
+            <p className="text-xs text-slate-500 mt-1">Bạn có thể khôi phục lại 4 cuộc thi mặc định của hệ thống bất kỳ lúc nào.</p>
+          </div>
+          <button
+            onClick={() => {
+              window.location.reload();
+            }}
+            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl shadow-xs transition-colors cursor-pointer"
+          >
+            Nạp lại 4 Cuộc Thi Mặc Định
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {sortedComps.map((comp) => (
           <div key={comp.id} className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
             <div>
@@ -89,6 +108,7 @@ export const CompetitionsSection: React.FC<CompetitionsSectionProps> = ({
           </div>
         ))}
       </div>
+      )}
     </section>
   );
 };

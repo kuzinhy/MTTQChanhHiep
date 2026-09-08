@@ -344,7 +344,9 @@ export const NotificationAdminView: React.FC<NotificationAdminViewProps> = ({
                              item.target_type === 'ROLE' ? `Vai trò: ${item.target_roles?.join(', ')}` : item.target_type}
                           </td>
                           <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
-                            {new Date(item.created_at).toLocaleString('vi-VN')}
+                            {item.created_at && !isNaN(Date.parse(item.created_at))
+                              ? new Date(item.created_at).toLocaleString('vi-VN')
+                              : 'Vừa xong'}
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <button

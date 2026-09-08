@@ -40,6 +40,7 @@ interface CompetitionsAdminViewProps {
   onGradeSubmission?: (id: string, score: number, comment: string) => void;
   onSelectCompetitionDetail: (id: string) => void;
   onRestoreDefaultBanners?: () => void;
+  onRestoreDefaultCompetitions?: () => void;
   onTriggerToast?: (title: string, message: string) => void;
 }
 
@@ -52,6 +53,7 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
   onGradeSubmission,
   onSelectCompetitionDetail,
   onRestoreDefaultBanners,
+  onRestoreDefaultCompetitions,
   onTriggerToast
 }) => {
   const [activeTab, setActiveTab] = useState<'LIST' | 'SUBMISSIONS' | 'QUESTION_BANK'>('LIST');
@@ -80,6 +82,14 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
 
   // Delete confirmation
   const [compToDelete, setCompToDelete] = useState<Competition | null>(null);
+
+  const handleConfirmDeleteComp = () => {
+    if (!compToDelete) return;
+    const title = compToDelete.title;
+    if (onDeleteCompetition) onDeleteCompetition(compToDelete.id);
+    onTriggerToast?.('Đã xóa cuộc thi', `Cuộc thi "${title}" đã được gỡ khỏi hệ thống.`);
+    setCompToDelete(null);
+  };
 
   const handleResetWizard = () => {
     setWizardStep(1);
@@ -160,14 +170,26 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
             </button>
           </div>
 
+          {onRestoreDefaultCompetitions && (
+            <button
+              onClick={onRestoreDefaultCompetitions}
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+              type="button"
+              title="Khôi phục 4 hội thi mặc định của hệ thống"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Nạp lại 4 Cuộc Thi</span>
+            </button>
+          )}
+
           {onRestoreDefaultBanners && (
             <button
               onClick={onRestoreDefaultBanners}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer transition-all"
+              className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
               type="button"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Khôi phục 4 Banner Mặc định</span>
+              <span>Phục hồi Banner</span>
             </button>
           )}
 
@@ -214,23 +236,30 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
               </div>
 
               {/* Action Buttons: Quản lý hội thi */}
-              <div className="p-5 pt-0 grid grid-cols-2 gap-2">
+              <div className="p-5 pt-0 grid grid-cols-12 gap-2">
                 <button
                   onClick={() => onSelectCompetitionDetail(comp.id)}
-                  className="py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                  className="col-span-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Settings className="w-4 h-4" />
-                  <span>Quản lý hội thi</span>
+                  <span>Quản lý</span>
                 </button>
                 <a
                   href={`#/hoi-thi/${comp.id}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  className="col-span-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1 transition-colors"
                 >
                   <Globe className="w-4 h-4 text-blue-600" />
-                  <span>Xem trang</span>
+                  <span>Xem</span>
                 </a>
+                <button
+                  onClick={() => setCompToDelete(comp)}
+                  className="col-span-2 py-2.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 font-extrabold text-xs rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+                  title="Xóa cuộc thi"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))}
@@ -542,6 +571,69 @@ export const CompetitionsAdminView: React.FC<CompetitionsAdminViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal for Competition */}
+      <AnimatePresence>
+        {compToDelete && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 text-slate-900"
+            >
+              <div className="flex items-center gap-3 text-rose-600">
+                <div className="p-3 bg-rose-100 rounded-2xl shrink-0">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900">Xác nhận xóa cuộc thi</h3>
+                  <p className="text-xs text-slate-500">Hội thi sẽ bị gỡ khỏi hệ thống.</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-rose-50/50 border border-rose-200/80 rounded-2xl text-xs space-y-2">
+                <p className="font-black text-slate-900 line-clamp-2 leading-snug">{compToDelete.title}</p>
+                <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium">
+                  <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200 font-bold text-slate-700">
+                    {compToDelete.type === 'TRIVIA' ? 'Trắc nghiệm trực tuyến' : 'Bài viết tự luận'}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                    compToDelete.status === 'ONGOING' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    {compToDelete.status === 'ONGOING' ? 'Đang diễn ra' : compToDelete.status === 'UPCOMING' ? 'Sắp diễn ra' : 'Đã kết thúc'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <p className="font-medium">
+                  Cảnh báo: Hội thi cùng dữ liệu các bài thi của thí sinh sẽ bị xóa vĩnh viễn.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCompToDelete(null)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-all active:scale-95"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteComp}
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-95"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Xác nhận xóa cuộc thi</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

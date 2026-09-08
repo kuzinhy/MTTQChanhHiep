@@ -31,6 +31,18 @@ export interface StaffUser {
   passwordResetAt?: string;
 }
 
+export interface VolunteerRegistration {
+  id: string;
+  fullName: string;
+  phone: string;
+  neighborhood: string;
+  teams: string[];
+  note?: string;
+  submittedAt: string;
+  code: string;
+  status: 'PENDING' | 'APPROVED' | 'CONTACTED';
+}
+
 export type ArticleCategory = 
   | 'Hoạt động Mặt trận'
   | 'Hoạt động khu phố'
@@ -282,10 +294,91 @@ export interface AuditLog {
   id: string;
   userId: string;
   userName: string;
-  action: string;
+  userAvatar?: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'PUBLISH' | 'UNPUBLISH' | 'APPROVE' | 'RESTORE' | 'UPLOAD' | string;
   entity: string;
+  entityId?: string;
+  entityTitle?: string;
   details: string;
+  route?: string;
   timestamp: string;
+}
+
+export type AdminNotificationType = 
+  | 'ACTIVITY' 
+  | 'SYSTEM' 
+  | 'MEDIA' 
+  | 'ARTICLE' 
+  | 'DOCUMENT' 
+  | 'PRESENCE' 
+  | 'EDIT_CONFLICT';
+
+export interface AdminNotification {
+  id: string;
+  recipientAdminId?: string; // 'ALL' or specific admin user ID
+  activityLogId?: string; // Deduplication key
+  type: AdminNotificationType;
+  title: string;
+  message: string;
+  entityType?: string;
+  entityId?: string;
+  entityTitle?: string;
+  actorAdminId: string;
+  actorName: string;
+  actorAvatar?: string;
+  action: string;
+  isRead: boolean;
+  readAt?: string;
+  createdAt: string;
+  route?: string;
+}
+
+export type PresenceStatus = 'online' | 'idle' | 'offline';
+
+export interface AdminPresence {
+  adminId: string;
+  email: string;
+  name: string;
+  role: string;
+  avatar?: string;
+  status: PresenceStatus;
+  currentRoute: string;
+  currentEntityType?: string;
+  currentEntityId?: string;
+  currentEntityTitle?: string;
+  deviceCount: number;
+  lastSeenAt: string;
+  updatedAt: string;
+}
+
+export interface EntityEditingEditor {
+  adminId: string;
+  adminName: string;
+  adminAvatar?: string;
+  startedAt: string;
+  lastSeenAt: string;
+}
+
+export interface EntityEditingPresence {
+  id: string; // `${entityType}_${entityId}`
+  entityType: string;
+  entityId: string;
+  entityTitle: string;
+  editors: EntityEditingEditor[];
+  updatedAt: string;
+}
+
+export interface AdminNotificationPreferences {
+  adminId: string;
+  notifyActivity: boolean;
+  notifyArticles: boolean;
+  notifyDocuments: boolean;
+  notifyMedia: boolean;
+  notifySystem: boolean;
+  notifyAdminOnline: boolean;
+  notifyAdminOffline: boolean;
+  soundEnabled: boolean;
+  desktopPushEnabled: boolean;
 }
 
 export type MediaType = 'image' | 'audio' | 'video' | 'youtube';

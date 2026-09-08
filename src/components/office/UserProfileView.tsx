@@ -741,6 +741,74 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             </form>
           </div>
 
+          {/* REALTIME COLLABORATION & NOTIFICATION PREFERENCES BOX */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-4.5 h-4.5 text-indigo-600" />
+                <span>Cấu hình Tương tác Realtime &amp; Thông báo Quản trị</span>
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black border border-indigo-200 uppercase">
+                Collaboration Center
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Tùy chỉnh thông báo thời gian thực khi làm việc nhóm cùng các Quản trị viên khác trên hệ thống Văn phòng số.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Thông báo thay đổi nội dung</p>
+                  <p className="text-[10px] text-slate-500">Báo Toast tức thì khi admin khác sửa bài/văn bản</p>
+                </div>
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+                />
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Thông báo Admin vừa Online</p>
+                  <p className="text-[10px] text-slate-500">Hiển thị khi đồng nghiệp vào hệ thống</p>
+                </div>
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+                />
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Âm thanh thông báo (Sound Chime)</p>
+                  <p className="text-[10px] text-slate-500">Phát âm thanh nhẹ khi nhận tin tức thời</p>
+                </div>
+                <input
+                  type="checkbox"
+                  defaultChecked={false}
+                  className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+                />
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Cảnh báo xung đột chỉnh sửa</p>
+                  <p className="text-[10px] text-slate-500">Báo động khi có người khác cùng sửa 1 bài</p>
+                </div>
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  disabled
+                  className="w-4 h-4 text-indigo-600 rounded opacity-70"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* BROWSER NOTIFICATION SETTINGS BOX */}
           <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">

@@ -26,6 +26,7 @@ import {
 import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
 import { OptimizedImage } from './common/OptimizedImage';
+import { OfflineSyncStatusWidget } from './common/OfflineSyncStatusWidget';
 
 interface NavbarProps {
   activeTab: string;
@@ -156,6 +157,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
               <Search className="w-3 h-3 absolute left-2 top-1.5 text-blue-200" />
             </div>
+
+            {/* Offline Sync Widget */}
+            <OfflineSyncStatusWidget />
 
             {/* Login / Digital Office Button */}
             {isStaffLoggedIn ? (

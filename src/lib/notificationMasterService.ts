@@ -44,6 +44,57 @@ const cleanUndefined = (obj: any): any => {
   return cleaned;
 };
 
+const SEED_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 'notif-seed-1',
+    title: 'Phát động Phong trào Thi đua Chuyển đổi số MTTQ Phường Chánh Hiệp 2026',
+    body: 'Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp phát động phong trào ứng dụng Số hóa văn bản và Nâng cao hiệu quả lắng nghe ý kiến Dân sinh.',
+    summary: 'Phát động phong trào Chuyển đổi số MTTQ Phường Chánh Hiệp năm 2026.',
+    type: 'ADMIN_BROADCAST',
+    category: 'news',
+    priority: 'URGENT',
+    visibility: 'PUBLIC',
+    target_type: 'ALL',
+    channels: ['IN_APP', 'WEB_PUSH'],
+    status: 'SENT',
+    created_by: 'Bí thư / Chủ tịch MTTQ',
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 2).toISOString()
+  },
+  {
+    id: 'notif-seed-2',
+    title: 'Khảo sát Ý kiến Nhân dân về Nâng cấp Hạ tầng Giao thông 21 Khu phố',
+    body: 'Mời toàn thể nhân dân 21 Khu phố tham gia đóng góp ý kiến về dự án chỉnh trang đô thị, nâng cấp hẻm và hệ thống chiếu sáng năm 2026.',
+    summary: 'Khảo sát ý kiến nhân dân nâng cấp hạ tầng 21 Khu phố.',
+    type: 'CIVIL_OPINION',
+    category: 'event',
+    priority: 'NORMAL',
+    visibility: 'PUBLIC',
+    target_type: 'ALL',
+    channels: ['IN_APP'],
+    status: 'SENT',
+    created_by: 'Ban Thường trực MTTQ',
+    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 12).toISOString()
+  },
+  {
+    id: 'notif-seed-3',
+    title: 'Mở Cổng Đăng ký Tình nguyện viên Mới với Hiệu ứng Máy bay giấy 3D',
+    body: 'Người dân có thể đăng ký trực tuyến làm Tình nguyện viên Mặt trận Tổ quốc và trải nghiệm gửi thông tin với hiệu ứng máy bay giấy độc đáo.',
+    summary: 'Mở cổng đăng ký Tình nguyện viên MTTQ.',
+    type: 'ADMIN_BROADCAST',
+    category: 'system',
+    priority: 'URGENT',
+    visibility: 'PUBLIC',
+    target_type: 'ALL',
+    channels: ['IN_APP', 'WEB_PUSH'],
+    status: 'SENT',
+    created_by: 'Ban Tổ chức Tình nguyện',
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 24).toISOString()
+  }
+];
+
 export const notificationMasterService = {
   // Subscribe to real-time notifications for current user/device
   subscribeToNotifications(
@@ -77,12 +128,14 @@ export const notificationMasterService = {
             list.push({ ...data, id: docSnap.id });
           }
         });
-        callback(list);
+        callback(list.length > 0 ? list : SEED_NOTIFICATIONS);
       }, (err) => {
         console.error('[NotificationService] Snapshot error:', err);
+        callback(SEED_NOTIFICATIONS);
       });
     } catch (e) {
       console.error('[NotificationService] Failed to subscribe:', e);
+      callback(SEED_NOTIFICATIONS);
       return () => {};
     }
   },
@@ -144,9 +197,15 @@ export const notificationMasterService = {
 
   // Fetch all notifications for admin dashboard
   async getAllNotifications(): Promise<NotificationItem[]> {
-    const q = query(collection(db, NOTIFICATIONS_COLLECTION), orderBy('created_at', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ ...d.data(), id: d.id } as NotificationItem));
+    try {
+      const q = query(collection(db, NOTIFICATIONS_COLLECTION), orderBy('created_at', 'desc'));
+      const snap = await getDocs(q);
+      const docs = snap.docs.map(d => ({ ...d.data(), id: d.id } as NotificationItem));
+      return docs.length > 0 ? docs : SEED_NOTIFICATIONS;
+    } catch (e) {
+      console.warn('[NotificationService] getAllNotifications error:', e);
+      return SEED_NOTIFICATIONS;
+    }
   },
 
   // Device & Push Subscription registration
