@@ -23,6 +23,9 @@ import { AboutAdminView } from './AboutAdminView';
 import { MediaUploader } from './MediaUploader';
 import { MediaLibraryView } from './MediaLibraryView';
 import { CulturalMediaAdminSection } from '../cultural/CulturalMediaAdminSection';
+import { ChanhHiepDriveFolderBar } from './ChanhHiepDriveFolderBar';
+import { SmartMediaDriveUploader } from './SmartMediaDriveUploader';
+import { ContentImageDriveModal } from './ContentImageDriveModal';
 import { inspectImageFile, formatBytes, getOptimalImageUrl } from '../../lib/imageOptimization';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
@@ -1349,6 +1352,9 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
             </div>
           </div>
 
+          {/* Google Drive Chanh Hiep 7 Folders Bar */}
+          <ChanhHiepDriveFolderBar />
+
           {/* Search & Filter Toolbar */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col lg:flex-row items-center justify-between gap-3 shadow-2xs">
             <div className="relative w-full lg:w-96">
@@ -2084,16 +2090,41 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                       </div>
                     </div>
 
-                    {/* SECTION 2: Featured Image Box */}
-                    <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-2xl">
-                      <MediaUploader
-                        folder="articles"
-                        label="2. Ảnh đại diện bài viết (Cloudinary Storage)"
-                        currentImage={artImage}
-                        onImageUploaded={(img) => {
-                          setArtImage(img.secureUrl);
+                    {/* SECTION 2: Featured Image Box with Smart Drive/Link/Upload support */}
+                    <div className="space-y-3">
+                      <SmartMediaDriveUploader
+                        label="2. Ảnh đại diện bài viết (Gắn link Drive/Web hoặc Upload)"
+                        currentValue={artImage}
+                        modeType="image"
+                        defaultFolderCode="data"
+                        onMediaSelected={(res) => {
+                          setArtImage(res.directImageUrl || res.url);
+                          if (res.name && !artTitle) {
+                            // Suggest title from file name if empty
+                          }
                         }}
-                        onRemoveImage={() => setArtImage('')}
+                        onClear={() => setArtImage('')}
+                      />
+
+                      {/* SECTION 2B: Attachment Document Box */}
+                      <SmartMediaDriveUploader
+                        label="2b. Văn bản / Tài liệu đính kèm (PDF, DOCX, Sổ sách trên Google Drive)"
+                        currentValue={artAttachment}
+                        currentName={artAttachmentName}
+                        currentSize={artAttachmentSize}
+                        modeType="document"
+                        defaultFolderCode="van-ban-mttq"
+                        onMediaSelected={(res) => {
+                          setArtAttachment(res.url);
+                          if (res.name) setArtAttachmentName(res.name);
+                          if (res.size) setArtAttachmentSize(res.size);
+                          if (res.url) setArtDriveFolderUrl(res.url);
+                        }}
+                        onClear={() => {
+                          setArtAttachment('');
+                          setArtAttachmentName('');
+                          setArtAttachmentSize('');
+                        }}
                       />
                     </div>
 
@@ -2126,7 +2157,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                         onClick={() => setShowInsertContentImageModal(true)}
                         className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
                       >
-                        <Plus className="w-3.5 h-3.5" /> Chèn ảnh từ Cloudinary vào bài
+                        <Plus className="w-3.5 h-3.5" /> Chèn ảnh / Tài liệu Drive vào bài
                       </button>
                     </div>
 
@@ -3180,53 +3211,13 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* CONTENT IMAGE INSERTER MODAL */}
+      {/* CONTENT IMAGE & GOOGLE DRIVE INSERTER MODAL */}
       {/* ========================================================================= */}
-      <AnimatePresence>
-        {showInsertContentImageModal && (
-          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white w-full max-w-4xl rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto text-slate-900"
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <ImageIcon className="w-5 h-5 text-blue-600" /> Chèn ảnh từ Cloudinary vào bài viết
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowInsertContentImageModal(false)}
-                  className="text-slate-400 hover:text-slate-600 text-xl font-bold"
-                >
-                  ×
-                </button>
-              </div>
-
-              <MediaLibraryView
-                articles={articles}
-                isSelectionMode={true}
-                onSelectImageForArticle={(img) => {
-                  const imgTag = `\n<img src="${img.secureUrl}" alt="${img.alt || 'Ảnh bài viết'}" class="max-w-full h-auto rounded-2xl my-4 shadow-sm" />\n`;
-                  setArtContent(prev => prev + imgTag);
-                  setShowInsertContentImageModal(false);
-                }}
-              />
-
-              <div className="flex justify-end pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowInsertContentImageModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl"
-                >
-                  Hủy bỏ
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <ContentImageDriveModal
+        isOpen={showInsertContentImageModal}
+        onClose={() => setShowInsertContentImageModal(false)}
+        onInsertContent={(snippet) => setArtContent(prev => prev + snippet)}
+      />
 
     </div>
   );

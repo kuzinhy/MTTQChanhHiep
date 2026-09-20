@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   setDoc,
   deleteDoc,
@@ -327,6 +328,12 @@ class HcmCloudSyncService {
    */
   public async seedDefaultDataIfNeeded() {
     try {
+      const flagRef = doc(db, 'settings', 'hcm_seed_initialized');
+      const flagSnap = await getDoc(flagRef);
+      if (flagSnap.exists()) {
+        return;
+      }
+
       // Check Exhibits
       const exhibitsSnap = await getDocs(collection(db, HCM_CLOUD_COLLECTIONS.EXHIBITS));
       if (exhibitsSnap.empty) {
@@ -432,6 +439,9 @@ class HcmCloudSyncService {
         console.info('[HcmCloudSync] Seeding default cover config to Firestore Cloud...');
         await setDoc(doc(db, HCM_CLOUD_COLLECTIONS.COVER, 'main_cover'), DEFAULT_COVER_CONFIG);
       }
+
+      // Mark initialized
+      await setDoc(flagRef, { initializedAt: new Date().toISOString() });
 
     } catch (err) {
       console.warn('[HcmCloudSync] Seed check warning (offline or permissions):', err);

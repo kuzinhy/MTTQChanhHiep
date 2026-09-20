@@ -98,7 +98,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
             handleOptimizedImageError(e, fallback);
           }
         }}
-        style={{ imageRendering: 'auto' }}
+        style={{ imageRendering: 'auto', ...restProps.style }}
         className={`${className} ${enableLightbox ? 'cursor-zoom-in' : ''}`}
         onClick={handleImageClick}
         {...restProps}

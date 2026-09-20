@@ -818,7 +818,7 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
   // Monitored Folder: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G
   // =========================================================================
 
-  const GOOGLE_DRIVE_MONITORED_FOLDER_ID = '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G';
+  const GOOGLE_DRIVE_MONITORED_FOLDER_ID = '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL';
   const GOOGLE_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${GOOGLE_DRIVE_MONITORED_FOLDER_ID}?hl=vi`;
 
   // In-memory monitor event store

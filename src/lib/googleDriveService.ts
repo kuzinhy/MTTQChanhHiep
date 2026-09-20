@@ -6,9 +6,93 @@ import { getApiUrl } from './api';
 export const googleDriveProvider = new GoogleAuthProvider();
 googleDriveProvider.addScope('https://www.googleapis.com/auth/drive.file');
 
-// Target folder ID on Google Drive
-export const DEFAULT_DRIVE_FOLDER_ID = '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G';
+// Target root folder ID on Google Drive (DuAn > ChanhHiep)
+export const DEFAULT_DRIVE_FOLDER_ID = '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL';
 export const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}?hl=vi`;
+
+export interface DriveFolderItem {
+  id: string;
+  name: string;
+  code: 'hcm' | 'kien-thuc-chung' | 'van-ban-lhpn' | 'van-ban-doan' | 'van-ban-mttq' | 'data' | 'uploadvb' | 'root';
+  description: string;
+  url: string;
+  badgeColor: string;
+  iconName: string;
+  categoryTags?: string[];
+  docTypes?: string[];
+}
+
+export const CHANH_HIEP_DRIVE_FOLDERS: DriveFolderItem[] = [
+  {
+    id: DEFAULT_DRIVE_FOLDER_ID,
+    name: 'Văn bản MTTQ',
+    code: 'van-ban-mttq',
+    description: 'Nghị quyết, Kế hoạch, Báo cáo, Công văn MTTQ Việt Nam phường',
+    url: DEFAULT_DRIVE_FOLDER_URL,
+    badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
+    iconName: 'FileText',
+    categoryTags: ['Hoạt động Mặt trận', 'Đại đoàn kết', 'Giám sát - Phản biện', 'Phong trào thi đua'],
+    docTypes: ['Nghị quyết', 'Kế hoạch', 'Báo cáo', 'Công văn', 'Chương trình', 'Hướng dẫn', 'Quyết định']
+  },
+  {
+    id: DEFAULT_DRIVE_FOLDER_ID,
+    name: 'HCM',
+    code: 'hcm',
+    description: 'Tư liệu, bài viết, học tập và làm theo tư tưởng, đạo đức, phong cách Hồ Chí Minh',
+    url: DEFAULT_DRIVE_FOLDER_URL,
+    badgeColor: 'bg-rose-100 text-rose-800 border-rose-300',
+    iconName: 'Award',
+    categoryTags: ['Học tập và làm theo Bác']
+  },
+  {
+    id: DEFAULT_DRIVE_FOLDER_ID,
+    name: 'Kiến thức chung',
+    code: 'kien-thuc-chung',
+    description: 'Tài liệu tuyên truyền, cẩm nang nghiệp vụ, kiến thức pháp luật & đời sống',
+    url: DEFAULT_DRIVE_FOLDER_URL,
+    badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+    iconName: 'BookOpen',
+    categoryTags: ['Tuyên truyền & Nghị quyết', 'Dân vận khéo', 'Khu phố đoàn kết']
+  },
+  {
+    id: DEFAULT_DRIVE_FOLDER_ID,
+    name: 'Văn bản Hội LHPN',
+    code: 'van-ban-lhpn',
+    description: 'Văn bản, tài liệu hoạt động Hội Liên hiệp Phụ nữ',
+    url: DEFAULT_DRIVE_FOLDER_URL,
+    badgeColor: 'bg-pink-100 text-pink-800 border-pink-300',
+    iconName: 'Heart',
+    docTypes: ['Kế hoạch', 'Thông báo', 'Báo cáo']
+  },
+  {
+    id: DEFAULT_DRIVE_FOLDER_ID,
+    name: 'Văn bản Đoàn TNCS Hồ Chí Minh',
+    code: 'van-ban-doan',
+    description: 'Chương trình hành động, phong trào thanh niên, văn bản Đoàn Phường',
+    url: DEFAULT_DRIVE_FOLDER_URL,
+    badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    iconName: 'Flame',
+    docTypes: ['Kế hoạch', 'Chương trình', 'Thông báo']
+  },
+  {
+    id: DEFAULT_DRIVE_FOLDER_ID,
+    name: 'data',
+    code: 'data',
+    description: 'Kho hình ảnh, infographics, tài nguyên media, video & dữ liệu hệ thống',
+    url: DEFAULT_DRIVE_FOLDER_URL,
+    badgeColor: 'bg-sky-100 text-sky-800 border-sky-300',
+    iconName: 'Database'
+  },
+  {
+    id: DEFAULT_DRIVE_FOLDER_ID,
+    name: 'uploadvb',
+    code: 'uploadvb',
+    description: 'Thư mục tiếp nhận nhanh, quét OCR AI và điều phối văn bản số',
+    url: DEFAULT_DRIVE_FOLDER_URL,
+    badgeColor: 'bg-purple-100 text-purple-800 border-purple-300',
+    iconName: 'CloudUpload'
+  }
+];
 
 // Optional default or custom Apps Script Web App URL
 export const APPS_SCRIPT_STORAGE_KEY = 'mttq_apps_script_url';

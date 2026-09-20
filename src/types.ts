@@ -113,6 +113,11 @@ export type DocType =
   | 'Chính sách'
   | 'Tài liệu tuyên truyền';
 
+export type DocumentDirection = 'INCOMING' | 'OUTGOING' | 'INTERNAL';
+export type DocumentUrgency = 'NORMAL' | 'URGENT' | 'VERY_URGENT' | 'HOA_TOC';
+export type DocumentStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'ISSUED' | 'PROCESSING' | 'COMPLETED' | 'EXPIRED' | 'ARCHIVED';
+export type DocumentEffectiveStatus = 'EFFECTIVE' | 'EXPIRED' | 'REPLACED' | 'AMENDED';
+
 export interface OfficialDocument {
   id: string;
   codeNumber: string;
@@ -122,6 +127,7 @@ export interface OfficialDocument {
   issueDate: string;
   effectiveDate?: string;
   signer: string;
+  signerPosition?: string;
   field: string;
   fileUrl?: string;
   fileName?: string;
@@ -134,6 +140,27 @@ export interface OfficialDocument {
   driveUrl?: string;
   driveSyncStatus?: 'SYNCED' | 'PENDING' | 'LOCAL' | 'ERROR';
   syncedAt?: string;
+
+  // Administrative e-Office Enhancements
+  direction?: DocumentDirection;
+  urgency?: DocumentUrgency;
+  status?: DocumentStatus;
+  effectiveStatus?: DocumentEffectiveStatus;
+  incomingNumber?: string;
+  incomingDate?: string;
+  recipientOrg?: string;
+  assignedDepartment?: string;
+  assignedStaff?: string;
+  deadline?: string;
+  processingProgress?: number;
+  processingNotes?: string;
+  isDigitalSigned?: boolean;
+  signedAt?: string;
+  tags?: string[];
+  viewCount?: number;
+  downloadCount?: number;
+  aiSummary?: string;
+  aiActionPoints?: string[];
 }
 
 export type CompetitionType = 'TRIVIA' | 'WRITING' | 'PHOTO_VIDEO' | 'SURVEY' | 'MIXED';

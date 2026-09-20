@@ -192,3 +192,16 @@ Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đún
     };
   }
 }
+
+/**
+ * Universal Gemini helper for administrative analysis, OCR metadata extraction and summarization.
+ */
+export async function callGeminiPrompt(prompt: string): Promise<string> {
+  try {
+    const res = await queryGeminiWithFallback(prompt, '', '');
+    return res.text;
+  } catch (err: any) {
+    return `Lỗi phân tích AI: ${err?.message || 'Không thể kết nối'}`;
+  }
+}
+

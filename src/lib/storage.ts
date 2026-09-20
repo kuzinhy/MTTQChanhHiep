@@ -275,7 +275,7 @@ function sanitizeForLocalStorage<T>(data: T): T {
   }
 }
 
-export function saveStorageData<T>(key: string, data: T): void {
+export function saveStorageData<T>(key: string, data: T, syncOffline = false): void {
   try {
     const jsonStr = JSON.stringify(data);
     if (memoryCache.get(key) === jsonStr) {
@@ -284,7 +284,9 @@ export function saveStorageData<T>(key: string, data: T): void {
     memoryCache.set(key, jsonStr);
     localStorage.setItem(key, jsonStr);
     localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
-    enqueueOfflineOperation(key, data);
+    if (syncOffline) {
+      enqueueOfflineOperation(key, data);
+    }
   } catch (err) {
     console.warn(`[StorageEngine] Quota limit exceeded for key "${key}". Sanitizing large payloads...`, err);
     try {
@@ -293,7 +295,9 @@ export function saveStorageData<T>(key: string, data: T): void {
       memoryCache.set(key, sanitizedStr);
       localStorage.setItem(key, sanitizedStr);
       localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
-      enqueueOfflineOperation(key, sanitized);
+      if (syncOffline) {
+        enqueueOfflineOperation(key, sanitized);
+      }
       console.log(`[StorageEngine] Saved sanitized payload for key "${key}" successfully.`);
     } catch (fallbackErr) {
       console.warn(`[StorageEngine] Secondary quota error for key "${key}". Clearing audit logs cache...`, fallbackErr);
@@ -303,7 +307,9 @@ export function saveStorageData<T>(key: string, data: T): void {
         const sanitizedStr = JSON.stringify(sanitized);
         memoryCache.set(key, sanitizedStr);
         localStorage.setItem(key, sanitizedStr);
-        enqueueOfflineOperation(key, sanitized);
+        if (syncOffline) {
+          enqueueOfflineOperation(key, sanitized);
+        }
       } catch (finalErr) {
         console.error(`[StorageEngine] Critical storage quota error for key "${key}":`, finalErr);
       }
@@ -1531,11 +1537,18 @@ export const AppStorageEngine = {
         if (colName && db) {
           try {
             if (Array.isArray(op.data)) {
-              for (const item of op.data.slice(0, 50)) {
+              const items = op.data.slice(0, 30);
+              const batch = writeBatch(db);
+              let writeCount = 0;
+              for (const item of items) {
                 if (item && item.id) {
                   const docRef = doc(db, colName, String(item.id));
-                  await setDoc(docRef, JSON.parse(JSON.stringify(item)), { merge: true });
+                  batch.set(docRef, JSON.parse(JSON.stringify(item)), { merge: true });
+                  writeCount++;
                 }
+              }
+              if (writeCount > 0) {
+                await batch.commit();
               }
             } else if (op.data && op.data.id) {
               const docRef = doc(db, colName, String(op.data.id));

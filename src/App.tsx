@@ -39,6 +39,7 @@ import { AiAssistantView } from './components/office/AiAssistantView';
 import { TaskManagementView } from './components/office/TaskManagementView';
 import { OpinionsAdminView } from './components/office/OpinionsAdminView';
 import { CmsAdminView } from './components/office/CmsAdminView';
+import { DocumentsAdminView } from './components/office/DocumentsAdminView';
 import { AnalyticsDashboardView } from './components/office/AnalyticsDashboardView';
 import { AuditLogsView } from './components/office/AuditLogsView';
 import { WorkCalendarView } from './components/office/WorkCalendarView';
@@ -1279,7 +1280,11 @@ export default function App() {
                         </motion.div>
                       </div>
 
-                      <HeroCarousel articles={articles} onSelectArticle={(art) => handleSelectArticle(art)} />
+                      <HeroCarousel 
+                        articles={articles} 
+                        onSelectArticle={(art) => handleSelectArticle(art)} 
+                        onUpdateArticle={handleUpdateArticle}
+                      />
 
                       <DigitalMapSection
                         onNavigateToMap={() => handleSelectPortalTab('map')}
@@ -1764,25 +1769,13 @@ export default function App() {
                     )}
 
                     {officeView === 'cms_documents' && (
-                      <CmsAdminView
-                        articles={articles}
+                      <DocumentsAdminView
                         documents={documents}
-                        competitions={competitions}
-                        opinions={opinions}
-                        initialTab="DOCUMENTS"
-                        onAddArticle={handleAddArticle}
-                        onUpdateArticle={handleUpdateArticle}
-                        onDeleteArticle={handleDeleteArticle}
                         onAddDocument={handleAddDocument}
                         onUpdateDocument={handleUpdateDocument}
                         onDeleteDocument={handleDeleteDocument}
-                        onAddCompetition={handleAddCompetition}
-                        onUpdateCompetition={handleUpdateCompetition}
-                        onDeleteCompetition={handleDeleteCompetition}
-                        onUpdateOpinionStatus={handleUpdateOpinionStatus}
                         onRequestDocApproval={handleTriggerDocApprovalToast}
-                        onForceCloudSync={handleForceCloudSync}
-                        onShowToast={handleTriggerSystemToast}
+                        onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Lỗi' : 'Thông báo', msg)}
                       />
                     )}
 

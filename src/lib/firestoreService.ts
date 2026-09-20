@@ -422,8 +422,6 @@ class CloudSyncService {
       }
 
       // 3. Database successfully initialized. Clients will listen to real-time cloud updates.
-      // Purge any legacy 12 khu phố from Cloud Firestore
-      this.purgeLegacyAreas().catch(e => console.warn('Purge legacy areas async:', e));
       // A manual cloud sync is still available via the UI's "Đồng bộ Cloud" button if needed.
 
     } catch (err) {
@@ -432,25 +430,38 @@ class CloudSyncService {
     }
   }
 
-  // Purge any legacy 12 khu phố from Cloud Firestore and ensure all 21 new ones exist
+  // Purge any legacy 12 khu phố from Cloud Firestore and ensure all 21 new ones exist (runs once via migration flag)
   public async purgeLegacyAreas() {
     try {
+      const flagRef = doc(db, 'settings', 'areas_migrated_v21');
+      const flagSnap = await getDoc(flagRef);
+      if (flagSnap.exists()) {
+        return;
+      }
+
       const validAreaIds = new Set(INITIAL_AREAS.map(a => a.id));
       const areasSnap = await getDocs(collection(db, FirestoreCollections.AREAS));
+      const batch = writeBatch(db);
+      let opCount = 0;
+
       for (const d of areasSnap.docs) {
         if (!validAreaIds.has(d.id)) {
-          console.log('[Firestore] Deleting obsolete legacy area from Cloud:', d.id);
-          try {
-            await deleteDoc(doc(db, FirestoreCollections.AREAS, d.id));
-          } catch {
-            // ignore
-          }
+          batch.delete(doc(db, FirestoreCollections.AREAS, d.id));
+          opCount++;
         }
       }
-      // Ensure all 21 new areas exist in Cloud Firestore
+
       for (const area of INITIAL_AREAS) {
         const aDoc = doc(db, FirestoreCollections.AREAS, area.id);
-        await setDoc(aDoc, cleanFirestoreData(area), { merge: true });
+        batch.set(aDoc, cleanFirestoreData(area), { merge: true });
+        opCount++;
+      }
+
+      batch.set(flagRef, { migratedAt: new Date().toISOString() });
+      opCount++;
+
+      if (opCount > 0) {
+        await batch.commit();
       }
       console.log('[Firestore] Successfully purged legacy areas and synchronized 21 new areas to Cloud');
     } catch (err) {
@@ -458,9 +469,15 @@ class CloudSyncService {
     }
   }
 
-  // Purge any legacy built-in demo articles from Cloud Firestore
+  // Purge any legacy built-in demo articles from Cloud Firestore (runs once via migration flag)
   public async purgeDemoArticles() {
     try {
+      const flagRef = doc(db, 'settings', 'demo_articles_purged_v1');
+      const flagSnap = await getDoc(flagRef);
+      if (flagSnap.exists()) {
+        return;
+      }
+
       const demoArticleIds = ['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8'];
       const demoTitles = [
         'Phường Chánh Hiệp tổ chức Ngày hội Đại đoàn kết toàn dân tộc',
@@ -473,12 +490,12 @@ class CloudSyncService {
         'Nhân rộng các mô hình "Dân vận khéo" làm theo Bác trong chăm lo an sinh xã hội'
       ];
 
+      const batch = writeBatch(db);
+      let opCount = 0;
+
       for (const artId of demoArticleIds) {
-        try {
-          await deleteDoc(doc(db, FirestoreCollections.ARTICLES, artId));
-        } catch (e) {
-          // ignore
-        }
+        batch.delete(doc(db, FirestoreCollections.ARTICLES, artId));
+        opCount++;
       }
 
       const articlesSnap = await getDocs(collection(db, FirestoreCollections.ARTICLES));
@@ -490,13 +507,16 @@ class CloudSyncService {
           data.slug?.startsWith('khu-pho-8-ban-giao-nha') ||
           data.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết')
         ) {
-          console.log('[Firestore] Purging demo article from Cloud:', d.id, data.title);
-          try {
-            await deleteDoc(doc(db, FirestoreCollections.ARTICLES, d.id));
-          } catch (e) {
-            // ignore
-          }
+          batch.delete(doc(db, FirestoreCollections.ARTICLES, d.id));
+          opCount++;
         }
+      }
+
+      batch.set(flagRef, { purgedAt: new Date().toISOString() });
+      opCount++;
+
+      if (opCount > 0) {
+        await batch.commit();
       }
     } catch (err) {
       console.warn('[Firestore] Purge demo articles error:', err);

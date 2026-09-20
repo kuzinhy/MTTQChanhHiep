@@ -2,7 +2,7 @@
  * Utility functions for exporting data to CSV/Excel with UTF-8 BOM encoding for flawless Vietnamese font rendering.
  */
 
-import { CompetitionSubmission, PublicOpinion, Organization, MemberOrganization, StaffUser } from '../types';
+import { CompetitionSubmission, PublicOpinion, Organization, MemberOrganization, StaffUser, OfficialDocument } from '../types';
 
 /**
  * Trigger browser download for CSV content with UTF-8 BOM
@@ -198,3 +198,144 @@ export function exportStaffDirectoryToCsv(staffUsers: StaffUser[]): void {
   const csvContent = [headers.join(','), ...rows].join('\r\n');
   downloadCsv(filename, csvContent);
 }
+
+/**
+ * Export official documents registry to CSV / Excel (Nghị định 30/2020/NĐ-CP chuẩn văn thư)
+ */
+export function exportDocumentsToCsv(documents: OfficialDocument[], registryType: 'ALL' | 'INCOMING' | 'OUTGOING' | 'INTERNAL' = 'ALL'): void {
+  const isIncoming = registryType === 'INCOMING';
+  const isOutgoing = registryType === 'OUTGOING';
+
+  let headers: string[] = [];
+  if (isIncoming) {
+    headers = [
+      'STT',
+      'Số đến',
+      'Ngày đến',
+      'Số / Ký hiệu gốc',
+      'Ngày văn bản',
+      'Cơ quan ban hành / Nơi gửi',
+      'Trích yếu nội dung',
+      'Loại văn bản',
+      'Độ khẩn',
+      'Cán bộ thụ lý',
+      'Hạn xử lý',
+      'Trạng thái',
+      'Tiến độ (%)',
+      'Ý kiến chỉ đạo'
+    ];
+  } else if (isOutgoing) {
+    headers = [
+      'STT',
+      'Số / Ký hiệu',
+      'Ngày ban hành',
+      'Trích yếu nội dung',
+      'Loại văn bản',
+      'Người ký',
+      'Chức vụ',
+      'Lĩnh vực',
+      'Nơi nhận',
+      'Độ khẩn',
+      'Ký số',
+      'Công khai',
+      'Tệp đính kèm / Link Drive'
+    ];
+  } else {
+    headers = [
+      'STT',
+      'Phân luồng',
+      'Số / Ký hiệu',
+      'Trích yếu văn bản',
+      'Loại văn bản',
+      'Cơ quan ban hành',
+      'Ngày ban hành / Ngày đến',
+      'Người ký',
+      'Lĩnh vực',
+      'Độ khẩn',
+      'Trạng thái',
+      'Cán bộ thụ lý',
+      'Hạn xử lý',
+      'Công khai',
+      'Tệp đính kèm'
+    ];
+  }
+
+  const rows = documents.map((doc, idx) => {
+    const urgencyLabel = 
+      doc.urgency === 'HOA_TOC' ? 'Hỏa tốc' :
+      doc.urgency === 'VERY_URGENT' ? 'Thượng khẩn' :
+      doc.urgency === 'URGENT' ? 'Khẩn' : 'Thường';
+
+    const directionLabel =
+      doc.direction === 'INCOMING' ? 'Văn bản Đến' :
+      doc.direction === 'INTERNAL' ? 'Nội bộ / Dự thảo' : 'Văn bản Đi / Ban hành';
+
+    const statusLabel =
+      doc.status === 'COMPLETED' ? 'Đã hoàn thành' :
+      doc.status === 'PROCESSING' ? 'Đang xử lý' :
+      doc.status === 'APPROVED' ? 'Đã duyệt' :
+      doc.status === 'PENDING_APPROVAL' ? 'Chờ phê duyệt' :
+      doc.status === 'ISSUED' ? 'Đã phát hành' :
+      doc.status === 'EXPIRED' ? 'Quá hạn' : 'Dự thảo';
+
+    if (isIncoming) {
+      return [
+        idx + 1,
+        escapeCsvField(doc.incomingNumber || `Đ-${idx + 1}`),
+        escapeCsvField(doc.incomingDate || doc.issueDate),
+        escapeCsvField(doc.codeNumber),
+        escapeCsvField(doc.issueDate),
+        escapeCsvField(doc.issuer || 'UBND TP. Thủ Dầu Một'),
+        escapeCsvField(doc.title.replace(/\n/g, ' ')),
+        escapeCsvField(doc.docType),
+        escapeCsvField(urgencyLabel),
+        escapeCsvField(doc.assignedStaff || 'Chưa phân công'),
+        escapeCsvField(doc.deadline || 'Không'),
+        escapeCsvField(statusLabel),
+        escapeCsvField(`${doc.processingProgress ?? 100}%`),
+        escapeCsvField(doc.processingNotes || '')
+      ].join(',');
+    } else if (isOutgoing) {
+      return [
+        idx + 1,
+        escapeCsvField(doc.codeNumber),
+        escapeCsvField(doc.issueDate),
+        escapeCsvField(doc.title.replace(/\n/g, ' ')),
+        escapeCsvField(doc.docType),
+        escapeCsvField(doc.signer || 'Trần Thị Hoa'),
+        escapeCsvField(doc.signerPosition || 'Chủ tịch UBMTTQ'),
+        escapeCsvField(doc.field),
+        escapeCsvField(doc.recipientOrg || 'Các ban ngành, đoàn thể & 21 Khu phố'),
+        escapeCsvField(urgencyLabel),
+        escapeCsvField(doc.isDigitalSigned ? 'Đã ký số' : 'Chưa'),
+        escapeCsvField(doc.isPublic ? 'Công khai' : 'Nội bộ'),
+        escapeCsvField(doc.driveUrl || doc.fileUrl || doc.fileName || '')
+      ].join(',');
+    } else {
+      return [
+        idx + 1,
+        escapeCsvField(directionLabel),
+        escapeCsvField(doc.codeNumber),
+        escapeCsvField(doc.title.replace(/\n/g, ' ')),
+        escapeCsvField(doc.docType),
+        escapeCsvField(doc.issuer),
+        escapeCsvField(doc.issueDate),
+        escapeCsvField(doc.signer),
+        escapeCsvField(doc.field),
+        escapeCsvField(urgencyLabel),
+        escapeCsvField(statusLabel),
+        escapeCsvField(doc.assignedStaff || ''),
+        escapeCsvField(doc.deadline || ''),
+        escapeCsvField(doc.isPublic ? 'Công khai' : 'Nội bộ'),
+        escapeCsvField(doc.fileName || doc.fileUrl || '')
+      ].join(',');
+    }
+  });
+
+  const timestamp = new Date().toISOString().substring(0, 10);
+  const prefix = isIncoming ? 'So_Van_ban_Den' : isOutgoing ? 'So_Van_ban_Di' : 'So_Quan_ly_Van_ban';
+  const filename = `${prefix}_MTTQ_Phuong_Chanh_Hiep_${timestamp}.csv`;
+  const csvContent = [headers.join(','), ...rows].join('\r\n');
+  downloadCsv(filename, csvContent);
+}
+
