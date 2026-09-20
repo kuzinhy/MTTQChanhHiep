@@ -277,7 +277,7 @@ export const SecurePdfViewer: React.FC<SecurePdfViewerProps> = ({
     } else {
       document.exitFullscreen().then(() => {
         setIsFullscreen(false);
-      });
+      }).catch(() => {});
     }
   };
 

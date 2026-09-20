@@ -58,6 +58,8 @@ export type ArticleCategory =
   | 'Phong trào thi đua'
   | 'Học tập và làm theo Bác'
   | 'Tuyên truyền & Nghị quyết'
+  | 'Tuyên truyền & Pháp luật'
+  | 'Chuyển đổi số'
   | 'Dân vận khéo'
   | 'Khu phố đoàn kết';
 

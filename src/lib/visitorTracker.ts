@@ -64,27 +64,29 @@ export class VisitorTrackerEngine {
     if (isNewSession) {
       sessionStorage.setItem('mttq_chanhhiep_analytics_visit_recorded', 'true');
       // Tăng lượt truy cập trong Firebase collection 'analytics_stats'
-      incrementVisitorCount().then((fbStats) => {
-        if (fbStats) {
-          this.currentStats = {
-            ...this.currentStats,
-            totalVisits: fbStats.totalVisits,
-            todayVisits: fbStats.todayVisits,
-            monthVisits: fbStats.monthVisits,
-            lastVisitDate: fbStats.lastDate,
-          };
-          this.notifyStats();
-        }
-      });
+      incrementVisitorCount()
+        .then((fbStats) => {
+          if (fbStats) {
+            this.currentStats = {
+              ...this.currentStats,
+              totalVisits: fbStats.totalVisits,
+              todayVisits: fbStats.todayVisits,
+              monthVisits: fbStats.monthVisits,
+              lastVisitDate: fbStats.lastDate,
+            };
+            this.notifyStats();
+          }
+        })
+        .catch(() => {});
     }
 
     // Cập nhật 'active_visitors' Firestore ngay lập tức
-    updateActiveVisitorPresence(sessionId);
+    updateActiveVisitorPresence(sessionId).catch(() => {});
 
     // Chu kỳ 30 giây: Cập nhật timestamp 'active_visitors' theo đúng yêu cầu
     this.heartbeatInterval = setInterval(() => {
-      updateActiveVisitorPresence(sessionId);
-      this.sendHeartbeatToExpressServer();
+      updateActiveVisitorPresence(sessionId).catch(() => {});
+      this.sendHeartbeatToExpressServer().catch(() => {});
     }, 30000); // 30s timestamp update
 
     // Đăng ký nhận thông tin Real-time Snapshot từ Firebase Firestore

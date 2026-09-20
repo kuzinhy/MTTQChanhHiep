@@ -594,13 +594,19 @@ export const loadStoredCoverConfig = (): CoverConfig => {
 export const saveStoredCoverConfig = (config: CoverConfig) => {
   try {
     localStorage.setItem(STORAGE_KEY_COVER, JSON.stringify(config));
-    import('../lib/hcmCloudSync').then(({ HCM_CLOUD_COLLECTIONS }) => {
-      import('../lib/firebase').then(({ db }) => {
-        import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(db, HCM_CLOUD_COLLECTIONS.COVER, 'main_cover'), config, { merge: true }).catch(console.warn);
-        });
-      });
-    }).catch(console.warn);
+    import('../lib/hcmCloudSync')
+      .then(({ HCM_CLOUD_COLLECTIONS }) => {
+        import('../lib/firebase')
+          .then(({ db }) => {
+            import('firebase/firestore')
+              .then(({ doc, setDoc }) => {
+                setDoc(doc(db, HCM_CLOUD_COLLECTIONS.COVER, 'main_cover'), config, { merge: true }).catch(() => {});
+              })
+              .catch(() => {});
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
     window.dispatchEvent(new CustomEvent('hcm-cover-updated', { detail: config }));
   } catch (e) {
     console.error('Error saving cover config', e);

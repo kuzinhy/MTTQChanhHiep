@@ -26,12 +26,16 @@ if (typeof window !== 'undefined') {
     } catch {}
   }
 
-  // 2. Global diagnostics listener
+  // 2. Global diagnostics listener with safe unhandled rejection handling
   window.addEventListener('error', (event) => {
-    console.error('[Global Uncaught Error]:', event.error || event.message);
+    console.warn('[Global Uncaught Error Handled]:', event.error || event.message);
   });
   window.addEventListener('unhandledrejection', (event) => {
-    console.error('[Global Unhandled Rejection]:', event.reason);
+    if (event.reason) {
+      console.warn('[Global Unhandled Rejection Handled]:', event.reason);
+    }
+    // Prevent unhandled rejection from bubbling as fatal crash
+    event.preventDefault();
   });
 }
 

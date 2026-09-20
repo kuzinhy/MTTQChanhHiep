@@ -113,12 +113,19 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
   useEffect(() => {
     let isMounted = true;
     setIsLoadingChart(true);
-    fetchTrafficHistoryData(timeframe).then((data) => {
-      if (isMounted) {
-        setTrafficHistory(data);
-        setIsLoadingChart(false);
-      }
-    });
+    fetchTrafficHistoryData(timeframe)
+      .then((data) => {
+        if (isMounted) {
+          setTrafficHistory(data);
+          setIsLoadingChart(false);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load traffic history:', err);
+        if (isMounted) {
+          setIsLoadingChart(false);
+        }
+      });
     return () => {
       isMounted = false;
     };
