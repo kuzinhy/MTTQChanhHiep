@@ -78,10 +78,18 @@ export function normalizeImageUrl(
     return url;
   }
 
-  // 7. Upgrade plain HTTP to HTTPS
+  // 7. Upgrade plain HTTP to HTTPS & Encode spaces and Vietnamese characters
   if (url.startsWith('http://')) {
-    const withoutProtocol = url.substring(7);
-    return `https://${withoutProtocol}`;
+    url = `https://${url.substring(7)}`;
+  }
+
+  // Sanitization for spaces, unencoded characters, or malformed URLs
+  if (url.startsWith('https://')) {
+    try {
+      url = encodeURI(decodeURI(url));
+    } catch {
+      url = url.replace(/ /g, '%20');
+    }
   }
 
   return url;
@@ -92,15 +100,53 @@ export function normalizeImageUrl(
  */
 export function getProxiedMediaUrl(url: string): string {
   if (!url) return '';
-  if (url.includes('/api/media/proxy?url=')) return url;
-  return `/api/media/proxy?url=${encodeURIComponent(url.trim())}`;
+  const trimmed = url.trim();
+  if (trimmed.includes('/api/media/proxy?url=')) return trimmed;
+  if (trimmed.startsWith('data:image/') || trimmed.startsWith('blob:')) return trimmed;
+  return `/api/media/proxy?url=${encodeURIComponent(trimmed)}`;
 }
 
 /**
- * Resolves any media URL into a clean, universally accessible URL across all domains (Vercel, Cloud Run, Custom Domain)
+ * Global CDN Image Proxy fallback for external sites with strict Hotlink Protection (e.g. congdoangdvn.org.vn)
+ */
+export function getGlobalCdnProxiedUrl(url: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('data:image/') || trimmed.startsWith('blob:')) return trimmed;
+  const cleanUrl = trimmed.replace(/^https?:\/\//i, '');
+  return `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}&output=webp`;
+}
+
+/**
+ * Resolves any media URL (image, audio, video) into a clean, universally accessible URL.
+ * Preserves external http:// and https:// URLs completely without truncating, editing, or converting them.
  */
 export function resolveMediaUrl(rawUrl?: string | null, category?: string): string {
-  return normalizeImageUrl(rawUrl, category);
+  if (!rawUrl) {
+    if (category) {
+      return getBannerForCategory(category) || ARTICLE_BANNERS.default;
+    }
+    return '';
+  }
+  
+  const trimmed = rawUrl.trim();
+  
+  // Rules for external URLs & special protocol handlers
+  if (
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('data:')
+  ) {
+    return trimmed;
+  }
+  
+  // Rules for local paths
+  if (trimmed.startsWith('/')) {
+    return trimmed;
+  }
+  
+  return `/${trimmed}`;
 }
 
 export type ImageVariant = 'thumbnail' | 'card' | 'article' | 'hero' | 'original' | 'avatar' | 'banner';
@@ -386,17 +432,53 @@ export function handleOptimizedImageError(
   fallbackSrc?: string
 ): void {
   const target = e.currentTarget;
-  if (target.dataset.errorHandled === 'true') return;
+  const currentSrc = target.src || '';
 
-  const currentSrc = target.src;
+  // 1. Google Drive Fallback
   const fileId = extractGoogleDriveFileId(currentSrc);
-
   if (fileId && !target.dataset.triedHighResThumbnail) {
     target.dataset.triedHighResThumbnail = 'true';
     target.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w2560`;
     return;
   }
 
-  target.dataset.errorHandled = 'true';
-  target.src = fallbackSrc || ARTICLE_BANNERS.default;
+  // 2. Try Internal API Proxy
+  if (
+    currentSrc &&
+    (currentSrc.startsWith('http://') || currentSrc.startsWith('https://')) &&
+    !currentSrc.includes('/api/media/proxy') &&
+    !currentSrc.includes('wsrv.nl') &&
+    !target.dataset.triedInternalProxy
+  ) {
+    target.dataset.triedInternalProxy = 'true';
+    target.src = getProxiedMediaUrl(currentSrc);
+    return;
+  }
+
+  // 3. Try Global CDN Proxy (wsrv.nl) to bypass strict Hotlink Protection / 403 Forbidden
+  if (
+    currentSrc &&
+    (currentSrc.startsWith('http://') || currentSrc.startsWith('https://')) &&
+    !currentSrc.includes('wsrv.nl') &&
+    !target.dataset.triedGlobalCdnProxy
+  ) {
+    target.dataset.triedGlobalCdnProxy = 'true';
+    let rawUrl = currentSrc;
+    if (currentSrc.includes('/api/media/proxy?url=')) {
+      try {
+        const parsed = new URL(currentSrc, window.location.href);
+        rawUrl = parsed.searchParams.get('url') || currentSrc;
+      } catch {
+        rawUrl = currentSrc;
+      }
+    }
+    target.src = getGlobalCdnProxiedUrl(rawUrl);
+    return;
+  }
+
+  // 4. Final Fallback to official category banner
+  if (target.dataset.errorHandled !== 'true') {
+    target.dataset.errorHandled = 'true';
+    target.src = fallbackSrc || ARTICLE_BANNERS.default;
+  }
 }

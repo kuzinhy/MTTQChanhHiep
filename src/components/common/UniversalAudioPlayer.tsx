@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, Settings } from 'lucide-react';
+import { resolveMediaUrl } from '../../lib/imageOptimization';
 
 interface UniversalAudioPlayerProps {
   url: string;
@@ -49,7 +50,7 @@ export const UniversalAudioPlayer: React.FC<UniversalAudioPlayerProps> = ({ url,
     if (audioRef.current) audioRef.current.currentTime += seconds;
   };
 
-  const proxyUrl = url.includes('hochiminh.vn') ? `/api/media/proxy?url=${encodeURIComponent(url)}` : url;
+  const proxyUrl = resolveMediaUrl(url);
 
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 font-sans">
@@ -59,8 +60,8 @@ export const UniversalAudioPlayer: React.FC<UniversalAudioPlayerProps> = ({ url,
 
       {error ? (
         <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">
-          Không thể phát tư liệu âm thanh. Vui lòng thử lại hoặc mở nguồn tư liệu.
-          <a href={url} target="_blank" rel="noreferrer" className="block mt-1 font-bold underline">Mở nguồn tư liệu</a>
+          Không thể tải nội dung
+          <a href={url} target="_blank" rel="noreferrer" className="block mt-1 font-bold underline">Mở nguồn gốc</a>
         </div>
       ) : (
         <div className="space-y-2">

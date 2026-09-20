@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Landmark, Maximize2, ShieldCheck, RefreshCw, ExternalLink } from 'lucide-react';
-import { resolveMediaUrl, getProxiedMediaUrl, BACKEND_CLOUD_RUN_ORIGIN } from '../../lib/imageOptimization';
+import { resolveMediaUrl, getProxiedMediaUrl, getGlobalCdnProxiedUrl, BACKEND_CLOUD_RUN_ORIGIN } from '../../lib/imageOptimization';
 
 export interface VerifiedCultureImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
   src?: string | null;
@@ -67,6 +67,7 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
   const [currentSrc, setCurrentSrc] = useState<string>('');
   const [triedProxy, setTriedProxy] = useState<boolean>(false);
   const [triedBackend, setTriedBackend] = useState<boolean>(false);
+  const [triedGlobalCdn, setTriedGlobalCdn] = useState<boolean>(false);
 
   // Initialize and resolve the URL
   useEffect(() => {
@@ -80,6 +81,7 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
     setCurrentSrc(resolved);
     setTriedProxy(false);
     setTriedBackend(false);
+    setTriedGlobalCdn(false);
     setLoadingStatus('loading');
   }, [src]);
 
@@ -105,6 +107,19 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
     ) {
       setTriedProxy(true);
       setCurrentSrc(getProxiedMediaUrl(currentSrc));
+      setLoadingStatus('loading');
+      return;
+    }
+
+    // 3. Auto-healing attempt 3: Try Global CDN Proxy (wsrv.nl)
+    if (
+      currentSrc &&
+      (currentSrc.startsWith('http://') || currentSrc.startsWith('https://')) &&
+      !currentSrc.includes('wsrv.nl') &&
+      !triedGlobalCdn
+    ) {
+      setTriedGlobalCdn(true);
+      setCurrentSrc(getGlobalCdnProxiedUrl(src || currentSrc));
       setLoadingStatus('loading');
       return;
     }

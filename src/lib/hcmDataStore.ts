@@ -139,10 +139,11 @@ export function loadStoredAudios(): HistoricalAudio[] {
       return parsed.map((item: HistoricalAudio) => {
         const defaultItem = HISTORICAL_AUDIOS.find(d => d.id === item.id);
         const cleanImg = sanitizeImage(item.imageUrl, defaultItem?.imageUrl);
+        const cleanAudioUrl = (item.audioUrl && !item.audioUrl.startsWith('/audio/')) ? item.audioUrl : (defaultItem?.audioUrl || '');
         return {
           ...item,
           imageUrl: cleanImg || defaultItem?.imageUrl,
-          audioUrl: item.audioUrl || defaultItem?.audioUrl || ''
+          audioUrl: cleanAudioUrl
         };
       });
     }

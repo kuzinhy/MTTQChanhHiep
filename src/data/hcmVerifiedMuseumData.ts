@@ -2027,7 +2027,7 @@ export const HISTORICAL_AUDIOS: HistoricalAudio[] = [
     duration: '04 phút 35 giây',
     occasion: 'Đọc tại Lễ Độc lập, Quảng trường Ba Đình, Hà Nội',
     sourceAgency: 'Đài Tiếng nói Việt Nam (VOV) & Trung tâm Lưu trữ Quốc gia III',
-    audioUrl: '/audio/tuyen_ngon_doc_lap_1945.mp3',
+    audioUrl: 'https://hochiminh.vn/upload/3000001/20251024/6dd9868eadb9701875b850b3b46ee24816a_-_Dien_van_khai_mac_dai_hoi_dai_bieu_toan_quoc_lan_III_cua_Dang_lao_dong_Viet_Nam_-_Phan_3.mp3',
     imageUrl: '',
     historicalNote: 'Bản thu âm thanh gốc giọng đọc ấm áp, truyền cảm của Bác trước hàng chục vạn đồng bào trong ngày Tết Độc lập đầu tiên của dân tộc.',
     transcript: 'Hỡi đồng bào cả nước! Tất cả mọi người đều sinh ra có quyền bình đẳng. Tạo hóa cho họ những quyền không ai có thể xâm phạm được; trong những quyền ấy, có quyền được sống, quyền tự do và quyền mưu cầu hạnh phúc... Nước Việt Nam có quyền hưởng tự do và độc lập, và sự thật đã thành một nước tự do, độc lập. Toàn thể dân tộc Việt Nam quyết đem tất cả tinh thần và lực lượng, tính mạng và của cải để giữ vững quyền tự do, độc lập ấy!',

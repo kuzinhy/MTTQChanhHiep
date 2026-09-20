@@ -64,6 +64,7 @@ import {
 import { UniversalHcmEditorModal, EditableHcmItemType } from './UniversalHcmEditorModal';
 import { uploadMediaToCloudinary } from '../../lib/cloudinaryService';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { resolveMediaUrl } from '../../lib/imageOptimization';
 
 export interface CulturalMediaAdminSectionProps {
   onShowToast?: (title: string, message: string) => void;
@@ -123,12 +124,7 @@ export const CulturalMediaAdminSection: React.FC<CulturalMediaAdminSectionProps>
 
   // Helper to resolve audio URL
   const resolveAudioUrl = (url?: string) => {
-    if (!url) return '';
-    if (url.startsWith('/uploads/')) return url;
-    if (url.includes('hochiminh.vn') || url.includes('baochinhphu.vn')) {
-      return `/api/media/proxy?url=${encodeURIComponent(url)}`;
-    }
-    return url;
+    return resolveMediaUrl(url);
   };
 
   // Audio toggle playback

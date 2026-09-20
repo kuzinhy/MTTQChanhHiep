@@ -27,6 +27,7 @@ import {
 import { HISTORICAL_AUDIOS, HistoricalAudio } from '../../data/hcmVerifiedMuseumData';
 import { loadStoredAudios, saveStoredAudios } from '../../lib/hcmDataStore';
 import { VerifiedCultureImage } from './VerifiedCultureImage';
+import { resolveMediaUrl } from '../../lib/imageOptimization';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
 
@@ -82,12 +83,7 @@ export const HcmAudioArchive: React.FC<HcmAudioArchiveProps> = ({ isResearchMode
   }, [selectedAudio?.id, selectedAudio?.audioUrl]);
 
   const resolveAudioUrl = (url?: string) => {
-    if (!url) return '';
-    if (url.startsWith('/uploads/')) return url;
-    if (url.includes('hochiminh.vn') || url.includes('baochinhphu.vn')) {
-      return `/api/media/proxy?url=${encodeURIComponent(url)}`;
-    }
-    return url;
+    return resolveMediaUrl(url);
   };
 
   const currentAudioSrc = resolveAudioUrl(selectedAudio?.audioUrl);
@@ -576,9 +572,14 @@ export const HcmAudioArchive: React.FC<HcmAudioArchiveProps> = ({ isResearchMode
                       <p className="font-bold">
                         {!selectedAudio?.audioUrl
                           ? 'Tư liệu này hiện chưa có tệp âm thanh đính kèm trực tiếp.'
-                          : 'Không thể kết nối trực tiếp đến nguồn phát âm thanh từ máy chủ.'}
+                          : 'Không thể tải nội dung'}
                       </p>
                       <p className="text-[11px] text-amber-100/80">
+                        {selectedAudio?.audioUrl && (
+                          <span className="block mb-1">
+                            Đường dẫn âm thanh: <a href={selectedAudio.audioUrl} target="_blank" rel="noreferrer" className="underline text-amber-300 font-bold inline-flex items-center gap-1">Mở nguồn gốc <ExternalLink className="w-3 h-3" /></a>
+                          </span>
+                        )}
                         {isAdmin
                           ? 'Đồng chí có thể tải lên tệp âm thanh (MP3, WAV, M4A) từ máy tính hoặc dán URL mới ngay dưới đây.'
                           : 'Đồng chí có thể xem bản Transcript toàn văn lời Bác Hồ ở phần bên dưới.'}

@@ -11,6 +11,7 @@ import {
 } from '../../data/hcmVerifiedMuseumData';
 import { BiographyChapter, EventCardSchema, CoverConfig } from '../../data/hcmGovernanceSchema';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { normalizeImageUrl, resolveMediaUrl } from '../../lib/imageOptimization';
 import { uploadMediaToCloudinary } from '../../lib/cloudinaryService';
 
 export type EditableHcmItemType =
@@ -86,6 +87,11 @@ const ImageInputWithPreview: React.FC<{
           type="text"
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={(e) => {
+            if (e.target.value) {
+              onChange(normalizeImageUrl(e.target.value));
+            }
+          }}
           placeholder={placeholder}
           className="flex-1 px-3 py-1.5 border border-rose-200 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 bg-white text-slate-800"
         />
@@ -148,9 +154,7 @@ const AudioInputWithPreview: React.FC<{
     }
   };
 
-  const resolvedAudioSrc = value && value.startsWith('http') && !value.includes(window.location.host) && (value.includes('hochiminh.vn') || value.includes('baochinhphu.vn'))
-    ? `/api/media/proxy?url=${encodeURIComponent(value)}`
-    : value;
+  const resolvedAudioSrc = resolveMediaUrl(value);
 
   return (
     <div className="space-y-2 p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/90 to-rose-50/70 border border-amber-200/90 shadow-2xs">

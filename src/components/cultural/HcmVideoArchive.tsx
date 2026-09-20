@@ -40,6 +40,7 @@ import {
 } from '../../data/hcmVerifiedMuseumData';
 import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { loadStoredVideos, saveStoredVideos, resetStoredVideos } from '../../lib/hcmDataStore';
+import { resolveMediaUrl } from '../../lib/imageOptimization';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
 
@@ -568,7 +569,7 @@ export const HcmVideoArchive: React.FC<HcmVideoArchiveProps> = ({ isResearchMode
                 <video
                   ref={html5VideoRef}
                   controls
-                  src={selectedVideo.videoStreamUrl}
+                  src={resolveMediaUrl(selectedVideo.videoStreamUrl)}
                   poster={getVideoThumbnail(selectedVideo)}
                   muted={isVideoMuted}
                   className="w-full h-full object-contain bg-black"

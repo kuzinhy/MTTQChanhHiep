@@ -93,9 +93,9 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         decoding="async"
         referrerPolicy="no-referrer"
         onError={(e) => {
-          if (!hasError) {
+          handleOptimizedImageError(e, fallback);
+          if (e.currentTarget.dataset.errorHandled === 'true' && !hasError) {
             setHasError(true);
-            handleOptimizedImageError(e, fallback);
           }
         }}
         style={{ imageRendering: 'auto', ...restProps.style }}
