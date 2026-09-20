@@ -1027,6 +1027,7 @@ export default function App() {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               isStaffLoggedIn={!!currentStaffUser}
+              currentUser={currentStaffUser}
               onGoToOffice={() => {
                 if (currentStaffUser) {
                   setCurrentSpace('OFFICE');
@@ -1223,6 +1224,7 @@ export default function App() {
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 isStaffLoggedIn={false}
+                currentUser={null}
                 onGoToOffice={() => setShowStaffLoginPage(true)}
                 onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
               />

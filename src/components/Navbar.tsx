@@ -40,6 +40,7 @@ interface NavbarProps {
   onOpenDigitalDirectory?: () => void;
   onOpenVolunteerModal?: () => void;
   onOpenHcmSpaceModal?: () => void;
+  currentUser?: any;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -53,7 +54,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenNotificationCenter,
   onOpenDigitalDirectory,
   onOpenVolunteerModal,
-  onOpenHcmSpaceModal
+  onOpenHcmSpaceModal,
+  currentUser
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -155,17 +157,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <div className="w-6 h-6 rounded-full bg-white text-blue-700 flex items-center justify-center text-[10px] font-black overflow-hidden">
                 <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
+                  src={isStaffLoggedIn && currentUser?.avatar ? currentUser.avatar : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"}
                   alt="Avatar cán bộ"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="text-left leading-none hidden sm:block">
                 <div className="font-bold text-[11px] text-white leading-tight">
-                  {isStaffLoggedIn ? 'Nguyễn Văn A' : 'Cán bộ'}
+                  {isStaffLoggedIn && currentUser?.fullname ? currentUser.fullname : 'Cán bộ'}
                 </div>
                 <div className="text-[9px] text-blue-200 font-medium leading-tight">
-                  {isStaffLoggedIn ? 'Cán bộ' : 'Đăng nhập'}
+                  {isStaffLoggedIn ? (currentUser?.position || 'Cán bộ') : 'Đăng nhập'}
                 </div>
               </div>
             </div>
