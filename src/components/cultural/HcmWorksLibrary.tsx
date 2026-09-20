@@ -31,6 +31,7 @@ import { loadStoredWorks, saveStoredWorks } from '../../lib/hcmDataStore';
 import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
+import { HcmShareButton } from './HcmShareModal';
 
 interface HcmWorksLibraryProps {
   isResearchMode: boolean;
@@ -307,16 +308,31 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                     TẬP {selectedVolume.volume < 10 ? `0${selectedVolume.volume}` : selectedVolume.volume}: {selectedVolume.timeRange}
                   </span>
 
-                  <a
-                    href={selectedVolume.driveFolderUrl || GOOGLE_DRIVE_HCM_TOAN_TAP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 text-rose-950 font-bold text-xs hover:brightness-110 transition shadow-xs flex items-center gap-1.5"
-                  >
-                    <Download className="w-3.5 h-3.5 text-rose-950" />
-                    <span>Mở PDF Tập {selectedVolume.volume} trên Drive</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <HcmShareButton
+                      item={{
+                        id: `hcm-vol-${selectedVolume.volume}`,
+                        title: selectedVolume.title,
+                        summary: selectedVolume.description,
+                        category: `Hồ Chí Minh Toàn Tập (Tập ${selectedVolume.volume})`,
+                        source: selectedVolume.citation,
+                        url: selectedVolume.driveFolderUrl || GOOGLE_DRIVE_HCM_TOAN_TAP_URL
+                      }}
+                      variant="pill"
+                      label="Chia sẻ tập này"
+                    />
+
+                    <a
+                      href={selectedVolume.driveFolderUrl || GOOGLE_DRIVE_HCM_TOAN_TAP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 text-rose-950 font-bold text-xs hover:brightness-110 transition shadow-xs flex items-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5 text-rose-950" />
+                      <span>Mở PDF Tập {selectedVolume.volume} trên Drive</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -452,38 +468,56 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                     </div>
                   </div>
 
-                  {isAdmin && (
-                    <div className="mt-2 pt-2 border-t border-rose-300/20 flex justify-end gap-1.5">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingWork(work);
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition ${
-                          isSelected
-                            ? 'bg-amber-300 text-rose-950 hover:bg-amber-200'
-                            : 'bg-rose-100 text-rose-900 hover:bg-rose-200 border border-rose-300'
-                        }`}
-                      >
-                        <Edit3 className="w-3 h-3" />
-                        <span>Sửa tác phẩm</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteWork(work.id);
-                        }}
-                        className={`p-1 rounded-lg text-[11px] font-bold flex items-center transition ${
-                          isSelected
-                            ? 'bg-rose-900 text-rose-200 hover:bg-rose-950'
-                            : 'bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-300'
-                        }`}
-                        title="Xóa tác phẩm"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-2 pt-2 border-t border-rose-300/20 flex items-center justify-between gap-1.5">
+                    <HcmShareButton
+                      item={{
+                        id: work.id,
+                        title: work.title,
+                        summary: work.summary,
+                        category: 'Tác phẩm tiêu biểu',
+                        author: work.penName,
+                        date: work.year,
+                        source: `Hồ Chí Minh Toàn tập, Tập ${work.volume}`
+                      }}
+                      variant="pill"
+                      size="sm"
+                      label="Chia sẻ"
+                      className={isSelected ? 'bg-rose-900/60 text-white border-rose-700/60' : ''}
+                    />
+
+                    {isAdmin && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingWork(work);
+                          }}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition ${
+                            isSelected
+                              ? 'bg-amber-300 text-rose-950 hover:bg-amber-200'
+                              : 'bg-rose-100 text-rose-900 hover:bg-rose-200 border border-rose-300'
+                          }`}
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>Sửa</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteWork(work.id);
+                          }}
+                          className={`p-1 rounded-lg text-[11px] font-bold flex items-center transition ${
+                            isSelected
+                              ? 'bg-rose-900 text-rose-200 hover:bg-rose-950'
+                              : 'bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-300'
+                          }`}
+                          title="Xóa tác phẩm"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -498,15 +532,31 @@ export const HcmWorksLibrary: React.FC<HcmWorksLibraryProps> = ({ isResearchMode
                     {selectedWork.year} • TẬP {selectedWork.volume} (TR. {selectedWork.pageRange})
                   </span>
 
-                  {isAdmin && (
-                    <button
-                      onClick={() => setEditingWork(selectedWork)}
-                      className="px-3 py-1.5 rounded-xl bg-amber-400 text-rose-950 font-bold text-xs flex items-center gap-1 hover:bg-amber-300 transition shadow-xs cursor-pointer"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Chỉnh sửa tác phẩm này</span>
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <HcmShareButton
+                      item={{
+                        id: selectedWork.id,
+                        title: selectedWork.title,
+                        summary: selectedWork.summary,
+                        category: 'Tác phẩm Hồ Chí Minh',
+                        author: selectedWork.penName,
+                        date: selectedWork.year,
+                        source: `Hồ Chí Minh Toàn tập, Tập ${selectedWork.volume}, tr. ${selectedWork.pageRange}, NXB Chính trị quốc gia Sự thật`
+                      }}
+                      variant="button"
+                      label="Chia sẻ tác phẩm"
+                    />
+
+                    {isAdmin && (
+                      <button
+                        onClick={() => setEditingWork(selectedWork)}
+                        className="px-3 py-1.5 rounded-xl bg-amber-400 text-rose-950 font-bold text-xs flex items-center gap-1 hover:bg-amber-300 transition shadow-xs cursor-pointer"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Sửa</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Header & Ảnh bìa tác phẩm */}

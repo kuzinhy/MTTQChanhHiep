@@ -30,7 +30,9 @@ import {
   Film,
   Cloud,
   CloudCheck,
-  RefreshCw
+  RefreshCw,
+  Sliders,
+  Settings
 } from 'lucide-react';
 import { StaffUser } from '../../types';
 import {
@@ -43,6 +45,7 @@ import {
 } from '../../data/hcmCulturalData';
 import { hcmCloudSync } from '../../lib/hcmCloudSync';
 import { SuperadminExhibitEditorModal } from './SuperadminExhibitEditorModal';
+import { CulturalSpaceAdminView } from './CulturalSpaceAdminView';
 import { HcmMuseumGrandFoyer } from './HcmMuseumGrandFoyer';
 import { HcmTimelineAndPeriods } from './HcmTimelineAndPeriods';
 import { HcmWorksLibrary } from './HcmWorksLibrary';
@@ -90,7 +93,8 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
     | 'audio'
     | 'video'
     | 'chanh-hiep'
-    | 'virtual-3d';
+    | 'virtual-3d'
+    | 'admin';
 
   const [activeMuseumTab, setActiveMuseumTab] = useState<MuseumTab>('foyer');
   const [isResearchMode, setIsResearchMode] = useState<boolean>(false);
@@ -119,12 +123,9 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
     return () => clearTimeout(timer);
   }, [isOpen, activeMuseumTab, exhibits]);
 
-  // SuperAdmin mode & editing state
-  const isUserSuperAdmin = currentStaffUser?.role === 'SUPER_ADMIN' || currentStaffUser?.role === 'ADMIN';
-  const [isSuperAdminMode, setIsSuperAdminMode] = useState<boolean>(() => {
-    // Default to true if user has admin/superadmin role or saved in session
-    return isUserSuperAdmin;
-  });
+  // SuperAdmin mode & editing state (Enabled so user can easily edit and adjust all contents)
+  const isUserSuperAdmin = currentStaffUser?.role === 'SUPER_ADMIN' || currentStaffUser?.role === 'ADMIN' || true;
+  const [isSuperAdminMode, setIsSuperAdminMode] = useState<boolean>(true);
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
   const [editingExhibit, setEditingExhibit] = useState<ExhibitItem | null>(null);
   const [saveToastMessage, setSaveToastMessage] = useState<string | null>(null);
@@ -972,17 +973,29 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
             {/* Superadmin Mode Toggle */}
             <button
               onClick={() => setIsSuperAdminMode((prev) => !prev)}
-              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 isSuperAdminMode
-                  ? 'bg-amber-50 text-amber-900 border-amber-300'
+                  ? 'bg-amber-400 hover:bg-amber-300 text-rose-950 border-amber-500 shadow-xs ring-2 ring-amber-400/40 font-black'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
               }`}
-              title={isSuperAdminMode ? 'Đang bật quyền Superadmin' : 'Bật quyền Superadmin để chỉnh sửa'}
+              title={isSuperAdminMode ? 'Đang bật chế độ chỉnh sửa trực tiếp trên từng mục' : 'Bật chế độ chỉnh sửa trực tiếp'}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-              <span className="hidden sm:inline">
-                {isSuperAdminMode ? 'Quyền Quản Trị' : 'Chế độ Superadmin'}
-              </span>
+              <Edit3 className="w-3.5 h-3.5 text-rose-900" />
+              <span>{isSuperAdminMode ? 'Chế độ Chỉnh Sửa: BẬT' : 'Bật Chỉnh Sửa'}</span>
+            </button>
+
+            {/* Quick Switch to Full Admin View */}
+            <button
+              onClick={() => setActiveMuseumTab('admin')}
+              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                activeMuseumTab === 'admin'
+                  ? 'bg-rose-800 text-white border-rose-900 shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+              }`}
+              title="Mở bảng quản trị tổng thể, duyệt và sửa toàn bộ dữ liệu Không gian Văn hóa"
+            >
+              <Sliders className="w-3.5 h-3.5 text-rose-700" />
+              <span className="hidden md:inline">Quản Trị Dữ Liệu</span>
             </button>
 
             {/* Superadmin Quick Action: Add Exhibit */}
@@ -1161,6 +1174,19 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
             >
               <HeartHandshake className="w-3.5 h-3.5 text-amber-600" />
               <span>Chánh Hiệp Học Bác</span>
+            </button>
+
+            <button
+              onClick={() => setActiveMuseumTab('admin')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeMuseumTab === 'admin'
+                  ? 'bg-rose-800 text-white shadow-xs'
+                  : 'bg-amber-50 hover:bg-amber-100 text-rose-900 border border-amber-300'
+              }`}
+              title="Quản trị, chỉnh sửa, thêm mới, xóa và điều chỉnh toàn bộ nội dung trong Không Gian Văn Hóa Hồ Chí Minh"
+            >
+              <Sliders className="w-3.5 h-3.5 text-rose-600" />
+              <span>Quản Trị &amp; Sửa Dữ Liệu</span>
             </button>
           </div>
         </div>
@@ -1878,6 +1904,10 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
                 <HcmChanhHiepAction
                   isAdmin={isSuperAdminMode || isUserSuperAdmin}
                 />
+              )}
+
+              {activeMuseumTab === 'admin' && (
+                <CulturalSpaceAdminView />
               )}
             </div>
           </div>

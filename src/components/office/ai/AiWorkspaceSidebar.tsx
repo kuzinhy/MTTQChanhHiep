@@ -1,37 +1,26 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
-  FileSearch,
   FileCheck2, 
   PenTool, 
-  FileBarChart2, 
-  Compass, 
-  AlignLeft, 
-  CheckSquare, 
-  Mic, 
-  CalendarCheck, 
-  FileText, 
-  ShieldAlert, 
-  Users, 
-  Megaphone, 
-  GitCompare, 
-  HelpCircle, 
-  TableProperties, 
-  ListChecks, 
-  FolderKanban, 
-  BookTemplate, 
-  History, 
-  ChevronDown, 
-  ChevronRight, 
   Sparkles,
   Star,
   ArrowLeft,
   Settings,
   X,
-  Layers
+  Layers,
+  Wand2,
+  FileText,
+  BookTemplate,
+  ChevronDown,
+  Clock,
+  Mic,
+  CalendarCheck,
+  CheckSquare,
+  FileSearch,
+  Compass
 } from 'lucide-react';
-import { AiToolId, AiToolGroup, WorkspaceContextData } from '../../../types';
-import { AI_TOOLS_CATALOG } from '../../../lib/aiWorkspaceService';
+import { AiToolId, WorkspaceContextData } from '../../../types';
 
 export type WorkspaceMainView = 
   | 'dashboard' 
@@ -55,65 +44,50 @@ interface AiWorkspaceSidebarProps {
   onCloseMobile?: () => void;
 }
 
-const getToolIcon = (iconName: string, active: boolean) => {
-  const cls = `w-4 h-4 shrink-0 transition-colors ${active ? 'text-cyan-300' : 'text-slate-400 group-hover:text-blue-300'}`;
-  switch (iconName) {
-    case 'FileSearch': return <FileSearch className={cls} />;
-    case 'BookTemplate': return <BookTemplate className={cls} />;
-    case 'FileCheck2': return <FileCheck2 className={cls} />;
-    case 'PenTool': return <PenTool className={cls} />;
-    case 'FileBarChart2': return <FileBarChart2 className={cls} />;
-    case 'Compass': return <Compass className={cls} />;
-    case 'AlignLeft': return <AlignLeft className={cls} />;
-    case 'CheckSquare': return <CheckSquare className={cls} />;
-    case 'Mic': return <Mic className={cls} />;
-    case 'CalendarCheck': return <CalendarCheck className={cls} />;
-    case 'FileText': return <FileText className={cls} />;
-    case 'ShieldAlert': return <ShieldAlert className={cls} />;
-    case 'Users': return <Users className={cls} />;
-    case 'Megaphone': return <Megaphone className={cls} />;
-    case 'GitCompare': return <GitCompare className={cls} />;
-    case 'HelpCircle': return <HelpCircle className={cls} />;
-    case 'TableProperties': return <TableProperties className={cls} />;
-    case 'ListChecks': return <ListChecks className={cls} />;
-    default: return <Sparkles className={cls} />;
-  }
-};
-
 export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
   currentView,
   currentToolId,
   onSelectView,
   onSelectTool,
-  favorites,
-  onToggleFavorite,
   workspaceContext,
   onOpenContextSettings,
   onBackToOffice,
   isOpenMobile,
   onCloseMobile
 }) => {
-  // State to toggle groups collapse/expand
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    group1_docs_dossier: true,
-    group2_advisory_report: true,
-    group3_meeting_event: true,
-    group4_task_operational: true,
-    management: true
-  });
+  const [showUpcoming, setShowUpcoming] = useState(false);
 
-  const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
-  };
+  // Core 3 pillars requested by user
+  const coreTools = [
+    {
+      id: 'draft_proofread_doc' as AiToolId,
+      name: 'Tạo Văn Bản Hành Chính',
+      shortDesc: 'Kế hoạch, Công văn, Tờ trình, Bài phát biểu',
+      icon: <PenTool className="w-4 h-4 text-cyan-400" />,
+      badge: 'Trọng tâm'
+    },
+    {
+      id: 'proofread' as AiToolId,
+      name: 'Sửa Lỗi & Soát Thể Thức NĐ 30',
+      shortDesc: 'Rà soát 12 lớp, lỗi chính tả, căn cứ pháp lý',
+      icon: <FileCheck2 className="w-4 h-4 text-emerald-400" />,
+      badge: 'Chuẩn NĐ 30'
+    },
+    {
+      id: 'speech_script' as AiToolId,
+      name: 'Gợi Ý Viết Lại Câu & Văn Phong',
+      shortDesc: 'Trang trọng, truyền cảm hứng, rút gọn',
+      icon: <Wand2 className="w-4 h-4 text-purple-400" />,
+      badge: 'Thông minh'
+    }
+  ];
 
-  const groupsConfig: { id: AiToolGroup; label: string; badge: string }[] = [
-    { id: 'group1_docs_dossier', label: '01. Văn Bản & Hồ Sơ', badge: 'Chủ lực' },
-    { id: 'group2_advisory_report', label: '02. Tham Mưu & Tổng Hợp', badge: 'Chuẩn 10 bước' },
-    { id: 'group3_meeting_event', label: '03. Họp & Sự Kiện', badge: 'Trọn gói' },
-    { id: 'group4_task_operational', label: '04. Điều Hành & Tác Nghiệp', badge: 'Mặt trận' }
+  // Secondary tools planned for later phases
+  const upcomingFeatures = [
+    { name: 'Ma trận tham mưu 10 bước', icon: <Compass className="w-3.5 h-3.5 text-slate-500" /> },
+    { name: 'Bóc tách nhiệm vụ & Cảnh báo hạn 21 KP', icon: <CheckSquare className="w-3.5 h-3.5 text-slate-500" /> },
+    { name: 'Điều hành sự kiện & Workspace Hội nghị', icon: <CalendarCheck className="w-3.5 h-3.5 text-slate-500" /> },
+    { name: 'Tự động tóm tắt & Trích xuất hồ sơ số', icon: <FileSearch className="w-3.5 h-3.5 text-slate-500" /> }
   ];
 
   return (
@@ -151,14 +125,14 @@ export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
                 <span className="text-xs font-black uppercase tracking-wider text-white">AI WORKSPACE</span>
                 <span className="text-[9px] bg-cyan-500/20 text-cyan-300 font-extrabold px-1.5 py-0.2 rounded-full border border-cyan-400/30">MTTQ</span>
               </div>
-              <p className="text-[10px] text-blue-200/70 font-medium">Trợ Lý Tham Mưu Nghiệp Vụ</p>
+              <p className="text-[10px] text-blue-200/70 font-medium">Trợ Lý Soạn Thảo &amp; Tham Mưu</p>
             </div>
           </div>
 
           {/* Close button for mobile */}
           <button 
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -174,173 +148,127 @@ export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
                 onSelectView('dashboard');
                 if (onCloseMobile) onCloseMobile();
               }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 currentView === 'dashboard'
                   ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white shadow-lg shadow-blue-500/30 border border-cyan-400/30'
                   : 'hover:bg-slate-800/80 text-slate-300 hover:text-white border border-transparent'
               }`}
             >
               <LayoutDashboard className="w-4 h-4 text-cyan-300 shrink-0" />
-              <span className="truncate">Tổng Quan Trung Tâm</span>
+              <span className="truncate">Bàn Làm Việc AI</span>
             </button>
           </div>
 
-          {/* AI TOOL GROUPS */}
-          <div className="space-y-4">
+          {/* CORE TOOLS (3 FOCUS AREAS) */}
+          <div className="space-y-2">
             <div className="px-2 flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-300/80 flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
                 <Layers className="w-3 h-3 text-cyan-400" />
-                <span>CÔNG CỤ THAM MƯU AI</span>
+                <span>CHỨC NĂNG TRỌNG TÂM</span>
+              </span>
+              <span className="text-[9px] bg-cyan-900/40 text-cyan-300 px-1.5 py-0.2 rounded border border-cyan-700/50 font-bold">
+                Ưu tiên
               </span>
             </div>
 
-            {groupsConfig.map((group) => {
-              const groupTools = AI_TOOLS_CATALOG.filter(t => t.group === group.id);
-              const isGroupExpanded = expandedGroups[group.id] !== false;
-              const hasActiveTool = currentView === 'tool' && groupTools.some(t => t.id === currentToolId);
+            <div className="space-y-1">
+              {coreTools.map((tool) => {
+                const isActive = currentView === 'tool' && currentToolId === tool.id;
 
-              return (
-                <div key={group.id} className="space-y-1">
-                  {/* Group Header Button */}
-                  <button
-                    onClick={() => toggleGroup(group.id)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-colors ${
-                      hasActiveTool ? 'text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                return (
+                  <div
+                    key={tool.id}
+                    onClick={() => {
+                      onSelectTool(tool.id);
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-500/20 border border-blue-400/50'
+                        : 'hover:bg-slate-800/80 text-slate-300 hover:text-white border border-transparent'
                     }`}
                   >
-                    <span className="truncate">{group.label}</span>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-[9px] bg-blue-950/80 text-blue-300 font-bold px-1.5 py-0.2 rounded border border-blue-800/80 lowercase">
-                        {group.badge}
-                      </span>
-                      <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isGroupExpanded ? '' : '-rotate-90'}`} />
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="p-1 rounded-lg bg-slate-950/60 border border-slate-800 shrink-0">
+                        {tool.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="truncate text-xs font-bold text-white">{tool.name}</p>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate group-hover:text-slate-300 font-normal">
+                          {tool.shortDesc}
+                        </p>
+                      </div>
                     </div>
-                  </button>
-
-                  {/* Group Tools List */}
-                  {isGroupExpanded && (
-                    <div className="space-y-1 pl-1">
-                      {groupTools.map((tool) => {
-                        const isActive = currentView === 'tool' && currentToolId === tool.id;
-                        const isFav = favorites.includes(tool.id);
-
-                        return (
-                          <div
-                            key={tool.id}
-                            onClick={() => {
-                              onSelectTool(tool.id);
-                              if (onCloseMobile) onCloseMobile();
-                            }}
-                            className={`group flex items-center justify-between rounded-xl px-3 py-2 text-xs transition-all cursor-pointer ${
-                              isActive
-                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-500/20 border border-blue-400/50'
-                                : 'hover:bg-slate-800/80 text-slate-300 hover:text-white border border-transparent'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              {getToolIcon(tool.iconName, isActive)}
-                              <div className="min-w-0">
-                                <p className="truncate text-[11.5px] font-bold">{tool.name}</p>
-                                <p className="text-[10px] text-slate-400 truncate group-hover:text-slate-300 font-normal">
-                                  {tool.shortDesc}
-                                </p>
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onToggleFavorite(tool.id);
-                              }}
-                              className={`p-1 rounded hover:text-amber-300 transition-colors shrink-0 ml-1 ${
-                                isFav ? 'text-amber-400' : 'text-slate-600 opacity-0 group-hover:opacity-100'
-                              }`}
-                              title={isFav ? 'Bỏ yêu thích' : 'Yêu thích'}
-                            >
-                              <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400' : ''}`} />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* MANAGEMENT & RECORDS SECTION */}
-          <div className="space-y-2 pt-2 border-t border-blue-900/40">
+          {/* STORAGE & UTILITIES */}
+          <div className="space-y-1 pt-2 border-t border-blue-900/40">
+            <div className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-blue-300/80">
+              <span>KHO LƯU TRỮ</span>
+            </div>
+
             <button
-              onClick={() => toggleGroup('management')}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-blue-300/80"
+              onClick={() => {
+                onSelectView('my_documents');
+                if (onCloseMobile) onCloseMobile();
+              }}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                currentView === 'my_documents'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md'
+                  : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
+              }`}
             >
-              <span>QUẢN LÝ & HỒ SƠ</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${expandedGroups['management'] !== false ? '' : '-rotate-90'}`} />
+              <FileText className="w-4 h-4 text-cyan-300 shrink-0" />
+              <span className="truncate">Văn Bản Đã Soạn</span>
             </button>
 
-            {expandedGroups['management'] !== false && (
-              <div className="space-y-1 pl-1">
-                <button
-                  onClick={() => {
-                    onSelectView('my_documents');
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    currentView === 'my_documents'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md'
-                      : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <FileText className="w-4 h-4 text-cyan-300 shrink-0" />
-                  <span className="truncate">Tài Liệu Đã Lưu</span>
-                </button>
+            <button
+              onClick={() => {
+                onSelectView('templates');
+                if (onCloseMobile) onCloseMobile();
+              }}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                currentView === 'templates'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md'
+                  : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
+              }`}
+            >
+              <BookTemplate className="w-4 h-4 text-cyan-300 shrink-0" />
+              <span className="truncate">Thư Viện Mẫu Chuẩn</span>
+            </button>
+          </div>
 
-                <button
-                  onClick={() => {
-                    onSelectView('dossiers');
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    currentView === 'dossiers'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md'
-                      : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <FolderKanban className="w-4 h-4 text-cyan-300 shrink-0" />
-                  <span className="truncate">Hồ Sơ Công Việc</span>
-                </button>
+          {/* UPCOMING FEATURES (COLLAPSIBLE / GIAI ĐOẠN SAU) */}
+          <div className="space-y-1.5 pt-2 border-t border-blue-900/40">
+            <button
+              onClick={() => setShowUpcoming(prev => !prev)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-200 transition cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3 h-3 text-slate-500" />
+                <span>PHÁT TRIỂN GIAI ĐOẠN SAU</span>
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform ${showUpcoming ? 'rotate-180' : ''}`} />
+            </button>
 
-                <button
-                  onClick={() => {
-                    onSelectView('templates');
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    currentView === 'templates'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md'
-                      : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <BookTemplate className="w-4 h-4 text-cyan-300 shrink-0" />
-                  <span className="truncate">Thư Viện Mẫu (Dạy AI)</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    onSelectView('audit_logs');
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    currentView === 'audit_logs'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md'
-                      : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <History className="w-4 h-4 text-cyan-300 shrink-0" />
-                  <span className="truncate">Nhật Ký Tham Mưu</span>
-                </button>
+            {showUpcoming && (
+              <div className="space-y-1 pl-1 text-[11px] text-slate-400">
+                {upcomingFeatures.map((feat, idx) => (
+                  <div 
+                    key={idx}
+                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-900/40 border border-slate-800/50 text-slate-400 text-[11px]"
+                  >
+                    {feat.icon}
+                    <span className="truncate">{feat.name}</span>
+                    <span className="ml-auto text-[9px] text-slate-500 font-medium shrink-0">Sau</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -358,7 +286,7 @@ export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
             {onOpenContextSettings && (
               <button
                 onClick={onOpenContextSettings}
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white transition-colors shrink-0"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white transition-colors shrink-0 cursor-pointer"
                 title="Cấu hình bối cảnh đơn vị"
               >
                 <Settings className="w-4 h-4" />
@@ -369,7 +297,7 @@ export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
           {onBackToOffice && (
             <button
               onClick={onBackToOffice}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all shadow-xs"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5 text-cyan-300" />
               <span>Quay lại Trang Quản trị</span>

@@ -43,6 +43,7 @@ import {
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon, TraditionalBorderPattern } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { HcmShareButton } from './HcmShareModal';
 
 interface HcmMuseumGrandFoyerProps {
   onNavigateTab: (tabId: string) => void;
@@ -67,6 +68,17 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
     // Sync if updated from admin
     setCoverConfig(loadStoredCoverConfig());
     setChapters(loadStoredChapters());
+
+    const handleCoverUpdate = (e: any) => {
+      if (e.detail) {
+        setCoverConfig(e.detail);
+      } else {
+        setCoverConfig(loadStoredCoverConfig());
+      }
+    };
+
+    window.addEventListener('hcm-cover-updated', handleCoverUpdate);
+    return () => window.removeEventListener('hcm-cover-updated', handleCoverUpdate);
   }, []);
 
   const handleSaveCoverConfig = (updated: CoverConfig) => {
@@ -117,11 +129,25 @@ export const HcmMuseumGrandFoyer: React.FC<HcmMuseumGrandFoyerProps> = ({
               <span>Nguồn gốc</span>
               <ExternalLink className="w-3 h-3" />
             </a>
+            <HcmShareButton
+              item={{
+                id: 'hcm-grand-foyer',
+                title: coverConfig.title,
+                summary: `${coverConfig.subtitle}. ${coverConfig.description}`,
+                category: 'Không Gian Văn Hóa Hồ Chí Minh – Phường Chánh Hiệp',
+                source: coverConfig.primary_source_agency
+              }}
+              variant="pill"
+              size="sm"
+              label="Chia sẻ không gian"
+              className="bg-amber-300 text-rose-950 hover:bg-amber-200 border-amber-200"
+            />
+
             {/* Direct Admin Edit Button */}
             {isAdmin && (
               <button
                 onClick={() => setIsEditModalOpen(true)}
-                className="ml-2 px-2.5 py-1 rounded-lg bg-amber-400 text-rose-950 font-extrabold text-[11px] flex items-center gap-1 hover:bg-amber-300 transition shadow-sm cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-amber-400 text-rose-950 font-extrabold text-[11px] flex items-center gap-1 hover:bg-amber-300 transition shadow-sm cursor-pointer"
                 title="Chỉnh sửa thông tin trang bìa này"
               >
                 <Edit3 className="w-3.5 h-3.5" />

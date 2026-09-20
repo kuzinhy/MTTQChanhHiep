@@ -490,12 +490,12 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
           </div>
         )}
 
-        {/* Bottom Soft Gradient Overlay (35%-42% height only) */}
+        {/* Bottom Soft Gradient Overlay (reduced height to ~30% so it does not cover the photo) */}
         <div 
           className="absolute inset-x-0 bottom-0 pointer-events-none z-10"
           style={{
-            height: '42%',
-            background: 'linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.50) 50%, rgba(0, 0, 0, 0) 100%)'
+            height: '32%',
+            background: 'linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.40) 55%, rgba(0, 0, 0, 0) 100%)'
           }}
         />
 

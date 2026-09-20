@@ -38,6 +38,7 @@ import { DongSonDrumIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal, EditableHcmItemType } from './UniversalHcmEditorModal';
 import { QrCodeModal } from '../QrCodeModal';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { HcmShareButton } from './HcmShareModal';
 
 interface HcmChanhHiepActionProps {
   isAdmin?: boolean;
@@ -273,34 +274,69 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                           {model.targetGroup}
                         </div>
 
-                        {isAdmin && (
-                          <button
-                            onClick={() => setEditingItem({ type: 'chanh_hiep_action', data: model })}
-                            className="absolute top-3 right-3 px-3 py-1 rounded-xl bg-amber-400 text-rose-950 font-extrabold text-xs flex items-center gap-1 shadow-md hover:bg-amber-300 transition cursor-pointer"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                            <span>Sửa bài viết</span>
-                          </button>
-                        )}
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                          <HcmShareButton
+                            item={{
+                              id: model.id,
+                              title: model.title,
+                              summary: model.summary,
+                              quote: model.inspirationalQuote,
+                              category: 'Chuyên đề Học Bác',
+                              unit: model.neighborhood
+                            }}
+                            variant="pill"
+                            size="sm"
+                            label="Chia sẻ"
+                            className="bg-white/90 hover:bg-white text-rose-950 border-white/50 backdrop-blur-xs"
+                          />
+
+                          {isAdmin && (
+                            <button
+                              onClick={() => setEditingItem({ type: 'chanh_hiep_action', data: model })}
+                              className="px-3 py-1 rounded-xl bg-amber-400 text-rose-950 font-extrabold text-xs flex items-center gap-1 shadow-md hover:bg-amber-300 transition cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Sửa bài viết</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
 
                     <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-2">
                             <span className="text-[11px] font-extrabold text-rose-700 uppercase tracking-wider">
                               Chuyên đề Học Bác • {model.neighborhood}
                             </span>
-                            {!displayImage && isAdmin && (
-                              <button
-                                onClick={() => setEditingItem({ type: 'chanh_hiep_action', data: model })}
-                                className="px-2.5 py-1 rounded-lg bg-amber-400 text-rose-950 font-extrabold text-xs flex items-center gap-1 hover:bg-amber-300 transition cursor-pointer"
-                              >
-                                <Edit3 className="w-3 h-3" />
-                                <span>Sửa</span>
-                              </button>
-                            )}
+                            
+                            <div className="flex items-center gap-1">
+                              {!displayImage && (
+                                <HcmShareButton
+                                  item={{
+                                    id: model.id,
+                                    title: model.title,
+                                    summary: model.summary,
+                                    quote: model.inspirationalQuote,
+                                    category: 'Chuyên đề Học Bác',
+                                    unit: model.neighborhood
+                                  }}
+                                  variant="pill"
+                                  size="sm"
+                                  label="Chia sẻ"
+                                />
+                              )}
+                              {!displayImage && isAdmin && (
+                                <button
+                                  onClick={() => setEditingItem({ type: 'chanh_hiep_action', data: model })}
+                                  className="px-2.5 py-1 rounded-lg bg-amber-400 text-rose-950 font-extrabold text-xs flex items-center gap-1 hover:bg-amber-300 transition cursor-pointer"
+                                >
+                                  <Edit3 className="w-3 h-3" />
+                                  <span>Sửa</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <h3 className="text-lg font-serif font-extrabold text-rose-950 leading-snug">
                             {model.title}
@@ -452,6 +488,18 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                       </button>
 
                       <div className="flex items-center gap-1">
+                        <HcmShareButton
+                          item={{
+                            id: item.id,
+                            title: item.title,
+                            summary: item.summary,
+                            category: 'Sáng kiến Mặt Trận Chánh Hiệp',
+                            unit: item.unit,
+                            date: item.date
+                          }}
+                          variant="icon"
+                          size="sm"
+                        />
                         {isAdmin && (
                           <button
                             onClick={() => setEditingItem({ type: 'front_initiative', data: item })}
@@ -524,16 +572,31 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
             <div className="flex items-center justify-between pt-2 border-t border-rose-200">
               <span className="text-xs text-rose-700 font-medium">Thời gian ban hành: {selectedInitiativeDetail.date}</span>
 
-              <button
-                onClick={() => {
-                  setSelectedInitiativeDetail(null);
-                  setQrModalItem({ title: selectedInitiativeDetail.title, url: window.location.href });
-                }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 text-rose-950 font-extrabold text-xs flex items-center gap-1.5 shadow-xs hover:brightness-105 transition cursor-pointer"
-              >
-                <QrCode className="w-4 h-4" />
-                <span>Xuất mã QR chia sẻ</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <HcmShareButton
+                  item={{
+                    id: selectedInitiativeDetail.id,
+                    title: selectedInitiativeDetail.title,
+                    summary: selectedInitiativeDetail.summary,
+                    category: 'Sáng kiến Mặt Trận Chánh Hiệp',
+                    unit: selectedInitiativeDetail.unit,
+                    date: selectedInitiativeDetail.date
+                  }}
+                  variant="button"
+                  label="Chia sẻ nhanh"
+                />
+
+                <button
+                  onClick={() => {
+                    setSelectedInitiativeDetail(null);
+                    setQrModalItem({ title: selectedInitiativeDetail.title, url: window.location.href });
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-950 font-extrabold text-xs flex items-center gap-1.5 transition cursor-pointer border border-rose-200"
+                >
+                  <QrCode className="w-4 h-4 text-rose-800" />
+                  <span className="hidden sm:inline">Mã QR</span>
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

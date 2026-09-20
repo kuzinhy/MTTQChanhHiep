@@ -46,6 +46,7 @@ interface ChanhHiepPortalHomeProps {
   onSelectTab: (tab: string) => void;
   onOpenHcmSpaceModal: () => void;
   onOpenVolunteerModal: () => void;
+  onOpenDirectory?: () => void;
   onGoToOffice: () => void;
 }
 
@@ -57,6 +58,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   onSelectTab,
   onOpenHcmSpaceModal,
   onOpenVolunteerModal,
+  onOpenDirectory,
   onGoToOffice
 }) => {
   // Safe articles fallback
@@ -283,79 +285,80 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
             <img
               src={getImageUrl(currentHero.featuredImage)}
               alt={currentHero.title}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-cover object-top sm:object-center transition-transform duration-700 group-hover:scale-[1.02]"
             />
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-transparent" />
+            {/* Low-profile Soft Bottom Gradient Overlay - only bottom 30-35% to keep original photo clear and bright */}
+            <div className="absolute inset-x-0 bottom-0 h-32 sm:h-40 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent pointer-events-none" />
           </div>
 
           {/* Left / Right Nav Arrows */}
           <button
             onClick={handlePrevHero}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 text-white backdrop-blur-xs flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
             aria-label="Tin trước"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={handleNextHero}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 text-white backdrop-blur-xs flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
             aria-label="Tin sau"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Bottom Article Content Info */}
-          <div className="relative z-20 p-4 sm:p-6 space-y-2 text-white">
-            {/* Tag Badge */}
-            <div className="inline-block">
+          {/* Bottom Article Content Info - Compact & Low to prevent covering subject */}
+          <div className="relative z-20 p-3 sm:p-4.5 space-y-1.5 text-white">
+            {/* Tag Badge & Dots row */}
+            <div className="flex items-center justify-between gap-2">
               <span className="px-2.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black uppercase tracking-wide shadow-xs">
                 {currentHero.category || 'Hoạt động Mặt trận'}
               </span>
+
+              {/* Compact Pagination Dots */}
+              <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-xs px-2 py-0.5 rounded-full border border-white/10">
+                {featuredArticles.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setHeroIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                      idx === heroIndex ? 'w-4 bg-white shadow-2xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                    }`}
+                    aria-label={`Chuyển tin ${idx + 1}`}
+                  />
+                ))}
+              </div>
             </div>
 
-            {/* Title */}
+            {/* Title - Compact leading, drop shadow for readability on bright photos */}
             <h3 
               onClick={() => onSelectArticle(currentHero)}
-              className="text-sm sm:text-base md:text-lg font-black text-white leading-snug cursor-pointer hover:text-amber-200 transition-colors"
+              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.85)' }}
+              className="text-xs sm:text-sm md:text-base font-black text-white leading-snug cursor-pointer hover:text-amber-200 transition-colors line-clamp-2"
             >
               {currentHero.title}
             </h3>
 
             {/* Bottom Meta & Action */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-              <div className="flex items-center gap-4 text-xs text-slate-300 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+              <div className="flex items-center gap-3 text-[11px] sm:text-xs text-slate-200 font-medium">
+                <span className="flex items-center gap-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                  <Calendar className="w-3.5 h-3.5 text-amber-300" />
                   {currentHero.publishDate ? new Date(currentHero.publishDate).toLocaleDateString('vi-VN') : '04/09/2026'}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 text-slate-400" />
+                <span className="flex items-center gap-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                  <Eye className="w-3.5 h-3.5 text-amber-300" />
                   {(currentHero.views || 1256).toLocaleString('vi-VN')} lượt xem
                 </span>
               </div>
 
               <button
                 onClick={() => onSelectArticle(currentHero)}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white text-slate-900 hover:bg-slate-100 text-xs font-bold rounded-full shadow-md transition-all active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white hover:bg-slate-100 text-slate-900 text-[11px] sm:text-xs font-bold rounded-full shadow-md transition-all active:scale-95 cursor-pointer"
               >
                 <span>Xem chi tiết</span>
                 <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
               </button>
-            </div>
-
-            {/* Pagination Dots */}
-            <div className="flex items-center justify-center gap-1.5 pt-2">
-              {featuredArticles.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setHeroIndex(idx)}
-                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    idx === heroIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
-                  }`}
-                  aria-label={`Chuyển tin ${idx + 1}`}
-                />
-              ))}
             </div>
           </div>
         </div>
@@ -853,11 +856,13 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
       </section>
 
       {/* ========================================================================= */}
-      {/* 6. CẨM NANG DỊCH VỤ CÔNG & TRA CỨU TIẾN ĐỘ Ý KIẾN CỬ TRI */}
+      {/* 6. CẨM NANG DỊCH VỤ CÔNG, TRA CỨU TIẾN ĐỘ DÂN NGUYỆN & ĐƯỜNG DÂY NÓNG 24/7 */}
       {/* ========================================================================= */}
       <CitizenPublicServiceGuide
+        opinions={opinions}
         onSelectTab={onSelectTab}
         onOpenVolunteerModal={onOpenVolunteerModal}
+        onOpenDirectory={onOpenDirectory}
       />
 
     </div>

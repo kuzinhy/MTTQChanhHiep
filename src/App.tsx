@@ -1114,6 +1114,7 @@ export default function App() {
                       onSelectTab={(tab) => handleSelectPortalTab(tab)}
                       onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
                       onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
+                      onOpenDirectory={() => setIsDirectoryModalOpen(true)}
                       onGoToOffice={() => {
                         if (currentStaffUser) {
                           setCurrentSpace('OFFICE');

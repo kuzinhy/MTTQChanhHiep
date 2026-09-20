@@ -25,7 +25,10 @@ import {
   Search,
   BookOpen,
   Info,
-  Volume2
+  Volume2,
+  Save,
+  RotateCcw,
+  Check
 } from 'lucide-react';
 import { CulturalMediaAdminSection } from './CulturalMediaAdminSection';
 import {
@@ -36,6 +39,7 @@ import {
   BiographyChapter,
   VersionHistoryRecord,
   CoverConfig,
+  DEFAULT_COVER_CONFIG,
   loadStoredCoverConfig,
   saveStoredCoverConfig,
   loadStoredChapters,
@@ -61,6 +65,28 @@ export const CulturalSpaceAdminView: React.FC = () => {
   const [events, setEvents] = useState<EventCardSchema[]>(loadStoredEvents());
   const [sources, setSources] = useState<HistoricalSource[]>(loadStoredSources());
   const [versions, setVersions] = useState<VersionHistoryRecord[]>(loadStoredVersions());
+
+  // Save Success Notification
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
+  // Preset historical portraits for quick selection
+  const PRESET_PORTRAITS = [
+    {
+      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Ho_Chi_Minh_-_1946_Portrait.jpg/320px-Ho_Chi_Minh_-_1946_Portrait.jpg',
+      label: 'Chân dung Chủ tịch Hồ Chí Minh (1946 - Chuẩn Cổng TTĐT)',
+      caption: 'Chân dung Chủ tịch Hồ Chí Minh (1890 - 1969) – Lãnh tụ vĩ đại của dân tộc Việt Nam'
+    },
+    {
+      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Ho_Chi_Minh_reads_declaration_of_independence_1945.jpg/640px-Ho_Chi_Minh_reads_declaration_of_independence_1945.jpg',
+      label: 'Bác Hồ đọc Tuyên ngôn Độc lập (1945)',
+      caption: 'Chủ tịch Hồ Chí Minh đọc Tuyên ngôn Độc lập tại Quảng trường Ba Đình ngày 02/9/1945'
+    },
+    {
+      url: 'https://upload.wikimedia.org/wikipedia/commons/1/1c/Ho_Chi_Minh_1946.jpg',
+      label: 'Bác Hồ tại Bắc Bộ Phủ (1946)',
+      caption: 'Chủ tịch Hồ Chí Minh làm việc tại Bắc Bộ Phủ (1946)'
+    }
+  ];
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -128,18 +154,68 @@ export const CulturalSpaceAdminView: React.FC = () => {
     setVersions(loadStoredVersions());
   };
 
-  // Toggle Historical Lock on Cover
+  // Toggle Historical Lock on Cover directly for administrators
   const handleToggleCoverLock = () => {
-    if (coverConfig.historical_lock) {
-      setUnlockTarget({ id: 'cover-config', type: 'cover' });
-      setShowUnlockModal(true);
-    } else {
-      const updated: CoverConfig = { ...coverConfig, historical_lock: true, updated_at: new Date().toISOString() };
-      setCoverConfig(updated);
-      saveStoredCoverConfig(updated);
-      recordVersionChange('cover-config', 'cover', 'Quản trị viên', 'Khóa bảo vệ nội dung lịch sử', false, true);
-      refreshAllData();
-    }
+    const nextLocked = !coverConfig.historical_lock;
+    const updated: CoverConfig = {
+      ...coverConfig,
+      historical_lock: nextLocked,
+      updated_at: new Date().toISOString()
+    };
+    setCoverConfig(updated);
+    saveStoredCoverConfig(updated);
+    recordVersionChange(
+      'cover-config',
+      'cover',
+      'Quản trị viên',
+      nextLocked ? 'Khóa an toàn nội dung trang bìa' : 'Mở quyền chỉnh sửa trang bìa',
+      coverConfig.historical_lock,
+      nextLocked
+    );
+    setSaveSuccessMsg(nextLocked ? 'Đã kích hoạt chế độ khóa an toàn trang bìa.' : 'Đã mở quyền chỉnh sửa trang bìa thành công!');
+    setTimeout(() => setSaveSuccessMsg(null), 3500);
+  };
+
+  // Save Cover Configuration Changes
+  const handleSaveCoverConfig = () => {
+    const updated: CoverConfig = {
+      ...coverConfig,
+      updated_at: new Date().toISOString()
+    };
+    setCoverConfig(updated);
+    saveStoredCoverConfig(updated);
+    recordVersionChange(
+      'cover-config',
+      'cover',
+      'Quản trị viên',
+      'Cập nhật nội dung tiêu đề, mô tả và chân dung Trang Bìa',
+      null,
+      updated
+    );
+    setSaveSuccessMsg('Đã lưu thành công các thay đổi của Trang Bìa Không Gian Văn Hóa!');
+    setTimeout(() => setSaveSuccessMsg(null), 3500);
+  };
+
+  // Reset Cover to Original Template
+  const handleResetCoverToDefault = () => {
+    if (!window.confirm('Bạn có chắc chắn muốn khôi phục lại nội dung chuẩn ban đầu của Trang Bìa theo Cổng TTĐT TP.HCM?')) return;
+    const restored: CoverConfig = {
+      ...DEFAULT_COVER_CONFIG,
+      historical_lock: false,
+      updated_at: new Date().toISOString()
+    };
+    setCoverConfig(restored);
+    saveStoredCoverConfig(restored);
+    recordVersionChange(
+      'cover-config',
+      'cover',
+      'Quản trị viên',
+      'Khôi phục nội dung Trang Bìa về mẫu chuẩn ban đầu',
+      null,
+      restored
+    );
+    setSaveSuccessMsg('Đã khôi phục nội dung Trang Bìa về mẫu chuẩn ban đầu!');
+    setTimeout(() => setSaveSuccessMsg(null), 3500);
   };
 
   // Confirm Unlock with Reason
@@ -384,27 +460,73 @@ export const CulturalSpaceAdminView: React.FC = () => {
       {/* TAB 1: TRANG BÌA */}
       {activeTab === 'cover' && (
         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm space-y-6">
+          {/* Toast feedback */}
+          {saveSuccessMsg && (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs sm:text-sm flex items-center justify-between shadow-lg">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-amber-300 shrink-0" />
+                <span>{saveSuccessMsg}</span>
+              </div>
+              <button
+                onClick={() => setSaveSuccessMsg(null)}
+                className="px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-semibold cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          )}
+
+          {/* Header & Mode Bar */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700 pb-4">
             <div>
-              <h2 className="font-serif font-bold text-lg text-slate-900 dark:text-white">
-                Cấu Hình Trang Bìa (Hero &amp; Thông Điệp Chính)
-              </h2>
-              <p className="text-xs text-slate-500">
-                Nguồn tham chiếu: <span className="font-semibold text-red-600">hochiminhcity.gov.vn/landing-khong-gian-van-hoa-ho-chi-minh</span>
+              <div className="flex items-center gap-2">
+                <h2 className="font-serif font-bold text-lg text-slate-900 dark:text-white">
+                  Cấu Hình & Hiệu Chỉnh Trang Bìa (Sảnh Khánh Tiết)
+                </h2>
+                {!coverConfig.historical_lock ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300">
+                    Đang Cho Phép Sửa
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/50 dark:text-amber-300">
+                    Đang Khóa An Toàn
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Các điều chỉnh ở đây sẽ được đồng bộ trực tiếp lên giao diện Sảnh Khánh Tiết của Không Gian Văn Hóa Hồ Chí Minh.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <button
                 onClick={handleToggleCoverLock}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
                   coverConfig.historical_lock
-                    ? 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
-                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
+                    ? 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700'
+                    : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700'
                 }`}
+                title="Bấm để bật hoặc tắt chế độ chỉnh sửa"
               >
-                {coverConfig.historical_lock ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                <span>{coverConfig.historical_lock ? 'KHÓA NỘI DUNG (LOCKED)' : 'ĐANG MỞ KHÓA (EDITABLE)'}</span>
+                {coverConfig.historical_lock ? <Lock className="w-4 h-4 text-amber-600" /> : <Unlock className="w-4 h-4 text-emerald-600" />}
+                <span>{coverConfig.historical_lock ? 'Bật Chế Độ Sửa' : 'Chế Độ Sửa Đang Bật'}</span>
+              </button>
+
+              <button
+                onClick={handleResetCoverToDefault}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 flex items-center gap-1.5 transition-all cursor-pointer"
+                title="Khôi phục về mẫu nguyên bản của Cổng TTĐT TP.HCM"
+              >
+                <RotateCcw className="w-4 h-4 text-slate-500" />
+                <span>Khôi Phục Chuẩn Gốc</span>
+              </button>
+
+              <button
+                onClick={handleSaveCoverConfig}
+                className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <Save className="w-4 h-4 text-amber-300" />
+                <span>Lưu Thay Đổi Trang Bìa</span>
               </button>
             </div>
           </div>
@@ -413,14 +535,15 @@ export const CulturalSpaceAdminView: React.FC = () => {
             <div className="lg:col-span-2 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Tiêu đề chính thức
+                  Tiêu đề chính thức Không gian
                 </label>
                 <input
                   type="text"
                   disabled={coverConfig.historical_lock}
                   value={coverConfig.title}
                   onChange={(e) => setCoverConfig({ ...coverConfig, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm font-serif font-bold text-slate-900 dark:text-white disabled:opacity-75"
+                  placeholder="Ví dụ: KHÔNG GIAN VĂN HÓA HỒ CHÍ MINH"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-serif font-bold text-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900/50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
                 />
               </div>
 
@@ -433,30 +556,62 @@ export const CulturalSpaceAdminView: React.FC = () => {
                   disabled={coverConfig.historical_lock}
                   value={coverConfig.subtitle}
                   onChange={(e) => setCoverConfig({ ...coverConfig, subtitle: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs text-slate-900 dark:text-white disabled:opacity-75"
+                  placeholder="Ví dụ: Tư tưởng – Đạo đức – Phong cách – Cuộc đời – Sự nghiệp"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900/50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Mô tả định vị Không gian văn hóa Hồ Chí Minh
+                  Mô tả định vị Không gian văn hóa Hồ Chí Minh – Phường Chánh Hiệp
                 </label>
                 <textarea
                   rows={4}
                   disabled={coverConfig.historical_lock}
                   value={coverConfig.description}
                   onChange={(e) => setCoverConfig({ ...coverConfig, description: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs leading-relaxed text-slate-900 dark:text-white disabled:opacity-75"
+                  placeholder="Nhập nội dung giới thiệu, ý nghĩa và định hướng phát triển Không gian văn hóa..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs leading-relaxed text-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900/50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Cơ quan ban hành / Thẩm định
+                  </label>
+                  <input
+                    type="text"
+                    disabled={coverConfig.historical_lock}
+                    value={coverConfig.primary_source_agency}
+                    onChange={(e) => setCoverConfig({ ...coverConfig, primary_source_agency: e.target.value })}
+                    placeholder="Cơ quan / Đơn vị thẩm định..."
+                    className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đường dẫn nguồn tài liệu chính thức
+                  </label>
+                  <input
+                    type="text"
+                    disabled={coverConfig.historical_lock}
+                    value={coverConfig.primary_source_url}
+                    onChange={(e) => setCoverConfig({ ...coverConfig, primary_source_url: e.target.value })}
+                    placeholder="https://hochiminhcity.gov.vn/..."
+                    className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900/50"
+                  />
+                </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-xs space-y-1">
                 <div className="font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
                   <Info className="w-4 h-4 text-amber-600" />
-                  <span>Nguồn pháp lý &amp; Lưu trữ:</span>
+                  <span>Nguồn pháp lý tham chiếu trực tiếp:</span>
                 </div>
                 <p className="text-slate-700 dark:text-slate-300">
-                  Cơ quan ban hành: <strong>{coverConfig.primary_source_agency}</strong>
+                  Cơ quan: <strong>{coverConfig.primary_source_agency}</strong>
                 </p>
                 <a
                   href={coverConfig.primary_source_url}
@@ -464,18 +619,25 @@ export const CulturalSpaceAdminView: React.FC = () => {
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 text-red-600 hover:underline font-bold"
                 >
-                  <span>{coverConfig.primary_source_url}</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <span className="truncate max-w-md">{coverConfig.primary_source_url}</span>
+                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                 </a>
               </div>
             </div>
 
-            {/* Chân dung bìa */}
-            <div className="space-y-3">
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                Chân dung Bác Hồ (Ảnh tư liệu chính thức)
-              </label>
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 aspect-3/4 flex items-center justify-center">
+            {/* Chân dung bìa & Tùy chọn ảnh */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Chân dung Bác Hồ (Ảnh tư liệu)
+                </label>
+                <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                  Chuẩn Sảnh Khánh Tiết
+                </span>
+              </div>
+
+              {/* Preview Box */}
+              <div className="relative rounded-2xl overflow-hidden border-2 border-amber-400/40 shadow-md bg-slate-900 aspect-3/4 flex items-center justify-center">
                 <OptimizedImage
                   src={coverConfig.portrait_url}
                   alt={coverConfig.portrait_caption}
@@ -483,11 +645,100 @@ export const CulturalSpaceAdminView: React.FC = () => {
                   priority={true}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-bold text-amber-300 border border-amber-400/30">
+                  1890 - 1969
+                </div>
                 <div className="absolute bottom-3 left-3 right-3 text-white text-[11px] leading-snug">
-                  {coverConfig.portrait_caption}
+                  <p className="font-semibold text-amber-200 line-clamp-2">{coverConfig.portrait_caption}</p>
                 </div>
               </div>
+
+              {/* Presets Selection */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                  Chọn nhanh ảnh tư liệu chuẩn:
+                </span>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {PRESET_PORTRAITS.map((p, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      disabled={coverConfig.historical_lock}
+                      onClick={() => {
+                        setCoverConfig({
+                          ...coverConfig,
+                          portrait_url: p.url,
+                          portrait_caption: p.caption
+                        });
+                      }}
+                      className={`px-3 py-2 rounded-xl text-left text-xs font-medium transition-all flex items-center gap-2 border cursor-pointer ${
+                        coverConfig.portrait_url === p.url
+                          ? 'bg-red-50 text-red-900 border-red-300 dark:bg-red-950/40 dark:text-red-200 dark:border-red-700 font-bold'
+                          : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${coverConfig.portrait_url === p.url ? 'text-red-600' : 'text-slate-300'}`} />
+                      <span className="truncate">{p.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Image URL */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Đường dẫn ảnh chân dung tùy chỉnh (URL)
+                  </label>
+                  <input
+                    type="text"
+                    disabled={coverConfig.historical_lock}
+                    value={coverConfig.portrait_url}
+                    onChange={(e) => setCoverConfig({ ...coverConfig, portrait_url: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white disabled:opacity-60"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Chú thích ảnh chân dung
+                  </label>
+                  <input
+                    type="text"
+                    disabled={coverConfig.historical_lock}
+                    value={coverConfig.portrait_caption}
+                    onChange={(e) => setCoverConfig({ ...coverConfig, portrait_caption: e.target.value })}
+                    placeholder="Nhập chú thích ảnh..."
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white disabled:opacity-60"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Save Action Bar */}
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-slate-500">
+              Lần cập nhật gần nhất: <span className="font-semibold text-slate-800 dark:text-slate-200">{coverConfig.updated_at || 'Chưa ghi nhận'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleResetCoverToDefault}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer transition-all"
+              >
+                <RotateCcw className="w-4 h-4 text-slate-500" />
+                <span>Khôi Phục Mẫu Gốc</span>
+              </button>
+
+              <button
+                onClick={handleSaveCoverConfig}
+                className="px-6 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-red-600 via-red-700 to-amber-700 hover:from-red-700 hover:to-amber-800 text-white shadow-lg flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+              >
+                <Save className="w-4 h-4 text-amber-300" />
+                <span>Lưu Cấu Hình Trang Bìa</span>
+              </button>
             </div>
           </div>
         </div>

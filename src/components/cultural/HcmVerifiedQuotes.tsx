@@ -19,6 +19,7 @@ import { VERIFIED_QUOTES, VerifiedQuote } from '../../data/hcmVerifiedMuseumData
 import { loadStoredQuotes, saveStoredQuotes } from '../../lib/hcmDataStore';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
+import { HcmShareButton } from './HcmShareModal';
 
 interface HcmVerifiedQuotesProps {
   isResearchMode: boolean;
@@ -151,7 +152,20 @@ export const HcmVerifiedQuotes: React.FC<HcmVerifiedQuotesProps> = ({ isResearch
                   {item.category}
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <HcmShareButton
+                    item={{
+                      id: item.id,
+                      title: `Lời Bác dạy: "${item.quoteText.slice(0, 60)}..."`,
+                      quote: item.quoteText,
+                      summary: `Hoàn cảnh: ${item.occasion} (${item.dateStr}). Xuất xứ: "${item.originalWork}", Tập ${item.volume}, Trang ${item.page}`,
+                      category: `Lời Bác dạy - ${item.category}`,
+                      source: `Hồ Chí Minh Toàn tập, Tập ${item.volume}, tr. ${item.page}`
+                    }}
+                    variant="icon"
+                    size="sm"
+                  />
+
                   {isAdmin && (
                     <>
                       <button

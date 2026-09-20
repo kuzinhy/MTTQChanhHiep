@@ -123,7 +123,7 @@ export const DEFAULT_COVER_CONFIG: CoverConfig = {
   portrait_caption: 'Chân dung Chủ tịch Hồ Chí Minh (1890 - 1969) – Lãnh tụ vĩ đại của dân tộc Việt Nam',
   primary_source_url: 'https://hochiminhcity.gov.vn/landing-khong-gian-van-hoa-ho-chi-minh',
   primary_source_agency: 'Cổng thông tin điện tử Thành phố Hồ Chí Minh',
-  historical_lock: true,
+  historical_lock: false,
   updated_at: '2026-09-04'
 };
 

@@ -24,6 +24,7 @@ import {
 import { EventCardSchema, loadStoredEvents, saveStoredEvents } from '../../data/hcmGovernanceSchema';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
+import { HcmShareButton } from './HcmShareModal';
 
 interface HcmTimelineAndPeriodsProps {
   isResearchMode: boolean;
@@ -221,8 +222,22 @@ export const HcmTimelineAndPeriods: React.FC<HcmTimelineAndPeriodsProps> = ({
                   {ev.summary}
                 </p>
 
-                {isAdmin && (
-                  <div className="mt-2 pt-2 border-t border-rose-300/20 flex justify-end">
+                <div className="mt-2 pt-2 border-t border-rose-300/20 flex items-center justify-between">
+                  <HcmShareButton
+                    item={{
+                      id: `timeline-${ev.id}`,
+                      title: ev.title,
+                      summary: ev.summary,
+                      category: 'Niên biểu & Dấu mốc lịch sử',
+                      date: `${ev.dateLabel} • ${ev.locationName}`
+                    }}
+                    variant="pill"
+                    size="sm"
+                    label="Chia sẻ"
+                    className={isSelected ? 'bg-rose-900/60 text-white border-rose-700/60' : ''}
+                  />
+
+                  {isAdmin && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -237,8 +252,8 @@ export const HcmTimelineAndPeriods: React.FC<HcmTimelineAndPeriodsProps> = ({
                       <Edit3 className="w-3 h-3" />
                       <span>Sửa sự kiện</span>
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}
@@ -249,24 +264,39 @@ export const HcmTimelineAndPeriods: React.FC<HcmTimelineAndPeriodsProps> = ({
           {selectedEvent ? (
             <div className="p-6 rounded-3xl bg-gradient-to-br from-white via-rose-50/60 to-amber-50/40 border-2 border-rose-200 shadow-md space-y-5 sticky top-4">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rose-200 pb-4">
-                <span className="px-3 py-1 rounded-full bg-rose-700 text-white font-mono font-bold text-xs">
-                  {selectedEvent.dateLabel}
-                </span>
-
-                <div className="flex items-center gap-2 text-xs font-bold text-rose-800">
-                  <MapPin className="w-4 h-4 text-rose-700" />
-                  <span>{selectedEvent.locationName}</span>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-rose-700 text-white font-mono font-bold text-xs">
+                    {selectedEvent.dateLabel}
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-rose-800">
+                    <MapPin className="w-3.5 h-3.5 text-rose-700" />
+                    <span>{selectedEvent.locationName}</span>
+                  </div>
                 </div>
 
-                {isAdmin && (
-                  <button
-                    onClick={() => setEditingEvent(selectedEvent)}
-                    className="px-3 py-1 rounded-xl bg-amber-400 text-rose-950 font-bold text-xs flex items-center gap-1 hover:bg-amber-300 transition shadow-xs cursor-pointer"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Chỉnh sửa</span>
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  <HcmShareButton
+                    item={{
+                      id: `timeline-${selectedEvent.id}`,
+                      title: selectedEvent.title,
+                      summary: selectedEvent.summary,
+                      category: 'Niên biểu & Dấu mốc lịch sử',
+                      date: `${selectedEvent.dateLabel} • ${selectedEvent.locationName}`
+                    }}
+                    variant="button"
+                    label="Chia sẻ sự kiện"
+                  />
+
+                  {isAdmin && (
+                    <button
+                      onClick={() => setEditingEvent(selectedEvent)}
+                      className="px-3 py-1.5 rounded-xl bg-amber-400 text-rose-950 font-bold text-xs flex items-center gap-1 hover:bg-amber-300 transition shadow-xs cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Chỉnh sửa</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               <h3 className="text-lg sm:text-xl font-serif font-extrabold text-rose-950 leading-tight">

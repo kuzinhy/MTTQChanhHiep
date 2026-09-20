@@ -34,6 +34,7 @@ import {
 import { HISTORICAL_EVENTS, HistoricalEvent } from '../../data/hcmVerifiedMuseumData';
 import { DongSonDrumIcon, ChimHacIcon, HoaSenIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal } from './UniversalHcmEditorModal';
+import { HcmShareButton } from './HcmShareModal';
 
 interface HcmBiographyViewProps {
   isResearchMode: boolean;
@@ -323,6 +324,18 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
                   </span>
 
                   <div className="flex items-center gap-2">
+                    <HcmShareButton
+                      item={{
+                        id: activeChapter.id,
+                        title: `Chương 0${activeChapter.order}: ${activeChapter.title}`,
+                        summary: activeChapter.summary,
+                        category: 'Tiểu sử & Cuộc đời Chủ tịch Hồ Chí Minh',
+                        date: activeChapter.timeRange
+                      }}
+                      variant="button"
+                      label="Chia sẻ chương"
+                    />
+
                     {isAdmin && (
                       <button
                         onClick={() => {
@@ -332,7 +345,7 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
                         className="px-3 py-1.5 rounded-xl bg-amber-400 text-rose-950 font-bold text-xs flex items-center gap-1 hover:bg-amber-300 transition shadow-xs cursor-pointer"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
-                        <span>Chỉnh sửa nội dung chương</span>
+                        <span>Sửa</span>
                       </button>
                     )}
                     <button
@@ -340,7 +353,7 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
                       className="px-3.5 py-1.5 rounded-xl bg-rose-100 text-rose-900 font-bold text-xs hover:bg-rose-200 transition flex items-center gap-1 border border-rose-300 cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5 text-rose-700" />
-                      <span>Đọc toàn văn chương</span>
+                      <span>Toàn văn</span>
                     </button>
                   </div>
                 </div>
@@ -419,8 +432,22 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
                       </p>
 
                       <div className="pt-2 flex items-center justify-between text-[11px] font-bold text-rose-800">
-                        <span>Xem chi tiết tư liệu</span>
-                        <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        <span className="flex items-center gap-1 group-hover:text-rose-950">
+                          <span>Xem chi tiết tư liệu</span>
+                          <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </span>
+
+                        <HcmShareButton
+                          item={{
+                            id: `evt-${ev.id}`,
+                            title: ev.title,
+                            summary: ev.summary,
+                            category: `Sự kiện lịch sử • ${activeChapter.title}`,
+                            date: 'year' in ev ? String(ev.year) : (ev as any).date_display
+                          }}
+                          variant="icon"
+                          size="sm"
+                        />
                       </div>
                     </div>
                   ))}
@@ -450,12 +477,27 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
                     {activeChapterModal.title}
                   </h3>
                 </div>
-                <button
-                  onClick={() => setActiveChapterModal(null)}
-                  className="p-1.5 rounded-full hover:bg-white/20 text-white transition cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <HcmShareButton
+                    item={{
+                      id: activeChapterModal.id,
+                      title: `Chương 0${activeChapterModal.order}: ${activeChapterModal.title}`,
+                      summary: activeChapterModal.summary,
+                      category: 'Tiểu sử & Cuộc đời Chủ tịch Hồ Chí Minh',
+                      date: activeChapterModal.timeRange
+                    }}
+                    variant="pill"
+                    label="Chia sẻ"
+                    className="bg-white/90 text-rose-950 hover:bg-white border-white/40"
+                  />
+                  <button
+                    onClick={() => setActiveChapterModal(null)}
+                    className="p-1.5 rounded-full hover:bg-white/20 text-white transition cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               <div className="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-rose-950 leading-relaxed font-serif">
@@ -490,12 +532,27 @@ export const HcmBiographyView: React.FC<HcmBiographyViewProps> = ({
                     {selectedEventModal.title}
                   </h3>
                 </div>
-                <button
-                  onClick={() => setSelectedEventModal(null)}
-                  className="p-1.5 rounded-full hover:bg-white/20 text-white transition cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <HcmShareButton
+                    item={{
+                      id: `evt-${selectedEventModal.id}`,
+                      title: selectedEventModal.title,
+                      summary: selectedEventModal.summary,
+                      category: 'Sự kiện Lịch sử Hồ Chí Minh',
+                      date: 'dateLabel' in selectedEventModal ? selectedEventModal.dateLabel : selectedEventModal.date_display
+                    }}
+                    variant="pill"
+                    label="Chia sẻ"
+                    className="bg-white/90 text-rose-950 hover:bg-white border-white/40"
+                  />
+                  <button
+                    onClick={() => setSelectedEventModal(null)}
+                    className="p-1.5 rounded-full hover:bg-white/20 text-white transition cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               <div className="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-rose-950 leading-relaxed">
