@@ -1546,8 +1546,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                         </td>
 
                         {/* Action Buttons: Preview, Edit, Duplicate, Delete */}
-                        <td className="px-5 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                        <td className="px-5 py-3.5 text-right relative z-20">
+                          <div className="flex items-center justify-end gap-1.5 relative z-30">
                             <button
                               onClick={() => setPreviewArticle(art)}
                               className="p-2 bg-slate-100 hover:bg-blue-100 hover:text-blue-700 text-slate-700 rounded-xl transition-all cursor-pointer"

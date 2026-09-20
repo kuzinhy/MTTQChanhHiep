@@ -17,7 +17,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Đoàn Thanh niên',
     category: 'DOAN_THANH_NIEN_THIEU_NHI',
     categoryLabel: 'Đoàn - Đội - Thanh thiếu nhi',
-    url: '/assets/logos/logo-dtn.png',
+    url: 'https://upload.wikimedia.org/wikipedia/vi/thumb/e/ef/Logo_Doan_TNCS_Ho_Chi_Minh.svg/320px-Logo_Doan_TNCS_Ho_Chi_Minh.svg.png',
     defaultName: 'Đoàn TNCS Hồ Chí Minh phường Chánh Hiệp',
     defaultPosition: 'Bí thư Đoàn phường',
     color: 'emerald'
@@ -61,7 +61,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Hội LHTN',
     category: 'DOAN_THANH_NIEN_THIEU_NHI',
     categoryLabel: 'Đoàn - Đội - Thanh thiếu nhi',
-    url: '/assets/logos/logo-lhtn.svg',
+    url: 'https://upload.wikimedia.org/wikipedia/vi/thumb/d/d4/Logo_Hoi_LHTN_Viet_Nam.svg/320px-Logo_Hoi_LHTN_Viet_Nam.svg.png',
     defaultName: 'Hội Liên hiệp Thanh niên phường Chánh Hiệp',
     defaultPosition: 'Chủ tịch Hội LHTN',
     color: 'sky'
@@ -72,7 +72,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Ủy ban MTTQ',
     category: 'CHINH_TRI_XA_HOI',
     categoryLabel: 'Chính trị - Xã hội nòng cốt',
-    url: '/assets/logos/logo-mttq.svg',
+    url: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
     defaultName: 'Ủy ban Mặt trận Tổ quốc Việt Nam phường Chánh Hiệp',
     defaultPosition: 'Chủ tịch Ủy ban MTTQ',
     color: 'red'
@@ -138,7 +138,7 @@ export const OFFICIAL_ORG_LOGOS: OfficialOrgLogo[] = [
     shortName: 'Quốc huy',
     category: 'BIEU_TRUNG_NHA_NUOC',
     categoryLabel: 'Biểu trưng Nhà nước & Pháp luật',
-    url: '/assets/logos/quoc-huy.svg',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/National_Emblem_of_Vietnam.svg/320px-National_Emblem_of_Vietnam.svg.png',
     defaultName: 'Ủy ban Nhân dân phường Chánh Hiệp',
     defaultPosition: 'Chủ tịch UBND phường',
     color: 'red'

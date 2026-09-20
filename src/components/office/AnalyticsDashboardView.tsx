@@ -50,8 +50,6 @@ interface AnalyticsDashboardViewProps {
   articlesCount: number;
   documentsCount: number;
   opinionsCount: number;
-  tasksCount: number;
-  completedTasksCount: number;
   opinions?: PublicOpinion[];
   onNavigateToOpinions?: () => void;
   onUpdateOpinionStatus?: (id: string, status: OpinionStatus, responseText?: string) => void;
@@ -61,13 +59,10 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
   articlesCount,
   documentsCount,
   opinionsCount,
-  tasksCount,
-  completedTasksCount,
   opinions = [],
   onNavigateToOpinions,
   onUpdateOpinionStatus
 }) => {
-  const completionRate = tasksCount > 0 ? Math.round((completedTasksCount / tasksCount) * 100) : 100;
   const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
   const [aiReportGenerated, setAiReportGenerated] = useState(false);
 
@@ -201,18 +196,6 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
           </p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2 relative overflow-hidden">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider">Tiến độ Nhiệm vụ</span>
-            <div className="p-2 bg-blue-50 rounded-lg text-blue-700">
-              <CheckSquare className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-slate-900">{completionRate}%</div>
-          <p className="text-[11px] text-slate-500 font-bold">
-            {completedTasksCount} / {tasksCount} công việc hoàn thành
-          </p>
-        </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-500">

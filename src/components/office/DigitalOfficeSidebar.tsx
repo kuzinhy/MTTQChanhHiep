@@ -63,6 +63,7 @@ interface DigitalOfficeSidebarProps {
 export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   currentView,
   setCurrentView,
+  onGoToPortal,
   staffRole = 'STAFF',
   isMobileOpen = false,
   onCloseMobile
@@ -82,23 +83,12 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       accentColor: 'blue',
       items: [
         { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
+        { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
+        { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
         { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: '21 KP' },
-        { id: 'tasks', label: 'Quản lý Công việc', icon: CheckSquare },
-        { id: 'calendar', label: 'Lịch công tác Phường', icon: Calendar },
         { id: 'neighborhood_emulation', label: 'Thi đua 21 Khu phố', icon: Award, badge: 'BẢNG VÀNG' },
-        { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
-      ]
-    },
-    {
-      id: 'group_ai',
-      title: 'THAM MƯU & TRỢ LÝ AI',
-      icon: Sparkles,
-      badgeText: 'AI 2.0',
-      accentColor: 'indigo',
-      items: [
-        { id: 'ai_assistant', label: 'Trợ lý Tham mưu AI', icon: Sparkles, badge: 'WORKSPACE' },
-        { id: 'document_ai_plan_generator', label: 'AI Lập Kế hoạch 2.0', icon: FileText, badge: 'AI 2.0' },
-        { id: 'administrative_report_exporter', label: 'Xuất Báo cáo Thể thức', icon: FileCheck, badge: 'NĐ 30' },
+        { id: 'ai_assistant', label: 'Trợ lý AI Tổng hợp', icon: Sparkles, badge: 'WORKSPACE' },
+        { id: 'home', label: 'Về trang chủ', icon: Building2 },
       ]
     },
     {
@@ -126,10 +116,11 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       badgeText: 'HỆ THỐNG',
       accentColor: 'emerald',
       items: [
+        { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
         { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
         { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },
         { id: 'templates', label: 'Kho Mẫu Văn bản', icon: FolderTree, badge: 'MẪU VB' },
-        { id: 'audit_logs', label: 'Nhật ký Hệ thống', icon: ShieldAlert, badge: 'AUDIT' },
+        { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
       ]
     }
   ], []);
@@ -137,7 +128,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   // Track expanded groups state
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     group_overview: true,
-    group_ai: true,
     group_cms: true,
     group_admin: true
   });
@@ -161,7 +151,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   const handleExpandAll = () => {
     setExpandedGroups({
       group_overview: true,
-      group_ai: true,
       group_cms: true,
       group_admin: true
     });
@@ -170,7 +159,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   const handleCollapseAll = () => {
     setExpandedGroups({
       group_overview: false,
-      group_ai: false,
       group_cms: false,
       group_admin: false
     });
@@ -216,7 +204,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border border-amber-300">
               <OptimizedImage
-                src="/assets/logos/logo-mttq.svg"
+                src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png"
                 alt="Logo MTTQ"
                 variant="thumbnail"
                 priority={true}
@@ -288,7 +276,8 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
               const GroupIcon = group.icon;
               const isExpanded = searchQuery !== '' ? true : !!expandedGroups[group.id];
               const hasActiveItem = group.items.some(
-                (i) => i.id === currentView || (i.id === 'cms' && currentView === 'cms_articles')
+                (i) => i.id === currentView || 
+                (i.id === 'cms' && currentView === 'cms_articles')
               );
 
               // Filter out items user strictly cannot access if needed, or show with lock
@@ -310,7 +299,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                   {/* Group Header Toggle Button */}
                   <button
                     onClick={() => toggleGroup(group.id)}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-left rounded-xl transition-colors cursor-pointer group"
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-left rounded-xl transition-colors cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div className={`p-1 rounded-md shrink-0 transition-colors ${
@@ -351,7 +340,8 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                         <div className="px-1 pb-1 pt-0.5 space-y-0.5 border-t border-slate-100">
                           {group.items.map((item) => {
                             const ItemIcon = item.icon;
-                            const isActive = currentView === item.id || (item.id === 'cms' && currentView === 'cms_articles');
+                            const isActive = currentView === item.id || 
+                              (item.id === 'cms' && currentView === 'cms_articles');
                             const isAllowed = canAccessView(userRole, item.id);
 
                             return (
@@ -360,6 +350,11 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                                 whileHover={{ x: isAllowed ? 2 : 0 }}
                                 whileTap={{ scale: isAllowed ? 0.98 : 1 }}
                                 onClick={() => {
+                                  if (item.id === 'home') {
+                                    if (onGoToPortal) onGoToPortal();
+                                    if (onCloseMobile) onCloseMobile();
+                                    return;
+                                  }
                                   if (isAllowed) {
                                     setCurrentView(item.id);
                                     if (onCloseMobile) onCloseMobile();

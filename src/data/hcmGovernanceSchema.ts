@@ -119,7 +119,7 @@ export const DEFAULT_COVER_CONFIG: CoverConfig = {
   title: 'KHÔNG GIAN VĂN HÓA HỒ CHÍ MINH',
   subtitle: 'Tư tưởng – Đạo đức – Phong cách – Cuộc đời – Sự nghiệp',
   description: 'Không gian văn hóa Hồ Chí Minh số của Phường Chánh Hiệp – Nơi kết nối dòng chảy lịch sử vẻ vang, tư tưởng vĩ đại và tấm gương đạo đức sáng ngời của Chủ tịch Hồ Chí Minh với công cuộc xây dựng đô thị văn minh, nghĩa tình.',
-  portrait_url: '/assets/cultural/ho-chi-minh-portrait.jpg',
+  portrait_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Ho_Chi_Minh_-_1946_Portrait.jpg/320px-Ho_Chi_Minh_-_1946_Portrait.jpg',
   portrait_caption: 'Chân dung Chủ tịch Hồ Chí Minh (1890 - 1969) – Lãnh tụ vĩ đại của dân tộc Việt Nam',
   primary_source_url: 'https://hochiminhcity.gov.vn/landing-khong-gian-van-hoa-ho-chi-minh',
   primary_source_agency: 'Cổng thông tin điện tử Thành phố Hồ Chí Minh',
@@ -580,8 +580,8 @@ export const loadStoredCoverConfig = (): CoverConfig => {
     const raw = localStorage.getItem(STORAGE_KEY_COVER);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && (!parsed.portrait_url || parsed.portrait_url.includes('wikimedia.org'))) {
-        parsed.portrait_url = '/assets/cultural/ho-chi-minh-portrait.jpg';
+      if (parsed && (!parsed.portrait_url || parsed.portrait_url.includes('/assets/'))) {
+        parsed.portrait_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Ho_Chi_Minh_-_1946_Portrait.jpg/320px-Ho_Chi_Minh_-_1946_Portrait.jpg';
       }
       return parsed;
     }

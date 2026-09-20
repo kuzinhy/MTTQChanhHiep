@@ -51,7 +51,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Dev quality diagnostic check
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && imgRef.current) {
+    if (import.meta.env.DEV && imgRef.current) {
       const img = imgRef.current;
       const handleDiagnostic = () => {
         if (!img.naturalWidth) return;

@@ -58,7 +58,7 @@ class BrowserNotificationManager {
     }
 
     try {
-      const defaultIcon = '/assets/logos/logo-mttq.svg';
+      const defaultIcon = 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png';
       
       const notification = new Notification(options.title, {
         body: options.body,

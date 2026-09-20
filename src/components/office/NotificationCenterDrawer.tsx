@@ -134,15 +134,28 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
             </div>
 
             {/* Mark all as read */}
-            {unreadCount > 0 && (
+            <div className="flex gap-2">
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 transition-all cursor-pointer"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  <span>Đọc tất cả</span>
+                </button>
+              )}
+              {/* Cleanup old */}
               <button
-                onClick={handleMarkAllRead}
-                className="flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 transition-all cursor-pointer"
+                onClick={async () => {
+                  await adminCollaborationService.cleanupOldNotifications(30);
+                }}
+                className="flex items-center gap-1 text-xs font-bold text-rose-700 hover:text-rose-900 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 transition-all cursor-pointer"
+                title="Dọn dẹp các thông báo đã đọc cũ hơn 30 ngày"
               >
-                <CheckCheck className="w-3.5 h-3.5" />
-                <span>Đánh dấu tất cả đã đọc</span>
+                <X className="w-3.5 h-3.5" />
+                <span>Dọn cũ</span>
               </button>
-            )}
+            </div>
           </div>
 
           {/* List of notifications */}

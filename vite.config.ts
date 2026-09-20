@@ -11,6 +11,14 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          navigateFallback: '/index.html',
+          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
+        },
         includeAssets: [
           'favicon.png',
           'apple-touch-icon.png',
@@ -58,19 +66,13 @@ export default defineConfig(() => {
           ],
         },
         devOptions: {
-          enabled: true,
-          type: 'module',
-        },
-        workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-          navigateFallback: '/index.html',
-          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-          cleanupOutdatedCaches: true,
-          clientsClaim: true,
-          skipWaiting: true,
+          enabled: false,
         },
       }),
     ],
+    define: {
+      'process.env': {},
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

@@ -27,7 +27,7 @@ export const BANNER_IMAGE_PRESETS: BannerImagePreset[] = [
   {
     id: 'img-preset-1',
     name: 'Banner 1 - Lịch sử Mặt trận & Đoàn thể (Đỏ Vàng)',
-    url: 'https://sv2.anhsieuviet.com/2026/09/02/862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713.png',
+    url: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
     description: 'Ảnh bìa hội thi Lịch sử Mặt trận, Tuyên truyền Đảng & Pháp luật'
   },
   {

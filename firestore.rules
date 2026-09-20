@@ -2,55 +2,62 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Hàm hỗ trợ kiểm tra vai trò cán bộ
+    // Hàm hỗ trợ xác thực cán bộ
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    // 1. Dữ liệu công khai: Cho phép người dân đọc tự do
+
+    // 1. Dữ liệu công khai phục vụ người dân tra cứu thông tin
     match /articles/{articleId} {
       allow read: if true;
-      allow write: if isAuthenticated() || true; // Tạm giữ tương thích kết nối
+      allow write: if isAuthenticated();
     }
     
     match /documents/{docId} {
       allow read: if true;
-      allow write: if isAuthenticated() || true;
+      allow write: if isAuthenticated();
     }
     
     match /competitions/{compId} {
       allow read: if true;
-      allow write: if isAuthenticated() || true;
+      allow write: if isAuthenticated();
     }
 
     match /memberOrganizations/{orgId} {
       allow read: if true;
-      allow write: if isAuthenticated() || true;
+      allow write: if isAuthenticated();
     }
 
     match /areas/{areaId} {
       allow read: if true;
-      allow write: if isAuthenticated() || true;
+      allow write: if isAuthenticated();
     }
 
     match /organizations/{orgId} {
       allow read: if true;
-      allow write: if isAuthenticated() || true;
+      allow write: if isAuthenticated();
     }
 
-    // 2. Dân nguyện: Người dân gửi ý kiến mới (create), đọc ý kiến đã trả lời
+    // 2. Dân nguyện & Phản ánh kiến nghị: Người dân gửi ý kiến, cán bộ xử lý
     match /publicOpinions/{opinionId} {
-      allow read, create: if true;
-      allow update, delete: if isAuthenticated() || true;
+      allow read: if true;
+      allow create: if request.resource.data.content != null;
+      allow update, delete: if isAuthenticated();
     }
 
-    // 3. Bài thi & Khảo sát: Thí sinh nộp bài mới (create)
+    // 3. Thi trực tuyến & Đăng ký tình nguyện viên
     match /competitionSubmissions/{subId} {
-      allow create, read: if true;
-      allow update, delete: if isAuthenticated() || true;
+      allow read: if true;
+      allow create: if request.resource.data.participantName != null;
+      allow update, delete: if isAuthenticated();
     }
 
-    // 4. Thống kê truy cập & Người dùng online thời gian thực
+    match /volunteerRegistrations/{regId} {
+      allow create: if request.resource.data.fullName != null;
+      allow read, update, delete: if isAuthenticated();
+    }
+
+    // 4. Thống kê truy cập & giám sát thời gian thực
     match /analytics_stats/{docId} {
       allow read, write: if true;
       match /{allSubcollections=**} {
@@ -61,10 +68,28 @@ service cloud.firestore {
     match /active_visitors/{sessionId} {
       allow read, write: if true;
     }
-    
-    // 5. Mặc định các collection nội bộ
+
+    // 5. Cán bộ & Tài khoản nội bộ
+    match /staff_users/{userId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /audit_logs/{logId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /internal_notes/{noteId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /document_plans/{planId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // 6. Mặc định các collection nội bộ khác: Chỉ cán bộ đã đăng nhập
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if isAuthenticated();
     }
   }
 }

@@ -15,6 +15,8 @@ import {
   Search
 } from 'lucide-react';
 
+import { OFFICIAL_21_NEIGHBORHOODS } from '../../data/neighborhoodsList';
+
 interface NeighborhoodScore {
   id: string;
   name: string;
@@ -34,19 +36,18 @@ export const NeighborhoodEmulationDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<NeighborhoodScore | null>(null);
 
-  // Pre-calculated emulation ranking for 21 neighborhoods
-  const rawNeighborhoods: NeighborhoodScore[] = Array.from({ length: 21 }, (_, i) => {
-    const kpNum = i + 1;
-    // Calculate realistic scores
-    const opinionsScore = Math.min(30, 26 + ((kpNum * 7) % 5));
-    const competitionsScore = Math.min(25, 20 + ((kpNum * 3) % 6));
-    const welfareScore = Math.min(25, 21 + ((kpNum * 11) % 5));
-    const greenProjectScore = Math.min(20, 16 + ((kpNum * 13) % 5));
+  // Use the 21 official neighborhoods
+  const rawNeighborhoods: NeighborhoodScore[] = OFFICIAL_21_NEIGHBORHOODS.map((kp, i) => {
+    // Calculate realistic scores based on index for variety
+    const opinionsScore = Math.min(30, 26 + ((kp.index * 7) % 5));
+    const competitionsScore = Math.min(25, 20 + ((kp.index * 3) % 6));
+    const welfareScore = Math.min(25, 21 + ((kp.index * 11) % 5));
+    const greenProjectScore = Math.min(20, 16 + ((kp.index * 13) % 5));
     const totalScore = opinionsScore + competitionsScore + welfareScore + greenProjectScore;
 
     return {
-      id: `kp-${kpNum}`,
-      name: `Khu phố ${kpNum}`,
+      id: kp.id,
+      name: kp.name,
       opinionsScore,
       competitionsScore,
       welfareScore,
@@ -54,8 +55,8 @@ export const NeighborhoodEmulationDashboard: React.FC = () => {
       totalScore,
       rank: 0, // Will sort
       badge: totalScore >= 90 ? 'XUẤT SẮC' : totalScore >= 80 ? 'TỐT' : 'KHÁ',
-      trend: kpNum % 3 === 0 ? 'up' : kpNum % 5 === 0 ? 'down' : 'same',
-      leaderName: `Trưởng Ban CTMT KP ${kpNum}`
+      trend: kp.index % 3 === 0 ? 'up' : kp.index % 5 === 0 ? 'down' : 'same',
+      leaderName: kp.leaderName
     };
   });
 

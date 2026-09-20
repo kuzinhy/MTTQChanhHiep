@@ -203,27 +203,33 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
   const toolGroups: { id: AiToolGroup; title: string; desc: string; badge: string }[] = [
     {
       id: 'group1_docs_dossier',
-      title: 'NHÓM 01 – VĂN BẢN & HỒ SƠ',
-      desc: 'Tự động tóm tắt 3 mức, bóc tách nhiệm vụ, dự thảo phiếu trình và kiểm tra thể thức Nghị định 30/2020/NĐ-CP.',
-      badge: '2 Công cụ cốt lõi'
+      title: 'VĂN BẢN & HỒ SƠ',
+      desc: 'Tự động tóm tắt, bóc tách nhiệm vụ, dự thảo phiếu trình và kiểm tra thể thức.',
+      badge: 'Công cụ'
     },
     {
       id: 'group2_advisory_report',
-      title: 'NHÓM 02 – THAM MƯU & TỔNG HỢP',
-      desc: 'Lập phiếu tham mưu 10 bước xử lý văn bản cấp trên và tạo báo cáo định kỳ/kế hoạch tối đa 3 bước.',
-      badge: '2 Công cụ cốt lõi'
+      title: 'THAM MƯU & TỔNG HỢP',
+      desc: 'Lập phiếu tham mưu và tạo báo cáo định kỳ/kế hoạch.',
+      badge: 'Công cụ'
     },
     {
       id: 'group3_meeting_event',
-      title: 'NHÓM 03 – HỌP, SỰ KIỆN & PHÁT BIỂU',
-      desc: 'Quản lý trọn gói 1 sự kiện qua 3 giai đoạn (trước, trong, sau) và soạn bài phát biểu/kịch bản MC.',
-      badge: '2 Công cụ cốt lõi'
+      title: 'SỰ KIỆN & PHÁT BIỂU',
+      desc: 'Quản lý sự kiện và soạn bài phát biểu/kịch bản.',
+      badge: 'Công cụ'
     },
     {
       id: 'group4_task_operational',
-      title: 'NHÓM 04 – CÔNG VIỆC & ĐIỀU HÀNH',
-      desc: 'Theo dõi tiến độ nhiệm vụ 21 Khu phố và tra cứu thư viện mẫu biểu chuẩn Nghị định 30.',
-      badge: '2 Công cụ cốt lõi'
+      title: 'CÔNG VIỆC & ĐIỀU HÀNH',
+      desc: 'Tra cứu thư viện mẫu biểu chuẩn.',
+      badge: 'Công cụ'
+    },
+    {
+      id: 'group5_ai_management',
+      title: 'QUẢN LÝ TÀI LIỆU & BÁO CÁO AI',
+      desc: 'Lập kế hoạch 2.0, xuất báo cáo thể thức, quản lý hồ sơ và nhật ký.',
+      badge: 'Quản lý'
     }
   ];
 

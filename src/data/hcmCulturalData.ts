@@ -41,7 +41,7 @@ export const DEFAULT_HCM_EXHIBITS: ExhibitItem[] = [
     z: 140,
     year: '1945',
     quote: '“Nước Việt Nam có quyền hưởng tự do và độc lập, và sự thật đã thành một nước tự do, độc lập.”',
-    imageUrl: '/assets/cultural/ho-chi-minh-portrait.jpg',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Ho_Chi_Minh_-_1946_Portrait.jpg/320px-Ho_Chi_Minh_-_1946_Portrait.jpg',
     description: 'Trưng bày trang trọng tượng Chủ tịch Hồ Chí Minh trong tư thế đọc Bản Tuyên ngôn Độc lập tại Quảng trường Ba Đình lịch sử ngày 2/9/1945, cùng cờ Tổ quốc và các văn bản tái hiện.',
     details: [
       'Bản Tuyên ngôn Độc lập khẳng định quyền bình đẳng, quyền sống, quyền tự do và quyền mưu cầu hạnh phúc của dân tộc Việt Nam.',

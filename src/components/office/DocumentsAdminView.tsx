@@ -1031,8 +1031,8 @@ Hãy trả về kết quả phân tích chuẩn nghiệp vụ Mặt trận theo 
                     </td>
 
                     {/* Actions */}
-                    <td className="px-5 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="px-5 py-3.5 text-right relative z-20">
+                      <div className="flex items-center justify-end gap-1.5 relative z-30">
                         <button
                           onClick={() => handleAnalyzeWithAi(doc)}
                           className="p-2 bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-700 rounded-xl transition-all cursor-pointer"

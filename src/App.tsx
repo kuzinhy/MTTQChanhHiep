@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { ChanhHiepPortalHome } from './components/portal/ChanhHiepPortalHome';
 import { HeroCarousel } from './components/HeroCarousel';
 import { NewsSection } from './components/NewsSection';
 import { DocumentsSection } from './components/DocumentsSection';
@@ -16,7 +17,6 @@ import { ArticleDetailPage } from './components/ArticleDetailPage';
 import { DocumentDetailPage } from './components/DocumentDetailPage';
 import { CompetitionDetailPage } from './components/CompetitionDetailPage';
 import { StaffLoginPage } from './components/StaffLoginPage';
-import { WorkCalendarSection } from './components/WorkCalendarSection';
 import { AiAssistantWidget } from './components/AiAssistantWidget';
 import { SupervisionSection } from './components/SupervisionSection';
 import { MemberOrganizationsSection } from './components/MemberOrganizationsSection';
@@ -34,15 +34,15 @@ import { NotFoundPage } from './components/NotFoundPage';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from './data/neighborhoodsList';
 
 import { DigitalOfficeSidebar } from './components/office/DigitalOfficeSidebar';
+import { AdminDashboard } from './components/office/youth_union/admin/AdminDashboard';
+import { WorkspaceShell } from './components/office/youth_union/workspace/WorkspaceShell';
 import { DigitalOfficeHeader } from './components/office/DigitalOfficeHeader';
 import { AiAssistantView } from './components/office/AiAssistantView';
-import { TaskManagementView } from './components/office/TaskManagementView';
 import { OpinionsAdminView } from './components/office/OpinionsAdminView';
 import { CmsAdminView } from './components/office/CmsAdminView';
 import { DocumentsAdminView } from './components/office/DocumentsAdminView';
 import { AnalyticsDashboardView } from './components/office/AnalyticsDashboardView';
 import { AuditLogsView } from './components/office/AuditLogsView';
-import { WorkCalendarView } from './components/office/WorkCalendarView';
 import { PersonalNotesView } from './components/office/PersonalNotesView';
 import { DocumentTemplatesView } from './components/office/DocumentTemplatesView';
 import { CompetitionsAdminView } from './components/office/CompetitionsAdminView';
@@ -77,7 +77,7 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, Task, DriveFileItem, StaffUser, AuditLog, OpinionStatus, TaskStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, WorkEvent, MemberOrganization, Area, Organization } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -85,7 +85,7 @@ import { VisitorTrackerEngine } from './lib/visitorTracker';
 import { canAccessView } from './lib/rbac';
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
-import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle, Landmark, Star, Move } from 'lucide-react';
+import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle, Landmark, Star, Move, Newspaper, Lightbulb, Info, BarChart3, Award, Users, Building2, Layers, Bell, Settings, PieChart, FolderTree, ShieldAlert } from 'lucide-react';
 import { browserNotificationService } from './lib/browserNotifications';
 
 export const VALID_PORTAL_TABS = [
@@ -107,18 +107,25 @@ export const VALID_OFFICE_VIEWS = [
   'dashboard',
   'profile',
   'neighborhood_map',
-  'tasks',
-  'calendar',
+  'neighborhood_emulation',
+  'youth_union_admin',
+  'youth_union_workspace',
   'ai_assistant',
+  'administrative_report_exporter',
+  'document_ai_plan_generator',
   'cms',
   'cms_articles',
   'cms_initiatives',
   'cms_documents',
+  'cms_about',
+  'documents',
   'competitions_admin',
   'question_banks',
   'opinions',
   'surveys_admin',
   'member_orgs_admin',
+  'cultural_space_admin',
+  'cultural_space',
   'templates',
   'notes',
   'users',
@@ -164,8 +171,9 @@ export const TAB_TO_HASH: Record<string, string> = {
 };
 
 export default function App() {
-  // App Initial Loading State
-  const [isAppLoading, setIsAppLoading] = useState(true);
+  // App Initial Loading State (default false for immediate rendering)
+  const [isAppLoading, setIsAppLoading] = useState(false);
+
 
   // Navigation & Space State
   const [currentSpace, setCurrentSpace] = useState<'PORTAL' | 'OFFICE'>('PORTAL');
@@ -232,7 +240,6 @@ export default function App() {
   const handleNavigateOfficeView = (view: string) => {
     let resolvedView = view;
     // Deduplicate aliased routes
-    if (view === 'analytics') resolvedView = 'dashboard';
     if (view === 'cms_articles') resolvedView = 'cms';
     
     setNotFoundRoute(null);
@@ -258,7 +265,11 @@ export default function App() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentStaffUser, setCurrentStaffUser] = useState<StaffUser | null>(() => AppStorageEngine.getCurrentUser());
   const [isLocked, setIsLocked] = useState<boolean>(() => {
-    return localStorage.getItem('office_session_locked') === 'true';
+    try {
+      return typeof window !== 'undefined' && localStorage.getItem('office_session_locked') === 'true';
+    } catch {
+      return false;
+    }
   });
 
   // Realtime Admin Presence Heartbeat Effect
@@ -289,9 +300,13 @@ export default function App() {
     };
   }, [currentStaffUser, currentSpace, officeView]);
 
-  // Keep lock state synchronized to localStorage
+  // Keep lock state synchronized to localStorage safely
   useEffect(() => {
-    localStorage.setItem('office_session_locked', isLocked.toString());
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('office_session_locked', isLocked.toString());
+      }
+    } catch {}
   }, [isLocked]);
 
   // Data Collections with Local Persistence Engine
@@ -300,10 +315,8 @@ export default function App() {
   const [competitions, setCompetitions] = useState<Competition[]>(() => AppStorageEngine.getCompetitions());
   const [submissions, setSubmissions] = useState<CompetitionSubmission[]>(() => AppStorageEngine.getSubmissions());
   const [opinions, setOpinions] = useState<PublicOpinion[]>(() => AppStorageEngine.getOpinions());
-  const [tasks, setTasks] = useState<Task[]>(() => AppStorageEngine.getTasks());
   const [driveFiles, setDriveFiles] = useState<DriveFileItem[]>(() => AppStorageEngine.getDriveFiles());
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => AppStorageEngine.getAuditLogs());
-  const [events, setEvents] = useState(() => AppStorageEngine.getEvents());
   const [notes, setNotes] = useState(() => AppStorageEngine.getNotes());
   const [templates] = useState(INITIAL_TEMPLATES);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>(() => AppStorageEngine.getStaffUsers());
@@ -324,9 +337,6 @@ export default function App() {
       onDocumentsUpdate: (docs) => setDocuments(docs),
       onOpinionsUpdate: (ops) => setOpinions(ops),
       onCompetitionsUpdate: (comps) => setCompetitions(comps),
-      onTasksUpdate: (ts) => setTasks(ts),
-      onEventsUpdate: (evs) => setEvents(evs),
-      onNotesUpdate: (ns) => setNotes(ns),
       onStaffUsersUpdate: (users) => {
         setStaffUsers(users);
         // If current staff user is logged in, sync their state from cloud updates
@@ -359,9 +369,6 @@ export default function App() {
   useEffect(() => { AppStorageEngine.saveDocuments(documents); }, [documents]);
   useEffect(() => { AppStorageEngine.saveCompetitions(competitions); }, [competitions]);
   useEffect(() => { AppStorageEngine.saveOpinions(opinions); }, [opinions]);
-  useEffect(() => { AppStorageEngine.saveTasks(tasks); }, [tasks]);
-  useEffect(() => { AppStorageEngine.saveEvents(events); }, [events]);
-  useEffect(() => { AppStorageEngine.saveNotes(notes); }, [notes]);
   useEffect(() => { AppStorageEngine.saveSubmissions(submissions); }, [submissions]);
   useEffect(() => { AppStorageEngine.saveDriveFiles(driveFiles); }, [driveFiles]);
   useEffect(() => { AppStorageEngine.saveStaffUsers(staffUsers); }, [staffUsers]);
@@ -630,10 +637,8 @@ export default function App() {
     setCompetitions(AppStorageEngine.getCompetitions());
     setSubmissions(AppStorageEngine.getSubmissions());
     setOpinions(AppStorageEngine.getOpinions());
-    setTasks(AppStorageEngine.getTasks());
     setDriveFiles(AppStorageEngine.getDriveFiles());
     setAuditLogs(AppStorageEngine.getAuditLogs());
-    setEvents(AppStorageEngine.getEvents());
     setNotes(AppStorageEngine.getNotes());
     setStaffUsers(AppStorageEngine.getStaffUsers());
     setCurrentStaffUser(AppStorageEngine.getCurrentUser());
@@ -778,44 +783,8 @@ export default function App() {
     handleTriggerSystemToast('Cập nhật xử lý ý kiến', `Đã lưu trạng thái xử lý cho ý kiến.`);
   };
 
-  const handleAddTask = (newTask: Task) => {
-    setTasks(prev => {
-      const next = [newTask, ...prev];
-      AppStorageEngine.saveTasks(next);
-      return next;
-    });
-    CloudDatabase.saveTask(newTask);
 
-    // Log action
-    const newLog: AuditLog = {
-      id: 'log-' + Date.now(),
-      userId: currentStaffUser?.id || 'staff-1',
-      userName: currentStaffUser?.fullname || 'Cán bộ MTTQ',
-      action: 'TẠO NHIỆM VỤ',
-      entity: 'Quản lý Công việc',
-      details: `Giao nhiệm vụ: ${newTask.title}`,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
-    };
-    setAuditLogs(prev => {
-      const nextLogs = [newLog, ...prev];
-      AppStorageEngine.saveAuditLogs(nextLogs);
-      return nextLogs;
-    });
-    CloudDatabase.logAudit(newLog);
-    handleTriggerSystemToast('Đã tạo nhiệm vụ', `Đã giao nhiệm vụ "${newTask.title}" vào hệ thống.`);
-  };
 
-  const handleUpdateTaskStatus = (taskId: string, status: TaskStatus) => {
-    setTasks(prev => {
-      const target = prev.find(t => t.id === taskId);
-      if (target) {
-        CloudDatabase.saveTask({ ...target, status });
-      }
-      const next = prev.map(t => t.id === taskId ? { ...t, status } : t);
-      AppStorageEngine.saveTasks(next);
-      return next;
-    });
-  };
 
   const handleAddArticle = async (art: Article) => {
     setArticles(prev => {
@@ -1002,36 +971,7 @@ export default function App() {
     handleTriggerSystemToast('Đã xóa cuộc thi', 'Đã xóa hội thi khỏi hệ thống và đồng bộ trực tuyến.');
   };
 
-  const handleAddEvent = (ev: WorkEvent) => {
-    setEvents(prev => {
-      const next = [ev, ...prev];
-      AppStorageEngine.saveEvents(next);
-      return next;
-    });
-    CloudDatabase.saveEvent(ev);
-    handleTriggerSystemToast('Đã lưu lịch công tác', `Lịch sự kiện "${ev.title}" đã được đăng ký thành công.`);
-  };
 
-  const handleUpdateEvent = (ev: WorkEvent) => {
-    setEvents(prev => {
-      const next = prev.map(e => e.id === ev.id ? ev : e);
-      AppStorageEngine.saveEvents(next);
-      return next;
-    });
-    CloudDatabase.saveEvent(ev);
-    handleTriggerSystemToast('Đã cập nhật lịch', `Đã cập nhật thông tin sự kiện "${ev.title}".`);
-  };
-
-  const handleDeleteEvent = (eventId: string) => {
-    AppStorageEngine.recordDeletedEventId(eventId);
-    setEvents(prev => {
-      const next = prev.filter(e => e.id !== eventId);
-      AppStorageEngine.saveEvents(next);
-      return next;
-    });
-    CloudDatabase.deleteEvent(eventId);
-    handleTriggerSystemToast('Đã xóa lịch', 'Đã xóa lịch công tác khỏi hệ thống.');
-  };
 
   const handleForceCloudSync = async () => {
     handleTriggerSystemToast('Đang đồng bộ...', 'Đang tải và đồng bộ dữ liệu hai chiều với Cloud Firestore...');
@@ -1166,149 +1106,24 @@ export default function App() {
               ) : (
                 <>
                   {portalTab === 'home' && (
-                    <>
-                      {/* Quick Services Grid - Vibrant Colorful Modern Cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <motion.div 
-                          whileHover={{ scale: 1.015, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setIsHcmSpaceModalOpen(true)}
-                          className="bg-gradient-to-br from-amber-50/90 via-red-50/30 to-amber-100/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-lg hover:border-amber-400 transition-all flex items-center justify-between group border border-amber-300/80 shadow-2xs relative overflow-hidden"
-                        >
-                          <div className="relative z-10 flex items-center gap-2.5 min-w-0 pr-1">
-                            {/* Draggable Avatar Frame */}
-                            <div 
-                              onClick={(e) => e.stopPropagation()} 
-                              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full p-0.5 bg-gradient-to-tr from-amber-400 via-rose-500 to-amber-500 shadow-sm shrink-0 border border-amber-300/90 overflow-hidden group/avatar cursor-grab active:cursor-grabbing"
-                              title="Giữ và kéo chuột để di chuyển vị trí ảnh Hồ Chủ Tịch theo ý bạn"
-                            >
-                              <motion.img
-                                src="/assets/cultural/ho-chi-minh-portrait.jpg"
-                                alt="Chủ tịch Hồ Chí Minh (Kéo để di chuyển)"
-                                drag
-                                dragConstraints={{ left: -25, right: 25, top: -25, bottom: 25 }}
-                                dragElastic={0.15}
-                                whileDrag={{ scale: 1.15, zIndex: 30 }}
-                                className="w-full h-full object-cover object-top rounded-full select-none"
-                              />
-                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/avatar:opacity-100 transition-opacity rounded-full flex items-center justify-center pointer-events-none">
-                                <Move className="w-3.5 h-3.5 text-white drop-shadow-xs" />
-                              </div>
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1 mb-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shrink-0"></span>
-                                <span className="text-[9px] font-black uppercase tracking-wider text-red-700 flex items-center gap-0.5 truncate">
-                                  <Star className="w-2 h-2 fill-red-700 shrink-0" /> Không gian số 3D
-                                </span>
-                              </div>
-                              <h3 className="font-black text-xs text-slate-900 group-hover:text-red-700 transition-colors truncate">Không gian VH Hồ Chí Minh</h3>
-                              <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">Bảo tàng ảo 3D & hiện vật</p>
-                            </div>
-                          </div>
-                          <div className="p-2 rounded-xl bg-gradient-to-br from-red-600 via-rose-600 to-amber-600 text-white shadow-xs shadow-red-500/20 group-hover:scale-105 transition-transform shrink-0 relative z-10 border border-amber-300/40">
-                            <Landmark className="w-4 h-4" />
-                          </div>
-                          <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-amber-300/20 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
-                        </motion.div>
-
-                        <motion.div 
-                          whileHover={{ scale: 1.015, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSelectPortalTab('competitions')}
-                          className="bg-gradient-to-br from-amber-50/80 via-white to-orange-50/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-md transition-all flex items-center justify-between group border border-amber-200/90 shadow-2xs"
-                        >
-                          <div className="min-w-0 pr-1">
-                            <div className="flex items-center gap-1 mb-0.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                              <span className="text-[9px] font-black uppercase tracking-wider text-amber-700 truncate">Phong trào thi đua</span>
-                            </div>
-                            <h3 className="font-black text-xs text-slate-900 group-hover:text-amber-700 transition-colors truncate">Hội thi Trực tuyến</h3>
-                            <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">Thi trắc nghiệm & giải thưởng</p>
-                          </div>
-                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-xs shadow-amber-500/20 group-hover:scale-105 transition-transform shrink-0">
-                            <Sparkles className="w-4 h-4" />
-                          </div>
-                        </motion.div>
-
-                        <motion.div 
-                          whileHover={{ scale: 1.015, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSelectPortalTab('documents')}
-                          className="bg-gradient-to-br from-blue-50/80 via-white to-sky-50/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-md transition-all flex items-center justify-between group border border-blue-200/90 shadow-2xs"
-                        >
-                          <div className="min-w-0 pr-1">
-                            <div className="flex items-center gap-1 mb-0.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                              <span className="text-[9px] font-black uppercase tracking-wider text-blue-700 truncate">Tra cứu số hóa</span>
-                            </div>
-                            <h3 className="font-black text-xs text-slate-900 group-hover:text-blue-700 transition-colors truncate">Kho Văn bản Mặt trận</h3>
-                            <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">Kế hoạch & quyết định mới</p>
-                          </div>
-                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xs shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
-                            <FileText className="w-4 h-4" />
-                          </div>
-                        </motion.div>
-
-                        <motion.div 
-                          whileHover={{ scale: 1.015, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            if (currentStaffUser) {
-                              setCurrentSpace('OFFICE');
-                              window.location.hash = '#/van-phong-so/dashboard';
-                            } else {
-                              setShowStaffLoginPage(true);
-                              window.location.hash = '#/dang-nhap-can-bo';
-                            }
-                          }}
-                          className="bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/40 p-3 sm:p-3.5 rounded-2xl cursor-pointer hover:shadow-md transition-all flex items-center justify-between group border border-emerald-200/90 shadow-2xs"
-                        >
-                          <div className="min-w-0 pr-1">
-                            <div className="flex items-center gap-1 mb-0.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
-                              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 truncate">Điều hành</span>
-                            </div>
-                            <h3 className="font-black text-xs text-slate-900 group-hover:text-emerald-700 transition-colors truncate">Văn phòng Số Cán bộ</h3>
-                            <p className="text-[10px] text-slate-500 font-medium leading-tight truncate mt-0.5">
-                              {currentStaffUser ? `${currentStaffUser.fullname}` : 'Đăng nhập bảo mật'}
-                            </p>
-                          </div>
-                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-xs shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
-                            <ShieldCheck className="w-4 h-4" />
-                          </div>
-                        </motion.div>
-                      </div>
-
-                      <HeroCarousel 
-                        articles={articles} 
-                        onSelectArticle={(art) => handleSelectArticle(art)} 
-                        onUpdateArticle={handleUpdateArticle}
-                      />
-
-                      <DigitalMapSection
-                        onNavigateToMap={() => handleSelectPortalTab('map')}
-                        onSelectNeighborhood={() => handleSelectPortalTab('map')}
-                      />
-
-                      <NewsSection
-                        articles={articles}
-                        searchQuery={searchQuery}
-                        onSelectArticle={(art) => handleSelectArticle(art)}
-                        onGoToOpinion={() => handleSelectPortalTab('opinion')}
-                        onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
-                      />
-                      <WorkCalendarSection 
-                        events={events} 
-                        onAddEvent={handleAddEvent}
-                        onUpdateEvent={handleUpdateEvent}
-                        onDeleteEvent={handleDeleteEvent}
-                      />
-                      <DocumentsSection
-                        documents={documents}
-                        onSelectDocument={(doc) => handleSelectDocument(doc)}
-                      />
-                    </>
+                    <ChanhHiepPortalHome
+                      articles={articles}
+                      documents={documents}
+                      opinions={opinions}
+                      onSelectArticle={(art) => handleSelectArticle(art)}
+                      onSelectTab={(tab) => handleSelectPortalTab(tab)}
+                      onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
+                      onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
+                      onGoToOffice={() => {
+                        if (currentStaffUser) {
+                          setCurrentSpace('OFFICE');
+                          window.location.hash = '#/van-phong-so/dashboard';
+                        } else {
+                          setShowStaffLoginPage(true);
+                          window.location.hash = '#/dang-nhap-can-bo';
+                        }
+                      }}
+                    />
                   )}
 
                   {portalTab === 'map' && (
@@ -1596,8 +1411,6 @@ export default function App() {
                         articlesCount={(articles || []).length}
                         documentsCount={(documents || []).length}
                         opinionsCount={(opinions || []).length}
-                        tasksCount={(tasks || []).length}
-                        completedTasksCount={(tasks || []).filter(t => t && t.status === 'DONE').length}
                         opinions={opinions || []}
                         onNavigateToOpinions={() => setOfficeView('opinions')}
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
@@ -1648,14 +1461,6 @@ export default function App() {
                       />
                     )}
 
-                    {officeView === 'tasks' && (
-                      <TaskManagementView
-                        tasks={tasks}
-                        onAddTask={handleAddTask}
-                        onUpdateTaskStatus={handleUpdateTaskStatus}
-                      />
-                    )}
-
                     {officeView === 'ai_assistant' && (
                       <AiAssistantView
                         documentsContext={documents.map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`).join('\n')}
@@ -1697,6 +1502,14 @@ export default function App() {
 
                     {officeView === 'neighborhood_emulation' && (
                       <NeighborhoodEmulationDashboard />
+                    )}
+
+                    {officeView === 'youth_union_admin' && (
+                      <AdminDashboard currentUserName={currentStaffUser?.fullname} />
+                    )}
+
+                    {officeView === 'youth_union_workspace' && (
+                      <WorkspaceShell />
                     )}
 
                     {(officeView === 'cms' || officeView === 'cms_articles') && (
@@ -1768,7 +1581,7 @@ export default function App() {
                       />
                     )}
 
-                    {officeView === 'cms_documents' && (
+                    {(officeView === 'cms_documents' || officeView === 'documents') && (
                       <DocumentsAdminView
                         documents={documents}
                         onAddDocument={handleAddDocument}
@@ -1776,15 +1589,6 @@ export default function App() {
                         onDeleteDocument={handleDeleteDocument}
                         onRequestDocApproval={handleTriggerDocApprovalToast}
                         onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Lỗi' : 'Thông báo', msg)}
-                      />
-                    )}
-
-                    {officeView === 'calendar' && (
-                      <WorkCalendarView
-                        events={events}
-                        onAddEvent={handleAddEvent}
-                        onUpdateEvent={handleUpdateEvent}
-                        onDeleteEvent={handleDeleteEvent}
                       />
                     )}
 
@@ -1916,7 +1720,7 @@ export default function App() {
                       />
                     )}
 
-                    {officeView === 'cultural_space_admin' && (
+                    {(officeView === 'cultural_space_admin' || officeView === 'cultural_space') && (
                       <CulturalSpaceAdminView />
                     )}
 
@@ -1978,8 +1782,6 @@ export default function App() {
                         articlesCount={(articles || []).length}
                         documentsCount={(documents || []).length}
                         opinionsCount={(opinions || []).length}
-                        tasksCount={(tasks || []).length}
-                        completedTasksCount={(tasks || []).filter(t => t && t.status === 'DONE').length}
                         opinions={opinions || []}
                         onNavigateToOpinions={() => handleNavigateOfficeView('opinions')}
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
@@ -2049,6 +1851,13 @@ export default function App() {
           CloudDatabase.saveStaffUser(user);
           setIsLocked(false);
           setCurrentSpace('OFFICE');
+          
+          // Check if it's a Chi đoàn user (role or department identifier)
+          if (user.role === 'STAFF' && (user.department.includes('Chi đoàn') || user.position.includes('Chi đoàn'))) {
+            setOfficeView('youth_union_workspace');
+          } else {
+            setOfficeView('dashboard');
+          }
         }}
       />
 

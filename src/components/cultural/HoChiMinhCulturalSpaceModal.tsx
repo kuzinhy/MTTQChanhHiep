@@ -883,9 +883,13 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
         {/* Top Header Bar - Bright, Clean & High Information Density */}
         <div className="bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 shrink-0 z-30">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
-              ★
-            </span>
+            <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-xs border border-rose-300">
+              <img
+                src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg"
+                alt="Logo Không gian Văn hóa Hồ Chí Minh"
+                className="w-full h-full object-cover"
+              />
+            </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">

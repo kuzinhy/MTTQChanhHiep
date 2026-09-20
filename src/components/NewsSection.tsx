@@ -577,11 +577,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
             >
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-amber-400 via-rose-400 to-amber-500 shadow-xl ring-4 ring-rose-200/90 overflow-hidden relative">
                 <OptimizedImage
-                  src="/assets/cultural/ho-chi-minh-portrait.jpg"
-                  alt="Chủ tịch Hồ Chí Minh (1890 - 1969)"
+                  src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg"
+                  alt="Không gian Văn hóa Hồ Chí Minh"
                   variant="avatar"
                   priority={true}
-                  className="w-full h-full object-cover object-top rounded-full group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-rose-600 text-amber-100 font-black text-[9.5px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap border border-amber-200 tracking-wider">

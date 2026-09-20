@@ -100,7 +100,7 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
           <div className="relative w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 p-1 shadow-[0_0_40px_rgba(34,211,238,0.7)]">
             <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center p-3 sm:p-3.5 border-2 border-cyan-300/80 overflow-hidden shadow-inner">
               <OptimizedImage 
-                src="/assets/logos/logo-mttq.svg" 
+                src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" 
                 alt="Logo MTTQ Việt Nam" 
                 variant="thumbnail"
                 priority={true}

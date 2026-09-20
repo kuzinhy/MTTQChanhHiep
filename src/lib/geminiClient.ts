@@ -114,7 +114,7 @@ Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đún
       const ai = new GoogleGenAI({ apiKey: clientApiKey });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt,
       });
 

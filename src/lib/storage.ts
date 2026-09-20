@@ -139,7 +139,14 @@ const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
 // Internal Sync Listeners & State
 const syncListeners = new Set<(status: StorageSyncStatus) => void>();
 let currentSyncState: 'IDLE' | 'SYNCING' | 'OFFLINE' | 'SYNC_ERROR' | 'SUCCESS' = typeof navigator !== 'undefined' && !navigator.onLine ? 'OFFLINE' : 'IDLE';
-let lastSyncedTimestamp: string | null = typeof localStorage !== 'undefined' ? localStorage.getItem('mttq_chanhhiep_last_sync_time') : null;
+let lastSyncedTimestamp: string | null = null;
+try {
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    lastSyncedTimestamp = localStorage.getItem('mttq_chanhhiep_last_sync_time');
+  }
+} catch {
+  lastSyncedTimestamp = null;
+}
 let lastSyncError: string | undefined = undefined;
 let debouncedSyncTimeout: any = null;
 let isEngineInitialized = false;

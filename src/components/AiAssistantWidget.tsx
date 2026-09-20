@@ -140,13 +140,16 @@ export const AiAssistantWidget: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white rounded-full shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border border-blue-400/40"
+          className="group relative flex items-center gap-2.5 pl-2 pr-4 py-2 bg-[#0068ff] hover:bg-[#0055d4] text-white rounded-full shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border-2 border-white"
         >
-          <div className="relative">
-            <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-white animate-ping" />
+          <div className="w-9 h-9 rounded-full bg-white text-[#0068ff] flex items-center justify-center shrink-0 shadow-md">
+            <Bot className="w-5 h-5 text-[#0068ff]" />
           </div>
-          <span className="font-extrabold text-xs tracking-tight">Trợ lý AI Mặt trận</span>
+          <div className="text-left pr-1">
+            <div className="font-black text-xs text-white leading-tight">Trợ lý AI Mặt trận</div>
+            <div className="text-[10px] text-blue-100 font-semibold leading-tight">Hỏi gì cũng có đáp án!</div>
+          </div>
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
         </button>
       )}
 

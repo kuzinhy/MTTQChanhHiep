@@ -195,7 +195,7 @@ Quy tắc bắt buộc:
 3. Văn phong trang trọng, chuẩn mực hành chính công.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt
       });
 
@@ -249,7 +249,7 @@ Hãy phân tích kỹ và trả về kết quả cấu trúc JSON thuần duy nh
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json'
@@ -283,7 +283,7 @@ Thông tin:
 Hãy cấu trúc gồm: Mở đầu kính thưa trang trọng, Đánh giá kết quả đạt được, Bài học & Cảm ơn, Nhiệm vụ hướng tới, Lời kêu gọi thi đua và Kết thúc.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt
       });
 
@@ -310,7 +310,7 @@ Khó khăn vướng mắc: ${difficulties}
 Trình bày theo các phần: I. KẾT QUẢ ĐẠT ĐƯỢC (theo các mảng Tuyên truyền, Thi đua an sinh, Giám sát phản biện, Xây dựng tổ chức), II. ĐÁNH GIÁ CHUNG VÀ TỒN TẠI, III. PHƯƠNG HƯỚNG NHIỆM VỤ TRỌNG TÂM.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt
       });
 
@@ -338,7 +338,7 @@ Vui lòng đưa ra:
 5. Những điểm cần lưu ý đặc biệt`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt
       });
 
@@ -366,7 +366,7 @@ Hãy chỉ ra chi tiết:
 3. Bản văn bản hoàn chỉnh đã sửa lỗi.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt
       });
 
@@ -405,8 +405,11 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
-        contents: prompt
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json'
+        }
       });
 
       let rawText = response.text || '';
@@ -668,7 +671,7 @@ Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đún
 4. GHI RÕ NGUỒN TRÍCH DẪN: Nếu sử dụng văn bản pháp lý cụ thể từ kho tài liệu, hãy chỉ rõ số hiệu văn bản/điều khoản. Đối với thông tin internet, trích dẫn liên kết dạng markdown [Tên Nguồn](Đường dẫn liên kết). Tuyệt đối không cung cấp link Google Drive.`;
  
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt
       });
  
@@ -732,7 +735,7 @@ Hãy phân tích và trả về định dạng JSON thuần hợp lệ (không k
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json'
@@ -744,44 +747,6 @@ Hãy phân tích và trả về định dạng JSON thuần hợp lệ (không k
     } catch (error: any) {
       console.error('Error in /api/ai/parse-news-link:', error);
       res.status(500).json({ error: error.message || 'Lỗi bóc tách tin tức từ link.' });
-    }
-  });
-
-  // AI Route: Bóc tách Thông số Văn bản từ tệp/nội dung (Extract Document Metadata)
-  app.post('/api/ai/extract-document-meta', async (req: Request, res: Response) => {
-    try {
-      const { fileName, textContent, fileData } = req.body;
-      const ai = getGeminiClient();
-
-      const prompt = `Bạn là Trợ lý AI Phân tích & Gán Thông số Văn bản Hành chính cho MTTQ Phường Chánh Hiệp.
-Nhiệm vụ: Đọc văn bản/tệp tin có tên "${fileName || 'Văn bản chỉ đạo'}" và bóc tách các thông số chính thức.
-
-${textContent ? `Nội dung văn bản được cung cấp:\n"""\n${textContent}\n"""` : `Tên tệp văn bản: ${fileName}`}
-
-Hãy phân tích và trả về kết quả định dạng JSON thuần hợp lệ với các trường chính xác như sau:
-{
-  "codeNumber": "Số/Ký hiệu văn bản (ví dụ: 08/KH-MTTQ, 12/NQ-UBMT, 05/TB-MTTQ,...)",
-  "title": "Tên văn bản hoặc Trích yếu nội dung văn bản",
-  "docType": "Chọn đúng 1 loại: Kế hoạch | Nghị quyết | Thông báo | Hướng dẫn | Quyết định | Công văn | Chương trình | Báo cáo | Chính sách | Tài liệu tuyên truyền",
-  "field": "Lĩnh vực (ví dụ: Tổ chức - Tuyên giáo, An sinh xã hội, Giám sát - Phản biện, Thi đua khen thưởng, v.v.)",
-  "issueDate": "Ngày ban hành định dạng YYYY-MM-DD",
-  "signer": "Chức danh và Họ tên người ký (ví dụ: Chủ tịch Trần Thị Hoa, Phó Chủ tịch Nguyễn Văn A)",
-  "summary": "Tóm tắt trích yếu nội dung chỉ đạo trọng tâm của văn bản (2-4 câu ngắn gọn)"
-}`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json'
-        }
-      });
-
-      const parsed = JSON.parse(response.text || '{}');
-      res.json({ success: true, data: parsed });
-    } catch (error: any) {
-      console.error('Error in /api/ai/extract-document-meta:', error);
-      res.status(500).json({ error: error.message || 'Lỗi bóc tách thông số văn bản.' });
     }
   });
 
@@ -802,7 +767,7 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
 (Lưu ý: Báo cáo chỉ mang tính chất tổng hợp hỗ trợ, cán bộ cần kiểm tra trước khi sử dụng).`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt
       });
 

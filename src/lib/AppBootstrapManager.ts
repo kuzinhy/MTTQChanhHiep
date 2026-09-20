@@ -93,8 +93,8 @@ class AppBootstrapManager {
 
   private async preloadCriticalImages() {
     const imageUrls = [
-      '/assets/logos/logo-mttq.svg',
-      '/assets/cultural/ho-chi-minh-portrait.jpg'
+      'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
+      'https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg'
     ];
     await Promise.all(imageUrls.map(url => {
       return new Promise((resolve) => {

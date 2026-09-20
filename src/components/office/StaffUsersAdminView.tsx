@@ -57,7 +57,7 @@ const AVATAR_PRESETS = [
   getOfficialCadreAvatarSvg('Cán bộ', 'Tuyên giáo'),
   getOfficialCadreAvatarSvg('Trưởng ban', 'Khu phố'),
   getOfficialCadreAvatarSvg('Chuyên viên', 'Văn phòng'),
-  '/assets/logos/logo-mttq.svg'
+  'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png'
 ];
 
 

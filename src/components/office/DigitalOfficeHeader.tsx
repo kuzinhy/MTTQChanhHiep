@@ -153,7 +153,7 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
         )}
         <div className="hidden xs:flex w-7 h-7 rounded-lg bg-white p-0.5 items-center justify-center shrink-0 border border-slate-200 shadow-2xs">
           <OptimizedImage
-            src="/assets/logos/logo-mttq.svg"
+            src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png"
             alt="Logo MTTQ"
             variant="thumbnail"
             priority={true}
@@ -425,19 +425,6 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
 
                 {/* Section 3: ĐIỀU HƯỚNG & HỆ THỐNG */}
                 <div className="space-y-0.5">
-                  {onGoToPortal && (
-                    <button
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        onGoToPortal();
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-blue-700 hover:bg-blue-50 rounded-lg font-bold transition-colors cursor-pointer text-left"
-                    >
-                      <Globe className="w-3.5 h-3.5 text-blue-600" />
-                      <span className="text-[11px]">Về Cổng Người dân</span>
-                    </button>
-                  )}
-
                   <button
                     onClick={() => {
                       setUserMenuOpen(false);

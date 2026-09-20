@@ -11,7 +11,11 @@ export type UserRole =
   | 'MANAGER' 
   | 'ADMIN' 
   | 'SUPER_ADMIN'
-  | 'MTTQ_ADMIN';
+  | 'MTTQ_ADMIN'
+  | 'LEADER'
+  | 'SPECIALIST'
+  | 'YOUTH_UNION'
+  | 'CLERK';
 
 export interface StaffUser {
   id: string;
@@ -562,7 +566,8 @@ export type AiToolGroup =
   | 'group2_report_advisory'  
   | 'group3_conference_event' 
   | 'group4_mttq_specialized' 
-  | 'group5_smart_utilities'; 
+  | 'group5_smart_utilities'
+  | 'group5_ai_management'; 
 
 export type AiToolId =
   // 08 CORE TOOLS
@@ -574,6 +579,9 @@ export type AiToolId =
   | 'speech_script'       // 6. Bài phát biểu – Kịch bản
   | 'task_tracking'       // 7. Trích nhiệm vụ & Theo dõi tiến độ
   | 'lookup_templates'    // 8. Tra cứu nghiệp vụ & Mẫu biểu
+  | 'ai_assistant'
+  | 'document_ai_plan_generator'
+  | 'administrative_report_exporter'
   // Legacy aliases for backward compatibility
   | 'proofread' 
   | 'draft_doc' 
@@ -1019,6 +1027,62 @@ export interface NotificationLog {
   actor_id: string;
   timestamp: string;
   metadata?: Record<string, any>;
+}
+
+// =========================================================================
+// HỆ THỐNG QUẢN LÝ ĐOÀN & THI ĐUA THANH NIÊN (YUMS)
+// =========================================================================
+
+export interface YouthUnionBranch {
+  id: string;
+  name: string;
+  areaId: string;
+  secretaryName: string;
+  secretaryPhone: string;
+  membersCount: number;
+}
+
+export interface YouthMember {
+  id: string;
+  branchId: string;
+  fullname: string;
+  role: 'SECRETARY' | 'DEPUTY' | 'MEMBER';
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface Activity {
+  id: string;
+  branchId: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  status: 'PLANNED' | 'ONGOING' | 'COMPLETED';
+}
+
+export interface Document {
+  id: string;
+  branchId: string;
+  title: string;
+  type: 'REPORT' | 'PLAN' | 'OTHER';
+  url: string;
+  uploadedAt: string;
+}
+
+export interface Initiative {
+  id: string;
+  memberId: string;
+  title: string;
+  content: string;
+  status: 'PENDING' | 'APPROVED';
+}
+
+export interface Ranking {
+  id: string;
+  branchId: string;
+  points: number;
+  rank: number;
+  period: string;
 }
 
 

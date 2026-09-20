@@ -1,0 +1,738 @@
+import React, { useState, useMemo } from 'react';
+import { 
+  Folder, 
+  Megaphone, 
+  UserCheck, 
+  BarChart3, 
+  Monitor, 
+  Calendar, 
+  Eye, 
+  ChevronRight, 
+  ChevronLeft, 
+  ArrowRight, 
+  MapPin, 
+  Plus, 
+  Minus, 
+  Building2, 
+  HeartHandshake, 
+  Sparkles,
+  Layers,
+  Search,
+  ExternalLink,
+  ShieldCheck,
+  CheckCircle2,
+  FileText,
+  Users,
+  Compass
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Article, OfficialDocument, PublicOpinion, CloudinaryImageMeta } from '../../types';
+import { INITIAL_ARTICLES } from '../../data/seedData';
+import { INITIAL_MAP_LOCATIONS } from '../../data/mapSeedData';
+import { PortalHomeGoogleMap } from './PortalHomeGoogleMap';
+
+const getImageUrl = (image?: string | CloudinaryImageMeta): string => {
+  if (!image) return 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1200&q=80';
+  if (typeof image === 'string') return image;
+  return image.secureUrl || image.url || 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1200&q=80';
+};
+
+interface ChanhHiepPortalHomeProps {
+  articles: Article[];
+  documents?: OfficialDocument[];
+  opinions?: PublicOpinion[];
+  onSelectArticle: (article: Article) => void;
+  onSelectTab: (tab: string) => void;
+  onOpenHcmSpaceModal: () => void;
+  onOpenVolunteerModal: () => void;
+  onGoToOffice: () => void;
+}
+
+export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
+  articles = [],
+  documents = [],
+  opinions = [],
+  onSelectArticle,
+  onSelectTab,
+  onOpenHcmSpaceModal,
+  onOpenVolunteerModal,
+  onGoToOffice
+}) => {
+  // Safe articles fallback
+  const safeArticles: Article[] = useMemo(() => {
+    return Array.isArray(articles) && articles.length > 0 ? articles : INITIAL_ARTICLES;
+  }, [articles]);
+
+  // Featured hero article index
+  const [heroIndex, setHeroIndex] = useState(0);
+  const featuredArticles = safeArticles.slice(0, 4);
+  const currentHero = featuredArticles[heroIndex] || safeArticles[0];
+
+  // Right sidebar 3 articles
+  const sideArticles = safeArticles.slice(1, 4);
+
+  // Map state
+  const homeFeaturedLocations = useMemo(() => {
+    return INITIAL_MAP_LOCATIONS.filter(
+      loc => loc.is_featured || ['DIA_CHI_DO', 'LANG_NGHE', 'CO_QUAN', 'Y_TE'].includes(loc.category_code)
+    ).slice(0, 6);
+  }, []);
+
+  const [selectedLandmarkId, setSelectedLandmarkId] = useState<string | null>(() => {
+    return homeFeaturedLocations[0]?.id || 'loc-ubnd';
+  });
+
+  const handleNextHero = () => {
+    setHeroIndex((prev) => (prev + 1) % featuredArticles.length);
+  };
+
+  const handlePrevHero = () => {
+    setHeroIndex((prev) => (prev - 1 + featuredArticles.length) % featuredArticles.length);
+  };
+
+  return (
+    <div className="space-y-6 sm:space-y-8 pb-12">
+
+      {/* ========================================================================= */}
+      {/* 1. TIỆN ÍCH SỐ - Quick Services Grid */}
+      {/* ========================================================================= */}
+      <section className="space-y-3">
+        {/* Section Header */}
+        <div className="flex items-center gap-2">
+          <div className="w-3.5 h-3.5 bg-[#0068ff] rounded-xs shrink-0" />
+          <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+            Tiện ích số
+          </h2>
+          <span className="text-xs text-slate-500 font-medium">
+            Kết nối - Minh bạch - Phục vụ nhân dân
+          </span>
+        </div>
+
+        {/* 6 Grid Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          
+          {/* Card 1: Không gian Văn hóa Hồ Chí Minh */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onOpenHcmSpaceModal}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex items-start gap-3 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform overflow-hidden p-0.5">
+              <img
+                src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg"
+                alt="Logo Không gian Văn hóa Hồ Chí Minh"
+                className="w-full h-full object-cover object-center rounded-lg"
+              />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-xs text-slate-900 group-hover:text-orange-600 transition-colors leading-snug">
+                Không gian Văn hóa Hồ Chí Minh
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
+                Bảo tàng ảo 3D, tư liệu, học tập và lan tỏa giá trị tốt đẹp
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 2: Kho văn bản Mặt trận */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onSelectTab('documents')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex items-start gap-3 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#0068ff] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <Folder className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-xs text-slate-900 group-hover:text-[#0068ff] transition-colors leading-snug">
+                Kho văn bản Mặt trận
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
+                Tra cứu văn bản, kế hoạch, hướng dẫn, biểu mẫu
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 3: Phản ánh - kiến nghị */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onSelectTab('opinion')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex items-start gap-3 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <Megaphone className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-xs text-slate-900 group-hover:text-orange-600 transition-colors leading-snug">
+                Phản ánh – kiến nghị
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
+                Gửi ý kiến, phản ánh đến Ủy ban MTTQ
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 4: Đăng ký tình nguyện viên */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onOpenVolunteerModal}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex items-start gap-3 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <UserCheck className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-xs text-slate-900 group-hover:text-emerald-600 transition-colors leading-snug">
+                Đăng ký tình nguyện viên
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
+                Tham gia các hoạt động vì cộng đồng
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 5: Khảo sát ý kiến */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onSelectTab('surveys')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all cursor-pointer flex items-start gap-3 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-xs text-slate-900 group-hover:text-purple-600 transition-colors leading-snug">
+                Khảo sát ý kiến
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
+                Tham gia khảo sát, đóng góp ý kiến xây dựng địa phương
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 6: Văn phòng số */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onGoToOffice}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all cursor-pointer flex items-start gap-3 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <Monitor className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-xs text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
+                Văn phòng số
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
+                Hệ thống điều hành, quản lý công việc nội bộ
+              </p>
+            </div>
+          </motion.div>
+
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 2. HERO FEATURED CAROUSEL + 3 RIGHT NEWS */}
+      {/* ========================================================================= */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        
+        {/* Left Side: Big Hero Carousel (Col 1-8 / 65%) */}
+        <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80 group flex flex-col justify-end min-h-[360px] sm:min-h-[420px]">
+          
+          {/* Top Red Slogan Ribbon */}
+          <div className="absolute top-0 inset-x-0 z-20 bg-gradient-to-r from-red-700 via-red-600 to-red-700 text-amber-200 text-center py-2 px-4 shadow-sm border-b border-amber-400/30">
+            <p className="text-[11px] sm:text-xs font-black uppercase tracking-wider drop-shadow-xs">
+              ĐẢNG CỘNG SẢN VIỆT NAM QUANG VINH MUÔN NĂM!
+            </p>
+          </div>
+
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src={getImageUrl(currentHero.featuredImage)}
+              alt={currentHero.title}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-transparent" />
+          </div>
+
+          {/* Left / Right Nav Arrows */}
+          <button
+            onClick={handlePrevHero}
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
+            aria-label="Tin trước"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleNextHero}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
+            aria-label="Tin sau"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {/* Bottom Article Content Info */}
+          <div className="relative z-20 p-4 sm:p-6 space-y-2 text-white">
+            {/* Tag Badge */}
+            <div className="inline-block">
+              <span className="px-2.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black uppercase tracking-wide shadow-xs">
+                {currentHero.category || 'Hoạt động Mặt trận'}
+              </span>
+            </div>
+
+            {/* Title */}
+            <h3 
+              onClick={() => onSelectArticle(currentHero)}
+              className="text-sm sm:text-base md:text-lg font-black text-white leading-snug cursor-pointer hover:text-amber-200 transition-colors"
+            >
+              {currentHero.title}
+            </h3>
+
+            {/* Bottom Meta & Action */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div className="flex items-center gap-4 text-xs text-slate-300 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  {currentHero.publishDate ? new Date(currentHero.publishDate).toLocaleDateString('vi-VN') : '04/09/2026'}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-slate-400" />
+                  {(currentHero.views || 1256).toLocaleString('vi-VN')} lượt xem
+                </span>
+              </div>
+
+              <button
+                onClick={() => onSelectArticle(currentHero)}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white text-slate-900 hover:bg-slate-100 text-xs font-bold rounded-full shadow-md transition-all active:scale-95 cursor-pointer"
+              >
+                <span>Xem chi tiết</span>
+                <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
+              </button>
+            </div>
+
+            {/* Pagination Dots */}
+            <div className="flex items-center justify-center gap-1.5 pt-2">
+              {featuredArticles.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setHeroIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    idx === heroIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                  }`}
+                  aria-label={`Chuyển tin ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: 3 Stacked Articles (Col 9-12 / 35%) */}
+        <div className="lg:col-span-4 flex flex-col justify-between gap-2.5">
+          {sideArticles.map((art, idx) => {
+            const badgeBg = 
+              art.category === 'An sinh xã hội' ? 'bg-rose-100 text-rose-700' :
+              art.category === 'Tuyên truyền' ? 'bg-orange-100 text-orange-700' :
+              'bg-blue-100 text-blue-700';
+
+            return (
+              <motion.div
+                key={art.id || idx}
+                whileHover={{ y: -1 }}
+                onClick={() => onSelectArticle(art)}
+                className="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex items-center gap-3 group flex-1"
+              >
+                {/* Thumbnail */}
+                <div className="w-24 h-20 sm:w-28 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative">
+                  <img
+                    src={getImageUrl(art.featuredImage)}
+                    alt={art.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="mb-1">
+                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide ${badgeBg}`}>
+                      {art.category || 'Hoạt động Mặt trận'}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-xs text-slate-900 group-hover:text-[#0068ff] transition-colors line-clamp-2 leading-snug">
+                    {art.title}
+                  </h4>
+                  <div className="flex items-center gap-3 text-[10px] text-slate-400 font-medium mt-1.5">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-slate-400" />
+                      {art.publishDate ? new Date(art.publishDate).toLocaleDateString('vi-VN') : '28/08/2026'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-3 h-3 text-slate-400" />
+                      {art.views || 520}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="text-slate-300 group-hover:text-blue-600 transition-colors shrink-0">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 3. MẶT TRẬN SỐ HÔM NAY - Metrics Dashboard */}
+      {/* ========================================================================= */}
+      <section className="space-y-3">
+        {/* Section Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-[#0068ff] rounded-xs shrink-0" />
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              Mặt trận số hôm nay
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">
+              Những con số thể hiện nỗ lực vì cộng đồng
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <span>Cập nhật: {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+          </div>
+        </div>
+
+        {/* 6 Metric Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          
+          {/* Metric 1: Hoạt động tháng */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl font-black text-[#0068ff]">28</span>
+                <span className="text-[10px] font-bold text-emerald-600">↑ 12%</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">Hoạt động tháng</p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0068ff] flex items-center justify-center shrink-0">
+              <Megaphone className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Metric 2: Tin tức mới */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl font-black text-rose-600">13</span>
+                <span className="text-[10px] font-bold text-emerald-600">↑ 8%</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">Tin tức mới</p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Metric 3: Hồ sơ an sinh */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl font-black text-emerald-600">42</span>
+                <span className="text-[10px] font-bold text-emerald-600">↑ 15%</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">Hồ sơ an sinh</p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Metric 4: Dân nguyện tiếp nhận */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl font-black text-orange-500">56</span>
+                <span className="text-[10px] font-bold text-emerald-600">↑ 9%</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">Dân nguyện tiếp nhận</p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Metric 5: Đã xử lý */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl font-black text-purple-600">48</span>
+                <span className="text-[10px] font-bold text-emerald-600">↑ 20%</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">Đã xử lý</p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Metric 6: Tình nguyện viên */}
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl font-black text-sky-600">120</span>
+                <span className="text-[10px] font-bold text-emerald-600">↑ 18%</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">Tình nguyện viên</p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. TIN TỨC ĐỊA PHƯƠNG - 3 Column Cards Grid */}
+      {/* ========================================================================= */}
+      <section className="space-y-3">
+        {/* Section Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-[#0068ff] rounded-xs shrink-0" />
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              Tin tức địa phương
+            </h2>
+            <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+              Cập nhật những hoạt động, sự kiện nổi bật tại phường Chánh Hiệp
+            </span>
+          </div>
+
+          <button
+            onClick={() => onSelectTab('news')}
+            className="text-xs font-bold text-[#0068ff] hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+          >
+            <span>Xem tất cả</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 3 Column Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {safeArticles.slice(0, 3).map((art, idx) => {
+            const badgeBg = 
+              art.category === 'An sinh xã hội' ? 'bg-rose-600 text-white' :
+              art.category === 'Tuyên truyền' ? 'bg-orange-600 text-white' :
+              'bg-[#0068ff] text-white';
+
+            return (
+              <div
+                key={art.id || idx}
+                className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all overflow-hidden flex flex-col group"
+              >
+                {/* Card Image */}
+                <div 
+                  onClick={() => onSelectArticle(art)}
+                  className="h-44 sm:h-48 overflow-hidden bg-slate-100 cursor-pointer relative"
+                >
+                  <img
+                    src={getImageUrl(art.featuredImage)}
+                    alt={art.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide shadow-xs ${badgeBg}`}>
+                      {art.category || 'Hoạt động Mặt trận'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="space-y-2">
+                    <h3
+                      onClick={() => onSelectArticle(art)}
+                      className="font-bold text-sm text-slate-900 group-hover:text-[#0068ff] transition-colors line-clamp-2 leading-snug cursor-pointer"
+                    >
+                      {art.title}
+                    </h3>
+
+                    {/* Metadata */}
+                    <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        {art.publishDate ? new Date(art.publishDate).toLocaleDateString('vi-VN') : '04/09/2026'}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3 text-slate-400" />
+                        {(art.views || 1256).toLocaleString('vi-VN')}
+                      </span>
+                    </div>
+
+                    {/* Excerpt */}
+                    <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                      {art.summary || 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp phối hợp triển khai các hoạt động thiết thực chăm lo đời sống nhân dân...'}
+                    </p>
+                  </div>
+
+                  {/* Read more */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => onSelectArticle(art)}
+                      className="text-xs font-bold text-[#0068ff] hover:text-blue-700 inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Đọc tiếp</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 5. BẢN ĐỒ SỐ CHÁNH HIỆP - Interactive Digital Map Preview */}
+      {/* ========================================================================= */}
+      <section className="space-y-3">
+        {/* Section Header */}
+        <div className="flex items-center gap-2">
+          <div className="w-3.5 h-3.5 bg-[#0068ff] rounded-xs shrink-0" />
+          <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+            Bản đồ số Chánh Hiệp
+          </h2>
+          <span className="text-xs text-slate-500 font-medium">
+            Tra cứu thông tin, khám phá các địa điểm, công trình trên địa bàn phường
+          </span>
+        </div>
+
+        {/* Map Container */}
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+          
+          {/* Left: Google Maps Interactive Canvas Preview (7 cols) */}
+          <div className="lg:col-span-7 relative min-h-[380px] sm:min-h-[440px] border-b lg:border-b-0 lg:border-r border-slate-200 overflow-hidden">
+            <PortalHomeGoogleMap
+              selectedLocationId={selectedLandmarkId}
+              onSelectLocation={(loc) => setSelectedLandmarkId(loc.id)}
+              onOpenFullMap={() => onSelectTab('map')}
+            />
+          </div>
+
+          {/* Right: Featured Landmarks List (5 cols) */}
+          <div className="lg:col-span-5 p-4 sm:p-6 flex flex-col justify-between space-y-4 bg-slate-50/50">
+            
+            {/* Header of Landmarks */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200/80">
+              <div>
+                <h3 className="font-extrabold text-sm text-slate-900">
+                  Địa điểm trọng điểm
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  Chọn địa điểm để định vị nhanh trên bản đồ Google Maps
+                </p>
+              </div>
+              <button
+                onClick={() => onSelectTab('map')}
+                className="text-xs font-bold text-[#0068ff] hover:text-blue-700 inline-flex items-center gap-1 cursor-pointer shrink-0 ml-2"
+              >
+                <span>Bản đồ đầy đủ</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Landmarks List */}
+            <div className="space-y-2.5 flex-1 max-h-[360px] overflow-y-auto pr-1">
+              {homeFeaturedLocations.map((loc) => {
+                const isSelected = selectedLandmarkId === loc.id;
+                const isRedAddress = loc.category_code === 'DIA_CHI_DO';
+                const isCraftVillage = loc.category_code === 'LANG_NGHE';
+                const isHealth = loc.category_code === 'Y_TE';
+
+                return (
+                  <div
+                    key={loc.id}
+                    onClick={() => setSelectedLandmarkId(loc.id)}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                      isSelected 
+                        ? 'border-blue-500 bg-blue-50/80 shadow-xs ring-2 ring-blue-500/20' 
+                        : 'border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-2xs'
+                    }`}
+                  >
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs text-white ${
+                      isRedAddress 
+                        ? 'bg-red-600' 
+                        : isCraftVillage 
+                        ? 'bg-amber-600' 
+                        : isHealth 
+                        ? 'bg-emerald-600' 
+                        : 'bg-blue-600'
+                    }`}>
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+                          isRedAddress 
+                            ? 'bg-red-100 text-red-700' 
+                            : isCraftVillage 
+                            ? 'bg-amber-100 text-amber-800' 
+                            : isHealth 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {isRedAddress ? 'Địa chỉ đỏ' : isCraftVillage ? 'Làng nghề' : isHealth ? 'Y tế' : 'Cơ quan'}
+                        </span>
+                        {loc.neighborhood_name && (
+                          <span className="text-[9px] text-slate-500 font-semibold">
+                            {loc.neighborhood_name}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-xs text-slate-900 truncate leading-snug mt-1">
+                        {loc.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        {loc.address}
+                      </p>
+                      {loc.phone && (
+                        <p className="text-[10px] text-blue-600 font-bold mt-0.5">
+                          📞 {loc.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom Button to Open Full Digital Community Map */}
+            <button
+              onClick={() => onSelectTab('map')}
+              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Compass className="w-4 h-4" />
+              <span>Khám phá bản đồ số 21 Khu phố Chánh Hiệp</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  );
+};

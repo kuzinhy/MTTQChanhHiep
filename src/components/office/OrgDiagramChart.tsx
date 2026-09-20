@@ -279,7 +279,7 @@ export const OrgDiagramChart: React.FC<OrgDiagramChartProps> = ({
               <div className="flex items-center justify-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white p-1 shadow-md border-2 border-amber-300 shrink-0">
                   <img 
-                    src="https://sv2.anhsieuviet.com/2026/09/02/862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713.png" 
+                    src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" 
                     alt="Logo MTTQ"
                     className="w-full h-full object-contain" 
                   />

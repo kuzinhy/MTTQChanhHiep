@@ -383,7 +383,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-slate-900 p-2 flex items-center justify-center shrink-0 shadow-md ring-2 ring-blue-600/30">
                 <OptimizedImage
-                  src="https://www.mattrancantho.vn/files/images/Logo%20-%20Icon/Logo%20MTTQ.png"
+                  src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png"
                   alt="Logo MTTQ"
                   variant="thumbnail"
                   priority={true}

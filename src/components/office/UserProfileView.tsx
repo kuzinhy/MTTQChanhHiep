@@ -76,7 +76,7 @@ const PROFESSIONAL_AVATARS = [
   {
     id: 'av-8',
     label: 'Logo Biểu tượng Mặt trận',
-    url: '/assets/logos/logo-mttq.svg'
+    url: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png'
   }
 ];
 

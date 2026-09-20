@@ -131,6 +131,36 @@ export const AI_TOOLS_CATALOG: AiToolMetadata[] = [
       'Tìm mẫu Giấy mời họp giao ban chuẩn thể thức',
       'Tra cứu Hướng dẫn tổ chức Ngày hội Đại đoàn kết toàn dân tộc'
     ]
+  },
+  {
+    id: 'ai_assistant',
+    name: 'Trợ lý AI Tổng hợp',
+    shortDesc: 'Trợ lý thông minh hỗ trợ xử lý công việc Mặt trận.',
+    group: 'group5_ai_management',
+    iconName: 'Sparkles',
+    badge: 'WORKSPACE',
+    tags: ['ai', 'tổng hợp'],
+    suggestedPrompts: ['Tổng hợp thông tin công việc', 'Hỗ trợ nghiệp vụ']
+  },
+  {
+    id: 'document_ai_plan_generator',
+    name: 'AI Lập Kế hoạch 2.0',
+    shortDesc: 'Công cụ lập kế hoạch chuyên sâu.',
+    group: 'group5_ai_management',
+    iconName: 'FileText',
+    badge: 'AI 2.0',
+    tags: ['lập kế hoạch', 'ai 2.0'],
+    suggestedPrompts: ['Lập kế hoạch công tác']
+  },
+  {
+    id: 'administrative_report_exporter',
+    name: 'Xuất Báo cáo Thể thức',
+    shortDesc: 'Công cụ xuất báo cáo chuẩn.',
+    group: 'group5_ai_management',
+    iconName: 'FileCheck',
+    badge: 'NĐ 30',
+    tags: ['báo cáo', 'thể thức'],
+    suggestedPrompts: ['Xuất báo cáo']
   }
 ];
 

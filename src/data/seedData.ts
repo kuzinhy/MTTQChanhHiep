@@ -17,7 +17,68 @@ import {
 } from '../types';
 import { ARTICLE_BANNERS, getOfficialCadreAvatarSvg } from '../utils/officialImages';
 
-export const INITIAL_ARTICLES: Article[] = [];
+export const INITIAL_ARTICLES: Article[] = [
+  {
+    id: 'art-chanh-hiep-01',
+    title: 'Đoàn phường Chánh Hiệp công bố quyết định kết thúc hoạt động, thành lập Chi đoàn khu phố',
+    slug: 'doan-phuong-chanh-hiep-cong-bo-quyet-dinh-ket-thuc-hoat-dong-thanh-lap-chi-doan-khu-pho',
+    category: 'Hoạt động Mặt trận',
+    summary: 'Ngày 09/8/2026, Đoàn phường Chánh Hiệp tổ chức Hội nghị công bố Quyết định kết thúc hoạt động, chuyển giao và thành lập Chi đoàn khu phố trực thuộc nhằm tinh gọn bộ máy và nâng cao hiệu quả hoạt động cơ sở.',
+    content: 'Ngày 09/8/2026, Đoàn phường Chánh Hiệp tổ chức Hội nghị công bố Quyết định kết thúc hoạt động Đoàn cấp phường, chuyển giao tổ chức đoàn viên về các Chi đoàn khu phố nhằm đổi mới phương thức hoạt động, phát huy sức trẻ xung kích tại cơ sở theo đúng tinh thần nghị quyết của cấp trên.',
+    featuredImage: 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Đoàn thanh niên', 'Chi đoàn khu phố', 'Chánh Hiệp'],
+    authorName: 'Ban Tuyên giáo MTTQ',
+    publishDate: '2026-09-04',
+    views: 1256,
+    isFeatured: true,
+    status: 'Published'
+  },
+  {
+    id: 'art-chanh-hiep-02',
+    title: 'Lãnh đạo phường Chánh Hiệp thăm, chúc mừng các cơ sở tôn giáo nhân dịp Đại lễ Vu Lan',
+    slug: 'lanh-dao-phuong-chanh-hiep-tham-chuc-mung-cac-co-so-ton-giao-nhan-dip-dai-le-vu-lan',
+    category: 'An sinh xã hội',
+    summary: 'Nhân Đại lễ Vu Lan báo hiếu năm 2026, phường Chánh Hiệp tổ chức các đoàn đến thăm, chúc mừng các cơ sở tôn giáo trên địa bàn, biểu dương tinh thần đại đoàn kết toàn dân tộc.',
+    content: 'Đoàn đại biểu Đảng ủy - HĐND - UBND - UBMTTQ Việt Nam phường Chánh Hiệp đã đến thăm và chúc mừng các chức sắc tôn giáo, chư tôn đức tăng ni và đồng bào phật tử nhân mùa Vu Lan Báo hiếu.',
+    featuredImage: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=800&q=80',
+    tags: ['Đại lễ Vu Lan', 'Tôn giáo', 'Đại đoàn kết'],
+    authorName: 'Ủy ban MTTQ',
+    publishDate: '2026-08-31',
+    views: 842,
+    isFeatured: true,
+    status: 'Published'
+  },
+  {
+    id: 'art-chanh-hiep-03',
+    title: 'Phường Chánh Hiệp công bố quyết định về công tác cán bộ',
+    slug: 'phuong-chanh-hiep-cong-bo-quyet-dinh-ve-cong-tac-can-bo',
+    category: 'Hoạt động Mặt trận',
+    summary: 'Sáng ngày 28/8/2026, Đảng ủy - HĐND - UBND - Ủy ban MTTQ Việt Nam phường Chánh Hiệp tổ chức lễ công bố và trao quyết định điều động, bổ nhiệm các vị trí cán bộ chủ chốt.',
+    content: 'Buổi lễ trao quyết định diễn ra trang trọng với sự tham dự của tập thể cán bộ công chức, ghi nhận những đóng góp và giao nhiệm vụ mới trong giai đoạn số hóa điều hành hành chính.',
+    featuredImage: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=800&q=80',
+    tags: ['Công tác cán bộ', 'Bổ nhiệm', 'Điều hành'],
+    authorName: 'Văn phòng UBND - MTTQ',
+    publishDate: '2026-08-28',
+    views: 611,
+    isFeatured: true,
+    status: 'Published'
+  },
+  {
+    id: 'art-chanh-hiep-04',
+    title: 'Lan tỏa mô hình “Khu phố xanh – sạch – đẹp – an toàn”',
+    slug: 'lan-toa-mo-hinh-khu-pho-xanh-sach-dep-an-toan',
+    category: 'Tuyên truyền',
+    summary: 'Phường Chánh Hiệp tiếp tục triển khai nhiều mô hình dân vận hiệu quả, hướng đến xây dựng khu dân cư văn minh, tăng cường mảng xanh và đảm bảo trật tự đô thị tại 21 khu phố.',
+    content: 'Phong trào xây dựng tuyến hẻm văn minh và khu dân cư kiểu mẫu nhận được sự hưởng ứng tích cực của 21 ban công tác Mặt trận và đông đảo nhân dân các khu phố.',
+    featuredImage: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80',
+    tags: ['Khu phố xanh', 'Đô thị văn minh', '21 Khu phố'],
+    authorName: 'Ban Phong trào',
+    publishDate: '2026-08-25',
+    views: 523,
+    isFeatured: true,
+    status: 'Published'
+  }
+];
 
 export const INITIAL_DOCUMENTS: OfficialDocument[] = [
   {
@@ -277,7 +338,7 @@ export const INITIAL_COMPETITIONS: Competition[] = [
     id: 'comp-1',
     title: 'Hội thi trực tuyến "Tìm hiểu Lịch sử Mặt trận Dân tộc Thống nhất Việt Nam & Luật MTTQ"',
     description: 'Hội thi trắc nghiệm trực tuyến dành cho toàn thể cán bộ, công chức, đoàn viên hội viên và nhân dân trên địa bàn phường Chánh Hiệp tìm hiểu về truyền thống lịch sử vẻ vang của Mặt trận.',
-    bannerUrl: 'https://sv2.anhsieuviet.com/2026/09/02/862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713.png',
+    bannerUrl: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
     type: 'TRIVIA',
     startDate: '2026-09-01',
     endDate: '2026-09-30',
@@ -1642,7 +1703,7 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     email: 'mttq.chanhhiep@gmail.com',
     address: 'Trụ sở Cơ quan Khối Vận MTTQ & Đoàn thể Phường Chánh Hiệp',
     description: 'Liên minh chính trị, liên hiệp tự nguyện tập hợp khối đại đoàn kết toàn dân tộc.',
-    avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/02/862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713.png',
+    avatarUrl: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
     bannerUrl: 'https://sv2.anhsieuviet.com/2026/09/02/b94eb55d-1061-4c4f-9278-a46ce8de408a9067fc5c33d6b0a2.png',
     membersCount: 45,
     partyMembersCount: 38,

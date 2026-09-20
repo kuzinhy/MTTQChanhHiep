@@ -327,6 +327,40 @@ export const adminCollaborationService = {
     }
   },
 
+  async cleanupOldNotifications(daysOld: number = 30): Promise<void> {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - daysOld);
+      
+      const q = query(
+        collection(db, ADMIN_NOTIFICATIONS_COLLECTION),
+        orderBy('createdAt', 'asc')
+      );
+      
+      const snap = await getDocs(q);
+      const batch = writeBatch(db);
+      let count = 0;
+      
+      snap.forEach((d) => {
+        const data = d.data() as AdminNotification;
+        const createdAt = new Date(data.createdAt);
+        
+        // Clean up read notifications older than daysOld
+        if (data.isRead && createdAt < thirtyDaysAgo) {
+          batch.delete(d.ref);
+          count++;
+        }
+      });
+      
+      if (count > 0) {
+        await batch.commit();
+        console.log(`[AdminCollaboration] Cleaned up ${count} old read notifications.`);
+      }
+    } catch (e) {
+      console.warn('[AdminCollaboration] Cleanup notifications error:', e);
+    }
+  },
+
   // ==========================================
   // 3. ADMIN ONLINE PRESENCE ENGINE
   // ==========================================

@@ -83,7 +83,7 @@ Hãy phân tích và trả về DUY NHẤT một đối tượng JSON hợp lệ
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -127,7 +127,7 @@ ${customPrompt || 'Theo thể thức văn bản hành chính nhà nước.'}
 Hãy xuất bản dự thảo hoàn chỉnh, cấu trúc khoa học với Quốc hiệu, Tiêu ngữ, Tên cơ quan, Trích yếu, Căn cứ pháp lý (đánh dấu [CẦN BỔ SUNG] nếu thiếu), các phần nội dung rõ ràng, phân công nhiệm vụ, nơi nhận và chức danh người ký.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -169,7 +169,7 @@ QUY TẮC BÁO CÁO ĐẶC BIỆT:
 3. Cấu trúc gồm: I. KẾT QUẢ ĐẠT ĐƯỢC (Tuyên giáo, An sinh, Giám sát - Phản biện, Xây dựng khối ĐĐK), II. ĐÁNH GIÁ TỒN TẠI & NGUYÊN NHÂN, III. PHƯƠNG HƯỚNG NHIỆM VỤ TRỌNG TÂM.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -225,7 +225,7 @@ Hãy phân tích và trả về duy nhất một đối tượng JSON hợp lệ
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -273,7 +273,7 @@ ${sanitizeInput(documentText)}
 """`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -322,7 +322,7 @@ Trả về JSON thuần (không kèm markdown \`\`\`json):
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -363,7 +363,7 @@ Cấu trúc chuẩn bài phát biểu:
 5. Lời chúc, kêu gọi khối đại đoàn kết và kết thúc.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -401,7 +401,7 @@ Hãy sinh gói tài liệu bao gồm:
 7. ĐỀ CƯƠNG TIN BÀI TUYÊN TRUYỀN SAU SỰ KIỆN`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -444,7 +444,7 @@ PHẦN II. THÔNG BÁO KẾT LUẬN CỦA CHỦ TRÌ CUỘC HỌP
 - Bảng phân công nhiệm vụ: [Nhiệm vụ | Người thực hiện | Đơn vị phối hợp | Hạn hoàn thành]`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -489,7 +489,7 @@ Hãy phân tích và trả về định dạng JSON thuần:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -541,7 +541,7 @@ Hãy phân tích và trả về định dạng JSON thuần với 10 nhóm lĩnh
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -579,7 +579,7 @@ Hãy tạo trọn bộ định dạng:
 6. KỊCH BẢN PHÁT THANH NỘI BỘ 3 PHÚT (Văn phong phát thanh truyền cảm, rõ ràng)`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -630,7 +630,7 @@ Hãy đối chiếu và trả về định dạng JSON thuần:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -669,7 +669,7 @@ ${sanitizeInput(documentText)}
 "${sanitizeInput(question)}"`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 
@@ -720,7 +720,7 @@ Hãy lập Bảng Kế hoạch chi tiết theo định dạng JSON thuần:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -763,7 +763,7 @@ Trả về định dạng JSON thuần:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: { responseMimeType: 'application/json' }
     });
@@ -840,7 +840,7 @@ ${documentContext ? `--- BỐI CẢNH VĂN BẢN XUNG QUANH ---\n"""\n${sanitize
 Hãy trả về DUY NHẤT nội dung văn bản đã được xử lý (hoặc lời giải thích/đề xuất) một cách súc tích, chuyên nghiệp.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
 

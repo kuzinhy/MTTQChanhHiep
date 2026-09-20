@@ -37,7 +37,7 @@ export function normalizeImageUrl(
     url.startsWith('C:') ||
     url.startsWith('D:')
   ) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn(`[IMAGE_NORMALIZER] Discarded non-production URL: "${url}". Replaced with official fallback banner.`);
     }
     return fallback;
@@ -51,13 +51,19 @@ export function normalizeImageUrl(
   // 3. Normalize external fragile image host: sv2.anhsieuviet.com
   if (url.includes('sv2.anhsieuviet.com')) {
     if (url.includes('screenshot_1788585720')) {
-      return '/assets/cultural/ho-chi-minh-portrait.jpg';
+      return 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg';
+    }
+    if (url.includes('862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713')) {
+      return 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png';
     }
   }
 
-  // 4. Normalize legacy external logo link: mattrancantho.vn
-  if (url.includes('mattrancantho.vn')) {
-    return '/assets/logos/logo-mttq.svg';
+  // 4. Normalize legacy external logo links: mattrancantho.vn and wikimedia MTTQ logo
+  if (
+    url.includes('mattrancantho.vn') || 
+    url.includes('Bi%E1%BB%83u_tr%C6%B0ng_M%E1%BB%97t_tr%E1%BB%93_Qu%E1%BB%91c_Vi%E1%BB%87t_Nam')
+  ) {
+    return 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png';
   }
 
   // 5. Convert Google Drive share/view links to direct high-res stream

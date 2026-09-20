@@ -40,7 +40,7 @@ export const Footer: React.FC<{
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border-2 border-amber-400">
               <OptimizedImage
-                src="/assets/logos/logo-mttq.svg"
+                src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png"
                 alt="Logo MTTQ"
                 variant="thumbnail"
                 priority={true}
