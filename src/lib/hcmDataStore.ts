@@ -337,6 +337,8 @@ export function resetStoredChanhHiepActions(): ChanhHiepActionModel[] {
 export const loadStoredActions = loadStoredChanhHiepActions;
 export const saveStoredActions = saveStoredChanhHiepActions;
 
+import { normalizeImageUrl } from './imageOptimization';
+
 // --- FRONT INITIATIVES STORE ---
 export function loadStoredInitiatives(): FrontInitiative[] {
   if (typeof window === 'undefined') return FRONT_INITIATIVE_DATA;
@@ -345,8 +347,22 @@ export function loadStoredInitiatives(): FrontInitiative[] {
     if (!raw) return FRONT_INITIATIVE_DATA;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      // Filter out old AI mock items starting with 'init-'
-      const sanitized = parsed.filter((item: FrontInitiative) => !item.id?.startsWith('init-'));
+      // Filter out old AI mock items starting with 'init-' and heal image URLs
+      const sanitized = parsed
+        .filter((item: FrontInitiative) => !item.id?.startsWith('init-'))
+        .map((item: FrontInitiative) => {
+          let resolvedImage = item.imageUrl ? normalizeImageUrl(item.imageUrl) : '';
+          if (!resolvedImage) {
+            const defaultMatch = FRONT_INITIATIVE_DATA.find((d) => d.id === item.id);
+            if (defaultMatch?.imageUrl) {
+              resolvedImage = defaultMatch.imageUrl;
+            }
+          }
+          return {
+            ...item,
+            imageUrl: resolvedImage
+          };
+        });
       return sanitized.length > 0 ? sanitized : FRONT_INITIATIVE_DATA;
     }
     return FRONT_INITIATIVE_DATA;

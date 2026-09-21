@@ -38,6 +38,7 @@ import { DongSonDrumIcon } from './TraditionalMotifs';
 import { UniversalHcmEditorModal, EditableHcmItemType } from './UniversalHcmEditorModal';
 import { QrCodeModal } from '../QrCodeModal';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { HcmShareButton } from './HcmShareModal';
 
 interface HcmChanhHiepActionProps {
@@ -433,19 +434,36 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
               {initiativesList.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-3xl border-2 border-rose-200 shadow-xs hover:shadow-md hover:border-rose-300 transition-all flex flex-col justify-between p-5 space-y-4 relative group"
+                  className="bg-white rounded-3xl border-2 border-rose-200 shadow-xs hover:shadow-md hover:border-rose-300 transition-all flex flex-col justify-between overflow-hidden relative group"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-bold text-rose-900 bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200">
+                  {item.imageUrl && (
+                    <div className="relative h-44 w-full bg-slate-900 overflow-hidden shrink-0">
+                      <VerifiedCultureImage
+                        src={item.imageUrl}
+                        alt={item.title}
+                        showBadge={false}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-rose-950/80 text-white font-bold text-[10px] backdrop-blur-xs border border-white/10 shadow-xs z-10">
                         {item.unit}
-                      </span>
-                      <span className="text-[11px] text-rose-700 font-medium">{item.date}</span>
+                      </div>
                     </div>
+                  )}
 
-                    <h4 className="text-sm font-bold text-rose-950 leading-snug group-hover:text-rose-700 transition">
-                      {item.title}
-                    </h4>
+                  <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        {!item.imageUrl && (
+                          <span className="text-[10px] font-bold text-rose-900 bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200">
+                            {item.unit}
+                          </span>
+                        )}
+                        <span className="text-[11px] text-rose-700 font-medium ml-auto">{item.date}</span>
+                      </div>
+
+                      <h4 className="text-sm font-bold text-rose-950 leading-snug group-hover:text-rose-700 transition">
+                        {item.title}
+                      </h4>
 
                     {item.linkedHcmTopicTitle && (
                       <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-[11px] font-semibold text-rose-900 flex items-start gap-1">
@@ -519,6 +537,7 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
                       </div>
                     </div>
                   </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -540,6 +559,17 @@ export const HcmChanhHiepAction: React.FC<HcmChanhHiepActionProps> = ({ isAdmin 
             >
               <X className="w-5 h-5" />
             </button>
+
+            {selectedInitiativeDetail.imageUrl && (
+              <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-slate-900 border border-rose-200">
+                <VerifiedCultureImage
+                  src={selectedInitiativeDetail.imageUrl}
+                  alt={selectedInitiativeDetail.title}
+                  showBadge={false}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
 
             <div className="space-y-1">
               <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300 inline-block">

@@ -6,6 +6,7 @@ export interface VerifiedCultureImageProps extends Omit<React.ImgHTMLAttributes<
   src?: string | null;
   alt: string;
   fallbackTitle?: string;
+  fallbackBannerUrl?: string;
   className?: string;
   containerClassName?: string;
   enableLightbox?: boolean;
@@ -55,6 +56,7 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
   src,
   alt,
   fallbackTitle,
+  fallbackBannerUrl,
   className = 'w-full h-full object-cover',
   containerClassName = '',
   enableLightbox = false,
@@ -152,47 +154,57 @@ export const VerifiedCultureImage: React.FC<VerifiedCultureImageProps> = ({
         </div>
       )}
 
-      {/* 2. Error / Missing Image Neutral Frame with Self-Healing Action */}
+      {/* 2. Error / Missing Image */}
       {loadingStatus === 'error' && (
-        <div className="w-full h-full min-h-[140px] bg-gradient-to-br from-slate-900 via-rose-950/30 to-slate-900 border border-slate-700/50 rounded-xl flex flex-col items-center justify-center p-4 text-center select-none">
-          <div className="p-2.5 rounded-full bg-slate-800/80 border border-amber-500/20 mb-2">
-            <Landmark className="w-6 h-6 text-amber-400/80" />
-          </div>
-          <p className="text-xs font-semibold text-amber-200/90 max-w-[220px] line-clamp-2">
-            {fallbackTitle || alt || 'Tư liệu lịch sử'}
-          </p>
-          <span className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            Nội dung tư liệu lịch sử xác thực
-          </span>
-
-          {src && (
-            <div className="flex items-center gap-2 mt-3 z-10">
-              <button
-                type="button"
-                onClick={handleManualRetryProxy}
-                className="px-2.5 py-1 text-[10px] font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-md transition-colors flex items-center gap-1 cursor-pointer"
-                title="Thử tải lại qua máy chủ Proxy"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Tải lại qua Proxy
-              </button>
-              {(src.startsWith('http://') || src.startsWith('https://')) && (
-                <a
-                  href={src}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="px-2 py-1 text-[10px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-md transition-colors flex items-center gap-1"
-                  title="Mở liên kết ảnh gốc trong tab mới"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Link gốc
-                </a>
-              )}
+        fallbackBannerUrl ? (
+          <img
+            src={fallbackBannerUrl}
+            alt={alt}
+            className={className}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <div className="w-full h-full min-h-[140px] bg-gradient-to-br from-slate-900 via-rose-950/30 to-slate-900 border border-slate-700/50 rounded-xl flex flex-col items-center justify-center p-4 text-center select-none">
+            <div className="p-2.5 rounded-full bg-slate-800/80 border border-amber-500/20 mb-2">
+              <Landmark className="w-6 h-6 text-amber-400/80" />
             </div>
-          )}
-        </div>
+            <p className="text-xs font-semibold text-amber-200/90 max-w-[220px] line-clamp-2">
+              {fallbackTitle || alt || 'Tư liệu lịch sử'}
+            </p>
+            <span className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              Nội dung tư liệu lịch sử xác thực
+            </span>
+
+            {src && (
+              <div className="flex items-center gap-2 mt-3 z-10">
+                <button
+                  type="button"
+                  onClick={handleManualRetryProxy}
+                  className="px-2.5 py-1 text-[10px] font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                  title="Thử tải lại qua máy chủ Proxy"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Tải lại qua Proxy
+                </button>
+                {(src.startsWith('http://') || src.startsWith('https://')) && (
+                  <a
+                    href={src}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-2 py-1 text-[10px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-md transition-colors flex items-center gap-1"
+                    title="Mở liên kết ảnh gốc trong tab mới"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Link gốc
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        )
       )}
 
       {/* 3. Real Valid Image */}

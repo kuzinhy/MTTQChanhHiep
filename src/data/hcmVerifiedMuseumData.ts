@@ -2295,7 +2295,7 @@ export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
     date: '05/09/2026',
     linkedHcmActionId: 'act-01',
     linkedHcmTopicTitle: 'Dân vận khéo – Gần dân, sát việc, lo cho dân',
-    imageUrl: '',
+    imageUrl: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg',
     status: 'PUBLISHED',
     isFeatured: true
   },
@@ -2312,7 +2312,7 @@ export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
     date: '05/09/2026',
     linkedHcmActionId: 'act-02',
     linkedHcmTopicTitle: 'Tổ liên kết An sinh Xã hội – Mái ấm Đại đoàn kết',
-    imageUrl: '',
+    imageUrl: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
     status: 'PUBLISHED',
     isFeatured: true
   },
@@ -2329,7 +2329,7 @@ export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
     date: '05/09/2026',
     linkedHcmActionId: 'act-04',
     linkedHcmTopicTitle: 'Tuyến hẻm tự quản Xanh - Sạch - Văn minh - Nghĩa tình',
-    imageUrl: '',
+    imageUrl: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg',
     status: 'PUBLISHED',
     isFeatured: true
   }

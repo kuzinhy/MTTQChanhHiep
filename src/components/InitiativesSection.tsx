@@ -42,6 +42,8 @@ import { loadStoredInitiatives, saveStoredInitiatives, loadStoredChanhHiepAction
 import { UniversalHcmEditorModal } from './cultural/UniversalHcmEditorModal';
 import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
 import { OptimizedImage } from './common/OptimizedImage';
+import { VerifiedCultureImage } from './cultural/VerifiedCultureImage';
+import { normalizeImageUrl } from '../lib/imageOptimization';
 
 interface InitiativesSectionProps {
   isAdmin?: boolean;
@@ -323,17 +325,15 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
         <article className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden space-y-6">
           {/* Cover Header Image */}
           <div className="relative h-64 sm:h-80 md:h-96 w-full bg-slate-950 overflow-hidden">
-            <OptimizedImage
-              src={selectedArticleDetail.imageUrl || cardImg}
+            <VerifiedCultureImage
+              src={selectedArticleDetail.imageUrl}
+              fallbackBannerUrl={createVietnameseBannerSvg(selectedArticleDetail.title, selectedArticleDetail.unit)}
+              fallbackTitle={selectedArticleDetail.title}
               alt={selectedArticleDetail.title}
-              variant="article"
-              priority={true}
+              showBadge={false}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = createVietnameseBannerSvg(selectedArticleDetail.title, selectedArticleDetail.unit);
-              }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
 
             <div className="absolute bottom-6 left-6 right-6 text-white space-y-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -559,13 +559,15 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                   >
                     <div className="space-y-3">
                       <div className="h-36 w-full bg-slate-900 relative overflow-hidden">
-                        <OptimizedImage
-                          src={rel.imageUrl || relImg}
+                        <VerifiedCultureImage
+                          src={rel.imageUrl}
+                          fallbackBannerUrl={createVietnameseBannerSvg(rel.title, rel.unit)}
+                          fallbackTitle={rel.title}
                           alt={rel.title}
-                          variant="card"
+                          showBadge={false}
                           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
-                        <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-md bg-blue-600/90 backdrop-blur-md text-white font-bold text-[10px]">
+                        <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-md bg-blue-600/90 backdrop-blur-md text-white font-bold text-[10px] z-10 shadow-xs">
                           {rel.unit}
                         </div>
                       </div>
@@ -871,14 +873,13 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                 <div className="flex items-center gap-3 min-w-0 flex-1 w-full sm:w-auto">
                   {/* Thumbnail Image */}
                   <div className="relative w-20 h-16 sm:w-28 sm:h-20 rounded-xl bg-slate-900 overflow-hidden shrink-0 shadow-2xs">
-                    <OptimizedImage
-                      src={item.imageUrl || cardImg}
+                    <VerifiedCultureImage
+                      src={item.imageUrl}
+                      fallbackBannerUrl={createVietnameseBannerSvg(item.title, item.unit)}
+                      fallbackTitle={item.title}
                       alt={item.title}
-                      variant="thumbnail"
+                      showBadge={false}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = createVietnameseBannerSvg(item.title, item.unit);
-                      }}
                     />
                   </div>
 
@@ -1037,26 +1038,20 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                   )}
                 </div>
 
-                {/* Cover Image - Guaranteed Cover Image for all models */}
-                {(() => {
-                  const cardImg = getInitiativeCardImage(item);
-                  return (
-                    <div className="relative h-48 w-full bg-slate-900 overflow-hidden shrink-0">
-                      <OptimizedImage
-                        src={item.imageUrl || cardImg}
-                        alt={item.title}
-                        variant="card"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = createVietnameseBannerSvg(item.title, item.unit);
-                        }}
-                      />
-                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-bold text-[10px] backdrop-blur-xs border border-white/10 shadow-xs">
-                        {item.unit}
-                      </div>
-                    </div>
-                  );
-                })()}
+                {/* Cover Image - Guaranteed High-Res Image with VerifiedCultureImage auto-healing */}
+                <div className="relative h-48 w-full bg-slate-900 overflow-hidden shrink-0">
+                  <VerifiedCultureImage
+                    src={item.imageUrl}
+                    fallbackBannerUrl={createVietnameseBannerSvg(item.title, item.unit)}
+                    fallbackTitle={item.title}
+                    alt={item.title}
+                    showBadge={false}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 text-white font-bold text-[10px] backdrop-blur-xs border border-white/10 shadow-xs z-10">
+                    {item.unit}
+                  </div>
+                </div>
 
                 <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
                   <div className="space-y-3">
