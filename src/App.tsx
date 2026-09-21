@@ -59,6 +59,7 @@ import { NeighborhoodEmulationDashboard } from './components/office/Neighborhood
 import { WelfareCommunityMapModal } from './components/map/WelfareCommunityMapModal';
 import { ShareQrPosterModal } from './components/common/ShareQrPosterModal';
 import { NotificationAdminView } from './components/office/NotificationAdminView';
+import { EmailSettingsView } from './components/office/EmailSettingsView';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
@@ -77,10 +78,11 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization, FeedbackItem, ArticleSubmission } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
+import { NotificationService } from './services/notificationService';
 import { VisitorTrackerEngine } from './lib/visitorTracker';
 import { canAccessView } from './lib/rbac';
 import { auth } from './lib/firebase';
@@ -131,7 +133,8 @@ export const VALID_OFFICE_VIEWS = [
   'users',
   'analytics',
   'audit_logs',
-  'notifications'
+  'notifications',
+  'email_settings'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -767,6 +770,27 @@ export default function App() {
     });
     CloudDatabase.saveOpinion(newOp);
     handleTriggerOpinionToast(newOp);
+
+    // Trigger email notification for new feedback
+    const feedback: FeedbackItem = {
+      id: newOp.id,
+      feedbackCode: newOp.receiptCode || newOp.id.replace('op-', '#CH-'),
+      fullName: newOp.isAnonymous ? 'Người dân ẩn danh' : (newOp.fullname || 'Người dân'),
+      email: newOp.email || 'nguoidan@chanhhiep.vn',
+      phone: newOp.phone || 'N/A',
+      category: newOp.neighborhood || 'Dân sinh',
+      title: String(newOp.topic || 'Ý kiến phản ánh dân sinh'),
+      content: newOp.content || '',
+      attachments: newOp.attachments || [],
+      departmentId: newOp.assignedTo || 'mttq',
+      status: 'received',
+      priority: newOp.priority || 'NORMAL',
+      createdAt: newOp.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    NotificationService.notifyFeedbackSubmitted(feedback).catch(err => {
+      console.error('Failed to trigger email notification for new opinion:', err);
+    });
   };
 
   const handleUpdateOpinionStatus = (id: string, status: OpinionStatus, responseText?: string) => {
@@ -775,6 +799,36 @@ export default function App() {
       if (target) {
         const updated = { ...target, status, adminResponse: responseText || target.adminResponse };
         CloudDatabase.saveOpinion(updated);
+
+        // Map status to FeedbackItem status
+        let mappedStatus: 'received' | 'processing' | 'completed' | 'rejected' = 'processing';
+        if (status === 'RESOLVED' || status === 'CLOSED') {
+          mappedStatus = 'completed';
+        } else if (status === 'NEW') {
+          mappedStatus = 'received';
+        }
+
+        // Trigger email notification for feedback status change
+        const feedback: FeedbackItem = {
+          id: updated.id,
+          feedbackCode: updated.receiptCode || updated.id.replace('op-', '#CH-'),
+          fullName: updated.isAnonymous ? 'Người dân ẩn danh' : (updated.fullname || 'Người dân'),
+          email: updated.email || 'nguoidan@chanhhiep.vn',
+          phone: updated.phone || 'N/A',
+          category: updated.neighborhood || 'Dân sinh',
+          title: String(updated.topic || 'Ý kiến phản ánh dân sinh'),
+          content: updated.content || '',
+          attachments: updated.attachments || [],
+          departmentId: updated.assignedTo || 'mttq',
+          status: mappedStatus,
+          priority: updated.priority || 'NORMAL',
+          createdAt: updated.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          adminResponse: responseText || updated.adminResponse
+        };
+        NotificationService.notifyFeedbackStatusChanged(feedback, target.status).catch(err => {
+          console.error('Failed to trigger email notification for opinion status update:', err);
+        });
       }
       const next = prev.map(o => o.id === id ? { ...o, status, adminResponse: responseText || o.adminResponse } : o);
       AppStorageEngine.saveOpinions(next);
@@ -1800,6 +1854,10 @@ export default function App() {
                       />
                     )}
 
+                    {officeView === 'email_settings' && (
+                      <EmailSettingsView />
+                    )}
+
                     {/* Office 404 Fallback when view is not recognized */}
                     {!VALID_OFFICE_VIEWS.includes(officeView) && (
                       <div className="p-8 max-w-lg mx-auto my-12 bg-white rounded-3xl border border-amber-200 shadow-xl text-center space-y-4">
@@ -1847,6 +1905,9 @@ export default function App() {
         onRegisterUser={(newUser) => {
           setStaffUsers(prev => [...prev, newUser]);
           CloudDatabase.saveStaffUser(newUser);
+          NotificationService.notifyUserRegistered(newUser).catch(err => {
+            console.error('Failed to send registration email notification:', err);
+          });
         }}
         onLoginSuccess={(user) => {
           setCurrentStaffUser(user);

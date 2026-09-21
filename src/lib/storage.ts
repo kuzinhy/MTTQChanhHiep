@@ -41,7 +41,10 @@ import {
   Organization,
   OrganizationNode,
   NeighborhoodMigrationResult,
-  CulturalMedia
+  CulturalMedia,
+  ArticleSubmission,
+  FeedbackItem,
+  EmailNotification
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -101,7 +104,11 @@ const STORAGE_KEYS = {
   NEIGHBORHOODS_MIGRATION_V3: 'mttq_chanhhiep_migration_ward_only_v7',
   CULTURAL_MEDIA: 'mttq_chanhhiep_cultural_media_v1',
   VOLUNTEERS: 'mttq_chanhhiep_volunteers_v1',
-  OFFLINE_QUEUE: 'mttq_chanhhiep_offline_queue_v1'
+  OFFLINE_QUEUE: 'mttq_chanhhiep_offline_queue_v1',
+  ARTICLE_SUBMISSIONS: 'mttq_chanhhiep_article_submissions_v1',
+  FEEDBACK: 'mttq_chanhhiep_feedback_v1',
+  NOTIFICATIONS: 'mttq_chanhhiep_notifications_v1',
+  EMAIL_LOGS: 'mttq_chanhhiep_email_logs_v1'
 };
 
 const KEY_ENTITY_NAME_MAP: Record<string, string> = {
@@ -120,7 +127,9 @@ const KEY_ENTITY_NAME_MAP: Record<string, string> = {
   [STORAGE_KEYS.CULTURAL_MEDIA]: 'Tư liệu Văn hóa',
   [STORAGE_KEYS.MEMBER_ORGANIZATIONS]: 'Tổ chức Thành viên',
   [STORAGE_KEYS.AREAS]: 'Khu phố (21 KP)',
-  [STORAGE_KEYS.ORGANIZATIONS]: 'Tổ chức Chính trị'
+  [STORAGE_KEYS.ORGANIZATIONS]: 'Tổ chức Chính trị',
+  [STORAGE_KEYS.ARTICLE_SUBMISSIONS]: 'Tác phẩm cộng tác',
+  [STORAGE_KEYS.FEEDBACK]: 'Ý kiến phản ánh dân nguyện'
 };
 
 const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
@@ -133,6 +142,8 @@ const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
   [STORAGE_KEYS.NOTES]: 'notes',
   [STORAGE_KEYS.SUBMISSIONS]: 'competition_submissions',
   [STORAGE_KEYS.VOLUNTEERS]: 'volunteers',
+  [STORAGE_KEYS.ARTICLE_SUBMISSIONS]: 'article_submissions',
+  [STORAGE_KEYS.FEEDBACK]: 'feedback',
   [STORAGE_KEYS.CULTURAL_MEDIA]: 'cultural_media'
 };
 
@@ -1367,6 +1378,20 @@ export const AppStorageEngine = {
     }
   },
 
+  getArticleSubmissions: (): ArticleSubmission[] => {
+    return loadInitialData<ArticleSubmission[]>(STORAGE_KEYS.ARTICLE_SUBMISSIONS, []);
+  },
+  saveArticleSubmissions: (subs: ArticleSubmission[]) => {
+    saveStorageData(STORAGE_KEYS.ARTICLE_SUBMISSIONS, subs || []);
+  },
+
+  getFeedback: (): FeedbackItem[] => {
+    return loadInitialData<FeedbackItem[]>(STORAGE_KEYS.FEEDBACK, []);
+  },
+  saveFeedback: (feedbacks: FeedbackItem[]) => {
+    saveStorageData(STORAGE_KEYS.FEEDBACK, feedbacks || []);
+  },
+
   // Export all application data as a JSON file backup
   exportFullDatabase: () => {
     const backupData = {
@@ -1389,7 +1414,9 @@ export const AppStorageEngine = {
         areas: AppStorageEngine.getAreas(),
         organizations: AppStorageEngine.getOrganizations(),
         auditLogs: AppStorageEngine.getAuditLogs(),
-        currentUser: AppStorageEngine.getCurrentUser()
+        currentUser: AppStorageEngine.getCurrentUser(),
+        articleSubmissions: AppStorageEngine.getArticleSubmissions(),
+        feedback: AppStorageEngine.getFeedback()
       }
     };
 
@@ -1426,6 +1453,8 @@ export const AppStorageEngine = {
       if (data.organizations) AppStorageEngine.saveOrganizations(data.organizations);
       if (data.auditLogs) AppStorageEngine.saveAuditLogs(data.auditLogs);
       if (data.currentUser) AppStorageEngine.saveCurrentUser(data.currentUser);
+      if (data.articleSubmissions) AppStorageEngine.saveArticleSubmissions(data.articleSubmissions);
+      if (data.feedback) AppStorageEngine.saveFeedback(data.feedback);
 
       return true;
     } catch (err) {

@@ -50,7 +50,8 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   analytics: 'STAFF',
   users: 'STAFF',
   audit_logs: 'STAFF',
-  notifications: 'STAFF'
+  notifications: 'STAFF',
+  email_settings: 'ADMIN'
 };
 
 export function hasMinRole(userRole: UserRole | undefined, requiredRole: UserRole): boolean {

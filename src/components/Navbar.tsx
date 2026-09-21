@@ -72,11 +72,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-      {/* Accessibility Toolbar for Citizens */}
-      <CitizenAccessibilityToolbar 
-        onOpenDirectory={onOpenDigitalDirectory} 
-      />
-
       {/* Top Banner Header - City Skyline Gradient Branding */}
       <div className="bg-gradient-to-r from-[#0052cc] via-[#0068ff] to-[#007bfd] text-white px-3 sm:px-4 py-2 border-b border-blue-400/30 relative overflow-hidden shadow-sm">
         {/* Subtle City Skyline & Ambient Backdrop */}

@@ -172,6 +172,8 @@ export const adminCollaborationService = {
     if (params.entity === 'article') notifType = 'ARTICLE';
     else if (params.entity === 'document') notifType = 'DOCUMENT';
     else if (params.entity === 'cultural_media') notifType = 'MEDIA';
+    else if (params.entity === 'opinion' || params.entity === 'feedback') notifType = 'FEEDBACK';
+    else if (params.entity === 'user') notifType = 'USER';
     else if (params.entity === 'system' || params.entity === 'setting') notifType = 'SYSTEM';
 
     const notification: AdminNotification = {
@@ -587,12 +589,15 @@ export const adminCollaborationService = {
 // Helper Verb Translator
 function getActionVerb(action: string): string {
   switch (action) {
-    case 'CREATE': return 'vừa tạo mới';
+    case 'CREATE': return 'vừa gửi / tạo mới';
+    case 'SUBMIT': return 'vừa gửi bài viết chờ duyệt';
+    case 'REGISTER': return 'vừa đăng ký tài khoản mới';
     case 'UPDATE': return 'vừa cập nhật';
     case 'DELETE': return 'vừa xóa';
     case 'PUBLISH': return 'vừa xuất bản';
     case 'UNPUBLISH': return 'vừa gỡ xuất bản';
     case 'APPROVE': return 'vừa phê duyệt';
+    case 'REJECT': return 'vừa từ chối phê duyệt';
     case 'RESTORE': return 'vừa khôi phục';
     case 'UPLOAD': return 'vừa tải lên';
     default: return 'vừa thực hiện thao tác trên';
@@ -607,8 +612,9 @@ function getEntityLabel(entity: string): string {
     case 'cultural_media': return 'tư liệu Không gian VH HCM';
     case 'competition': return 'cuộc thi trực tuyến';
     case 'opinion': return 'ý kiến nhân dân';
+    case 'feedback': return 'phản ánh dân sinh';
     case 'task': return 'nhiệm vụ công tác';
-    case 'user': return 'tài khoản quản trị';
+    case 'user': return 'tài khoản cán bộ';
     case 'setting': return 'cấu hình hệ thống';
     default: return 'nội dung';
   }

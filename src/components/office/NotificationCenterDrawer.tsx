@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bell, X, CheckCheck, Newspaper, FileText, Image, Sparkles, ShieldAlert, Check, ExternalLink, Filter } from 'lucide-react';
+import { Bell, X, CheckCheck, Newspaper, FileText, Image, Sparkles, ShieldAlert, Check, ExternalLink, Filter, MessageSquare, UserCheck } from 'lucide-react';
 import { AdminNotification, StaffUser } from '../../types';
 import { adminCollaborationService } from '../../lib/adminCollaborationService';
 
@@ -239,6 +239,9 @@ function getCategoryIcon(type?: string) {
     case 'article': return <Newspaper className="w-3 h-3 text-blue-600" />;
     case 'document': return <FileText className="w-3 h-3 text-amber-600" />;
     case 'cultural_media': return <Image className="w-3 h-3 text-emerald-600" />;
+    case 'feedback': return <MessageSquare className="w-3 h-3 text-rose-600" />;
+    case 'opinion': return <MessageSquare className="w-3 h-3 text-rose-600" />;
+    case 'user': return <UserCheck className="w-3 h-3 text-teal-600" />;
     case 'system': return <ShieldAlert className="w-3 h-3 text-purple-600" />;
     default: return <Sparkles className="w-3 h-3 text-indigo-600" />;
   }
@@ -246,10 +249,13 @@ function getCategoryIcon(type?: string) {
 
 function getCategoryBadge(type?: string) {
   switch (type) {
-    case 'article': return 'Tin tức';
+    case 'article': return 'Tin tức / Bài viết';
     case 'document': return 'Văn bản';
     case 'cultural_media': return 'Không gian VH HCM';
     case 'competition': return 'Cuộc thi';
+    case 'feedback': return 'Phản ánh dân sinh';
+    case 'opinion': return 'Ý kiến nhân dân';
+    case 'user': return 'Tài khoản cán bộ';
     case 'system': return 'Hệ thống';
     default: return 'Hoạt động';
   }

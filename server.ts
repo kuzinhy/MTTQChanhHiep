@@ -28,6 +28,7 @@ function getGeminiClient() {
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
   const PORT = 3000;
 
   app.use(cors({
@@ -170,6 +171,59 @@ async function startServer() {
       agency: 'Ủy ban MTTQ Việt Nam Phường Chánh Hiệp',
       timestamp: new Date().toISOString() 
     });
+  });
+
+  // Webhook Proxy for Google Apps Script to eliminate all client-side CORS issues
+  app.post('/api/notifications/webhook-proxy', async (req: Request, res: Response) => {
+    try {
+      const { webhookUrl, payload } = req.body;
+      const targetUrl = webhookUrl || process.env.VITE_EMAIL_WEBHOOK_URL;
+      if (!targetUrl) {
+        return res.status(400).json({ success: false, error: 'Chưa cấu hình URL Webhook' });
+      }
+
+      console.log(`[WebhookProxy] Chuyển tiếp email tới Google Apps Script: ${targetUrl}`);
+      
+      const gasResponse = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+      });
+
+      const text = await gasResponse.text();
+      let result: any;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        result = { raw: text };
+      }
+
+      if (!gasResponse.ok) {
+        console.error(`[WebhookProxy] GAS HTTP ${gasResponse.status}:`, text);
+        return res.status(gasResponse.status).json({
+          success: false,
+          error: `Google Apps Script phản hồi HTTP ${gasResponse.status}: ${text}`
+        });
+      }
+
+      if (result && result.success === false) {
+        console.error('[WebhookProxy] GAS trả về lỗi logic:', result.error);
+        return res.status(400).json({
+          success: false,
+          error: result.error || 'Google Apps Script xử lý email thất bại'
+        });
+      }
+
+      console.log(`[WebhookProxy] GAS gửi email thành công:`, result);
+      return res.json({ success: true, data: result });
+    } catch (error: any) {
+      console.error('[WebhookProxy] Lỗi gửi tới GAS:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: `Lỗi kết nối từ server tới Google Apps Script: ${error.message || error}` 
+      });
+    }
   });
 
   // AI Route: Soạn Kế hoạch

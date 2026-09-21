@@ -121,6 +121,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },
         { id: 'templates', label: 'Kho Mẫu Văn bản', icon: FolderTree, badge: 'MẪU VB' },
         { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
+        { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },
       ]
     }
   ], []);

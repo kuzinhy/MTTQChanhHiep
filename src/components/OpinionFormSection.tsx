@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PublicOpinion, OpinionTopic } from '../types';
-import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle } from 'lucide-react';
+import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle, Copy } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
 import { VoiceInputControl } from '../speech/VoiceInputControl';
 
@@ -58,8 +58,12 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    const randomDigits = String(Math.floor(100000 + Math.random() * 900000));
-    const code = 'DN-' + new Date().getFullYear() + '-' + randomDigits;
+    const now = new Date();
+    const dateStr = now.getFullYear().toString() +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      String(now.getDate()).padStart(2, '0');
+    const randomSeq = String(Math.floor(1000 + Math.random() * 9000));
+    const code = `PA-${dateStr}-${randomSeq}`;
 
     const newOpinion: PublicOpinion = {
       id: 'op-' + Date.now(),
@@ -127,8 +131,17 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
               <p className="text-xs text-slate-700">
                 Mã tiếp nhận phản ánh của bạn là:
               </p>
-              <div className="inline-block px-4 py-2 bg-blue-600 text-white font-extrabold text-base rounded-xl tracking-wider shadow-xs">
-                {submittedCode}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-extrabold text-base rounded-xl tracking-wider shadow-xs">
+                <span>{submittedCode}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(submittedCode || '');
+                    // Add a small toast or visual feedback here if needed
+                  }}
+                  className="p-1 hover:bg-blue-700 rounded-lg transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
               </div>
               <p className="text-[11px] text-slate-500 max-w-md mx-auto">
                 Vui lòng lưu lại mã phản ánh này để tra cứu tiến độ xử lý của Mặt trận và Ủy ban nhân dân phường.

@@ -259,6 +259,130 @@
         "createdAt": { "type": "string" }
       },
       "required": ["name", "shortName", "slug"]
+    },
+    "article_submissions": {
+      "title": "Article Submissions",
+      "description": "User submitted articles for editorial review",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorEmail": { "type": "string" },
+        "unit": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "attachments": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "rejectionReason": { "type": "string" }
+      },
+      "required": ["id", "title", "content", "status", "createdAt"]
+    },
+    "feedback": {
+      "title": "Feedback & Reflections",
+      "description": "Citizen public feedback, complaints, and reflections with email notifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "feedbackCode": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "category": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "attachments": { "type": "array", "items": { "type": "string" } },
+        "departmentId": { "type": "string" },
+        "status": { "type": "string" },
+        "priority": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "feedbackCode", "title", "content", "status", "createdAt"]
+    },
+    "notifications": {
+      "title": "Email Notifications Queue",
+      "description": "Outgoing email notifications queue and status tracker",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "eventType": { "type": "string" },
+        "eventKey": { "type": "string" },
+        "relatedCollection": { "type": "string" },
+        "relatedId": { "type": "string" },
+        "recipientEmail": { "type": "string" },
+        "recipientName": { "type": "string" },
+        "subject": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "sentAt": { "type": "string" },
+        "failedAt": { "type": "string" },
+        "retryCount": { "type": "number" },
+        "errorMessage": { "type": "string" }
+      },
+      "required": ["id", "eventType", "eventKey", "recipientEmail", "subject", "status", "createdAt"]
+    },
+    "email_logs": {
+      "title": "Email Delivery Logs",
+      "description": "Historical logs of sent or failed email transmissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "eventType": { "type": "string" },
+        "recipient": { "type": "string" },
+        "subject": { "type": "string" },
+        "relatedId": { "type": "string" },
+        "status": { "type": "string" },
+        "provider": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "sentAt": { "type": "string" },
+        "errorMessage": { "type": "string" }
+      },
+      "required": ["id", "eventType", "recipient", "subject", "status", "createdAt"]
+    },
+    "email_settings": {
+      "title": "Email Notification Settings",
+      "description": "System configuration for email notifications and routing",
+      "type": "object",
+      "properties": {
+        "systemWideEnabled": { "type": "boolean" },
+        "newUserEnabled": { "type": "boolean" },
+        "articleSubmittedEnabled": { "type": "boolean" },
+        "articleApprovedEnabled: ": { "type": "boolean" },
+        "articleRejectedEnabled": { "type": "boolean" },
+        "feedbackSubmittedEnabled": { "type": "boolean" },
+        "feedbackStatusChangedEnabled": { "type": "boolean" },
+        "adminEmails": { "type": "array", "items": { "type": "string" } },
+        "editorEmails": { "type": "array", "items": { "type": "string" } },
+        "feedbackEmails": { "type": "array", "items": { "type": "string" } },
+        "categoryRouting": { "type": "object" }
+      }
+    }
+  },
+  "firestore": {
+    "article_submissions/{id}": {
+      "schema": "article_submissions",
+      "description": "Article submissions for review"
+    },
+    "feedback/{id}": {
+      "schema": "feedback",
+      "description": "Citizen feedback items"
+    },
+    "notifications/{id}": {
+      "schema": "notifications",
+      "description": "Email notifications queue"
+    },
+    "email_logs/{id}": {
+      "schema": "email_logs",
+      "description": "Delivery logs"
+    },
+    "system_settings/email_notifications": {
+      "schema": "email_settings",
+      "description": "Global email config"
     }
   }
 }

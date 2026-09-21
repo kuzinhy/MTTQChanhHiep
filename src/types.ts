@@ -348,7 +348,9 @@ export type AdminNotificationType =
   | 'ARTICLE' 
   | 'DOCUMENT' 
   | 'PRESENCE' 
-  | 'EDIT_CONFLICT';
+  | 'EDIT_CONFLICT'
+  | 'FEEDBACK'
+  | 'USER';
 
 export interface AdminNotification {
   id: string;
@@ -1086,5 +1088,87 @@ export interface Ranking {
   rank: number;
   period: string;
 }
+
+// Email Notification System Interfaces
+export interface ArticleSubmission {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorEmail: string;
+  unit: string;
+  thumbnailUrl: string;
+  attachments: string[];
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+  rejectionReason?: string;
+}
+
+export interface FeedbackItem {
+  id: string;
+  feedbackCode: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  category: string;
+  title: string;
+  content: string;
+  attachments: string[];
+  departmentId: string;
+  status: 'received' | 'processing' | 'completed' | 'rejected';
+  priority: string;
+  createdAt: string;
+  updatedAt: string;
+  adminResponse?: string;
+}
+
+export interface EmailNotification {
+  id: string;
+  eventType: string;
+  eventKey: string; // Anti-duplicate key
+  relatedCollection: string;
+  relatedId: string;
+  recipientEmail: string;
+  recipientName: string;
+  subject: string;
+  status: 'pending' | 'processing' | 'sent' | 'failed';
+  createdAt: string;
+  sentAt?: string;
+  failedAt?: string;
+  retryCount: number;
+  errorMessage?: string;
+}
+
+export interface EmailLog {
+  id: string;
+  eventType: string;
+  recipient: string;
+  subject: string;
+  relatedId: string;
+  status: 'sent' | 'failed';
+  provider: 'google_apps_script';
+  createdAt: string;
+  sentAt?: string;
+  errorMessage?: string;
+}
+
+export interface EmailNotificationSettings {
+  systemWideEnabled: boolean;
+  newUserEnabled: boolean;
+  articleSubmittedEnabled: boolean;
+  articleApprovedEnabled: boolean;
+  articleRejectedEnabled: boolean;
+  feedbackSubmittedEnabled: boolean;
+  feedbackStatusChangedEnabled: boolean;
+  webhookUrl?: string;
+  adminEmails: string[];
+  editorEmails: string[];
+  feedbackEmails: string[];
+  categoryRouting: Record<string, string>; // Maps category name to specific email
+}
+
 
 

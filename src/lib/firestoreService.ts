@@ -47,7 +47,9 @@ import {
   MemberOrganization,
   Area,
   Organization,
-  CulturalMedia
+  CulturalMedia,
+  ArticleSubmission,
+  FeedbackItem
 } from '../types';
 import {
   sortArticlesNewestFirst,
@@ -92,7 +94,11 @@ export const FirestoreCollections = {
   MEMBER_ORGANIZATIONS: 'memberOrganizations',
   AREAS: 'areas',
   ORGANIZATIONS: 'organizations',
-  CULTURAL_MEDIA: 'culturalMedia'
+  CULTURAL_MEDIA: 'culturalMedia',
+  ARTICLE_SUBMISSIONS: 'article_submissions',
+  FEEDBACK: 'feedback',
+  NOTIFICATIONS: 'notifications',
+  EMAIL_LOGS: 'email_logs'
 };
 
 class CloudSyncService {
@@ -120,6 +126,8 @@ class CloudSyncService {
       onOrganizationsUpdate?: (orgs: Organization[]) => void;
       onSubmissionsUpdate?: (subs: CompetitionSubmission[]) => void;
       onDriveFilesUpdate?: (files: DriveFileItem[]) => void;
+      onArticleSubmissionsUpdate?: (subs: ArticleSubmission[]) => void;
+      onFeedbackUpdate?: (feedbacks: FeedbackItem[]) => void;
     }
   ) {
     if (this.isInitialized) return;
@@ -276,6 +284,38 @@ class CloudSyncService {
           callbacks.onDriveFilesUpdate?.(remoteFiles);
         }, (err) => {
           console.warn('[Firestore] Drive Files sync error:', err);
+        });
+        this.syncListeners.push(unsub);
+      }
+
+      // Article Submissions Listener
+      if (callbacks.onArticleSubmissionsUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.ARTICLE_SUBMISSIONS), (snapshot) => {
+          const remoteSubs: ArticleSubmission[] = snapshot.docs
+            .map(d => ({ ...(d.data() as ArticleSubmission), id: d.id }))
+            .filter(f => f && f.id);
+          
+          AppStorageEngine.saveArticleSubmissions(remoteSubs);
+          callbacks.onArticleSubmissionsUpdate?.(remoteSubs);
+        }, (err) => {
+          console.warn('[Firestore] Article Submissions sync error:', err);
+          callbacks.onArticleSubmissionsUpdate?.(AppStorageEngine.getArticleSubmissions());
+        });
+        this.syncListeners.push(unsub);
+      }
+
+      // Feedback Listener
+      if (callbacks.onFeedbackUpdate) {
+        const unsub = onSnapshot(collection(db, FirestoreCollections.FEEDBACK), (snapshot) => {
+          const remoteFeedback: FeedbackItem[] = snapshot.docs
+            .map(d => ({ ...(d.data() as FeedbackItem), id: d.id }))
+            .filter(f => f && f.id);
+          
+          AppStorageEngine.saveFeedback(remoteFeedback);
+          callbacks.onFeedbackUpdate?.(remoteFeedback);
+        }, (err) => {
+          console.warn('[Firestore] Feedback sync error:', err);
+          callbacks.onFeedbackUpdate?.(AppStorageEngine.getFeedback());
         });
         this.syncListeners.push(unsub);
       }
@@ -664,6 +704,52 @@ class CloudSyncService {
       await deleteDoc(opDoc);
     } catch (err) {
       console.error('[Firestore] Error deleting opinion:', err);
+    }
+  }
+
+  // Article Submissions
+  async saveArticleSubmission(submission: ArticleSubmission): Promise<boolean> {
+    try {
+      const subDoc = doc(db, FirestoreCollections.ARTICLE_SUBMISSIONS, submission.id);
+      await setDoc(subDoc, cleanFirestoreData(submission), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving article submission:', err);
+      return false;
+    }
+  }
+
+  async deleteArticleSubmission(subId: string): Promise<boolean> {
+    try {
+      const subDoc = doc(db, FirestoreCollections.ARTICLE_SUBMISSIONS, subId);
+      await deleteDoc(subDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting article submission:', err);
+      return false;
+    }
+  }
+
+  // Feedback
+  async saveFeedback(feedback: FeedbackItem): Promise<boolean> {
+    try {
+      const fbDoc = doc(db, FirestoreCollections.FEEDBACK, feedback.id);
+      await setDoc(fbDoc, cleanFirestoreData(feedback), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving feedback:', err);
+      return false;
+    }
+  }
+
+  async deleteFeedback(fbId: string): Promise<boolean> {
+    try {
+      const fbDoc = doc(db, FirestoreCollections.FEEDBACK, fbId);
+      await deleteDoc(fbDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting feedback:', err);
+      return false;
     }
   }
 

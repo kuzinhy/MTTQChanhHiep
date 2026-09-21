@@ -47,6 +47,7 @@ import {
   sortCompetitionsNewestFirst,
   sortOpinionsNewestFirst
 } from '../../lib/dateUtils';
+import { NotificationService } from '../../services/notificationService';
 
 import { 
   Newspaper, 
@@ -746,7 +747,39 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         attachmentSize: artAttachmentSize.trim() || undefined,
         driveFolderUrl: artDriveFolderUrl.trim() || DEFAULT_DRIVE_FOLDER_URL
       };
+      
       onUpdateArticle(updated);
+
+      // Trigger email notification for approved/rejected submissions
+      if (editingArticle.status === 'Pending Review') {
+        const subMap = {
+          id: updated.id,
+          title: updated.title,
+          summary: updated.summary || '',
+          content: updated.content || '',
+          authorId: 'contributor-1',
+          authorName: updated.authorName || 'Cộng tác viên',
+          authorEmail: 'congtacvien@mttqchanhhiep.vn',
+          unit: updated.category || 'Tuyên truyền',
+          thumbnailUrl: typeof updated.featuredImage === 'string' ? updated.featuredImage : (updated.featuredImage?.url || ''),
+          attachments: updated.attachment ? [updated.attachment] : [],
+          status: 'pending' as const,
+          createdAt: updated.publishDate || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        if (updated.status === 'Published' || updated.status === 'Approved') {
+          NotificationService.notifyArticleApproved({
+            ...subMap,
+            status: 'approved' as const
+          }).catch(console.error);
+        } else if (updated.status === 'Draft' || updated.status === 'Archived') {
+          NotificationService.notifyArticleRejected({
+            ...subMap,
+            status: 'rejected' as const
+          }, 'Nội dung bài viết cần chỉnh sửa hoặc bổ sung thêm tư liệu truyền thông.').catch(console.error);
+        }
+      }
 
       if (currentUser) {
         adminCollaborationService.publishActivityEvent({
@@ -781,7 +814,28 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         driveFolderUrl: artDriveFolderUrl.trim() || DEFAULT_DRIVE_FOLDER_URL,
         views: 1
       };
+      
       onAddArticle(newArt);
+
+      // Trigger email notification for new article submission (Pending Review)
+      if (newArt.status === 'Pending Review') {
+        const sub = {
+          id: newArt.id,
+          title: newArt.title,
+          summary: newArt.summary || '',
+          content: newArt.content || '',
+          authorId: currentUser?.id || 'contributor-1',
+          authorName: newArt.authorName || currentUser?.fullname || 'Cộng tác viên',
+          authorEmail: 'congtacvien@mttqchanhhiep.vn',
+          unit: newArt.category || 'Tuyên truyền',
+          thumbnailUrl: typeof newArt.featuredImage === 'string' ? newArt.featuredImage : (newArt.featuredImage?.url || ''),
+          attachments: newArt.attachment ? [newArt.attachment] : [],
+          status: 'pending' as const,
+          createdAt: newArt.publishDate || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        NotificationService.notifyArticleSubmitted(sub).catch(console.error);
+      }
 
       if (currentUser) {
         adminCollaborationService.publishActivityEvent({
