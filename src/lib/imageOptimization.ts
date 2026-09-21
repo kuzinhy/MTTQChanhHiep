@@ -5,6 +5,82 @@ import { extractGoogleDriveFileId } from './googleDriveService';
 export const BACKEND_CLOUD_RUN_ORIGIN = 'https://ais-pre-eokzuo3lbp4ijcdgdnvif3-553565080913.asia-southeast1.run.app';
 
 /**
+ * Optimizes an assigned link (Google Drive, Dropbox, Imgur, Anhsieuviet, Cloudinary, etc.)
+ * by converting it into the most performant, direct, and high-quality streamable URL.
+ */
+export function optimizeAssignedLink(rawLink?: string | null): string {
+  if (!rawLink) return '';
+  let url = rawLink.trim();
+  if (!url || url === 'null' || url === 'undefined' || url === '[object Object]') return '';
+
+  // 1. Strip markdown wrapper [title](url)
+  const mdMatch = url.match(/\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+  if (mdMatch && mdMatch[1]) {
+    url = mdMatch[1];
+  }
+
+  // 2. Strip surrounding quotes
+  url = url.replace(/^["']|["']$/g, '');
+
+  // 3. Reject invalid ephemeral/local URLs
+  if (
+    url.startsWith('blob:') ||
+    url.startsWith('file:') ||
+    url.includes('localhost') ||
+    url.includes('127.0.0.1') ||
+    url.includes('/tmp/') ||
+    url.startsWith('C:') ||
+    url.startsWith('D:')
+  ) {
+    return '';
+  }
+
+  // 4. Data URIs pass through directly
+  if (url.startsWith('data:image/')) {
+    return url;
+  }
+
+  // 5. Convert Google Drive link / file ID to high-resolution direct CDN image stream
+  const gDriveId = extractGoogleDriveFileId(url);
+  if (gDriveId) {
+    return `https://lh3.googleusercontent.com/d/${gDriveId}=w1600`;
+  }
+
+  // 6. Dropbox link direct stream optimization (dl=0 -> raw=1)
+  if (url.includes('dropbox.com')) {
+    url = url.replace(/\?dl=0/g, '?raw=1').replace(/&dl=0/g, '&raw=1');
+    if (!url.includes('raw=1') && !url.includes('dl=1')) {
+      url += url.includes('?') ? '&raw=1' : '?raw=1';
+    }
+    return url;
+  }
+
+  // 7. Imgur link direct image optimization
+  if (url.includes('imgur.com') && !url.includes('i.imgur.com')) {
+    const imgurMatch = url.match(/imgur\.com\/([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?$/);
+    if (imgurMatch && imgurMatch[1]) {
+      return `https://i.imgur.com/${imgurMatch[1]}.jpg`;
+    }
+  }
+
+  // 8. Upgrade plain HTTP to HTTPS
+  if (url.startsWith('http://')) {
+    url = `https://${url.substring(7)}`;
+  }
+
+  // 9. Sanitize and encode spaces / Unicode URL paths safely
+  if (url.startsWith('https://')) {
+    try {
+      url = encodeURI(decodeURI(url));
+    } catch {
+      url = url.replace(/ /g, '%20');
+    }
+  }
+
+  return url;
+}
+
+/**
  * Normalizes any image input (string, object, undefined, null) into a guaranteed valid,
  * permanent HTTPS or local asset URL. Filters out invalid blob:, localhost, and broken URLs.
  */
@@ -27,65 +103,18 @@ export function normalizeImageUrl(
     return fallback;
   }
 
-  // 1. Immediately reject invalid ephemeral/local URLs
-  if (
-    url.startsWith('blob:') ||
-    url.startsWith('file:') ||
-    url.includes('localhost') ||
-    url.includes('127.0.0.1') ||
-    url.includes('/tmp/') ||
-    url.startsWith('C:') ||
-    url.startsWith('D:')
-  ) {
-    if (import.meta.env.DEV) {
-      console.warn(`[IMAGE_NORMALIZER] Discarded non-production URL: "${url}". Replaced with official fallback banner.`);
-    }
-    return fallback;
+  // Check with optimizeAssignedLink
+  const optimized = optimizeAssignedLink(url);
+  if (optimized) {
+    return optimized;
   }
 
-  // 2. Data URIs (Base64) pass through directly
-  if (url.startsWith('data:image/')) {
-    return url;
-  }
-
-  // 3. Preserve external image hosts (anhsieuviet, cloudinary, etc.) as original URLs
-  // Only convert specific legacy broken temporary links if absolutely needed
-
-  // 4. Normalize legacy external logo links: mattrancantho.vn and wikimedia MTTQ logo
-  if (
-    url.includes('mattrancantho.vn') || 
-    url.includes('Bi%E1%BB%83u_tr%C6%B0ng_M%E1%BB%97t_tr%E1%BB%93_Qu%E1%BB%91c_Vi%E1%BB%87t_Nam')
-  ) {
-    return 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png';
-  }
-
-  // 5. Convert Google Drive share/view links to direct high-res stream
-  const gDriveId = extractGoogleDriveFileId(url);
-  if (gDriveId) {
-    return `https://lh3.googleusercontent.com/d/${gDriveId}=w1600`;
-  }
-
-  // 6. Handle local uploads path
+  // Handle local uploads path
   if (url.startsWith('/uploads/')) {
-    // Relative uploads path is preserved for local dev / proxied backend
     return url;
   }
 
-  // 7. Upgrade plain HTTP to HTTPS & Encode spaces and Vietnamese characters
-  if (url.startsWith('http://')) {
-    url = `https://${url.substring(7)}`;
-  }
-
-  // Sanitization for spaces, unencoded characters, or malformed URLs
-  if (url.startsWith('https://')) {
-    try {
-      url = encodeURI(decodeURI(url));
-    } catch {
-      url = url.replace(/ /g, '%20');
-    }
-  }
-
-  return url;
+  return fallback;
 }
 
 /**
@@ -123,6 +152,15 @@ export function resolveMediaUrl(rawUrl?: string | null, category?: string): stri
   }
   
   const trimmed = rawUrl.trim();
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') {
+    return category ? (getBannerForCategory(category) || ARTICLE_BANNERS.default) : '';
+  }
+
+  // Optimize assigned link (Google Drive, Dropbox, Imgur, HTTPS sanitization)
+  const optimized = optimizeAssignedLink(trimmed);
+  if (optimized) {
+    return optimized;
+  }
   
   // Rules for external URLs & special protocol handlers
   if (

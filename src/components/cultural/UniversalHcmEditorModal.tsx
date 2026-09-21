@@ -11,7 +11,7 @@ import {
 } from '../../data/hcmVerifiedMuseumData';
 import { BiographyChapter, EventCardSchema, CoverConfig } from '../../data/hcmGovernanceSchema';
 import { OptimizedImage } from '../common/OptimizedImage';
-import { normalizeImageUrl, resolveMediaUrl } from '../../lib/imageOptimization';
+import { normalizeImageUrl, resolveMediaUrl, optimizeAssignedLink } from '../../lib/imageOptimization';
 import { uploadMediaToCloudinary } from '../../lib/cloudinaryService';
 import { VerifiedCultureImage } from './VerifiedCultureImage';
 import { extractGoogleDriveFileId } from '../../lib/googleDriveService';
@@ -66,11 +66,13 @@ const ImageInputWithPreview: React.FC<{
   };
 
   const handlePasteChange = (inputVal: string) => {
-    const normalized = normalizeImageUrl(inputVal);
-    onChange(normalized);
+    const optimized = optimizeAssignedLink(inputVal) || inputVal.trim();
+    onChange(optimized);
   };
 
   const isGoogleDriveLink = value ? !!extractGoogleDriveFileId(value) || value.includes('googleusercontent.com') || value.includes('drive.google.com') : false;
+  const isDropboxLink = value ? value.includes('dropbox.com') : false;
+  const isImgurLink = value ? value.includes('imgur.com') : false;
 
   return (
     <div className="space-y-2 p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200/90 shadow-2xs">
@@ -112,9 +114,23 @@ const ImageInputWithPreview: React.FC<{
       </div>
 
       {isGoogleDriveLink && (
-        <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-          <Check className="w-3.5 h-3.5 text-emerald-600" />
+        <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span>Đã tự động tối ưu hóa liên kết Google Drive sang luồng CDN chất lượng cao (1600px).</span>
+        </div>
+      )}
+
+      {isDropboxLink && (
+        <div className="flex items-center gap-1.5 text-[11px] text-blue-800 font-semibold bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+          <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <span>Đã tự động tối ưu hóa liên kết Dropbox sang luồng tải ảnh trực tiếp.</span>
+        </div>
+      )}
+
+      {isImgurLink && (
+        <div className="flex items-center gap-1.5 text-[11px] text-purple-800 font-semibold bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">
+          <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+          <span>Đã tự động tối ưu hóa liên kết Imgur sang luồng ảnh trực tiếp.</span>
         </div>
       )}
 

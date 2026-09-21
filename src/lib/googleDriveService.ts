@@ -316,20 +316,29 @@ export async function uploadFileToGoogleDrive(
  */
 export function extractGoogleDriveFileId(urlOrId: string | undefined | null): string {
   if (!urlOrId) return '';
-  const trimmed = urlOrId.trim();
+  let trimmed = urlOrId.trim();
+
+  // Strip markdown link formatting if user pasted [title](url)
+  const mdMatch = trimmed.match(/\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+  if (mdMatch && mdMatch[1]) {
+    trimmed = mdMatch[1];
+  }
+
+  // Strip surrounding quotes
+  trimmed = trimmed.replace(/^["']|["']$/g, '');
 
   // If it's already just an ID (alphanumeric, dashes, underscores, length 20+)
   if (/^[a-zA-Z0-9_-]{20,50}$/.test(trimmed)) {
     return trimmed;
   }
 
-  // Matches /file/d/{id}, /folders/{id}, /document/d/{id}, /spreadsheets/d/{id}, /presentation/d/{id}
-  const pathMatch = trimmed.match(/\/(?:file\/d|folders|document\/d|spreadsheets\/d|presentation\/d)\/([a-zA-Z0-9_-]+)/);
+  // Matches /file/d/{id}, /folders/{id}, /document/d/{id}, /spreadsheets/d/{id}, /presentation/d/{id}, /d/{id}
+  const pathMatch = trimmed.match(/\/(?:file\/d|folders|document\/d|spreadsheets\/d|presentation\/d|d)\/([a-zA-Z0-9_-]+)/);
   if (pathMatch && pathMatch[1]) {
     return pathMatch[1];
   }
 
-  // Matches id={id} in query params (e.g. uc?id=... or open?id=...)
+  // Matches id={id} in query params (e.g. uc?id=... or open?id=... or download?id=...)
   const queryMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   if (queryMatch && queryMatch[1]) {
     return queryMatch[1];
