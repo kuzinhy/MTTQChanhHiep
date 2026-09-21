@@ -266,6 +266,7 @@ export interface PublicOpinion {
   neighborhood: string;
   fullname?: string;
   phone?: string;
+  address?: string;
   email?: string;
   isAnonymous: boolean;
   status: OpinionStatus;
@@ -359,6 +360,7 @@ export interface AdminNotification {
   type: AdminNotificationType;
   title: string;
   message: string;
+  details?: string;
   entityType?: string;
   entityId?: string;
   entityTitle?: string;
@@ -976,6 +978,16 @@ export interface NotificationItem {
   created_at: string;
   updated_at: string;
   idempotency_key?: string;
+  read_by?: string[];
+  read_count?: number;
+}
+
+export interface NotificationReadRecord {
+  targetId: string;
+  userId?: string | null;
+  deviceId?: string | null;
+  readNotificationIds: string[];
+  updatedAt: string;
 }
 
 export interface PushSubscriptionRecord {
@@ -1113,6 +1125,7 @@ export interface FeedbackItem {
   fullName: string;
   email: string;
   phone: string;
+  address?: string;
   category: string;
   title: string;
   content: string;

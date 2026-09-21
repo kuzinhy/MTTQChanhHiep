@@ -132,15 +132,185 @@ function formatTitleCase(title: string): string {
   return title;
 }
 
+export const getCategoryBadgeStyle = (category: string) => {
+  switch (category) {
+    case 'Học tập và làm theo Bác':
+    case 'Học tập làm theo Bác':
+      return 'bg-gradient-to-r from-rose-600 to-pink-600 text-white shadow-rose-500/20';
+    case 'An sinh xã hội':
+      return 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-amber-500/20';
+    case 'Đại đoàn kết':
+      return 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-red-500/20';
+    case 'Hoạt động khu phố':
+      return 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-500/20';
+    case 'Giám sát - Phản biện':
+      return 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-500/20';
+    case 'Dân vận':
+      return 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/20';
+    case 'Phong trào thi đua':
+      return 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 shadow-yellow-500/20 font-black';
+    default:
+      return 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/20';
+  }
+};
+
+export interface ArticleCardProps {
+  article: Article;
+  onSelectArticle: (article: Article) => void;
+}
+
+export const ArticleCardSkeleton: React.FC = () => {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col overflow-hidden animate-pulse">
+      {/* Skeleton Image Area */}
+      <div className="relative h-48 w-full bg-slate-200 overflow-hidden">
+        <div className="absolute top-3 left-3 w-24 h-5 bg-slate-300 rounded-lg" />
+      </div>
+
+      {/* Skeleton Text Content */}
+      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-3 w-20 bg-slate-200 rounded" />
+            <div className="h-3 w-16 bg-slate-200 rounded" />
+          </div>
+
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-slate-300 rounded" />
+            <div className="h-4 w-4/5 bg-slate-200 rounded" />
+          </div>
+
+          <div className="space-y-1.5 pt-1">
+            <div className="h-3 w-full bg-slate-200 rounded" />
+            <div className="h-3 w-11/12 bg-slate-200 rounded" />
+            <div className="h-3 w-2/3 bg-slate-200 rounded" />
+          </div>
+        </div>
+
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <div className="h-3 w-24 bg-slate-200 rounded" />
+          <div className="h-3 w-14 bg-slate-200 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const FeaturedArticleSkeleton: React.FC = () => {
+  return (
+    <div className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-7 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-6 items-center animate-pulse">
+      <div className="lg:col-span-7 h-64 sm:h-80 w-full bg-slate-200 rounded-2xl relative overflow-hidden">
+        <div className="absolute top-3 left-3 w-28 h-6 bg-slate-300 rounded-xl" />
+        <div className="absolute bottom-3 left-3 right-3 flex justify-between">
+          <div className="h-5 w-24 bg-slate-300 rounded-lg" />
+          <div className="h-5 w-24 bg-slate-300 rounded-lg" />
+        </div>
+      </div>
+      <div className="lg:col-span-5 space-y-4">
+        <div className="h-3.5 w-32 bg-slate-200 rounded-full" />
+        <div className="space-y-2">
+          <div className="h-6 w-full bg-slate-300 rounded" />
+          <div className="h-6 w-5/6 bg-slate-300 rounded" />
+        </div>
+        <div className="space-y-2 pt-1">
+          <div className="h-3.5 w-full bg-slate-200 rounded" />
+          <div className="h-3.5 w-11/12 bg-slate-200 rounded" />
+          <div className="h-3.5 w-4/5 bg-slate-200 rounded" />
+        </div>
+        <div className="pt-4 flex items-center justify-between border-t border-slate-100">
+          <div className="h-4 w-28 bg-slate-200 rounded" />
+          <div className="h-8 w-32 bg-slate-300 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onSelectArticle }) => {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.05, y: -6 }}
+      viewport={{ once: true, margin: "-20px" }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      key={article.id}
+      onClick={() => onSelectArticle(article)}
+      className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xl hover:border-blue-400 transition-all duration-300 hover:scale-105 flex flex-col overflow-hidden cursor-pointer group"
+    >
+      {/* CLEAR IMAGE CONTAINER */}
+      <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-slate-100">
+        <OptimizedImage
+          src={article.featuredImage}
+          alt={article.title}
+          variant="card"
+          fallbackCategory={article.category}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-xs ${getCategoryBadgeStyle(article.category)}`}>
+          {article.category}
+        </span>
+        {article.originalUrl && (
+          <span className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-xs text-blue-300 border border-blue-400/30 text-[9.5px] font-extrabold px-2 py-0.5 rounded-lg shadow-xs flex items-center gap-1">
+            <ExternalLink className="w-2.5 h-2.5 text-blue-400" />
+            <span>Facebook</span>
+          </span>
+        )}
+      </div>
+
+      {/* UNCOVERED TEXT CONTAINER */}
+      <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 text-[11px] text-slate-500">
+            <span className="flex items-center gap-1 font-medium">
+              <Calendar className="w-3.5 h-3.5 text-blue-600" />
+              {article.publishDate}
+            </span>
+            <span className="flex items-center gap-1 font-medium">
+              <Eye className="w-3.5 h-3.5 text-blue-600" />
+              {article.views} lượt xem
+            </span>
+          </div>
+
+          <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 text-sm leading-snug">
+            {article.title}
+          </h3>
+
+          <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+            {article.summary}
+          </p>
+        </div>
+
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span className="text-slate-500 font-medium truncate max-w-[180px]">
+            {article.authorName}
+          </span>
+          <span className="text-blue-600 font-extrabold group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+            Đọc tiếp &rarr;
+          </span>
+        </div>
+      </div>
+    </motion.article>
+  );
+};
+
 interface NewsSectionProps {
   articles: Article[];
   searchQuery: string;
   onSelectArticle: (article: Article) => void;
   onGoToOpinion?: () => void;
   onOpenHcmSpaceModal?: () => void;
+  isLoading?: boolean;
 }
 
-export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery, onSelectArticle, onGoToOpinion, onOpenHcmSpaceModal }) => {
+export const NewsSection: React.FC<NewsSectionProps> = ({ 
+  articles, 
+  searchQuery, 
+  onSelectArticle, 
+  onGoToOpinion, 
+  onOpenHcmSpaceModal,
+  isLoading = false
+}) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   const categories: { id: string; label: string }[] = [
@@ -250,28 +420,6 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
     day: '2-digit'
   });
 
-  const getCategoryBadgeStyle = (category: string) => {
-    switch (category) {
-      case 'Học tập và làm theo Bác':
-      case 'Học tập làm theo Bác':
-        return 'bg-gradient-to-r from-rose-600 to-pink-600 text-white shadow-rose-500/20';
-      case 'An sinh xã hội':
-        return 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-amber-500/20';
-      case 'Đại đoàn kết':
-        return 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-red-500/20';
-      case 'Hoạt động khu phố':
-        return 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-500/20';
-      case 'Giám sát - Phản biện':
-        return 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-500/20';
-      case 'Dân vận':
-        return 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/20';
-      case 'Phong trào thi đua':
-        return 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 shadow-yellow-500/20 font-black';
-      default:
-        return 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/20';
-    }
-  };
-
   return (
     <section className="space-y-8 animate-fadeIn">
       {/* 1. FRESH FLAT BLUE BLUR TICKER & DATE BAR */}
@@ -297,159 +445,163 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
       </div>
 
       {/* 2. MAIN HERO NEWS MATRIX (FLAT BLUE MATRIX) */}
-      {!searchQuery && selectedCategory === 'ALL' && mainHero && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-3.5 bg-blue-600 rounded-sm shadow-xs" />
-              <h2 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                <span>TIN TỨC ĐỊA PHƯƠNG TIÊU ĐIỂM</span>
-                <span className="text-[10px] bg-blue-50 text-blue-700 font-extrabold px-2 py-0.5 rounded-full border border-blue-200">VÌ NGƯỜI NGHÈO</span>
-              </h2>
+      {isLoading ? (
+        <FeaturedArticleSkeleton />
+      ) : (
+        !searchQuery && selectedCategory === 'ALL' && mainHero && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 bg-blue-600 rounded-sm shadow-xs" />
+                <h2 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                  <span>TIN TỨC ĐỊA PHƯƠNG TIÊU ĐIỂM</span>
+                  <span className="text-[10px] bg-blue-50 text-blue-700 font-extrabold px-2 py-0.5 rounded-full border border-blue-200">VÌ NGƯỜI NGHÈO</span>
+                </h2>
+              </div>
+              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider hidden sm:inline">
+                Trang tin MTTQ &amp; An sinh Phường Chánh Hiệp
+              </span>
             </div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider hidden sm:inline">
-              Trang tin MTTQ &amp; An sinh Phường Chánh Hiệp
-            </span>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-2xs hover:shadow-md transition-all">
-            {/* Left Main Hero (7 cols) - Clear Image Focus with motion effect */}
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.025, y: -4 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              onClick={() => onSelectArticle(mainHero)}
-              className="lg:col-span-7 group cursor-pointer space-y-3 flex flex-col justify-between hover:shadow-lg p-2.5 rounded-2xl transition-all duration-300 bg-white"
-            >
-              <div className="relative h-64 sm:h-80 md:h-[360px] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
-                <OptimizedImage
-                  src={mainHero.featuredImage}
-                  alt={mainHero.title}
-                  variant="article"
-                  fallbackCategory={mainHero.category}
-                  priority={true}
-                  style={{ objectPosition: mainHero.objectPosition || mainHero.imageFocalPoint || 'center 35%' }}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                
-                {/* LOW DEEP BLUE OVERLAY GRADIENT */}
-                <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-blue-950/95 via-blue-900/50 to-transparent pointer-events-none" />
-                
-                <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-xs ${getCategoryBadgeStyle(mainHero.category)}`}>
-                  {mainHero.category}
-                </span>
-
-                <div className="absolute bottom-3 left-3 right-3 text-white flex items-center justify-between text-xs font-medium text-slate-200">
-                  <span className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-700">
-                    <User className="w-3.5 h-3.5 text-blue-400" />
-                    {mainHero.authorName}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-2xs hover:shadow-md transition-all">
+              {/* Left Main Hero (7 cols) - Clear Image Focus with motion effect */}
+              <motion.div 
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -4 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                onClick={() => onSelectArticle(mainHero)}
+                className="lg:col-span-7 group cursor-pointer space-y-3 flex flex-col justify-between hover:shadow-lg p-2.5 rounded-2xl transition-all duration-300 hover:scale-105 bg-white"
+              >
+                <div className="relative h-64 sm:h-80 md:h-[360px] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
+                  <OptimizedImage
+                    src={mainHero.featuredImage}
+                    alt={mainHero.title}
+                    variant="article"
+                    fallbackCategory={mainHero.category}
+                    priority={true}
+                    style={{ objectPosition: mainHero.objectPosition || mainHero.imageFocalPoint || 'center 35%' }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  
+                  {/* LOW DEEP BLUE OVERLAY GRADIENT */}
+                  <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-blue-950/95 via-blue-900/50 to-transparent pointer-events-none" />
+                  
+                  <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-xs ${getCategoryBadgeStyle(mainHero.category)}`}>
+                    {mainHero.category}
                   </span>
-                  <span className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-700">
-                    <Calendar className="w-3.5 h-3.5 text-blue-400" />
-                    {mainHero.publishDate}
+
+                  <div className="absolute bottom-3 left-3 right-3 text-white flex items-center justify-between text-xs font-medium text-slate-200">
+                    <span className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-700">
+                      <User className="w-3.5 h-3.5 text-blue-400" />
+                      {mainHero.authorName}
+                    </span>
+                    <span className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-700">
+                      <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                      {mainHero.publishDate}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Text content clearly separated beneath the image */}
+                <div className="space-y-2 pt-1">
+                  <h1 className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">
+                    {formatTitleCase(mainHero.title)}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                    {mainHero.summary}
+                  </p>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between text-xs font-extrabold text-blue-600">
+                  <span className="flex items-center gap-1 text-slate-500 font-normal">
+                    <Eye className="w-3.5 h-3.5 text-blue-600" />
+                    {mainHero.views} lượt xem
+                  </span>
+                  <span className="group-hover:translate-x-1.5 transition-transform flex items-center gap-1.5 text-blue-700 font-bold">
+                    Xem toàn văn tin bài <ArrowRight className="w-4 h-4 text-blue-600" />
                   </span>
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Text content clearly separated beneath the image */}
-              <div className="space-y-2 pt-1">
-                <h1 className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">
-                  {formatTitleCase(mainHero.title)}
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
-                  {mainHero.summary}
-                </p>
-              </div>
+              {/* Right Secondary Stack (5 cols) - Infinite Vertical Scrolling Loop */}
+              <div className="lg:col-span-5 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 overflow-hidden">
+                <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 shrink-0">
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    <span>TIN CHĂM LO AN SINH KHÁC</span>
+                  </h3>
+                  <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-bold border border-blue-200/60 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                    Tự động cuộn
+                  </span>
+                </div>
 
-              <div className="pt-2 flex items-center justify-between text-xs font-extrabold text-blue-600">
-                <span className="flex items-center gap-1 text-slate-500 font-normal">
-                  <Eye className="w-3.5 h-3.5 text-blue-600" />
-                  {mainHero.views} lượt xem
-                </span>
-                <span className="group-hover:translate-x-1.5 transition-transform flex items-center gap-1.5 text-blue-700 font-bold">
-                  Xem toàn văn tin bài <ArrowRight className="w-4 h-4 text-blue-600" />
-                </span>
-              </div>
-            </motion.div>
+                {/* Vertical Infinite Scrolling Container (Continuous Loop from Bottom to Top) */}
+                <div className="relative h-[330px] sm:h-[350px] md:h-[370px] overflow-hidden my-2 rounded-2xl bg-slate-50/60 border border-slate-200/70 group/scroll">
+                  {/* Top & Bottom gradient fades for smooth infinite loop entry/exit */}
+                  <div className="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-slate-50 via-slate-50/80 to-transparent pointer-events-none z-10" />
+                  <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pointer-events-none z-10" />
 
-            {/* Right Secondary Stack (5 cols) - Infinite Vertical Scrolling Loop */}
-            <div className="lg:col-span-5 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 overflow-hidden">
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 shrink-0">
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                  <span>TIN CHĂM LO AN SINH KHÁC</span>
-                </h3>
-                <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-bold border border-blue-200/60 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                  Tự động cuộn
-                </span>
-              </div>
-
-              {/* Vertical Infinite Scrolling Container (Continuous Loop from Bottom to Top) */}
-              <div className="relative h-[330px] sm:h-[350px] md:h-[370px] overflow-hidden my-2 rounded-2xl bg-slate-50/60 border border-slate-200/70 group/scroll">
-                {/* Top & Bottom gradient fades for smooth infinite loop entry/exit */}
-                <div className="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-slate-50 via-slate-50/80 to-transparent pointer-events-none z-10" />
-                <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pointer-events-none z-10" />
-
-                {/* Looping Track */}
-                <div className="animate-vertical-loop flex flex-col space-y-2.5 p-2.5">
-                  {loopingSecondaryNews.map((item, index) => (
-                    <div
-                      key={`${item.id}-${index}`}
-                      onClick={() => onSelectArticle(item)}
-                      className="p-2.5 bg-white hover:bg-blue-50/60 rounded-xl border border-slate-200/80 hover:border-blue-300 hover:shadow-md cursor-pointer flex gap-3 items-center transition-all duration-200 group/item shrink-0 shadow-2xs"
-                    >
-                      <div className="w-20 h-16 sm:w-24 sm:h-18 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80 relative shadow-2xs">
-                        <OptimizedImage
-                          src={item.featuredImage}
-                          alt={item.title}
-                          variant="thumbnail"
-                          fallbackCategory={item.category}
-                          className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <span className="inline-block text-[9px] font-black uppercase text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60">
-                          {item.category}
-                        </span>
-                        <h4 className="font-bold text-xs text-slate-900 group-hover/item:text-blue-600 transition-colors line-clamp-2 leading-snug">
-                          {item.title}
-                        </h4>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-blue-600" />
-                            {item.publishDate}
+                  {/* Looping Track */}
+                  <div className="animate-vertical-loop flex flex-col space-y-2.5 p-2.5">
+                    {loopingSecondaryNews.map((item, index) => (
+                      <div
+                        key={`${item.id}-${index}`}
+                        onClick={() => onSelectArticle(item)}
+                        className="p-2.5 bg-white hover:bg-blue-50/60 rounded-xl border border-slate-200/80 hover:border-blue-300 hover:shadow-md cursor-pointer flex gap-3 items-center transition-all duration-200 group/item shrink-0 shadow-2xs"
+                      >
+                        <div className="w-20 h-16 sm:w-24 sm:h-18 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80 relative shadow-2xs">
+                          <OptimizedImage
+                            src={item.featuredImage}
+                            alt={item.title}
+                            variant="thumbnail"
+                            fallbackCategory={item.category}
+                            className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <span className="inline-block text-[9px] font-black uppercase text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60">
+                            {item.category}
                           </span>
-                          <span>•</span>
-                          <span>{item.views} lượt xem</span>
+                          <h4 className="font-bold text-xs text-slate-900 group-hover/item:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                            {item.title}
+                          </h4>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-blue-600" />
+                              {item.publishDate}
+                            </span>
+                            <span>•</span>
+                            <span>{item.views} lượt xem</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Banner Hotline / Direct Portal Link - Flat Blue Banner */}
-              <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 text-white p-3.5 rounded-2xl flex items-center justify-between border border-blue-400/30 shadow-xs shrink-0">
-                <div>
-                  <div className="text-[10px] uppercase font-black text-blue-300 tracking-wider flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-                    <span>GÓC DÂN SINH &amp; CỨU TRỢ 24/7</span>
+                    ))}
                   </div>
-                  <div className="text-xs font-black text-white mt-0.5">Gửi Ý kiến &amp; Phản ánh Số</div>
                 </div>
-                <button 
-                  onClick={() => onGoToOpinion && onGoToOpinion()}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-[11px] rounded-xl transition-all shrink-0 active:scale-95 shadow-2xs cursor-pointer"
-                >
-                  Gửi ngay
-                </button>
+
+                {/* Banner Hotline / Direct Portal Link - Flat Blue Banner */}
+                <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 text-white p-3.5 rounded-2xl flex items-center justify-between border border-blue-400/30 shadow-xs shrink-0">
+                  <div>
+                    <div className="text-[10px] uppercase font-black text-blue-300 tracking-wider flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                      <span>GÓC DÂN SINH &amp; CỨU TRỢ 24/7</span>
+                    </div>
+                    <div className="text-xs font-black text-white mt-0.5">Gửi Ý kiến &amp; Phản ánh Số</div>
+                  </div>
+                  <button 
+                    onClick={() => onGoToOpinion && onGoToOpinion()}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-[11px] rounded-xl transition-all shrink-0 active:scale-95 shadow-2xs cursor-pointer"
+                  >
+                    Gửi ngay
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )
       )}
 
       {/* 3. CATEGORY FILTER PILLS BAR */}
@@ -488,7 +640,13 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
       </div>
 
       {/* 4. ARTICLES MAIN GRID (FLAT BLUE CARDS) */}
-      {filteredArticles.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <ArticleCardSkeleton key={`news-skeleton-${idx}`} />
+          ))}
+        </div>
+      ) : filteredArticles.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 text-slate-500 shadow-2xs">
           <FileText className="w-10 h-10 mx-auto text-blue-600 mb-2" />
           <p className="font-bold text-sm text-slate-800">Không tìm thấy tin bài nào phù hợp.</p>
@@ -497,69 +655,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredArticles.map((article) => (
-            <motion.article
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.035, y: -6 }}
-              viewport={{ once: true, margin: "-20px" }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
+            <ArticleCard
               key={article.id}
-              onClick={() => onSelectArticle(article)}
-              className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xl hover:border-blue-400 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer group"
-            >
-              {/* CLEAR IMAGE CONTAINER */}
-              <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-slate-100">
-                <OptimizedImage
-                  src={article.featuredImage}
-                  alt={article.title}
-                  variant="card"
-                  fallbackCategory={article.category}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-xs ${getCategoryBadgeStyle(article.category)}`}>
-                  {article.category}
-                </span>
-                {article.originalUrl && (
-                  <span className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-xs text-blue-300 border border-blue-400/30 text-[9.5px] font-extrabold px-2 py-0.5 rounded-lg shadow-xs flex items-center gap-1">
-                    <ExternalLink className="w-2.5 h-2.5 text-blue-400" />
-                    <span>Facebook</span>
-                  </span>
-                )}
-              </div>
-
-              {/* UNCOVERED TEXT CONTAINER */}
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 text-[11px] text-slate-500">
-                    <span className="flex items-center gap-1 font-medium">
-                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                      {article.publishDate}
-                    </span>
-                    <span className="flex items-center gap-1 font-medium">
-                      <Eye className="w-3.5 h-3.5 text-blue-600" />
-                      {article.views} lượt xem
-                    </span>
-                  </div>
-
-                  <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 text-sm leading-snug">
-                    {article.title}
-                  </h3>
-
-                  <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                    {article.summary}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500 font-medium truncate max-w-[180px]">
-                    {article.authorName}
-                  </span>
-                  <span className="text-blue-600 font-extrabold group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                    Đọc tiếp &rarr;
-                  </span>
-                </div>
-              </div>
-            </motion.article>
+              article={article}
+              onSelectArticle={onSelectArticle}
+            />
           ))}
         </div>
       )}
@@ -637,12 +737,12 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.025, y: -4 }}
+                whileHover={{ scale: 1.05, y: -4 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.3 }}
                 key={item.id}
                 onClick={() => onSelectArticle(item)}
-                className="bg-white hover:bg-rose-50/50 border border-rose-200/80 hover:border-rose-300 p-4 rounded-2xl cursor-pointer transition-all duration-300 space-y-3 group shadow-2xs hover:shadow-lg flex flex-col justify-between"
+                className="bg-white hover:bg-rose-50/50 border border-rose-200/80 hover:border-rose-300 p-4 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 space-y-3 group shadow-2xs hover:shadow-lg flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="h-36 rounded-xl overflow-hidden bg-rose-100 border border-rose-200 relative">
@@ -705,12 +805,12 @@ export const NewsSection: React.FC<NewsSectionProps> = ({ articles, searchQuery,
             <motion.div
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.02, y: -2 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               viewport={{ once: true }}
               transition={{ duration: 0.3 }}
               key={art.id}
               onClick={() => onSelectArticle(art)}
-              className="p-4 bg-slate-50 hover:bg-blue-50/70 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer flex gap-3.5 items-center group"
+              className="p-4 bg-slate-50 hover:bg-blue-50/70 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 hover:scale-105 cursor-pointer flex gap-3.5 items-center group"
             >
               <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-200 border border-slate-200">
                 <OptimizedImage

@@ -361,9 +361,24 @@
         "feedbackEmails": { "type": "array", "items": { "type": "string" } },
         "categoryRouting": { "type": "object" }
       }
+    },
+    "notification_reads": {
+      "title": "Notification Read Status",
+      "description": "User or device synchronized read notification status across sessions and devices",
+      "type": "object",
+      "properties": {
+        "targetId": { "type": "string" },
+        "readNotificationIds": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["targetId", "readNotificationIds", "updatedAt"]
     }
   },
   "firestore": {
+    "notification_reads/{id}": {
+      "schema": "notification_reads",
+      "description": "Cross-device synced notification read records"
+    },
     "article_submissions/{id}": {
       "schema": "article_submissions",
       "description": "Article submissions for review"

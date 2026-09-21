@@ -15,8 +15,8 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [neighborhood, setNeighborhood] = useState(OFFICIAL_NEIGHBORHOOD_NAMES[0]);
   const [fullname, setFullname] = useState('');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [email, setEmail] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -42,17 +42,31 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+
     if (!content.trim()) {
       setFormError('Vui lòng nhập nội dung phản ánh hoặc đề xuất cụ thể của bạn!');
       return;
     }
 
-    if (!isAnonymous && phone.trim()) {
-      const phoneRegex = /^[0-9]{9,11}$/;
-      if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
-        setFormError('Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 số!');
-        return;
-      }
+    if (!fullname.trim()) {
+      setFormError('Vui lòng nhập Họ và tên người phản ánh!');
+      return;
+    }
+
+    if (!phone.trim()) {
+      setFormError('Vui lòng nhập Số điện thoại liên hệ!');
+      return;
+    }
+
+    const phoneRegex = /^[0-9]{9,11}$/;
+    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+      setFormError('Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 số!');
+      return;
+    }
+
+    if (!address.trim()) {
+      setFormError('Vui lòng nhập Địa chỉ cư trú / nơi ở của người phản ánh!');
+      return;
     }
 
     if (isSubmitting) return;
@@ -71,10 +85,11 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
       topic,
       content: content.trim(),
       neighborhood,
-      fullname: isAnonymous ? '' : fullname.trim(),
-      phone: isAnonymous ? '' : phone.trim(),
-      email: isAnonymous ? '' : email.trim(),
-      isAnonymous,
+      fullname: fullname.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      email: email.trim(),
+      isAnonymous: false,
       status: 'NEW',
       priority: 'NORMAL',
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
@@ -85,6 +100,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     setContent('');
     setFullname('');
     setPhone('');
+    setAddress('');
     setEmail('');
     setIsSubmitting(false);
   };
@@ -219,44 +235,73 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                 />
               </div>
 
-              {/* Anonymous Option */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <UserX className="w-4 h-4 text-slate-600" />
-                  <span className="text-xs font-semibold text-slate-800">Gửi ẩn danh (Không gửi thông tin cá nhân)</span>
+              {/* Contact Information Section - Mandatory */}
+              <div className="space-y-3 pt-2 border-t border-slate-200">
+                <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200/80 flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-blue-900 leading-relaxed font-medium">
+                    <strong>Yêu cầu thông tin chính xác:</strong> Bắt buộc cung cấp Họ tên, Số điện thoại và Địa chỉ để Mặt trận Tổ quốc xác minh, liên hệ và trả lời kết quả chính thức. Thông tin cá nhân của bạn được bảo mật tuyệt đối.
+                  </p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded-md focus:ring-blue-600"
-                />
-              </div>
 
-              {!isAnonymous && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">Họ và tên</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Họ và tên người phản ánh <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
+                      required
                       placeholder="Nguyễn Văn A"
                       value={fullname}
-                      onChange={(e) => setFullname(e.target.value)}
+                      onChange={(e) => {
+                        setFullname(e.target.value);
+                        if (formError) setFormError(null);
+                      }}
                       className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
                     />
                   </div>
+
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">Số điện thoại</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Số điện thoại liên hệ <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
+                      required
                       placeholder="0908xxxxxx"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        if (formError) setFormError(null);
+                      }}
                       className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Địa chỉ cư trú / Nơi phát sinh sự việc <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Số nhà, đường, khu phố... (ví dụ: 123 Lê Chí Dân, KP 1)"
+                      value={address}
+                      onChange={(e) => {
+                        setAddress(e.target.value);
+                        if (formError) setFormError(null);
+                      }}
+                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
+                    />
+                  </div>
+
                   <div>
-                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">Email (nếu có)</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Email (nếu có)
+                    </label>
                     <input
                       type="email"
                       placeholder="email@example.com"
@@ -266,7 +311,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                     />
                   </div>
                 </div>
-              )}
+              </div>
 
               <button
                 type="submit"

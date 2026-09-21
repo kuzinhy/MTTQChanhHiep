@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import { PublicOpinion, OpinionStatus } from '../../types';
-import { MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, UserCheck, ShieldAlert, FileText, AlertCircle, Download } from 'lucide-react';
+import { MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, UserCheck, ShieldAlert, FileText, AlertCircle, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { exportPublicOpinionsToCsv } from '../../lib/exportUtils';
 
 interface OpinionsAdminViewProps {
   opinions: PublicOpinion[];
   onUpdateOpinionStatus: (id: string, status: OpinionStatus, responseText?: string) => void;
+  onDeleteOpinion?: (id: string) => void;
   onOpenAiSummary: () => void;
 }
 
 export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   opinions,
   onUpdateOpinionStatus,
+  onDeleteOpinion,
   onOpenAiSummary
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [selectedOpinion, setSelectedOpinion] = useState<PublicOpinion | null>(null);
+  const [opinionToDelete, setOpinionToDelete] = useState<PublicOpinion | null>(null);
   const [responseText, setResponseText] = useState('');
 
   const filteredOpinions = opinions.filter(op => filterStatus === 'ALL' || op.status === filterStatus);
@@ -26,6 +29,17 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
     onUpdateOpinionStatus(selectedOpinion.id, 'RESOLVED', responseText);
     setSelectedOpinion(null);
     setResponseText('');
+  };
+
+  const handleConfirmDelete = () => {
+    if (!opinionToDelete) return;
+    if (onDeleteOpinion) {
+      onDeleteOpinion(opinionToDelete.id);
+    }
+    if (selectedOpinion?.id === opinionToDelete.id) {
+      setSelectedOpinion(null);
+    }
+    setOpinionToDelete(null);
   };
 
   const getStatusBadge = (s: OpinionStatus) => {
@@ -106,8 +120,10 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
 
                 <p className="font-medium text-slate-800 leading-relaxed text-sm">{op.content}</p>
 
-                <div className="flex items-center gap-4 text-slate-400 text-[11px] pt-1">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 text-[11px] pt-1">
                   <span>Người gửi: <strong className="text-slate-700">{op.isAnonymous ? 'Ẩn danh' : op.fullname || 'Người dân'}</strong></span>
+                  {op.phone && <span>SĐT: <strong className="text-slate-700">{op.phone}</strong></span>}
+                  {op.address && <span>Địa chỉ: <strong className="text-slate-700">{op.address}</strong></span>}
                   <span>Thời gian: {op.createdAt}</span>
                 </div>
 
@@ -129,6 +145,18 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                 >
                   Xử lý &amp; Phản hồi
                 </button>
+
+                {onDeleteOpinion && (
+                  <button
+                    type="button"
+                    onClick={() => setOpinionToDelete(op)}
+                    className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                    title="Xóa phản ánh dư luận này"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Xóa</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -168,22 +196,73 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedOpinion(null)}
-                    className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded-xl"
-                  >
-                    Đóng
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs"
-                  >
-                    Lưu kết quả &amp; Đóng hồ sơ
-                  </button>
+                <div className="flex items-center justify-between pt-2">
+                  {onDeleteOpinion ? (
+                    <button
+                      type="button"
+                      onClick={() => setOpinionToDelete(selectedOpinion)}
+                      className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Xóa phản ánh này</span>
+                    </button>
+                  ) : <div />}
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOpinion(null)}
+                      className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded-xl"
+                    >
+                      Đóng
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs"
+                    >
+                      Lưu kết quả &amp; Đóng hồ sơ
+                    </button>
+                  </div>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {opinionToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-rose-200">
+            <div className="flex items-center gap-3 text-rose-600">
+              <AlertTriangle className="w-6 h-6 shrink-0" />
+              <h3 className="font-extrabold text-stone-900 text-base">Xác nhận xóa phản ánh</h3>
+            </div>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Bạn có chắc chắn muốn xóa phản ánh mã số <strong className="text-rose-700">{opinionToDelete.receiptCode || opinionToDelete.id}</strong> không?
+            </p>
+            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs text-stone-700 italic">
+              "{opinionToDelete.topic} - {opinionToDelete.content.substring(0, 80)}{opinionToDelete.content.length > 80 ? '...' : ''}"
+            </div>
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] text-rose-800 font-semibold">
+              ⚠️ Lưu ý: Thao tác này sẽ xóa vĩnh viễn dữ liệu phản ánh khỏi hệ thống và không thể phục hồi.
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setOpinionToDelete(null)}
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold rounded-xl text-xs cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl shadow-xs text-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Xác nhận Xóa</span>
+              </button>
             </div>
           </div>
         </div>
@@ -191,3 +270,4 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
     </div>
   );
 };
+

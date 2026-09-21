@@ -174,8 +174,8 @@ export const TAB_TO_HASH: Record<string, string> = {
 };
 
 export default function App() {
-  // App Initial Loading State (default false for immediate rendering)
-  const [isAppLoading, setIsAppLoading] = useState(false);
+  // App Initial Loading State
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
 
   // Navigation & Space State
@@ -328,6 +328,7 @@ export default function App() {
   const [politicalOrganizations, setPoliticalOrganizations] = useState<Organization[]>(() => AppStorageEngine.getOrganizations());
   const [aiChats, setAiChats] = useState<AiChatLog[]>(() => AppStorageEngine.getAiChats());
   const [knowledgeNotes, setKnowledgeNotes] = useState<KnowledgeNote[]>(() => AppStorageEngine.getKnowledgeNotes());
+  const [isDataSyncing, setIsDataSyncing] = useState<boolean>(true);
 
   // Initialize real-time visitor & session tracking, Offline Sync & Firebase Cloud Sync
   useEffect(() => {
@@ -336,8 +337,14 @@ export default function App() {
 
     // Start Realtime Cloud Database Sync with Firebase Firestore
     CloudDatabase.initCloudDatabase({
-      onArticlesUpdate: (arts) => setArticles(arts),
-      onDocumentsUpdate: (docs) => setDocuments(docs),
+      onArticlesUpdate: (arts) => {
+        setArticles(arts);
+        setIsDataSyncing(false);
+      },
+      onDocumentsUpdate: (docs) => {
+        setDocuments(docs);
+        setIsDataSyncing(false);
+      },
       onOpinionsUpdate: (ops) => setOpinions(ops),
       onCompetitionsUpdate: (comps) => setCompetitions(comps),
       onStaffUsersUpdate: (users) => {
@@ -362,8 +369,13 @@ export default function App() {
       onDriveFilesUpdate: (files) => setDriveFiles(files),
     });
 
+    const timer = setTimeout(() => {
+      setIsDataSyncing(false);
+    }, 1500);
+
     return () => {
       cleanupOfflineSync();
+      clearTimeout(timer);
     };
   }, []);
 
@@ -775,9 +787,10 @@ export default function App() {
     const feedback: FeedbackItem = {
       id: newOp.id,
       feedbackCode: newOp.receiptCode || newOp.id.replace('op-', '#CH-'),
-      fullName: newOp.isAnonymous ? 'Người dân ẩn danh' : (newOp.fullname || 'Người dân'),
+      fullName: newOp.fullname || 'Người dân',
       email: newOp.email || 'nguoidan@chanhhiep.vn',
-      phone: newOp.phone || 'N/A',
+      phone: newOp.phone || 'Chưa cung cấp',
+      address: newOp.address || 'Chưa cung cấp',
       category: newOp.neighborhood || 'Dân sinh',
       title: String(newOp.topic || 'Ý kiến phản ánh dân sinh'),
       content: newOp.content || '',
@@ -835,6 +848,20 @@ export default function App() {
       return next;
     });
     handleTriggerSystemToast('Cập nhật xử lý ý kiến', `Đã lưu trạng thái xử lý cho ý kiến.`);
+  };
+
+  const handleDeleteOpinion = async (id: string) => {
+    setOpinions(prev => {
+      const next = prev.filter(o => o.id !== id);
+      AppStorageEngine.saveOpinions(next);
+      return next;
+    });
+    try {
+      await CloudDatabase.deleteOpinion(id);
+      handleTriggerSystemToast('Đã xóa phản ánh', 'Dữ liệu phản ánh dư luận đã được xóa thành công khỏi hệ thống.');
+    } catch (err) {
+      console.error('Failed to delete opinion from cloud:', err);
+    }
   };
 
 
@@ -1196,12 +1223,14 @@ export default function App() {
                       onSelectArticle={(art) => handleSelectArticle(art)}
                       onGoToOpinion={() => handleSelectPortalTab('opinion')}
                       onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
+                      isLoading={isDataSyncing && articles.length === 0}
                     />
                   )}
                   {portalTab === 'documents' && (
                     <DocumentsSection
                       documents={documents}
                       onSelectDocument={(doc) => handleSelectDocument(doc)}
+                      isLoading={isDataSyncing && documents.length === 0}
                     />
                   )}
                   {portalTab === 'supervision' && (
@@ -1545,6 +1574,7 @@ export default function App() {
                       <OpinionsAdminView
                         opinions={opinions}
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
+                        onDeleteOpinion={handleDeleteOpinion}
                         onOpenAiSummary={() => setOfficeView('ai_assistant')}
                       />
                     )}

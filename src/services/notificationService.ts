@@ -22,17 +22,17 @@ const DEFAULT_SETTINGS: EmailNotificationSettings = {
   feedbackSubmittedEnabled: true,
   feedbackStatusChangedEnabled: true,
   webhookUrl: DEFAULT_APPS_SCRIPT_WEBHOOK,
-  adminEmails: ['nguyenhuy.thudaumot@gmail.com', 'admin.chanhhiep@binhduong.gov.vn', 'mttq.chanhhiep@gmail.com'],
-  editorEmails: ['nguyenhuy.thudaumot@gmail.com', 'editor.chanhhiep@binhduong.gov.vn', 'mttq.chanhhiep@gmail.com'],
-  feedbackEmails: ['nguyenhuy.thudaumot@gmail.com', 'tiepdan.chanhhiep@binhduong.gov.vn', 'mttq.chanhhiep@gmail.com'],
+  adminEmails: ['mttqvietnamphuongchanhhiep@gmail.com', 'nguyenhuy.thudaumot@gmail.com', 'buivanhuy0705@gmail.com', 'admin.chanhhiep@binhduong.gov.vn'],
+  editorEmails: ['mttqvietnamphuongchanhhiep@gmail.com', 'nguyenhuy.thudaumot@gmail.com', 'buivanhuy0705@gmail.com', 'editor.chanhhiep@binhduong.gov.vn'],
+  feedbackEmails: ['mttqvietnamphuongchanhhiep@gmail.com', 'nguyenhuy.thudaumot@gmail.com', 'buivanhuy0705@gmail.com', 'tiepdan.chanhhiep@binhduong.gov.vn'],
   categoryRouting: {
-    'Vấn đề dân sinh': 'nguyenhuy.thudaumot@gmail.com',
+    'Vấn đề dân sinh': 'mttqvietnamphuongchanhhiep@gmail.com',
     'An sinh xã hội': 'ansinh.chanhhiep@binhduong.gov.vn',
     'Môi trường & Đô thị': 'dothi.chanhhiep@binhduong.gov.vn',
     'Trật tự an toàn': 'congan.chanhhiep@binhduong.gov.vn',
     'Thủ tục hành chính': 'motcua.chanhhiep@binhduong.gov.vn',
     'Văn hóa - Xã hội': 'vanhoa.chanhhiep@binhduong.gov.vn',
-    'Ý kiến đóng góp khác': 'nguyenhuy.thudaumot@gmail.com'
+    'Ý kiến đóng góp khác': 'mttqvietnamphuongchanhhiep@gmail.com'
   }
 };
 
@@ -140,7 +140,7 @@ export class NotificationService {
         eventType,
         recipientEmail,
         subject,
-        htmlBody: body.replace(/\n/g, '<br/>'),
+        htmlBody: body.trim().startsWith('<') ? body : body.replace(/\n/g, '<br/>'),
         timestamp: createdAt,
         ...extraData
       };
@@ -492,6 +492,347 @@ export class NotificationService {
   }
 
   /**
+   * HTML Template Generators
+   */
+  private static generateFeedbackReceiptHtml(feedback: FeedbackItem): string {
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://chanhhiep.binhduong.gov.vn';
+    const trackerUrl = `${appUrl}/#lookup`;
+
+    return `
+      <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+        <!-- Header Banner -->
+        <div style="background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); padding: 24px 20px; text-align: center; color: #ffffff;">
+          <img src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" alt="Logo MTTQ" style="width: 68px; height: 68px; margin-bottom: 8px;" referrerPolicy="no-referrer" />
+          <h1 style="margin: 0; font-size: 17px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #ffffff;">ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM</h1>
+          <h2 style="margin: 4px 0 0 0; font-size: 14px; font-weight: 700; color: #fde047;">PHƯỜNG CHÁNH HIỆP - TP. THỦ DẦU MỘT</h2>
+          <p style="margin: 6px 0 0 0; font-size: 11px; font-style: italic; color: #fef08a;">"Đoàn kết - Dân chủ - Đồng thuận - Phát triển"</p>
+        </div>
+
+        <!-- Body Content -->
+        <div style="padding: 24px 22px; color: #334155;">
+          <!-- Badge -->
+          <div style="text-align: center; margin-bottom: 20px;">
+            <span style="display: inline-block; background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 12px; text-transform: uppercase;">
+              ✉️ THÔNG BÁO XÁC NHẬN TIẾP NHẬN PHẢN ÁNH
+            </span>
+          </div>
+
+          <p style="font-size: 15px; font-weight: 600; color: #0f172a; margin-top: 0;">
+            Kính gửi Ông/Bà: <span style="color: #1e40af;">${feedback.fullName || 'Công dân'}</span>,
+          </p>
+          
+          <p style="font-size: 14px; line-height: 1.6; color: #334155;">
+            Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp trân trọng cảm ơn tinh thần trách nhiệm và ý kiến đóng góp kịp thời của Quý Ông/Bà đối với công tác phản ánh dân sinh và phát triển địa phương.
+          </p>
+
+          <p style="font-size: 14px; line-height: 1.6; color: #334155;">
+            Hệ thống Cổng thông tin điện tử đã tiếp nhận thông tin phản ánh với các chi tiết sau:
+          </p>
+
+          <!-- Feedback Details Card -->
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 18px 0;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600; width: 140px;">Mã tra cứu:</td>
+                <td style="padding: 6px 0; font-weight: 800; font-size: 15px; color: #dc2626;">${feedback.feedbackCode}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Lĩnh vực:</td>
+                <td style="padding: 6px 0; font-weight: 600; color: #0f172a;">${feedback.category}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Tiêu đề:</td>
+                <td style="padding: 6px 0; font-weight: 600; color: #0f172a;">${feedback.title}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Thời gian tiếp nhận:</td>
+                <td style="padding: 6px 0; color: #334155;">${feedback.createdAt}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Trạng thái ban đầu:</td>
+                <td style="padding: 6px 0;">
+                  <span style="background-color: #dbeafe; color: #1e40af; padding: 3px 10px; border-radius: 12px; font-weight: 700; font-size: 11px;">Đã tiếp nhận</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Content Box -->
+          <div style="margin: 18px 0;">
+            <p style="font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px;">Nội dung phản ánh của Quý Ông/Bà:</p>
+            <div style="background-color: #fff8f8; border-left: 4px solid #dc2626; padding: 14px 16px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.6; color: #1e293b; font-style: italic;">
+              "${feedback.content}"
+            </div>
+          </div>
+
+          <!-- Action & Guide -->
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px 16px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #166534; font-weight: 600;">
+              📌 Quý Ông/Bà vui lòng lưu lại Mã tra cứu <strong style="color: #dc2626;">${feedback.feedbackCode}</strong> để tự theo dõi tiến độ xử lý trực tuyến.
+            </p>
+            <a href="${trackerUrl}" target="_blank" style="display: inline-block; background-color: #b91c1c; color: #ffffff; text-decoration: none; padding: 10px 22px; border-radius: 6px; font-weight: 700; font-size: 13px; letter-spacing: 0.3px;">
+              🔍 TRA CỨU TIẾN ĐỘ XỬ LÝ
+            </a>
+          </div>
+
+          <p style="font-size: 13px; line-height: 1.6; color: #475569;">
+            Mặt trận Tổ quốc Phường Chánh Hiệp sẽ nhanh chóng xác minh, làm việc với các cơ quan chuyên môn liên quan để xử lý và thông báo kết quả chính thức đến Quý Ông/Bà qua email này.
+          </p>
+
+          <!-- Signature -->
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0 16px 0;" />
+          <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+            <p style="font-weight: 700; color: #1e293b; margin: 0 0 4px 0; font-size: 13px;">BAN THƯỜNG TRỰC UỶ BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP</p>
+            <p style="margin: 0;">📍 <strong>Địa chỉ:</strong> Khu phố 1, Phường Chánh Hiệp, TP. Thủ Dầu Một, Tỉnh Bình Dương</p>
+            <p style="margin: 0;">✉️ <strong>Email chính thức:</strong> <a href="mailto:mttqvietnamphuongchanhhiep@gmail.com" style="color: #2563eb; text-decoration: none;">mttqvietnamphuongchanhhiep@gmail.com</a></p>
+            <p style="margin: 0;">🌐 <strong>Cổng thông tin:</strong> Phản ánh dân sinh & An sinh xã hội Chánh Hiệp</p>
+          </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div style="background-color: #f1f5f9; padding: 12px 20px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+          Thư này được gửi tự động từ Cổng thông tin điện tử Văn phòng số MTTQ Phường Chánh Hiệp.
+        </div>
+      </div>
+    `;
+  }
+
+  private static generateFeedbackOfficerNoticeHtml(feedback: FeedbackItem): string {
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://chanhhiep.binhduong.gov.vn';
+    const adminUrl = `${appUrl}/#office`;
+
+    return `
+      <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+        <!-- Header Banner -->
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 22px 20px; text-align: center; color: #ffffff;">
+          <img src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" alt="Logo MTTQ" style="width: 60px; height: 60px; margin-bottom: 6px;" referrerPolicy="no-referrer" />
+          <h1 style="margin: 0; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #ffffff;">VĂN PHÒNG SỐ MTTQ PHƯỜNG CHÁNH HIỆP</h1>
+          <h2 style="margin: 4px 0 0 0; font-size: 13px; font-weight: 600; color: #93c5fd;">TỔ TIẾP NHẬN & PHÂN CÔNG XỬ LÝ PHẢN ÁNH DÂN NGUYỆN</h2>
+        </div>
+
+        <div style="padding: 22px; color: #334155;">
+          <!-- Badge -->
+          <div style="text-align: center; margin-bottom: 18px;">
+            <span style="display: inline-block; background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 12px;">
+              ⚡ CÓ PHẢN ÁNH MỚI CẦN XỬ LÝ: [ ${feedback.feedbackCode} ]
+            </span>
+          </div>
+
+          <p style="font-size: 14px; color: #0f172a; margin-top: 0; font-weight: 600;">
+            Kính gửi Cán bộ Ban Thường trực / Tổ Tiếp nhận ý kiến dân sinh,
+          </p>
+
+          <p style="font-size: 13px; line-height: 1.6; color: #334155;">
+            Hệ thống vừa tiếp nhận 01 phản ánh dân nguyện mới do người dân gửi trực tuyến. Chi tiết thông tin phản ánh như sau:
+          </p>
+
+          <!-- Full Info Table -->
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin: 16px 0;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600; width: 140px;">Mã phản ánh:</td>
+                <td style="padding: 5px 0; font-weight: 800; font-size: 14px; color: #dc2626;">${feedback.feedbackCode}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600;">Họ và tên người dân:</td>
+                <td style="padding: 5px 0; font-weight: 700; color: #0f172a;">${feedback.fullName || 'Người dân'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600;">Số điện thoại:</td>
+                <td style="padding: 5px 0; font-weight: 700; color: #2563eb;">${feedback.phone || 'Chưa cung cấp'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600;">Địa chỉ cư trú:</td>
+                <td style="padding: 5px 0; color: #0f172a;">${feedback.address || 'Chưa cung cấp'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600;">Email người gửi:</td>
+                <td style="padding: 5px 0; color: #0f172a;">${feedback.email || 'Không có'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600;">Lĩnh vực & Tiêu đề:</td>
+                <td style="padding: 5px 0; font-weight: 700; color: #0f172a;">[${feedback.category}] ${feedback.title}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600;">Địa bàn:</td>
+                <td style="padding: 5px 0; color: #334155;">${feedback.departmentId || 'Toàn phường Chánh Hiệp'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-weight: 600;">Thời gian gửi:</td>
+                <td style="padding: 5px 0; color: #334155;">${feedback.createdAt}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Content Box -->
+          <div style="margin: 16px 0;">
+            <p style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">Nội dung chi tiết phản ánh:</p>
+            <div style="background-color: #f1f5f9; border-left: 4px solid #1e3a8a; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; line-height: 1.6; color: #0f172a;">
+              "${feedback.content}"
+            </div>
+          </div>
+
+          <!-- CTA Button -->
+          <div style="text-align: center; margin: 24px 0 16px 0;">
+            <a href="${adminUrl}" target="_blank" style="display: inline-block; background-color: #1e3a8a; color: #ffffff; text-decoration: none; padding: 11px 24px; border-radius: 6px; font-weight: 700; font-size: 13px;">
+              🖥️ ĐĂNG NHẬP VĂN PHÒNG SỐ ĐỂ XỬ LÝ
+            </a>
+          </div>
+
+          <p style="font-size: 12px; color: #64748b; text-align: center; margin-bottom: 0;">
+            Vui lòng phân loại, xác minh và chuyển giao cơ quan thẩm quyền giải quyết theo đúng quy trình tiếp dân.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  private static generateFeedbackStatusChangedHtml(feedback: FeedbackItem, prevStatus: string): string {
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://chanhhiep.binhduong.gov.vn';
+    const trackerUrl = `${appUrl}/#lookup`;
+
+    let statusTitle = '';
+    let statusBgColor = '#3b82f6';
+    let statusBadgeText = '';
+    let statusDescription = '';
+    let badgeBg = '#eff6ff';
+    let badgeColor = '#1d4ed8';
+    let badgeBorder = '#bfdbfe';
+
+    if (feedback.status === 'processing') {
+      statusTitle = 'ĐANG TIẾN HÀNH XỬ LÝ';
+      statusBgColor = '#2563eb';
+      badgeBg = '#eff6ff';
+      badgeColor = '#1d4ed8';
+      badgeBorder = '#bfdbfe';
+      statusBadgeText = '⏳ ĐANG TRONG TIẾN TRÌNH XỬ LÝ';
+      statusDescription = 'Phản ánh của Quý Ông/Bà đã được Ủy ban MTTQ Việt Nam Phường Chánh Hiệp xác minh thông tin và chuyển giao trực tiếp cho cơ quan / bộ phận chuyên môn phối hợp kiểm tra, xử lý theo đúng thẩm quyền.';
+    } else if (feedback.status === 'completed') {
+      statusTitle = 'ĐÃ GIẢI QUYẾT HOÀN THÀNH';
+      statusBgColor = '#16a34a';
+      badgeBg = '#f0fdf4';
+      badgeColor = '#15803d';
+      badgeBorder = '#bbf7d0';
+      statusBadgeText = '✅ ĐÃ GIẢI QUYẾT HOÀN THÀNH';
+      statusDescription = 'Ủy ban MTTQ Việt Nam Phường Chánh Hiệp xin thông báo phản ánh của Quý Ông/Bà đã được đơn vị chuyên môn xử lý hoàn tất và đã được Ban Thường trực nghiệm thu kết quả.';
+    } else if (feedback.status === 'rejected') {
+      statusTitle = 'TỪ CHỐI / CHUYỂN CƠ QUAN KHÁC';
+      statusBgColor = '#dc2626';
+      badgeBg = '#fef2f2';
+      badgeColor = '#b91c1c';
+      badgeBorder = '#fecaca';
+      statusBadgeText = 'ℹ️ THÔNG BÁO TỪ CHỐI / HƯỚNG DẪN DÂN NGUYỆN';
+      statusDescription = 'Phản ánh của Quý Ông/Bà chưa đủ cơ sở giải quyết trực tiếp hoặc không thuộc thẩm quyền xử lý của Ủy ban Nhân dân Phường Chánh Hiệp. Vui lòng xem phản hồi hướng dẫn chi tiết bên dưới.';
+    } else {
+      statusTitle = 'CẬP NHẬT TIẾN ĐỘ PHẢN ÁNH';
+      statusBgColor = '#475569';
+      statusBadgeText = `TRẠNG THÁI MỚI: ${feedback.status.toUpperCase()}`;
+      statusDescription = 'Hệ thống vừa cập nhật tiến độ giải quyết phản ánh dân nguyện của Quý Ông/Bà.';
+    }
+
+    const updateTime = feedback.updatedAt || new Date().toLocaleString('vi-VN');
+
+    return `
+      <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+        <!-- Header Banner -->
+        <div style="background: linear-gradient(135deg, ${statusBgColor} 0%, #0f172a 100%); padding: 24px 20px; text-align: center; color: #ffffff;">
+          <img src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" alt="Logo MTTQ" style="width: 66px; height: 66px; margin-bottom: 8px;" referrerPolicy="no-referrer" />
+          <h1 style="margin: 0; font-size: 17px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #ffffff;">ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM</h1>
+          <h2 style="margin: 4px 0 0 0; font-size: 14px; font-weight: 700; color: #fde047;">PHƯỜNG CHÁNH HIỆP - TP. THỦ DẦU MỘT</h2>
+          <p style="margin: 6px 0 0 0; font-size: 11px; font-style: italic; color: #fef08a;">"Đoàn kết - Dân chủ - Đồng thuận - Phát triển"</p>
+        </div>
+
+        <div style="padding: 24px 22px; color: #334155;">
+          <!-- Status Badge -->
+          <div style="text-align: center; margin-bottom: 20px;">
+            <span style="display: inline-block; background-color: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; padding: 7px 18px; border-radius: 20px; font-weight: 800; font-size: 13px;">
+              ${statusBadgeText}
+            </span>
+          </div>
+
+          <p style="font-size: 15px; font-weight: 600; color: #0f172a; margin-top: 0;">
+            Kính gửi Ông/Bà: <span style="color: #1e40af;">${feedback.fullName || 'Công dân'}</span>,
+          </p>
+
+          <p style="font-size: 14px; line-height: 1.6; color: #334155;">
+            Ban Thường trực Ủy ban MTTQ Việt Nam Phường Chánh Hiệp trân trọng thông báo cập nhật tiến độ giải quyết phản ánh mã số <strong style="color: #dc2626; font-size: 15px;">[ ${feedback.feedbackCode} ]</strong> của Quý Ông/Bà:
+          </p>
+
+          <!-- Summary Table -->
+          <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; margin: 18px 0;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600; width: 140px;">Mã phản ánh:</td>
+                <td style="padding: 6px 0; font-weight: 800; font-size: 15px; color: #dc2626;">${feedback.feedbackCode}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Tiêu đề:</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #0f172a;">${feedback.title}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Lĩnh vực:</td>
+                <td style="padding: 6px 0; color: #334155;">${feedback.category}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Trạng thái cập nhật:</td>
+                <td style="padding: 6px 0;">
+                  <span style="background-color: ${badgeBg}; color: ${badgeColor}; padding: 4px 12px; border-radius: 12px; font-weight: 800; font-size: 12px;">
+                    ${statusTitle}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Thời điểm cập nhật:</td>
+                <td style="padding: 6px 0; color: #475569;">${updateTime}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Description / Response Box -->
+          <div style="margin: 20px 0;">
+            <p style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Nội dung thông báo / Tiến độ giải quyết:</p>
+            <div style="background-color: #f1f5f9; border-left: 4px solid ${statusBgColor}; padding: 14px 16px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.6; color: #0f172a;">
+              ${statusDescription}
+            </div>
+          </div>
+
+          ${feedback.adminResponse ? `
+            <!-- Admin Response Box -->
+            <div style="margin: 20px 0;">
+              <p style="font-size: 13px; font-weight: 700; color: #15803d; margin-bottom: 8px;">📋 Kết quả trả lời / Văn bản phản hồi chính thức:</p>
+              <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; padding: 14px 16px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.6; color: #14532d; font-weight: 500;">
+                ${feedback.adminResponse.replace(/\n/g, '<br/>')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- CTA Button -->
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; margin: 22px 0; text-align: center;">
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #475569;">
+              Quý Ông/Bà có thể tra cứu thông tin chi tiết và đính kèm văn bản trả lời trên Cổng điện tử:
+            </p>
+            <a href="${trackerUrl}" target="_blank" style="display: inline-block; background-color: ${statusBgColor}; color: #ffffff; text-decoration: none; padding: 10px 22px; border-radius: 6px; font-weight: 700; font-size: 13px;">
+              🔍 TRA CỨU CHI TIẾT PHẢN HỒI
+            </a>
+          </div>
+
+          <!-- Signature -->
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0 16px 0;" />
+          <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
+            <p style="font-weight: 700; color: #1e293b; margin: 0 0 4px 0; font-size: 13px;">BAN THƯỜNG TRỰC UỶ BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP</p>
+            <p style="margin: 0;">📍 Khu phố 1, Phường Chánh Hiệp, TP. Thủ Dầu Một, Tỉnh Bình Dương</p>
+            <p style="margin: 0;">✉️ <strong>Email chính thức:</strong> <a href="mailto:mttqvietnamphuongchanhhiep@gmail.com" style="color: #2563eb; text-decoration: none;">mttqvietnamphuongchanhhiep@gmail.com</a></p>
+          </div>
+        </div>
+
+        <div style="background-color: #f1f5f9; padding: 12px 20px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+          Thư này được gửi tự động từ Cổng thông tin điện tử Văn phòng số MTTQ Phường Chánh Hiệp.
+        </div>
+      </div>
+    `;
+  }
+
+  /**
    * Event 5: FEEDBACK_SUBMITTED
    */
   static async notifyFeedbackSubmitted(feedback: FeedbackItem): Promise<void> {
@@ -500,28 +841,7 @@ export class NotificationService {
 
     const eventKey = `FEEDBACK_SUBMITTED_${feedback.id}`;
     const subject = `[MTTQ CHÁNH HIỆP] Có phản ánh dân nguyện mới: ${feedback.feedbackCode}`;
-    const body = `
-      Kính gửi Tổ Tiếp nhận Ý kiến Dân sinh,
-      
-      Hệ thống vừa tiếp nhận phản ánh mới từ người dân trên địa bàn:
-      
-      - Mã tiếp nhận: ${feedback.feedbackCode}
-      - Lĩnh vực: ${feedback.category}
-      - Tiêu đề: ${feedback.title}
-      - Địa bàn: ${feedback.departmentId || 'Toàn phường'}
-      - Người phản ánh: ${feedback.fullName || 'Người dân ẩn danh'}
-      - Điện thoại: ${feedback.phone || 'Ẩn danh'}
-      - Email: ${feedback.email || 'Không có'}
-      - Thời gian gửi: ${feedback.createdAt}
-      
-      Nội dung phản ánh:
-      "${feedback.content}"
-      
-      Vui lòng kiểm tra, phân loại và chuyển đơn vị có thẩm quyền để kịp thời giải quyết cho nhân dân.
-      
-      Trân trọng,
-      Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp
-    `;
+    const officerHtml = this.generateFeedbackOfficerNoticeHtml(feedback);
 
     // Determine target emails (standard feedback officer emails + optionally category routed emails)
     const targetEmails = new Set<string>(settings.feedbackEmails);
@@ -539,28 +859,15 @@ export class NotificationService {
         email,
         'Cán bộ Tiếp dân',
         subject,
-        body,
+        officerHtml,
         { feedback }
       );
     }
 
     // Send an acknowledgement receipt email to the citizen if they provided a valid email
     if (feedback.email && feedback.email.trim().includes('@')) {
-      const receiptSubject = `Đã tiếp nhận phản ánh ${feedback.feedbackCode}`;
-      const receiptBody = `
-Kính gửi Quý Ông/Bà ${feedback.fullName || 'Công dân'},
-
-Hệ thống Cổng thông tin Mặt trận Tổ quốc Phường Chánh Hiệp đã tiếp nhận phản ánh của Quý Ông/Bà.
-
-- Mã phản ánh: ${feedback.feedbackCode}
-- Nội dung: ${feedback.content}
-- Trạng thái: Đã tiếp nhận
-
-Vui lòng lưu mã phản ánh để theo dõi tiến độ xử lý trên Cổng thông tin Mặt trận Tổ quốc Phường Chánh Hiệp.
-
-Trân trọng,
-Ban Thường trực Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
-      `;
+      const receiptSubject = `[MTTQ CHÁNH HIỆP] Đã tiếp nhận phản ánh mã số [${feedback.feedbackCode}]`;
+      const receiptHtml = this.generateFeedbackReceiptHtml(feedback);
 
       await this.sendEmail(
         'FEEDBACK_RECEIPT',
@@ -570,7 +877,7 @@ Ban Thường trực Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
         feedback.email,
         feedback.fullName || 'Người dân',
         receiptSubject,
-        receiptBody,
+        receiptHtml,
         { feedback }
       );
     }
@@ -602,43 +909,9 @@ Ban Thường trực Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
     if (!feedback.email || !feedback.email.trim().includes('@')) return;
 
     const eventKey = `FEEDBACK_STATUS_CHANGED_${feedback.id}_${feedback.status}`;
-    const subject = `[MTTQ CHÁNH HIỆP] Cập nhật tiến độ xử lý phản ánh [${feedback.feedbackCode}]`;
-
-    let statusLabel: string = feedback.status;
-    let description = '';
-
-    if (feedback.status === 'processing') {
-      statusLabel = 'Đang xử lý (processing)';
-      description = 'Phản ánh của bạn đã được xác minh và chuyển đến bộ phận chuyên môn của Ủy ban Nhân dân Phường Chánh Hiệp để trực tiếp giải quyết.';
-    } else if (feedback.status === 'completed') {
-      statusLabel = 'Đã hoàn thành (completed)';
-      description = 'Yêu cầu/Phản ánh của bạn đã được giải quyết triệt để. Ban Thường trực Mặt trận Tổ quốc đã nghiệm thu kết quả xử lý của các bên liên quan.';
-    } else if (feedback.status === 'rejected') {
-      statusLabel = 'Từ chối giải quyết (rejected)';
-      description = 'Rất tiếc, phản ánh của bạn chưa đủ cơ sở giải quyết hoặc không thuộc thẩm quyền xử lý của UBND Phường Chánh Hiệp.';
-    } else {
-      return; // No need to notify on other state transitions
-    }
-
-    const body = `
-      Chào ${feedback.fullName},
-      
-      Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp xin thông báo tiến độ giải quyết phản ánh mã số [ ${feedback.feedbackCode} ] của bạn:
-      
-      - Tiêu đề phản ánh: ${feedback.title}
-      - Trạng thái mới: ${statusLabel}
-      - Thời gian cập nhật: ${new Date().toLocaleString()}
-      
-      Chi tiết nội dung cập nhật:
-      ${description}
-      
-      Bạn có thể truy cập Cổng thông tin MTTQ Phường Chánh Hiệp và sử dụng mã tra cứu [ ${feedback.feedbackCode} ] để xem phản hồi chính thức đầy đủ và kết quả nghiệm thu từ cơ quan chức năng.
-      
-      Trân trọng cảm ơn ý kiến đóng góp kịp thời của bạn.
-      
-      Trân trọng,
-      Ban Thường trực MTTQ Phường Chánh Hiệp
-    `;
+    const statusLabel = feedback.status === 'processing' ? 'Đang xử lý' : feedback.status === 'completed' ? 'Đã giải quyết hoàn thành' : feedback.status === 'rejected' ? 'Thông báo từ chối / Hướng dẫn' : feedback.status;
+    const subject = `[MTTQ CHÁNH HIỆP] Tiến độ giải quyết phản ánh [${feedback.feedbackCode}] - ${statusLabel}`;
+    const statusHtml = this.generateFeedbackStatusChangedHtml(feedback, prevStatus);
 
     await this.sendEmail(
       'FEEDBACK_STATUS_CHANGED',
@@ -648,7 +921,7 @@ Ban Thường trực Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
       feedback.email,
       feedback.fullName,
       subject,
-      body,
+      statusHtml,
       { feedback, prevStatus }
     );
 

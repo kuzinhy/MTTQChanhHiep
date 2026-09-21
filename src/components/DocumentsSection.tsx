@@ -23,7 +23,61 @@ import {
 interface DocumentsSectionProps {
   documents: OfficialDocument[];
   onSelectDocument: (doc: OfficialDocument) => void;
+  isLoading?: boolean;
 }
+
+export const DocumentCardMobileSkeleton: React.FC = () => {
+  return (
+    <div className="p-4 space-y-3 animate-pulse border-b border-slate-100">
+      <div className="flex items-center justify-between">
+        <div className="h-4 w-24 bg-slate-200 rounded" />
+        <div className="h-4 w-16 bg-slate-200 rounded" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-full bg-slate-300 rounded" />
+        <div className="h-3 w-5/6 bg-slate-200 rounded" />
+      </div>
+      <div className="flex items-center justify-between pt-1">
+        <div className="h-3 w-20 bg-slate-200 rounded" />
+        <div className="flex gap-2">
+          <div className="h-6 w-16 bg-slate-200 rounded-lg" />
+          <div className="h-6 w-16 bg-slate-300 rounded-lg" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const DocumentRowSkeleton: React.FC = () => {
+  return (
+    <tr className="animate-pulse border-b border-slate-100">
+      <td className="p-4">
+        <div className="h-4 w-24 bg-slate-200 rounded" />
+      </td>
+      <td className="p-4 space-y-2">
+        <div className="h-4 w-full bg-slate-300 rounded" />
+        <div className="h-3 w-3/4 bg-slate-200 rounded" />
+      </td>
+      <td className="p-4 space-y-1">
+        <div className="h-4 w-20 bg-slate-200 rounded" />
+        <div className="h-3 w-28 bg-slate-200 rounded" />
+      </td>
+      <td className="p-4">
+        <div className="h-4 w-20 bg-slate-200 rounded" />
+      </td>
+      <td className="p-4 space-y-1">
+        <div className="h-4 w-28 bg-slate-200 rounded" />
+        <div className="h-3 w-20 bg-slate-200 rounded" />
+      </td>
+      <td className="p-4 text-right">
+        <div className="inline-flex gap-2">
+          <div className="h-7 w-20 bg-slate-200 rounded-xl" />
+          <div className="h-7 w-16 bg-slate-300 rounded-xl" />
+        </div>
+      </td>
+    </tr>
+  );
+};
 
 const FIELDS = [
   'ALL',
@@ -35,7 +89,11 @@ const FIELDS = [
   'Xây dựng chính quyền'
 ];
 
-export const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onSelectDocument }) => {
+export const DocumentsSection: React.FC<DocumentsSectionProps> = ({ 
+  documents, 
+  onSelectDocument,
+  isLoading = false
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const [selectedField, setSelectedField] = useState<string>('ALL');
@@ -197,7 +255,11 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, o
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         {/* Mobile Cards View (< md) */}
         <div className="block md:hidden divide-y divide-slate-100">
-          {filteredDocs.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, idx) => (
+              <DocumentCardMobileSkeleton key={`doc-mobile-skel-${idx}`} />
+            ))
+          ) : filteredDocs.length === 0 ? (
             <div className="p-8 text-center text-slate-500 text-xs">
               <FileText className="w-10 h-10 mx-auto text-slate-300 mb-2" />
               <p className="font-bold text-slate-700">Không tìm thấy văn bản phù hợp.</p>
@@ -276,7 +338,11 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, o
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800 font-medium">
-              {filteredDocs.length === 0 ? (
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <DocumentRowSkeleton key={`doc-row-skel-${idx}`} />
+                ))
+              ) : filteredDocs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-slate-400">
                     <FileText className="w-10 h-10 mx-auto text-slate-300 mb-2" />

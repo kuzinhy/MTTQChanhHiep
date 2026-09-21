@@ -71,7 +71,22 @@ service cloud.firestore {
     }
 
     match /notifications/{notiId} {
-      allow read, write: if isAuthenticated();
+      allow read: if true;
+      allow create, delete: if isAuthenticated();
+      allow update: if isAuthenticated() || 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read_by', 'read_count', 'updated_at']);
+    }
+
+    match /notification_reads/{userOrDeviceId} {
+      allow read, write: if true;
+    }
+
+    match /push_subscriptions/{subId} {
+      allow read, write: if true;
+    }
+
+    match /notification_preferences/{prefId} {
+      allow read, write: if true;
     }
 
     match /email_logs/{logId} {

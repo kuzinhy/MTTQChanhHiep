@@ -21,19 +21,22 @@ import {
   ArrowUpRight,
   CheckCircle,
   FileText,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 
 interface PendingOpinionsSummaryWidgetProps {
   opinions: PublicOpinion[];
   onNavigateToOpinions?: () => void;
   onUpdateOpinionStatus?: (id: string, status: OpinionStatus, responseText?: string) => void;
+  onDeleteOpinion?: (id: string) => void;
 }
 
 export const PendingOpinionsSummaryWidget: React.FC<PendingOpinionsSummaryWidgetProps> = ({
   opinions = [],
   onNavigateToOpinions,
-  onUpdateOpinionStatus
+  onUpdateOpinionStatus,
+  onDeleteOpinion
 }) => {
   const [filterType, setFilterType] = useState<'ALL_PENDING' | 'URGENT' | 'NEW' | 'PROCESSING'>('ALL_PENDING');
   const [selectedOpinionForQuickResponse, setSelectedOpinionForQuickResponse] = useState<PublicOpinion | null>(null);
@@ -409,6 +412,21 @@ export const PendingOpinionsSummaryWidget: React.FC<PendingOpinionsSummaryWidget
                       <Send className="w-3.5 h-3.5" />
                       <span>Xử lý &amp; Phản hồi</span>
                     </button>
+
+                    {onDeleteOpinion && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Bạn có chắc chắn muốn xóa phản ánh [${op.receiptCode || op.id}] không?`)) {
+                            onDeleteOpinion(op.id);
+                          }
+                        }}
+                        className="px-2.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Xóa phản ánh"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                        <span className="hidden sm:inline">Xóa</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               );

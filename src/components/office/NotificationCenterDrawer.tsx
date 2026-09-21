@@ -19,6 +19,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
 }) => {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'UNREAD'>('ALL');
+  const [selectedDetailNotif, setSelectedDetailNotif] = useState<AdminNotification | null>(null);
 
   useEffect(() => {
     if (!isOpen || !currentAdmin?.id) return;
@@ -56,6 +57,8 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
     if (onNavigateToEntity && notif.entityType) {
       onClose();
       onNavigateToEntity(notif.entityType, notif.entityId, notif.route);
+    } else {
+      setSelectedDetailNotif(notif);
     }
   };
 
@@ -101,7 +104,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-xl text-blue-200 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -113,7 +116,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
             <div className="flex items-center gap-1 bg-slate-200 p-1 rounded-xl">
               <button
                 onClick={() => setFilter('ALL')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                   filter === 'ALL'
                     ? 'bg-white text-indigo-900 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -123,7 +126,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
               </button>
               <button
                 onClick={() => setFilter('UNREAD')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                   filter === 'UNREAD'
                     ? 'bg-white text-indigo-900 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -159,7 +162,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
           </div>
 
           {/* List of notifications */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {filteredList.length === 0 ? (
               <div className="text-center py-12 text-slate-400 text-xs">
                 {filter === 'UNREAD'
@@ -174,7 +177,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
                     onClick={() => handleItemClick(notif)}
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
                       !notif.isRead
-                        ? 'bg-blue-50/70 border-blue-200 shadow-2xs hover:bg-blue-100/80'
+                        ? 'bg-blue-50/80 border-blue-200 shadow-xs hover:bg-blue-100/80'
                         : 'bg-white border-slate-200 hover:bg-slate-50'
                     }`}
                   >
@@ -191,27 +194,38 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
                         )}
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-slate-900 group-hover:text-blue-700 transition-colors truncate">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-xs font-black text-slate-900 group-hover:text-blue-700 transition-colors leading-snug break-words">
                             {notif.title}
                           </span>
-                          <span className="text-[10px] text-slate-400 shrink-0 font-medium">
+                          <span className="text-[10px] text-slate-400 shrink-0 font-medium whitespace-nowrap">
                             {getTimeAgoText(notif.createdAt)}
                           </span>
                         </div>
 
-                        <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                        <div className="text-xs text-slate-700 leading-relaxed break-words whitespace-pre-wrap max-h-32 overflow-y-auto pr-1">
                           {notif.message}
-                        </p>
+                        </div>
 
-                        <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500">
-                          <span className="inline-flex items-center gap-1 font-bold text-slate-600 uppercase">
+                        {notif.details && (
+                          <div className="p-2 bg-slate-100/90 rounded-xl text-[11px] text-slate-800 border border-slate-200 break-words whitespace-pre-wrap max-h-28 overflow-y-auto pr-1">
+                            {notif.details}
+                          </div>
+                        )}
+
+                        <div className="pt-1.5 flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="inline-flex items-center gap-1 font-extrabold text-slate-600 uppercase">
                             {getCategoryIcon(notif.entityType)}
                             <span>{getCategoryBadge(notif.entityType)}</span>
+                            {notif.actorName && (
+                              <span className="normal-case font-normal text-slate-400">
+                                • bởi <strong className="text-slate-700">{notif.actorName}</strong>
+                              </span>
+                            )}
                           </span>
 
-                          <span className="text-blue-600 font-extrabold flex items-center gap-0.5 group-hover:underline">
+                          <span className="text-blue-600 font-extrabold flex items-center gap-0.5 group-hover:underline shrink-0">
                             <span>Chi tiết</span>
                             <ExternalLink className="w-3 h-3" />
                           </span>
@@ -225,11 +239,96 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
           </div>
 
           {/* Footer info */}
-          <div className="p-3.5 border-t border-slate-200 bg-slate-50 text-[11px] text-slate-500 text-center">
-            Trung tâm thông báo đồng bộ Firestore realtime &amp; BroadcastChannel.
+          <div className="p-3.5 border-t border-slate-200 bg-slate-50 text-[11px] text-slate-500 text-center font-medium">
+            Ủy ban MTTQ Việt Nam Phường Chánh Hiệp • Trung tâm thông báo đồng bộ realtime.
           </div>
         </motion.div>
       </div>
+
+      {/* DETAIL MODAL IF CLICKED */}
+      {selectedDetailNotif && (
+        <div className="fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-100 text-blue-700 rounded-xl">
+                  <Bell className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-slate-900">Chi tiết Thông báo Hoạt động</h3>
+                  <p className="text-[11px] text-slate-500">
+                    {selectedDetailNotif.createdAt ? new Date(selectedDetailNotif.createdAt).toLocaleString('vi-VN') : 'Mới đây'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedDetailNotif(null)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400">Tiêu đề</label>
+                <p className="text-sm font-bold text-slate-900 mt-0.5 break-words">{selectedDetailNotif.title}</p>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400">Nội dung thông báo</label>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-800 leading-relaxed whitespace-pre-wrap break-words max-h-60 overflow-y-auto mt-0.5">
+                  {selectedDetailNotif.message}
+                </div>
+              </div>
+
+              {selectedDetailNotif.details && (
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400">Thông tin bổ sung / Chi tiết tác vụ</label>
+                  <div className="p-3 bg-blue-50 rounded-2xl border border-blue-200 text-xs text-blue-900 leading-relaxed whitespace-pre-wrap break-words max-h-48 overflow-y-auto mt-0.5 font-medium">
+                    {selectedDetailNotif.details}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block">Người thực hiện</span>
+                  <span className="font-bold text-slate-800 break-words">{selectedDetailNotif.actorName || 'Hệ thống'}</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block">Phân loại thực thể</span>
+                  <span className="font-bold text-blue-700 uppercase break-words">{getCategoryBadge(selectedDetailNotif.entityType)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              {selectedDetailNotif.entityType && onNavigateToEntity ? (
+                <button
+                  onClick={() => {
+                    const notif = selectedDetailNotif;
+                    setSelectedDetailNotif(null);
+                    onClose();
+                    onNavigateToEntity(notif.entityType!, notif.entityId, notif.route);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Đi tới mục liên quan</span>
+                </button>
+              ) : <div />}
+
+              <button
+                onClick={() => setSelectedDetailNotif(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AnimatePresence>
   );
 };

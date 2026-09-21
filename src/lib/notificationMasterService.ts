@@ -12,16 +12,41 @@ import {
   orderBy, 
   limit, 
   onSnapshot,
-  Timestamp 
+  Timestamp,
+  arrayUnion,
+  arrayRemove,
+  increment 
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { NotificationItem, NotificationRecipient, NotificationPreference, PushSubscriptionRecord } from '../types';
+import { NotificationItem, NotificationRecipient, NotificationPreference, PushSubscriptionRecord, NotificationReadRecord } from '../types';
 
 const NOTIFICATIONS_COLLECTION = 'notifications';
 const SUBSCRIPTIONS_COLLECTION = 'push_subscriptions';
 const RECIPIENTS_COLLECTION = 'notification_recipients';
 const PREFERENCES_COLLECTION = 'notification_preferences';
 const LOGS_COLLECTION = 'notification_logs';
+const READ_STATES_COLLECTION = 'notification_reads';
+
+// Device ID management for syncing cross-device even without login
+export const getDeviceId = (): string => {
+  try {
+    let deviceId = localStorage.getItem('mttq_device_id');
+    if (!deviceId) {
+      deviceId = 'dev_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
+      localStorage.setItem('mttq_device_id', deviceId);
+    }
+    return deviceId;
+  } catch {
+    return 'dev_fallback_' + Date.now().toString(36);
+  }
+};
+
+export const getTargetReadId = (userId?: string): string => {
+  if (userId && userId.trim()) {
+    return `user_${userId.trim().replace(/[\/\s]/g, '_')}`;
+  }
+  return `device_${getDeviceId()}`;
+};
 
 // BroadcastChannel for multi-tab sync
 const notificationChannel = new BroadcastChannel('mttq_chanh_hiep_notifications');
@@ -270,5 +295,248 @@ export const notificationMasterService = {
       }
     }
     return count;
+  },
+
+  // =========================================================================
+  // FIREBASE REALTIME READ STATUS SYNCHRONIZATION
+  // =========================================================================
+
+  getLocalReadIds(targetId: string): string[] {
+    try {
+      const stored = localStorage.getItem(`mttq_read_ids_${targetId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      // Fallback legacy storage
+      const legacy = localStorage.getItem('mttq_read_notifications');
+      if (legacy) {
+        const parsed = JSON.parse(legacy);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('[NotificationService] Failed reading local read ids:', e);
+    }
+    return [];
+  },
+
+  saveLocalReadIds(targetId: string, ids: string[]) {
+    try {
+      const unique = Array.from(new Set(ids));
+      localStorage.setItem(`mttq_read_ids_${targetId}`, JSON.stringify(unique));
+      localStorage.setItem('mttq_read_notifications', JSON.stringify(unique));
+    } catch (e) {
+      console.warn('[NotificationService] Failed saving local read ids:', e);
+    }
+  },
+
+  subscribeToReadStatus(
+    targetId: string,
+    callback: (readIds: string[]) => void
+  ): (() => void) {
+    // 1. Trigger initial callback with local cached state
+    const initialIds = this.getLocalReadIds(targetId);
+    callback(initialIds);
+
+    // 2. Listen to cross-tab BroadcastChannel
+    const bcHandler = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'READ_STATUS_SYNC' && event.data.targetId === targetId) {
+        callback(event.data.readIds);
+      }
+    };
+    notificationChannel.addEventListener('message', bcHandler);
+
+    // 3. Listen to Firebase Firestore for cross-device real-time sync
+    let unsubFirestore: (() => void) | null = null;
+    try {
+      const docRef = doc(db, READ_STATES_COLLECTION, targetId);
+      unsubFirestore = onSnapshot(
+        docRef,
+        (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const remoteIds: string[] = Array.isArray(data?.readNotificationIds)
+              ? data.readNotificationIds
+              : [];
+            this.saveLocalReadIds(targetId, remoteIds);
+            callback(remoteIds);
+          } else if (initialIds.length > 0) {
+            // Seed Firestore with local state if document does not exist yet
+            setDoc(docRef, {
+              targetId,
+              readNotificationIds: initialIds,
+              updatedAt: new Date().toISOString()
+            }, { merge: true }).catch((err) => {
+              console.warn('[NotificationService] Initial seed read status failed:', err);
+            });
+          }
+        },
+        (error) => {
+          console.warn('[NotificationService] Read status snapshot warning (using local fallback):', error);
+          callback(this.getLocalReadIds(targetId));
+        }
+      );
+    } catch (err) {
+      console.warn('[NotificationService] Firestore read subscription error:', err);
+    }
+
+    return () => {
+      notificationChannel.removeEventListener('message', bcHandler);
+      if (unsubFirestore) {
+        unsubFirestore();
+      }
+    };
+  },
+
+  async markAsRead(notificationId: string, targetId: string): Promise<void> {
+    const current = this.getLocalReadIds(targetId);
+    if (!current.includes(notificationId)) {
+      const updated = [...current, notificationId];
+      this.saveLocalReadIds(targetId, updated);
+      
+      try {
+        notificationChannel.postMessage({
+          type: 'READ_STATUS_SYNC',
+          targetId,
+          readIds: updated
+        });
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    // Write to Firestore for cross-device persistence
+    try {
+      const docRef = doc(db, READ_STATES_COLLECTION, targetId);
+      await setDoc(
+        docRef,
+        {
+          targetId,
+          readNotificationIds: arrayUnion(notificationId),
+          updatedAt: new Date().toISOString()
+        },
+        { merge: true }
+      );
+
+      // Track read_by on the notification item
+      try {
+        const notifRef = doc(db, NOTIFICATIONS_COLLECTION, notificationId);
+        await updateDoc(notifRef, {
+          read_by: arrayUnion(targetId),
+          read_count: increment(1),
+          updated_at: new Date().toISOString()
+        });
+      } catch (e) {
+        // Safe to ignore if item is seed or rules don't permit
+      }
+    } catch (err) {
+      console.warn('[NotificationService] Firestore markAsRead sync error:', err);
+    }
+  },
+
+  async markAsUnread(notificationId: string, targetId: string): Promise<void> {
+    const current = this.getLocalReadIds(targetId);
+    const updated = current.filter((id) => id !== notificationId);
+    this.saveLocalReadIds(targetId, updated);
+
+    try {
+      notificationChannel.postMessage({
+        type: 'READ_STATUS_SYNC',
+        targetId,
+        readIds: updated
+      });
+    } catch (e) {
+      console.warn(e);
+    }
+
+    // Write to Firestore
+    try {
+      const docRef = doc(db, READ_STATES_COLLECTION, targetId);
+      await updateDoc(docRef, {
+        readNotificationIds: arrayRemove(notificationId),
+        updatedAt: new Date().toISOString()
+      });
+
+      try {
+        const notifRef = doc(db, NOTIFICATIONS_COLLECTION, notificationId);
+        await updateDoc(notifRef, {
+          read_by: arrayRemove(targetId),
+          updated_at: new Date().toISOString()
+        });
+      } catch (e) {
+        // Safe ignore
+      }
+    } catch (err) {
+      console.warn('[NotificationService] Firestore markAsUnread sync error:', err);
+    }
+  },
+
+  async markAllAsRead(notificationIds: string[], targetId: string): Promise<void> {
+    const current = this.getLocalReadIds(targetId);
+    const combined = Array.from(new Set([...current, ...notificationIds]));
+    this.saveLocalReadIds(targetId, combined);
+
+    try {
+      notificationChannel.postMessage({
+        type: 'READ_STATUS_SYNC',
+        targetId,
+        readIds: combined
+      });
+    } catch (e) {
+      console.warn(e);
+    }
+
+    // Write to Firestore
+    try {
+      const docRef = doc(db, READ_STATES_COLLECTION, targetId);
+      await setDoc(
+        docRef,
+        {
+          targetId,
+          readNotificationIds: combined,
+          updatedAt: new Date().toISOString()
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('[NotificationService] Firestore markAllAsRead sync error:', err);
+    }
+  },
+
+  getDeviceId(): string {
+    return getDeviceId();
+  },
+
+  getTargetReadId(userId?: string): string {
+    return getTargetReadId(userId);
+  },
+
+  async markAllAsUnread(targetId: string): Promise<void> {
+    this.saveLocalReadIds(targetId, []);
+
+    try {
+      notificationChannel.postMessage({
+        type: 'READ_STATUS_SYNC',
+        targetId,
+        readIds: []
+      });
+    } catch (e) {
+      console.warn(e);
+    }
+
+    try {
+      const docRef = doc(db, READ_STATES_COLLECTION, targetId);
+      await setDoc(
+        docRef,
+        {
+          targetId,
+          readNotificationIds: [],
+          updatedAt: new Date().toISOString()
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('[NotificationService] Firestore markAllAsUnread sync error:', err);
+    }
   }
 };

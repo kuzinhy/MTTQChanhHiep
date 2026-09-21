@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { ShieldCheck, Sparkles, Cpu, Globe, Database, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  ShieldCheck, 
+  Sparkles, 
+  Cpu, 
+  Globe, 
+  Database, 
+  CheckCircle2, 
+  ArrowRight,
+  Wifi,
+  Layers,
+  Lock
+} from 'lucide-react';
 import { OptimizedImage } from './common/OptimizedImage';
 import { bootstrapManager, BootstrapState } from '../lib/AppBootstrapManager';
 
@@ -11,20 +22,33 @@ interface PageLoaderProps {
 export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
   const [state, setState] = useState<BootstrapState>(() => ({
     status: 'idle',
-    progress: 5,
-    currentTask: 'Khởi tạo hệ thống...',
+    progress: 10,
+    currentTask: 'Khởi tạo hệ thống quản trị MTTQ...',
     ready: false,
     error: null,
   }));
 
+  const [isFinishing, setIsFinishing] = useState(false);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
+    let safetyTimer: NodeJS.Timeout;
+
+    // Safety fallback: Never keep user waiting longer than 2.5 seconds
+    safetyTimer = setTimeout(() => {
+      setIsFinishing(true);
+      setTimeout(() => {
+        if (onLoaded) onLoaded();
+      }, 350);
+    }, 2500);
+
     const unsubscribe = bootstrapManager.subscribe((newState) => {
       setState(newState);
-      if (newState.ready) {
+      if (newState.ready || newState.progress >= 100) {
+        setIsFinishing(true);
         timer = setTimeout(() => {
           if (onLoaded) onLoaded();
-        }, 300);
+        }, 400);
       }
     });
 
@@ -33,145 +57,202 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
     return () => {
       unsubscribe();
       if (timer) clearTimeout(timer);
+      if (safetyTimer) clearTimeout(safetyTimer);
     };
-  }, []);
+  }, [onLoaded]);
+
+  const handleSkip = () => {
+    setIsFinishing(true);
+    if (onLoaded) onLoaded();
+  };
 
   const { progress, currentTask, statusText = currentTask } = state;
-  const activeStep = progress < 25 ? 1 : progress < 85 ? 2 : 4;
+
+  // Milestone check logic
+  const steps = [
+    { id: 1, label: 'Lõi PWA', min: 15, icon: Cpu },
+    { id: 2, label: 'CSDL Cloud', min: 45, icon: Database },
+    { id: 3, label: 'Dữ liệu Tin tức', min: 75, icon: Globe },
+    { id: 4, label: 'Sẵn sàng', min: 95, icon: CheckCircle2 }
+  ];
 
   return (
-    <motion.div
-      initial={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 1.02, filter: 'blur(8px)', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
-      className="fixed inset-0 z-[9999] bg-gradient-to-b from-[#0a45d1] via-[#072db5] to-[#031568] text-white flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-hidden antialiased"
-    >
-      {/* High-Tech Radar HUD Background Layers */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-90">
-        {/* Central Radial Luminescence */}
-        <div className="absolute w-[35rem] h-[35rem] sm:w-[50rem] sm:h-[50rem] bg-cyan-400/25 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute w-[20rem] h-[20rem] bg-blue-500/30 rounded-full blur-[70px]" />
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
+        exit={{ 
+          opacity: 0, 
+          scale: 1.03, 
+          filter: 'blur(10px)', 
+          transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } 
+        }}
+        className="fixed inset-0 z-[99999] bg-slate-950/90 backdrop-blur-[10px] text-white flex flex-col items-center justify-between p-4 sm:p-8 select-none overflow-hidden antialiased"
+        style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+      >
+        {/* Background Ambient Glow & Grid Pattern */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Subtle Radial Gradients */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] sm:w-[55rem] sm:h-[55rem] bg-gradient-to-tr from-blue-700/20 via-cyan-500/15 to-indigo-700/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]" />
 
-        {/* Concentric Radar Ring 1 (Dashed Outer) */}
-        <div className="absolute w-[38rem] h-[38rem] sm:w-[56rem] sm:h-[56rem] rounded-full border border-cyan-300/30 border-dashed animate-spin" style={{ animationDuration: '60s' }} />
+          {/* Precision Dot/Grid Matrix Background */}
+          <div 
+            className="absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)`,
+              backgroundSize: '32px 32px'
+            }}
+          />
 
-        {/* Concentric Radar Ring 2 (Glowing HUD Circle) */}
-        <div className="absolute w-[32rem] h-[32rem] sm:w-[46rem] sm:h-[46rem] rounded-full border-2 border-cyan-400/40 shadow-[0_0_40px_rgba(34,211,238,0.4)] animate-spin" style={{ animationDirection: 'reverse', animationDuration: '40s' }} />
-
-        {/* Concentric Radar Ring 3 (Dot Matrix Ring) */}
-        <div className="absolute w-[26rem] h-[26rem] sm:w-[36rem] sm:h-[36rem] rounded-full border border-dotted border-cyan-200/70 animate-spin" style={{ animationDuration: '25s' }} />
-
-        {/* Concentric Radar Ring 4 (Inner High-Precision Ring) */}
-        <div className="absolute w-[20rem] h-[20rem] sm:w-[26rem] sm:h-[26rem] rounded-full border border-cyan-300/50" />
-
-        {/* Concentric Radar Ring 5 (Core Command Ring) */}
-        <div className="absolute w-[14rem] h-[14rem] sm:w-[18rem] sm:h-[18rem] rounded-full border-2 border-cyan-200/80 bg-cyan-500/15 backdrop-blur-xs shadow-[0_0_25px_rgba(34,211,238,0.5)]" />
-
-        {/* Scanning Laser Beam Line */}
-        <div className="absolute w-[32rem] h-[32rem] sm:w-[46rem] sm:h-[46rem] rounded-full animate-spin pointer-events-none opacity-40" style={{ animationDuration: '8s' }}>
-          <div className="absolute top-0 left-1/2 w-0.5 h-1/2 bg-gradient-to-b from-transparent via-cyan-300 to-white shadow-[0_0_15px_#22d3ee]" />
+          {/* Elegant Circular Rings for subtle depth */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] sm:w-[42rem] sm:h-[42rem] rounded-full border border-blue-500/15 animate-spin" style={{ animationDuration: '90s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[24rem] h-[24rem] sm:w-[32rem] sm:h-[32rem] rounded-full border border-dashed border-cyan-400/20 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '60s' }} />
         </div>
 
-        {/* Glowing Particle Flares on HUD Rings */}
-        <div className="absolute w-[32rem] h-[32rem] sm:w-[46rem] sm:h-[46rem] animate-spin" style={{ animationDuration: '30s' }}>
-          <div className="absolute top-4 left-1/4 w-4 h-4 bg-white rounded-full shadow-[0_0_25px_#fff,0_0_40px_#22d3ee]" />
-          <div className="absolute bottom-6 right-1/4 w-3.5 h-3.5 bg-cyan-200 rounded-full shadow-[0_0_20px_#fff]" />
-          <div className="absolute right-8 top-1/3 w-3 h-3 bg-white rounded-full shadow-[0_0_15px_#22d3ee]" />
-        </div>
-      </div>
-
-      {/* Main Transparent Command Center Card */}
-      <div className="relative z-10 max-w-lg w-full bg-transparent border-0 rounded-3xl p-6 sm:p-8 text-center space-y-6">
-        
-        {/* Top Floating Badge */}
-        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-cyan-500/20 border border-cyan-300/40 text-cyan-200 text-[9px] sm:text-[10.5px] font-black tracking-wider uppercase shadow-md mx-auto whitespace-nowrap flex-nowrap shrink-0">
-          <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center border border-yellow-300 shadow-xs shrink-0">
-            <span className="text-[10px] text-yellow-300 font-black leading-none">★</span>
+        {/* Top Header Bar */}
+        <header className="relative z-10 w-full max-w-4xl flex items-center justify-between gap-4 pt-2">
+          {/* Organization Badge */}
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-lg">
+            <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center border border-yellow-400/70 shadow-xs shrink-0">
+              <span className="text-[11px] text-yellow-300 font-black leading-none">★</span>
+            </div>
+            <span className="text-[11px] sm:text-xs font-bold text-slate-200 tracking-wide">
+              Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
+            </span>
           </div>
-          <span className="text-center whitespace-nowrap font-black">
-            CỔNG THÔNG TIN SỐ • ỦY BAN MTTQ VIỆT NAM PHƯỜNG&nbsp;CHÁNH&nbsp;HIỆP
-          </span>
-        </div>
 
-        {/* MTTQ Emblem Logo Right in the Center of Concentric Rings inside Glass Card */}
-        <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center mt-2 sm:mt-0">
-          {/* Pulsing ring aura */}
-          <div className="absolute inset-0 rounded-full bg-cyan-400/40 blur-xl animate-pulse" />
+          {/* Realtime Live Status Tag */}
+          <div className="flex items-center gap-2 text-[11px] text-cyan-300/90 font-mono bg-cyan-950/40 border border-cyan-800/50 px-3 py-1 rounded-full backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            <span className="hidden sm:inline">Hệ Thống Trực Tuyến</span>
+            <span className="sm:hidden">Realtime</span>
+          </div>
+        </header>
+
+        {/* Central Core Content Card */}
+        <main className="relative z-10 max-w-xl w-full flex flex-col items-center text-center space-y-6 sm:space-y-8 my-auto py-4">
           
-          <div className="relative w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-600 p-1 shadow-[0_0_40px_rgba(34,211,238,0.7)]">
-            <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center p-3 sm:p-3.5 border-2 border-cyan-300/80 overflow-hidden shadow-inner">
-              <OptimizedImage 
-                src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" 
-                alt="Logo MTTQ Việt Nam" 
-                variant="thumbnail"
-                priority={true}
-                className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.95)] rounded-full"
-              />
+          {/* MTTQ Emblem Emblem with Glowing Halo */}
+          <div className="relative group">
+            {/* Pulsing Aura Rings */}
+            <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-red-600/30 via-yellow-500/20 to-blue-600/30 blur-xl animate-pulse" />
+            
+            <motion.div 
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1.5 bg-gradient-to-br from-yellow-400 via-red-500 to-blue-600 shadow-[0_0_50px_rgba(37,99,235,0.4)]"
+            >
+              <div className="w-full h-full rounded-full bg-slate-950 border-2 border-yellow-400/80 flex items-center justify-center p-3 overflow-hidden shadow-inner backdrop-blur-md">
+                <OptimizedImage 
+                  src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" 
+                  alt="Biểu trưng Mặt trận Tổ quốc Việt Nam" 
+                  variant="thumbnail"
+                  priority={true}
+                  className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.85)]"
+                />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Titles & Typography */}
+          <div className="space-y-2 max-w-lg">
+            <h1 className="text-base sm:text-xl md:text-2xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-md">
+              Ủy Ban Mặt Trận Tổ Quốc Việt Nam
+            </h1>
+            <p className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-cyan-300 drop-shadow-sm">
+              Phường Chánh Hiệp • Cổng Thông Tin &amp; An Sinh Số
+            </p>
+            <p className="text-[11px] sm:text-xs text-slate-400 font-medium max-w-md mx-auto leading-relaxed pt-1">
+              Nền tảng số hóa quản trị đại đoàn kết, tiếp nhận ý kiến nhân dân và dịch vụ an sinh xã hội trực tuyến
+            </p>
+          </div>
+
+          {/* Pipeline Milestone Grid */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full max-w-md">
+            {steps.map((s) => {
+              const isDone = progress >= s.min;
+              const isCurrent = progress >= s.min - 25 && progress < s.min;
+              const IconComp = s.icon;
+              return (
+                <div 
+                  key={s.id}
+                  className={`p-2.5 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-1.5 ${
+                    isDone 
+                      ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300 shadow-xs' 
+                      : isCurrent
+                      ? 'bg-blue-900/40 border-cyan-400/60 text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                      : 'bg-slate-900/40 border-slate-800/80 text-slate-500'
+                  }`}
+                >
+                  <IconComp className={`w-4 h-4 ${isDone ? 'text-emerald-400' : isCurrent ? 'text-cyan-300 animate-bounce' : 'text-slate-600'}`} />
+                  <span className="text-[10px] font-bold truncate max-w-full">{s.label}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* High-Tech Progress Bar & Readout */}
+          <div className="w-full max-w-md space-y-3">
+            <div className="relative w-full h-3 rounded-full bg-slate-900 border border-slate-700/80 overflow-hidden shadow-inner p-0.5 backdrop-blur-md">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-400 shadow-[0_0_20px_rgba(34,211,238,0.7)] relative"
+                initial={{ width: '5%' }}
+                animate={{ width: `${Math.min(progress, 100)}%` }}
+                transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.5 }}
+              >
+                {/* Glowing Leading Head */}
+                <div className="absolute right-0 top-0 bottom-0 w-2.5 bg-white rounded-full shadow-[0_0_10px_#fff]" />
+              </motion.div>
+            </div>
+
+            {/* Live Progress Data & Current Step */}
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-300 px-1">
+              <div className="flex items-center gap-2 text-cyan-200 truncate pr-2">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
+                <span className="truncate text-left font-medium text-[11px] sm:text-xs">{statusText}</span>
+              </div>
+              <span className="font-mono font-black text-cyan-300 text-sm shrink-0">
+                {Math.min(progress, 100)}%
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Titles & System Branding */}
-        <div className="space-y-1.5 w-full pt-2">
-          <h1 className="text-sm sm:text-lg md:text-xl font-black tracking-tight text-white uppercase leading-tight drop-shadow-md whitespace-nowrap">
-            Ủy Ban Mặt Trận Tổ Quốc Việt Nam
-          </h1>
-          <p className="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-widest drop-shadow whitespace-nowrap">
-            Phường&nbsp;Chánh&nbsp;Hiệp • TP.&nbsp;Hồ&nbsp;Chí&nbsp;Minh
-          </p>
-          <p className="text-[11px] sm:text-xs text-blue-200/90 font-semibold tracking-wide mt-1 whitespace-nowrap">
-            Hệ Thống Quản Trị Trực Tuyến &amp; Cổng Dịch Vụ An Sinh Số
-          </p>
-        </div>
-
-        {/* Step Indicators */}
-        <div className="grid grid-cols-3 gap-2 pt-2">
-          <div className={`p-2 rounded-xl border text-[10px] font-bold flex flex-col items-center gap-1 transition-all ${
-            activeStep >= 1 ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-200' : 'bg-slate-900/60 border-slate-800 text-slate-500'
-          }`}>
-            <Database className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Nạp Tải Lõi</span>
-          </div>
-          <div className={`p-2 rounded-xl border text-[10px] font-bold flex flex-col items-center gap-1 transition-all ${
-            activeStep >= 2 ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-200' : 'bg-slate-900/60 border-slate-800 text-slate-500'
-          }`}>
-            <Globe className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Đồng Bộ CSDL</span>
-          </div>
-          <div className={`p-2 rounded-xl border text-[10px] font-bold flex flex-col items-center gap-1 transition-all ${
-            activeStep >= 4 ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-200' : 'bg-slate-900/60 border-slate-800 text-slate-500'
-          }`}>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Sẵn Sàng</span>
-          </div>
-        </div>
-
-        {/* Loading Progress Bar & Live Status */}
-        <div className="space-y-3 pt-2">
-          <div className="relative w-full h-3 rounded-full bg-slate-900/90 border border-cyan-400/50 overflow-hidden shadow-inner p-0.5 backdrop-blur-md">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 shadow-[0_0_20px_rgba(34,211,238,0.9)]"
-              initial={{ width: '5%' }}
-              animate={{ width: `${progress}%` }}
-              transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.6 }}
-            />
+          {/* Fast Skip Button */}
+          <div className="pt-2">
+            <button
+              onClick={handleSkip}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-bold transition-all cursor-pointer shadow-md hover:border-slate-500"
+            >
+              <span>Vào trang chủ ngay</span>
+              <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+            </button>
           </div>
 
-          <div className="flex items-center justify-between text-xs font-semibold text-blue-100 px-1">
-            <span className="flex items-center gap-2 text-cyan-200">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping shrink-0" />
-              <span className="truncate max-w-[280px] text-left">{statusText}</span>
+        </main>
+
+        {/* Footer Info & Security Protocols */}
+        <footer className="relative z-10 w-full max-w-4xl border-t border-slate-800/80 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 text-slate-300 font-medium">
+            <Lock className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Mã hóa SSL 256-bit • Chứng nhận số Hành chính công 4.0</span>
+          </div>
+
+          <div className="flex items-center gap-4 text-slate-400 font-medium">
+            <span className="flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-blue-400" />
+              PWA Offline Ready
             </span>
-            <span className="font-mono font-black text-cyan-300 text-sm">{progress}%</span>
+            <span className="flex items-center gap-1">
+              <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+              Đồng bộ Firebase Cloud
+            </span>
           </div>
-        </div>
+        </footer>
 
-        {/* Footer Security Badge */}
-        <div className="pt-4 border-t border-slate-800/80 flex items-center justify-center gap-2 text-[11px] text-cyan-300 font-medium">
-          <ShieldCheck className="w-4 h-4 text-cyan-400" />
-          <span>Bảo mật chứng chỉ SSL 256-bit • Đồng bộ Cloud hai chiều</span>
-        </div>
-
-      </div>
-    </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
