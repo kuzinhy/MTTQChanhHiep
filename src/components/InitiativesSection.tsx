@@ -1223,10 +1223,10 @@ export const InitiativesSection: React.FC<InitiativesSectionProps> = ({ isAdmin 
                             onClick={() => setSelectedArticleDetail(item)}
                             className="w-14 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-900 mx-auto shrink-0 shadow-2xs hover:opacity-90 cursor-pointer group"
                           >
-                            <OptimizedImage
+                            <VerifiedCultureImage
                               src={item.imageUrl}
                               alt={item.title}
-                              variant="thumbnail"
+                              showBadge={false}
                               className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                             />
                           </div>

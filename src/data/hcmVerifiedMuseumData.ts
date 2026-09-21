@@ -2312,7 +2312,7 @@ export const FRONT_INITIATIVE_DATA: FrontInitiative[] = [
     date: '05/09/2026',
     linkedHcmActionId: 'act-02',
     linkedHcmTopicTitle: 'Tổ liên kết An sinh Xã hội – Mái ấm Đại đoàn kết',
-    imageUrl: 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
+    imageUrl: 'https://sv2.anhsieuviet.com/2026/09/05/763701403_1346789763782876_9127572154206317399_n.jpg',
     status: 'PUBLISHED',
     isFeatured: true
   },

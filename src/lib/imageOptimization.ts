@@ -48,15 +48,8 @@ export function normalizeImageUrl(
     return url;
   }
 
-  // 3. Normalize external fragile image host: sv2.anhsieuviet.com
-  if (url.includes('sv2.anhsieuviet.com')) {
-    if (url.includes('screenshot_1788585720')) {
-      return 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg';
-    }
-    if (url.includes('862c92e8-1336-4885-8787-1a6702c3a178ad174eb779884713')) {
-      return 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png';
-    }
-  }
+  // 3. Preserve external image hosts (anhsieuviet, cloudinary, etc.) as original URLs
+  // Only convert specific legacy broken temporary links if absolutely needed
 
   // 4. Normalize legacy external logo links: mattrancantho.vn and wikimedia MTTQ logo
   if (

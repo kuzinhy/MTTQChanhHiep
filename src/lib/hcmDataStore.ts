@@ -352,7 +352,11 @@ export function loadStoredInitiatives(): FrontInitiative[] {
         .filter((item: FrontInitiative) => !item.id?.startsWith('init-'))
         .map((item: FrontInitiative) => {
           let resolvedImage = item.imageUrl ? normalizeImageUrl(item.imageUrl) : '';
-          if (!resolvedImage) {
+          // If stored image is the legacy default logo or empty, restore the authentic assigned original URL
+          if (
+            !resolvedImage ||
+            resolvedImage.includes('Logo-Mat-Tran-To-Quoc-Viet-Nam.png')
+          ) {
             const defaultMatch = FRONT_INITIATIVE_DATA.find((d) => d.id === item.id);
             if (defaultMatch?.imageUrl) {
               resolvedImage = defaultMatch.imageUrl;
