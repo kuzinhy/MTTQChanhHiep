@@ -1195,7 +1195,8 @@ export default function App() {
                       onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
                       onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
                       onOpenDirectory={() => setIsDirectoryModalOpen(true)}
-                      onGoToOffice={() => {
+                      onGoToOffice={(view) => {
+                        if (view) setOfficeView(view);
                         handleSelectPortalTab('new_interface');
                       }}
                     />
@@ -1246,7 +1247,10 @@ export default function App() {
                       opinions={opinions}
                       onNavigatePortalTab={(tab) => handleSelectPortalTab(tab)}
                       onGoToOffice={(view) => {
-                        handleSelectPortalTab('new_interface');
+                        if (view) {
+                          setOfficeView(view);
+                          setCurrentSpace('OFFICE');
+                        }
                       }}
                       onOpenStaffLogin={() => setShowStaffLoginPage(true)}
                     />

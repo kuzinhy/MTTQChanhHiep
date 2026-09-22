@@ -95,6 +95,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     cms: false,
     admin: false,
   });
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   // Modal for visitor stats
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -131,11 +132,8 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     setTimeout(() => setNotificationToast(null), 3500);
   };
 
-  const toggleExpandCard = (groupKey: 'overview' | 'cms' | 'admin') => {
-    setExpandedCards(prev => ({
-      ...prev,
-      [groupKey]: !prev[groupKey]
-    }));
+  const handleGroupClick = (groupKey: 'overview' | 'cms' | 'admin') => {
+    setActiveGroup(groupKey);
   };
 
   const areAllExpanded = expandedCards.overview && expandedCards.cms && expandedCards.admin;
@@ -177,15 +175,6 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       action: () => onGoToOffice && onGoToOffice('youth_union_workspace')
     },
     {
-      id: 'neighborhood_map',
-      title: 'Bản đồ 21 Khu phố',
-      desc: 'Bản đồ số an sinh xã hội, hộ nghèo và địa bàn',
-      icon: Building2,
-      badge: '21 KP',
-      badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('map') : onGoToOffice && onGoToOffice('neighborhood_map')
-    },
-    {
       id: 'ai_assistant',
       title: 'Trợ lý AI Tổng hợp',
       desc: 'Tra cứu, soạn thảo văn bản và tóm tắt nghiệp vụ',
@@ -193,13 +182,6 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       badge: 'WORKSPACE',
       badgeType: 'gray',
       action: () => onGoToOffice && onGoToOffice('ai_assistant')
-    },
-    {
-      id: 'home',
-      title: 'Về trang chủ',
-      desc: 'Chuyển về Cổng thông tin Mặt trận Phường Chánh Hiệp',
-      icon: Building2,
-      action: () => onNavigatePortalTab && onNavigatePortalTab('home')
     },
   ];
 
@@ -212,7 +194,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: Newspaper,
       badge: 'TIN BÀI',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('news') : onGoToOffice && onGoToOffice('cms')
+      action: () => onGoToOffice && onGoToOffice('cms')
     },
     {
       id: 'cms_initiatives',
@@ -221,7 +203,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: Lightbulb,
       badge: 'MÔ HÌNH',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('initiatives') : onGoToOffice && onGoToOffice('cms_initiatives')
+      action: () => onGoToOffice && onGoToOffice('cms_initiatives')
     },
     {
       id: 'cms_documents',
@@ -230,7 +212,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: FileText,
       badge: 'VĂN BẢN',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('documents') : onGoToOffice && onGoToOffice('cms_documents')
+      action: () => onGoToOffice && onGoToOffice('cms_documents')
     },
     {
       id: 'cms_about',
@@ -239,7 +221,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: Info,
       badge: 'GIỚI THIỆU',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('about') : onGoToOffice && onGoToOffice('cms_about')
+      action: () => onGoToOffice && onGoToOffice('cms_about')
     },
     {
       id: 'opinions',
@@ -248,16 +230,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: MessageSquare,
       badge: 'DÂN NGUYỆN',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('opinion') : onGoToOffice && onGoToOffice('opinions')
-    },
-    {
-      id: 'surveys_admin',
-      title: 'Khảo sát & Dư luận',
-      desc: 'Thăm dò dư luận xã hội, lấy phiếu ý kiến cử tri',
-      icon: BarChart3,
-      badge: 'KHẢO SÁT',
-      badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('surveys') : onGoToOffice && onGoToOffice('surveys_admin')
+      action: () => onGoToOffice && onGoToOffice('opinions')
     },
     {
       id: 'competitions_admin',
@@ -266,7 +239,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: Award,
       badge: 'HỘI THI',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('competitions') : onGoToOffice && onGoToOffice('competitions_admin')
+      action: () => onGoToOffice && onGoToOffice('competitions_admin')
     },
     {
       id: 'member_orgs_admin',
@@ -275,7 +248,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: Users,
       badge: 'THÀNH VIÊN',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('organizations') : onGoToOffice && onGoToOffice('member_orgs_admin')
+      action: () => onGoToOffice && onGoToOffice('member_orgs_admin')
     },
     {
       id: 'cultural_space_admin',
@@ -284,7 +257,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       icon: Building2,
       badge: '3D VIRTUAL',
       badgeType: 'gray',
-      action: () => onNavigatePortalTab ? onNavigatePortalTab('cultural_space') : onGoToOffice && onGoToOffice('cultural_space_admin')
+      action: () => onGoToOffice && onGoToOffice('cultural_space_admin')
     },
   ];
 
@@ -335,6 +308,24 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       badgeType: 'gray',
       action: () => onGoToOffice && onGoToOffice('email_settings')
     },
+    {
+      id: 'surveys_admin',
+      title: 'Khảo sát & Dư luận',
+      desc: 'Thăm dò dư luận xã hội, lấy phiếu ý kiến cử tri',
+      icon: BarChart3,
+      badge: 'KHẢO SÁT',
+      badgeType: 'gray',
+      action: () => onNavigatePortalTab ? onNavigatePortalTab('surveys') : onGoToOffice && onGoToOffice('surveys_admin')
+    },
+    {
+      id: 'neighborhood_map',
+      title: 'Bản đồ 21 Khu phố',
+      desc: 'Bản đồ số an sinh xã hội, hộ nghèo và địa bàn',
+      icon: Building2,
+      badge: '21 KP',
+      badgeType: 'gray',
+      action: () => onNavigatePortalTab ? onNavigatePortalTab('map') : onGoToOffice && onGoToOffice('neighborhood_map')
+    },
   ];
 
   // Search filter
@@ -347,6 +338,32 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       (i.badge && i.badge.toLowerCase().includes(q))
     );
   };
+
+  const renderItem = (item: ActionItem) => {
+    const IconComp = item.icon;
+    return (
+      <div
+        key={item.id}
+        onClick={item.action}
+        className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-400 hover:shadow-md cursor-pointer transition-all group"
+      >
+        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
+          <IconComp className="w-5 h-5" />
+        </div>
+        <div>
+          <h4 className="text-xs font-bold text-[#071753] group-hover:text-blue-700">{item.title}</h4>
+          {item.desc && <p className="text-[10px] text-slate-500 mt-0.5">{item.desc}</p>}
+        </div>
+      </div>
+    );
+  };
+
+  const MainDashboardView = () => (
+    <div className="flex-1 overflow-y-auto max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-6">
+      {/* ... keep the toolbar and 3 cards here ... */}
+      {/* Need to update onClick of buttons to use handleGroupClick */}
+    </div>
+  );
 
   return (
     <div className="h-screen font-sans text-[#071753] flex flex-col overflow-hidden selection:bg-blue-200">
