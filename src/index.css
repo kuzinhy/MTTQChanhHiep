@@ -35,6 +35,123 @@
     background-size: 24px 24px;
   }
 
+  /* Google AI Studio Style Colorful Gradient Borders with rich blending and glow */
+  .studio-gemini-gradient-border {
+    position: relative;
+    border-radius: 1.25rem;
+    background: #ffffff;
+    background-clip: padding-box;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .studio-gemini-gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #1a73e8, #8ab4f8, #c58af9, #f28b82, #fbbc04, #34a853, #4285f4);
+    background-size: 300% 300%;
+    z-index: -1;
+    opacity: 0.75;
+    animation: studioGradientMove 8s ease infinite;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+  }
+
+  .studio-gemini-gradient-border:hover::before {
+    opacity: 1;
+    filter: drop-shadow(0 0 12px rgba(66, 133, 244, 0.5));
+  }
+
+  .studio-gemini-gradient-border:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px -8px rgba(26, 115, 232, 0.18), 0 8px 16px -4px rgba(197, 138, 249, 0.12);
+  }
+
+  /* Specific color-themed Google AI Studio gradient borders for the 3 cards: ONLY on the border, PURE WHITE solid card background */
+  .studio-card-blue,
+  .studio-card-green,
+  .studio-card-purple {
+    position: relative;
+    border-radius: 1.25rem;
+    background-color: #ffffff;
+    /* Hardware acceleration & smooth rendering */
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform, box-shadow;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .studio-card-blue {
+    border: 2px solid transparent;
+    background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #2563eb, #38bdf8, #818cf8, #c084fc, #38bdf8);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 220% 220%;
+    animation: studioBorderFlowBlue 6s ease-in-out infinite alternate;
+  }
+  .studio-card-blue:hover {
+    box-shadow: 0 12px 32px -6px rgba(37, 99, 235, 0.18);
+  }
+
+  .studio-card-green {
+    border: 2px solid transparent;
+    background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #059669, #10b981, #06b6d4, #34d399, #059669);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 220% 220%;
+    animation: studioBorderFlowGreen 6s ease-in-out infinite alternate;
+  }
+  .studio-card-green:hover {
+    box-shadow: 0 12px 32px -6px rgba(16, 185, 129, 0.18);
+  }
+
+  .studio-card-purple {
+    border: 2px solid transparent;
+    background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #4f46e5, #7c3aed, #a855f7, #ec4899, #6366f1);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 220% 220%;
+    animation: studioBorderFlowPurple 6s ease-in-out infinite alternate;
+  }
+  .studio-card-purple:hover {
+    box-shadow: 0 12px 32px -6px rgba(124, 58, 237, 0.18);
+  }
+
+  @keyframes studioBorderFlowBlue {
+    0% {
+      background-position: 0 0, 0% 50%;
+    }
+    100% {
+      background-position: 0 0, 100% 50%;
+    }
+  }
+
+  @keyframes studioBorderFlowGreen {
+    0% {
+      background-position: 0 0, 0% 50%;
+    }
+    100% {
+      background-position: 0 0, 100% 50%;
+    }
+  }
+
+  @keyframes studioBorderFlowPurple {
+    0% {
+      background-position: 0 0, 0% 50%;
+    }
+    100% {
+      background-position: 0 0, 100% 50%;
+    }
+  }
+
+  /* Shimmering highlights on hover */
+  .studio-glow-pill {
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.1) 100%);
+    background-size: 200% 100%;
+  }
+
   /* Google AI Studio Style Colorful Gradient Borders */
   .studio-gradient-border {
     position: relative;
@@ -198,6 +315,12 @@
 }
 
 @keyframes rainbowMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes studioGradientMove {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }

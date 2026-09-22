@@ -20,7 +20,10 @@ import {
   Link as LinkIcon,
   Trophy,
   Info,
-  Calendar
+  Calendar,
+  Users,
+  Layers,
+  BookOpen
 } from 'lucide-react';
 import { 
   BranchInfo, 
@@ -49,6 +52,9 @@ import {
   YouthInitiative,
   YouthArticle
 } from '../youthUnionData';
+import { YouthMembersRosterTab } from '../admin/YouthMembersRosterTab';
+import { YouthWorkGroupsTab } from './YouthWorkGroupsTab';
+import { YouthTrainingRecordsTab } from './YouthTrainingRecordsTab';
 
 export const WorkspaceShell: React.FC = () => {
   // Dynamic state loaded from admin storage
@@ -71,7 +77,7 @@ export const WorkspaceShell: React.FC = () => {
   });
 
   // Active view
-  const [activeView, setActiveView] = useState<'scoring' | 'ranking' | 'news' | 'competitions' | 'initiatives' | 'documents'>('scoring');
+  const [activeView, setActiveView] = useState<'scoring' | 'ranking' | 'members' | 'workgroups' | 'training' | 'news' | 'competitions' | 'initiatives' | 'documents'>('scoring');
 
   // Active category tab in scoring
   const [activeCategory, setActiveCategory] = useState<'I' | 'II' | 'III' | 'IV'>('I');
@@ -468,6 +474,9 @@ export const WorkspaceShell: React.FC = () => {
         {[
           { id: 'scoring', label: 'Tự chấm tiêu chí', icon: FileCheck, color: 'text-blue-600 bg-blue-50' },
           { id: 'ranking', label: 'Bảng xếp hạng', icon: Trophy, color: 'text-amber-600 bg-amber-50' },
+          { id: 'members', label: 'Sổ Đoàn & Đoàn Viên', icon: Users, color: 'text-blue-600 bg-blue-50' },
+          { id: 'workgroups', label: 'Nhóm công tác & Thi đua', icon: Layers, color: 'text-indigo-600 bg-indigo-50' },
+          { id: 'training', label: 'Sổ rèn luyện đoàn viên', icon: BookOpen, color: 'text-emerald-600 bg-emerald-50' },
           { id: 'news', label: 'Bản tin & Sự kiện', icon: Calendar, color: 'text-emerald-600 bg-emerald-50' },
           { id: 'competitions', label: 'Hội thi trực tuyến', icon: Award, color: 'text-purple-600 bg-purple-50' },
           { id: 'initiatives', label: 'Sáng kiến - Hiến kế', icon: Sparkles, color: 'text-indigo-600 bg-indigo-50' },
@@ -581,6 +590,27 @@ export const WorkspaceShell: React.FC = () => {
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* VIEW: SỔ ĐOÀN ĐIỆN TỬ & ĐOÀN VIÊN CHI ĐOÀN */}
+      {activeView === 'members' && (
+        <div className="space-y-6 animate-fade-in">
+          <YouthMembersRosterTab onNotify={showToast} branchFilterId={selectedBranchId} />
+        </div>
+      )}
+
+      {/* VIEW: QUẢN LÝ NHÓM CÔNG TÁC & THI ĐUA NHÓM */}
+      {activeView === 'workgroups' && (
+        <div className="space-y-6 animate-fade-in">
+          <YouthWorkGroupsTab branchId={selectedBranchId} branches={branches} onNotify={showToast} />
+        </div>
+      )}
+
+      {/* VIEW: SỔ THEO DÕI RÈN LUYỆN ĐOÀN VIÊN */}
+      {activeView === 'training' && (
+        <div className="space-y-6 animate-fade-in">
+          <YouthTrainingRecordsTab branchId={selectedBranchId} branches={branches} onNotify={showToast} />
         </div>
       )}
 

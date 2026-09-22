@@ -71,6 +71,7 @@ import { PageLoader } from './components/PageLoader';
 import { notificationMasterService } from './lib/notificationMasterService';
 import { OptimizedImage } from './components/common/OptimizedImage';
 import { HcmQuoteRotator } from './components/common/HcmQuoteRotator';
+import { NewInterfacePage } from './components/NewInterfacePage';
 
 import { 
   INITIAL_COMPETITIONS, 
@@ -102,7 +103,8 @@ export const VALID_PORTAL_TABS = [
   'surveys',
   'opinion',
   'organizations',
-  'privacy'
+  'privacy',
+  'new_interface'
 ];
 
 export const VALID_OFFICE_VIEWS = [
@@ -154,6 +156,7 @@ export const PORTAL_HASH_TO_TAB: Record<string, string> = {
   '/to-chuc-thanh-vien': 'organizations',
   '/chinh-sach-bao-mat': 'privacy',
   '/privacy': 'privacy',
+  '/giao-dien-moi': 'new_interface',
   '/khong-gian-van-hoa-ho-chi-minh': 'hcm_space',
   '/kgvh-ho-chi-minh': 'hcm_space'
 };
@@ -170,7 +173,8 @@ export const TAB_TO_HASH: Record<string, string> = {
   surveys: '#/khao-sat',
   opinion: '#/y-kien-dan-nguyen',
   organizations: '#/to-chuc-thanh-vien',
-  privacy: '#/chinh-sach-bao-mat'
+  privacy: '#/chinh-sach-bao-mat',
+  new_interface: '#/giao-dien-moi'
 };
 
 export default function App() {
@@ -1110,11 +1114,7 @@ export default function App() {
               isStaffLoggedIn={!!currentStaffUser}
               currentUser={currentStaffUser}
               onGoToOffice={() => {
-                if (currentStaffUser) {
-                  setCurrentSpace('OFFICE');
-                } else {
-                  setShowStaffLoginPage(true);
-                }
+                handleSelectPortalTab('new_interface');
               }}
               onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
               onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
@@ -1134,9 +1134,7 @@ export default function App() {
                     handleSelectPortalTab('news');
                   }}
                   onGoToOffice={() => {
-                    setNotFoundRoute(null);
-                    setCurrentSpace('OFFICE');
-                    window.location.hash = '#/van-phong-so/dashboard';
+                    handleSelectPortalTab('new_interface');
                   }}
                 />
               ) : showStaffLoginPage ? (
@@ -1198,13 +1196,7 @@ export default function App() {
                       onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
                       onOpenDirectory={() => setIsDirectoryModalOpen(true)}
                       onGoToOffice={() => {
-                        if (currentStaffUser) {
-                          setCurrentSpace('OFFICE');
-                          window.location.hash = '#/van-phong-so/dashboard';
-                        } else {
-                          setShowStaffLoginPage(true);
-                          window.location.hash = '#/dang-nhap-can-bo';
-                        }
+                        handleSelectPortalTab('new_interface');
                       }}
                     />
                   )}
@@ -1245,6 +1237,20 @@ export default function App() {
                   {portalTab === 'initiatives' && (
                     <InitiativesSection />
                   )}
+                  {portalTab === 'new_interface' && (
+                    <NewInterfacePage 
+                      backgroundImage="https://res.cloudinary.com/idt08wyp/image/upload/v1790008873/4ac22e99-9030-410f-b63f-ec0754836e6a_1.png"
+                      currentStaffUser={currentStaffUser}
+                      articles={articles}
+                      documents={documents}
+                      opinions={opinions}
+                      onNavigatePortalTab={(tab) => handleSelectPortalTab(tab)}
+                      onGoToOffice={(view) => {
+                        handleSelectPortalTab('new_interface');
+                      }}
+                      onOpenStaffLogin={() => setShowStaffLoginPage(true)}
+                    />
+                  )}
                   {portalTab === 'surveys' && (
                     <SurveysSection
                       onSurveySubmitted={() => {
@@ -1283,7 +1289,9 @@ export default function App() {
               )}
             </main>
 
-            <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
+            {portalTab !== 'new_interface' && (
+              <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
+            )}
             <AiAssistantWidget />
           </motion.div>
         ) : (
@@ -1308,7 +1316,7 @@ export default function App() {
                 setSearchQuery={setSearchQuery}
                 isStaffLoggedIn={false}
                 currentUser={null}
-                onGoToOffice={() => setShowStaffLoginPage(true)}
+                onGoToOffice={() => handleSelectPortalTab('new_interface')}
                 onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
               />
               <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex items-center justify-center">

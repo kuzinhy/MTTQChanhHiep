@@ -30,6 +30,7 @@ import {
   loadStoredBranches,
   loadStoredCriteria,
   loadStoredAccounts,
+  loadStoredYouthMembers,
   loadStoredArticles,
   saveStoredArticles,
   loadStoredEvents,
@@ -56,6 +57,7 @@ import { BranchesManagementTab } from './BranchesManagementTab';
 import { BranchAccountsTab } from './BranchAccountsTab';
 import { CriteriaConfigTab } from './CriteriaConfigTab';
 import { EmulationRankingTab } from './EmulationRankingTab';
+import { YouthMembersRosterTab } from './YouthMembersRosterTab';
 
 interface Props {
   currentUserName?: string;
@@ -93,6 +95,7 @@ export const AdminDashboard: React.FC<Props> = ({ currentUserName = 'Huy Nguyễ
   const [branchesCount, setBranchesCount] = useState<number>(() => loadStoredBranches().length);
   const [criteriaCount, setCriteriaCount] = useState<number>(() => loadStoredCriteria().length);
   const [accountsCount, setAccountsCount] = useState<number>(() => loadStoredAccounts().length);
+  const [membersCount, setMembersCount] = useState<number>(() => loadStoredYouthMembers().length);
 
   // Toast feedback
   const [toast, setToast] = useState<string | null>(null);
@@ -121,6 +124,7 @@ export const AdminDashboard: React.FC<Props> = ({ currentUserName = 'Huy Nguyễ
       setBranchesCount(loadStoredBranches().length);
       setCriteriaCount(loadStoredCriteria().length);
       setAccountsCount(loadStoredAccounts().length);
+      setMembersCount(loadStoredYouthMembers().length);
       setArticles(loadStoredArticles());
       setEvents(loadStoredEvents());
       setCompetitions(loadStoredCompetitions());
@@ -209,6 +213,7 @@ export const AdminDashboard: React.FC<Props> = ({ currentUserName = 'Huy Nguyễ
           <div className="flex-1 overflow-x-auto scrollbar-none flex items-center gap-2 pb-1 lg:pb-0 justify-start lg:justify-end">
             {[
               { id: 'workspace_config', label: 'Cài Đặt Workspace', icon: Sliders, badge: 'Cấu hình' },
+              { id: 'youth_members', label: 'Sổ Đoàn & Hồ Sơ Đoàn Viên', icon: Users, count: membersCount, badge: 'Số Hóa' },
               { id: 'branches_management', label: 'Cài Đặt Số Lượng & Chi Đoàn', icon: Building2, count: branchesCount },
               { id: 'branch_accounts', label: 'Tạo & Cấp Tài Khoản', icon: Key, count: accountsCount },
               { id: 'criteria_config', label: 'Nội Dung & Điểm Thi Đua', icon: Layers, count: criteriaCount },
@@ -302,6 +307,11 @@ export const AdminDashboard: React.FC<Props> = ({ currentUserName = 'Huy Nguyễ
           {/* TAB 1: WORKSPACE CONFIGURATION */}
           {currentTab === 'workspace_config' && (
             <WorkspaceConfigTab onNotify={showToast} />
+          )}
+
+          {/* TAB: SỔ ĐOÀN ĐIỆN TỬ & HỒ SƠ ĐOÀN VIÊN */}
+          {currentTab === 'youth_members' && (
+            <YouthMembersRosterTab onNotify={showToast} />
           )}
 
           {/* TAB 2: BRANCHES & QUANTITY CONFIGURATION */}

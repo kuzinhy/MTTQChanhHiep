@@ -23,7 +23,6 @@ import {
   Settings,
   ShieldAlert,
   PieChart,
-  FolderTree,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -86,7 +85,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
         { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
         { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: '21 KP' },
-        { id: 'neighborhood_emulation', label: 'Thi đua 21 Khu phố', icon: Award, badge: 'BẢNG VÀNG' },
         { id: 'ai_assistant', label: 'Trợ lý AI Tổng hợp', icon: Sparkles, badge: 'WORKSPACE' },
         { id: 'home', label: 'Về trang chủ', icon: Building2 },
       ]
@@ -119,7 +117,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
         { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
         { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },
-        { id: 'templates', label: 'Kho Mẫu Văn bản', icon: FolderTree, badge: 'MẪU VB' },
         { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
         { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },
       ]

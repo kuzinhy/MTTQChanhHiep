@@ -30,6 +30,15 @@ export interface BranchInfo {
   type: 'DÂN CƯ' | 'TRƯỜNG HỌC' | 'LỰC LƯỢNG VŨ TRANG' | 'DOANH NGHIỆP';
   secretary: string;
   phone: string;
+  deputySecretary?: string;
+  executiveMembers?: string[];
+  term?: string; // Nhiệm kỳ, ví dụ: 2025 - 2027
+  partyMembersInBranch?: number; // Số đảng viên tham gia sinh hoạt Đoàn
+  youthGatheringRate?: number; // Tỷ lệ tập hợp thanh niên trên địa bàn (%)
+  meetingDay?: string; // Lịch sinh hoạt định kỳ (vd: "Ngày 15 hàng tháng")
+  threeInitiativesRating?: 'XUẤT SẮC' | 'ĐẠT CHUẨN' | 'CẦN CỐ GẮNG'; // Chi đoàn mạnh 3 chủ động
+  address?: string;
+  establishedDate?: string;
   membersCount: number;
   selfScore: number;
   officialScore: number;
@@ -37,6 +46,43 @@ export interface BranchInfo {
   approvedCount: number;
   status?: 'ACTIVE' | 'LOCKED';
   updatedAt?: string;
+}
+
+export interface BranchMeetingMinute {
+  id: string;
+  branchId: string;
+  branchName: string;
+  month: string; // VD: "Tháng 09/2026"
+  meetingDate: string; // "15/09/2026"
+  topic: string; // Chủ đề sinh hoạt
+  hostName: string; // Chủ trì
+  secretaryName: string; // Thư ký cuộc họp
+  attendeesCount: number;
+  totalMembers: number;
+  absentCount: number;
+  absentReasons?: string;
+  contentsSummary: string; // Tóm tắt nội dung sinh hoạt
+  resolutions: string; // Nghị quyết / Kết luận cuộc họp
+  votesPercent: number; // Tỷ lệ biểu quyết thống nhất (%)
+  status: 'COMPLETED' | 'SCHEDULED';
+  createdAt?: string;
+}
+
+export interface BranchYouthProject {
+  id: string;
+  branchId: string;
+  branchName: string;
+  title: string;
+  category: 'BẢO VỆ MÔI TRƯỜNG' | 'CHUYỂN ĐỔI SỐ' | 'AN SINH XÃ HỘI' | 'VĂN HÓA VĂN NGHỆ' | 'KHỞI NGHIỆP';
+  description: string;
+  location: string;
+  budgetVND: number;
+  completionPercent: number; // 0 - 100
+  status: 'PLANNING' | 'IN_PROGRESS' | 'COMPLETED';
+  startDate: string;
+  endDate: string;
+  leaderName: string;
+  volunteerCount: number;
 }
 
 export interface BranchAccount {
@@ -51,6 +97,128 @@ export interface BranchAccount {
   status: 'ACTIVE' | 'LOCKED';
   createdAt: string;
   lastLogin?: string;
+}
+
+export interface TrainingHistoryItem {
+  year: number;
+  period: string; // VD: 'Năm 2024', 'Năm 2025', 'Năm 2026'
+  score: number; // 0 - 100
+  ranking: 'XUẤT SẮC' | 'KHÁ' | 'TRUNG BÌNH' | 'CHƯA XẾP LOẠI';
+  evaluation: string;
+  reviewer: string;
+  reviewedAt: string;
+}
+
+export interface EmulationAwardItem {
+  id: string;
+  title: string; // Tên danh hiệu / Bằng khen / Giấy khen
+  awardedBy: string; // Cấp khen thưởng (VD: BCH Đoàn Phường Chánh Hiệp, BCH Thành Đoàn TDM)
+  level: 'CẤP PHƯỜNG' | 'CẤP THÀNH PHỐ' | 'CẤP TỈNH' | 'TRUNG ƯƠNG';
+  decisionNumber: string; // Số QĐ: QĐ-12/QĐ-ĐTN
+  awardedDate: string; // Ngày ký / khen thưởng
+  category: 'DANH HIỆU' | 'GIẤY KHEN' | 'BẰNG KHEN' | 'KỶ NIỆM CHƯƠNG';
+  note?: string;
+}
+
+export interface YouthMember {
+  id: string;
+  memberCode: string; // Mã số đoàn viên / Số thẻ đoàn
+  fullName: string;
+  gender: 'Nam' | 'Nữ';
+  birthDate: string;
+  branchId: string;
+  branchName: string;
+  position: 'Đoàn viên' | 'Bí thư Chi đoàn' | 'Phó Bí thư Chi đoàn' | 'Ủy viên BCH Chi đoàn' | 'Tổ trưởng Tổ thanh niên';
+  joinedDate: string; // Ngày vào Đoàn
+  joinedPlace: string; // Nơi kết nạp
+  unionResolutionNumber?: string; // Số Nghị quyết kết nạp Đoàn
+  recommender?: string; // Người giới thiệu vào Đoàn
+  phone: string;
+  email: string;
+  address: string;
+  educationLevel: string; // 12/12, Đại học, Cao đẳng, Thạc sĩ, Trung cấp
+  profession: string; // Nghề nghiệp / Học vấn / Nơi công tác
+  ethnic: string; // Dân tộc
+  religion: string; // Tôn giáo
+  status: 'ACTIVE' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'DEFERRED' | 'COMMENDED';
+  unionDuesStatus: 'PAID' | 'UNPAID' | 'EXEMPT';
+  unionBookStatus: 'DIGITAL_VERIFIED' | 'PENDING';
+  avatarUrl?: string;
+  skills: string[];
+  emulationRanking: 'XUẤT SẮC' | 'KHÁ' | 'TRUNG BÌNH' | 'CHƯA XẾP LOẠI';
+  partyTarget: boolean; // Cảm tình Đảng / Giới thiệu kết nạp Đảng
+  partyTargetDate?: string; // Ngày được công nhận cảm tình Đảng
+  partyStatus?: 'CHƯA' | 'CẢM TÌNH ĐẢNG' | 'ĐẢNG VIÊN DỰ BỊ' | 'ĐẢNG VIÊN CHÍNH THỨC';
+  workGroupId?: string; // Nhóm công tác phụ trách
+  workGroupName?: string; // Tên nhóm công tác
+  workGroupRole?: 'TRƯỞNG NHÓM' | 'PHÓ NHÓM' | 'THÀNH VIÊN';
+  trainingScore?: number; // Điểm rèn luyện đoàn viên (0 - 100)
+  volunteerDays?: number; // Số ngày tình nguyện tham gia
+  meetingAttendance?: number; // Số buổi sinh hoạt chi đoàn tham gia (trên 12)
+  trainingHistory?: TrainingHistoryItem[]; // Lịch sử rèn luyện qua các năm
+  emulationAwards?: EmulationAwardItem[]; // Danh hiệu thi đua và khen thưởng theo thời gian thực
+  transferNotes?: string;
+  notes?: string;
+  updatedAt?: string;
+}
+
+export interface YouthWorkGroupTask {
+  id: string;
+  title: string;
+  assignedDate: string;
+  deadline: string;
+  status: 'COMPLETED' | 'IN_PROGRESS' | 'PENDING';
+  assignedMemberNames: string[];
+  points: number; // Điểm cộng thi đua
+  resultNote?: string;
+}
+
+export interface YouthWorkGroup {
+  id: string;
+  branchId: string; // Thuộc Chi đoàn nào (hoặc ALL)
+  name: string;
+  code: string;
+  description: string;
+  leaderId: string;
+  leaderName: string;
+  leaderPhone?: string;
+  memberIds: string[];
+  colorTheme: 'blue' | 'emerald' | 'purple' | 'amber' | 'indigo' | 'rose';
+  targetTasksCount: number;
+  completedTasksCount: number;
+  emulationScore: number; // 0 - 100
+  ranking: 'XUẤT SẮC' | 'TỐT' | 'KHÁ' | 'TRUNG BÌNH';
+  tasks: YouthWorkGroupTask[];
+  quarter: string;
+  evaluationNotes?: string;
+}
+
+export interface YouthMemberTrainingRecord {
+  id: string;
+  memberId: string;
+  memberName: string;
+  memberCode: string;
+  branchId: string;
+  year: number;
+  workGroupId?: string;
+  workGroupName?: string;
+  // 5 Tiêu chí rèn luyện trọng tâm (Thang điểm 20/tiêu chí -> Tổng 100 điểm)
+  ideologyScore: number; // 1. Lý tưởng cách mạng, nhận thức chính trị & học tập theo Bác (max 20)
+  ethicsScore: number; // 2. Đạo đức, lối sống, tác phong & tính gương mẫu (max 20)
+  studyLaborScore: number; // 3. Chuyên môn nghiệp vụ, học tập, lao động sáng tạo & Kỹ năng số (max 20)
+  physicalSkillScore: number; // 4. Thể chất, văn hóa nghệ thuật & kỹ năng thực hành xã hội (max 20)
+  disciplineVolunteerScore: number; // 5. Kỷ luật, sinh hoạt chi đoàn & hoạt động tình nguyện (max 20)
+  totalScore: number; // 0 - 100
+  // Chỉ số tham gia sinh hoạt & tình nguyện
+  meetingAttendance: number; // Số buổi tham gia sinh hoạt chi đoàn (trên 12 buổi)
+  monthlyAttendance: boolean[]; // 12 tháng [T1, T2, ..., T12]
+  volunteerActivitiesCount: number; // Số lượt tham gia phong trào tình nguyện (Chủ nhật xanh, Tiếp sức mùa thi...)
+  digitalSkillsCompleted: boolean; // Hoàn thành cài đặt VNeID / Công dân số / App Thanh niên Việt Nam
+  trainingStatus: 'XUẤT SẮC' | 'KHÁ' | 'TRUNG BÌNH' | 'CHƯA ĐẠT';
+  selfEvaluationComment: string; // Đoàn viên tự đánh giá
+  branchEvaluationComment: string; // Chi đoàn nhận xét, thẩm định
+  verifiedDate: string;
+  verifiedBy: string; // Bí thư chi đoàn xác nhận
 }
 
 export interface EmulationCategory {
@@ -75,22 +243,358 @@ export interface EmulationSettings {
 }
 
 export const INITIAL_BRANCHES: BranchInfo[] = [
-  { id: 'kp1', name: 'Chi đoàn Khu phố 1 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Trần Thị Bích', phone: '0912.345.678', membersCount: 38, selfScore: 23.0, officialScore: 23.0, submittedCount: 2, approvedCount: 2, status: 'ACTIVE' },
-  { id: 'kp2', name: 'Chi đoàn Khu phố 2 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Lê Văn Nam', phone: '0903.112.233', membersCount: 42, selfScore: 68.5, officialScore: 65.0, submittedCount: 8, approvedCount: 6, status: 'ACTIVE' },
-  { id: 'kp3', name: 'Chi đoàn Khu phố 3 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Nguyễn Văn Minh', phone: '0988.776.655', membersCount: 35, selfScore: 54.0, officialScore: 50.0, submittedCount: 6, approvedCount: 5, status: 'ACTIVE' },
-  { id: 'kp4', name: 'Chi đoàn Khu phố 4 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Phạm Hồng Nhung', phone: '0977.889.900', membersCount: 29, selfScore: 72.0, officialScore: 70.0, submittedCount: 9, approvedCount: 8, status: 'ACTIVE' },
-  { id: 'kp5', name: 'Chi đoàn Khu phố 5 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Hoàng Quốc Tuấn', phone: '0933.445.566', membersCount: 31, selfScore: 45.0, officialScore: 40.0, submittedCount: 5, approvedCount: 4, status: 'ACTIVE' },
-  { id: 'kp6', name: 'Chi đoàn Khu phố 6 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Đặng Mai Phương', phone: '0944.556.677', membersCount: 40, selfScore: 82.0, officialScore: 80.0, submittedCount: 10, approvedCount: 9, status: 'ACTIVE' },
-  { id: 'kp7', name: 'Chi đoàn Khu phố 7 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Vũ Đức Thành', phone: '0966.778.899', membersCount: 33, selfScore: 60.0, officialScore: 58.0, submittedCount: 7, approvedCount: 6, status: 'ACTIVE' },
-  { id: 'kp8', name: 'Chi đoàn Khu phố 8 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Bùi Thị Hà', phone: '0918.223.344', membersCount: 27, selfScore: 35.0, officialScore: 35.0, submittedCount: 4, approvedCount: 3, status: 'ACTIVE' },
-  { id: 'kp9', name: 'Chi đoàn Khu phố 9 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Đỗ Tiến Dũng', phone: '0922.334.455', membersCount: 36, selfScore: 55.0, officialScore: 52.0, submittedCount: 6, approvedCount: 5, status: 'ACTIVE' },
-  { id: 'kp10', name: 'Chi đoàn Khu phố 10 (Chi đoàn Địa bàn Dân cư)', type: 'DÂN CƯ', secretary: 'Trương Ngọc Ánh', phone: '0981.234.567', membersCount: 30, selfScore: 48.0, officialScore: 45.0, submittedCount: 5, approvedCount: 4, status: 'ACTIVE' },
-  { id: 'thcs', name: 'Chi đoàn Trường THCS Chánh Hiệp (Khối Trường học)', type: 'TRƯỜNG HỌC', secretary: 'Nguyễn Thị Thu Hà', phone: '0908.667.788', membersCount: 45, selfScore: 88.0, officialScore: 88.0, submittedCount: 11, approvedCount: 10, status: 'ACTIVE' },
-  { id: 'th_pl', name: 'Chi đoàn Trường Tiểu học Chánh Hiệp', type: 'TRƯỜNG HỌC', secretary: 'Võ Thanh Tùng', phone: '0938.990.011', membersCount: 32, selfScore: 76.0, officialScore: 74.0, submittedCount: 9, approvedCount: 8, status: 'ACTIVE' },
-  { id: 'mn_pl', name: 'Chi đoàn Mầm non Hoa Mai Chánh Hiệp', type: 'TRƯỜNG HỌC', secretary: 'Lý Kim Yến', phone: '0949.123.456', membersCount: 25, selfScore: 65.0, officialScore: 65.0, submittedCount: 7, approvedCount: 7, status: 'ACTIVE' },
-  { id: 'qs', name: 'Chi đoàn Quân sự Phường Chánh Hiệp', type: 'LỰC LƯỢNG VŨ TRANG', secretary: 'Trịnh Hoài Nam', phone: '0972.334.455', membersCount: 22, selfScore: 92.0, officialScore: 90.0, submittedCount: 11, approvedCount: 10, status: 'ACTIVE' },
-  { id: 'ca', name: 'Chi đoàn Công an Phường Chánh Hiệp', type: 'LỰC LƯỢNG VŨ TRANG', secretary: 'Nguyễn Minh Hải', phone: '0913.445.566', membersCount: 28, selfScore: 90.0, officialScore: 90.0, submittedCount: 11, approvedCount: 11, status: 'ACTIVE' },
-  { id: 'dn', name: 'Chi đoàn Doanh nghiệp Ngoài nhà nước', type: 'DOANH NGHIỆP', secretary: 'Đoàn Gia Bảo', phone: '0909.887.766', membersCount: 20, selfScore: 50.0, officialScore: 48.0, submittedCount: 5, approvedCount: 4, status: 'ACTIVE' },
+  { 
+    id: 'kp1', 
+    name: 'Chi đoàn Khu phố 1 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Trần Thị Bích', 
+    phone: '0912.345.678', 
+    deputySecretary: 'Nguyễn Văn Tâm',
+    executiveMembers: ['Phạm Thu Trang', 'Lê Hữu Đạt'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 3,
+    youthGatheringRate: 78,
+    meetingDay: 'Ngày 12 hàng tháng',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Văn phòng BĐH Khu phố 1, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 38, 
+    selfScore: 23.0, 
+    officialScore: 23.0, 
+    submittedCount: 2, 
+    approvedCount: 2, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp2', 
+    name: 'Chi đoàn Khu phố 2 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Lê Văn Nam', 
+    phone: '0903.112.233', 
+    deputySecretary: 'Trịnh Kim Oanh',
+    executiveMembers: ['Vũ Đức Thắng', 'Nguyễn Thị Hoa'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 4,
+    youthGatheringRate: 82,
+    meetingDay: 'Ngày 15 hàng tháng',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Văn phòng BĐH Khu phố 2, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 42, 
+    selfScore: 68.5, 
+    officialScore: 65.0, 
+    submittedCount: 8, 
+    approvedCount: 6, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp3', 
+    name: 'Chi đoàn Khu phố 3 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Nguyễn Văn Minh', 
+    phone: '0988.776.655', 
+    deputySecretary: 'Trần Thị Lan',
+    executiveMembers: ['Bùi Quốc Huy'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 2,
+    youthGatheringRate: 74,
+    meetingDay: 'Ngày 18 hàng tháng',
+    threeInitiativesRating: 'ĐẠT CHUẨN',
+    address: 'Văn phòng BĐH Khu phố 3, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 35, 
+    selfScore: 54.0, 
+    officialScore: 50.0, 
+    submittedCount: 6, 
+    approvedCount: 5, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp4', 
+    name: 'Chi đoàn Khu phố 4 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Phạm Hồng Nhung', 
+    phone: '0977.889.900', 
+    deputySecretary: 'Đỗ Hải Đăng',
+    executiveMembers: ['Ngô Minh Trí'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 3,
+    youthGatheringRate: 85,
+    meetingDay: 'Ngày 10 hàng tháng',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Văn phòng BĐH Khu phố 4, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 29, 
+    selfScore: 72.0, 
+    officialScore: 70.0, 
+    submittedCount: 9, 
+    approvedCount: 8, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp5', 
+    name: 'Chi đoàn Khu phố 5 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Hoàng Quốc Tuấn', 
+    phone: '0933.445.566', 
+    deputySecretary: 'Nguyễn Bích Ngọc',
+    executiveMembers: ['Phan Anh Vũ'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 2,
+    youthGatheringRate: 68,
+    meetingDay: 'Ngày 20 hàng tháng',
+    threeInitiativesRating: 'ĐẠT CHUẨN',
+    address: 'Văn phòng BĐH Khu phố 5, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 31, 
+    selfScore: 45.0, 
+    officialScore: 40.0, 
+    submittedCount: 5, 
+    approvedCount: 4, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp6', 
+    name: 'Chi đoàn Khu phố 6 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Đặng Mai Phương', 
+    phone: '0944.556.677', 
+    deputySecretary: 'Lý Quốc Bảo',
+    executiveMembers: ['Trần Thu Hương', 'Võ Hoài Nam'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 4,
+    youthGatheringRate: 88,
+    meetingDay: 'Ngày 14 hàng tháng',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Văn phòng BĐH Khu phố 6, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 40, 
+    selfScore: 82.0, 
+    officialScore: 80.0, 
+    submittedCount: 10, 
+    approvedCount: 9, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp7', 
+    name: 'Chi đoàn Khu phố 7 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Vũ Đức Thành', 
+    phone: '0966.778.899', 
+    deputySecretary: 'Trần Thị Thu Thảo',
+    executiveMembers: ['Nguyễn Văn Tài'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 3,
+    youthGatheringRate: 75,
+    meetingDay: 'Ngày 16 hàng tháng',
+    threeInitiativesRating: 'ĐẠT CHUẨN',
+    address: 'Văn phòng BĐH Khu phố 7, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 33, 
+    selfScore: 60.0, 
+    officialScore: 58.0, 
+    submittedCount: 7, 
+    approvedCount: 6, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp8', 
+    name: 'Chi đoàn Khu phố 8 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Bùi Thị Hà', 
+    phone: '0918.223.344', 
+    deputySecretary: 'Hoàng Văn Khải',
+    executiveMembers: ['Lê Thị Mai'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 1,
+    youthGatheringRate: 65,
+    meetingDay: 'Ngày 19 hàng tháng',
+    threeInitiativesRating: 'CẦN CỐ GẮNG',
+    address: 'Văn phòng BĐH Khu phố 8, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 27, 
+    selfScore: 35.0, 
+    officialScore: 35.0, 
+    submittedCount: 4, 
+    approvedCount: 3, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp9', 
+    name: 'Chi đoàn Khu phố 9 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Đỗ Tiến Dũng', 
+    phone: '0922.334.455', 
+    deputySecretary: 'Nguyễn Thị Cẩm Tiên',
+    executiveMembers: ['Trần Hoàng Long'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 2,
+    youthGatheringRate: 72,
+    meetingDay: 'Ngày 17 hàng tháng',
+    threeInitiativesRating: 'ĐẠT CHUẨN',
+    address: 'Văn phòng BĐH Khu phố 9, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 36, 
+    selfScore: 55.0, 
+    officialScore: 52.0, 
+    submittedCount: 6, 
+    approvedCount: 5, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'kp10', 
+    name: 'Chi đoàn Khu phố 10 (Chi đoàn Địa bàn Dân cư)', 
+    type: 'DÂN CƯ', 
+    secretary: 'Trương Ngọc Ánh', 
+    phone: '0981.234.567', 
+    deputySecretary: 'Phạm Quốc Cường',
+    executiveMembers: ['Đặng Văn Tùng'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 2,
+    youthGatheringRate: 70,
+    meetingDay: 'Ngày 21 hàng tháng',
+    threeInitiativesRating: 'ĐẠT CHUẨN',
+    address: 'Văn phòng BĐH Khu phố 10, P. Chánh Hiệp',
+    establishedDate: '15/01/2012',
+    membersCount: 30, 
+    selfScore: 48.0, 
+    officialScore: 45.0, 
+    submittedCount: 5, 
+    approvedCount: 4, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'thcs', 
+    name: 'Chi đoàn Trường THCS Chánh Hiệp (Khối Trường học)', 
+    type: 'TRƯỜNG HỌC', 
+    secretary: 'Nguyễn Thị Thu Hà', 
+    phone: '0908.667.788', 
+    deputySecretary: 'Trần Văn Kiên',
+    executiveMembers: ['Lê Thị Ánh Tuyết', 'Nguyễn Thị Mơ'],
+    term: '2025 - 2026',
+    partyMembersInBranch: 6,
+    youthGatheringRate: 96,
+    meetingDay: 'Ngày thứ Năm tuần thứ 2',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Đường Nguyễn Chí Thanh, P. Chánh Hiệp',
+    establishedDate: '20/08/2005',
+    membersCount: 45, 
+    selfScore: 88.0, 
+    officialScore: 88.0, 
+    submittedCount: 11, 
+    approvedCount: 10, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'th_pl', 
+    name: 'Chi đoàn Trường Tiểu học Chánh Hiệp', 
+    type: 'TRƯỜNG HỌC', 
+    secretary: 'Võ Thanh Tùng', 
+    phone: '0938.990.011', 
+    deputySecretary: 'Nguyễn Thị Hồng',
+    executiveMembers: ['Phan Thị Thủy'],
+    term: '2025 - 2026',
+    partyMembersInBranch: 5,
+    youthGatheringRate: 92,
+    meetingDay: 'Ngày thứ Sáu tuần đầu tháng',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Đường Bùi Quốc Khánh, P. Chánh Hiệp',
+    establishedDate: '10/09/2008',
+    membersCount: 32, 
+    selfScore: 76.0, 
+    officialScore: 74.0, 
+    submittedCount: 9, 
+    approvedCount: 8, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'mn_pl', 
+    name: 'Chi đoàn Mầm non Hoa Mai Chánh Hiệp', 
+    type: 'TRƯỜNG HỌC', 
+    secretary: 'Lý Kim Yến', 
+    phone: '0949.123.456', 
+    deputySecretary: 'Trương Mỹ Linh',
+    executiveMembers: ['Vũ Thu Trang'],
+    term: '2025 - 2026',
+    partyMembersInBranch: 3,
+    youthGatheringRate: 90,
+    meetingDay: 'Ngày 05 hàng tháng',
+    threeInitiativesRating: 'ĐẠT CHUẨN',
+    address: 'Khu dân cư Chánh Hiệp',
+    establishedDate: '15/05/2010',
+    membersCount: 25, 
+    selfScore: 65.0, 
+    officialScore: 65.0, 
+    submittedCount: 7, 
+    approvedCount: 7, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'qs', 
+    name: 'Chi đoàn Quân sự Phường Chánh Hiệp', 
+    type: 'LỰC LƯỢNG VŨ TRANG', 
+    secretary: 'Trịnh Hoài Nam', 
+    phone: '0972.334.455', 
+    deputySecretary: 'Đoàn Văn Chiến',
+    executiveMembers: ['Nguyễn Thành Trung'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 8,
+    youthGatheringRate: 100,
+    meetingDay: 'Ngày 25 hàng tháng',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Ban Chỉ huy Quân sự P. Chánh Hiệp',
+    establishedDate: '22/12/2000',
+    membersCount: 22, 
+    selfScore: 92.0, 
+    officialScore: 90.0, 
+    submittedCount: 11, 
+    approvedCount: 10, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'ca', 
+    name: 'Chi đoàn Công an Phường Chánh Hiệp', 
+    type: 'LỰC LƯỢNG VŨ TRANG', 
+    secretary: 'Nguyễn Minh Hải', 
+    phone: '0913.445.566', 
+    deputySecretary: 'Lê Văn Quyết',
+    executiveMembers: ['Phạm Tuấn Anh'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 12,
+    youthGatheringRate: 100,
+    meetingDay: 'Ngày 28 hàng tháng',
+    threeInitiativesRating: 'XUẤT SẮC',
+    address: 'Công an P. Chánh Hiệp',
+    establishedDate: '19/08/2002',
+    membersCount: 28, 
+    selfScore: 90.0, 
+    officialScore: 90.0, 
+    submittedCount: 11, 
+    approvedCount: 11, 
+    status: 'ACTIVE' 
+  },
+  { 
+    id: 'dn', 
+    name: 'Chi đoàn Doanh nghiệp Ngoài nhà nước', 
+    type: 'DOANH NGHIỆP', 
+    secretary: 'Đoàn Gia Bảo', 
+    phone: '0909.887.766', 
+    deputySecretary: 'Vũ Thị Minh Thư',
+    executiveMembers: ['Lê Hoàng Phong'],
+    term: '2025 - 2027',
+    partyMembersInBranch: 2,
+    youthGatheringRate: 62,
+    meetingDay: 'Ngày thứ Bảy tuần thứ 3',
+    threeInitiativesRating: 'ĐẠT CHUẨN',
+    address: 'Khu công nghiệp / Dịch vụ Chánh Hiệp',
+    establishedDate: '26/03/2018',
+    membersCount: 20, 
+    selfScore: 50.0, 
+    officialScore: 48.0, 
+    submittedCount: 5, 
+    approvedCount: 4, 
+    status: 'ACTIVE' 
+  },
 ];
 
 export const INITIAL_CATEGORIES: EmulationCategory[] = [
@@ -432,8 +936,167 @@ const KEY_DOCUMENTS = 'youth_union_documents';
 const KEY_INITIATIVES = 'youth_union_initiatives';
 const KEY_ARTICLES = 'youth_union_articles';
 const KEY_AUDIT_LOGS = 'youth_union_audit_logs';
+const KEY_MEETING_MINUTES = 'youth_union_meeting_minutes';
+const KEY_YOUTH_PROJECTS = 'youth_union_youth_projects';
 
 const EVENT_UPDATE = 'youth_union_data_updated';
+
+export const INITIAL_MEETING_MINUTES: BranchMeetingMinute[] = [
+  {
+    id: 'mm_001',
+    branchId: 'kp1',
+    branchName: 'Chi đoàn Khu phố 1',
+    month: 'Tháng 09/2026',
+    meetingDate: '12/09/2026',
+    topic: 'Sinh hoạt Chi đoàn chủ điểm: "Tuổi trẻ Chánh Hiệp tự hào tiến bước dưới cờ Đảng"',
+    hostName: 'Trần Thị Bích',
+    secretaryName: 'Phạm Thu Trang',
+    attendeesCount: 36,
+    totalMembers: 38,
+    absentCount: 2,
+    absentReasons: '02 ĐV đi học ca tối có đơn xin phép',
+    contentsSummary: '1. Thông tin thời sự trong nước và tình hình địa phương tháng 9/2026.\n2. Đánh giá kết quả tham gia Chiến dịch Mùa Hè Xanh và hoạt động chăm lo Trung thu cho thiếu nhi.\n3. Triển khai kế hoạch ra quân Ngày Chủ Nhật Xanh và dọn dẹp vệ sinh tuyến hẻm văn minh.\n4. Bình xét 02 đoàn viên ưu tú giới thiệu học lớp Cảm tình Đảng đợt 2/2026.',
+    resolutions: '100% đoàn viên biểu quyết thông qua nghị quyết công tác tháng 10/2026. Phân công đồng chí Tâm phụ trách tổ chức ngày hội thiếu nhi.',
+    votesPercent: 100,
+    status: 'COMPLETED',
+    createdAt: '12/09/2026 21:00'
+  },
+  {
+    id: 'mm_002',
+    branchId: 'kp2',
+    branchName: 'Chi đoàn Khu phố 2',
+    month: 'Tháng 09/2026',
+    meetingDate: '15/09/2026',
+    topic: 'Chuyên đề: Nâng cao kỹ năng số và ứng dụng VNeID trong đời sống cộng đồng',
+    hostName: 'Lê Văn Nam',
+    secretaryName: 'Trịnh Kim Oanh',
+    attendeesCount: 40,
+    totalMembers: 42,
+    absentCount: 2,
+    absentReasons: '02 ĐV tăng ca đột xuất',
+    contentsSummary: '1. Quán triệt công tác rà soát dữ liệu đoàn viên trên App Thanh niên Việt Nam.\n2. Phân công 10 ĐV tham gia hỗ trợ người dân kích hoạt tài khoản định danh điện tử.\n3. Thu nộp đoàn phí Quý III/2026 đạt 100%.',
+    resolutions: 'Thống nhất đảm nhận tuyến đường chuyển đổi số không dùng tiền mặt tại khu phố 2.',
+    votesPercent: 98,
+    status: 'COMPLETED',
+    createdAt: '15/09/2026 20:30'
+  },
+  {
+    id: 'mm_003',
+    branchId: 'thcs',
+    branchName: 'Chi đoàn Trường THCS Chánh Hiệp',
+    month: 'Tháng 09/2026',
+    meetingDate: '10/09/2026',
+    topic: 'Triển khai nhiệm vụ công tác Đoàn - Đội năm học mới 2026 - 2027',
+    hostName: 'Nguyễn Thị Thu Hà',
+    secretaryName: 'Trần Văn Kiên',
+    attendeesCount: 45,
+    totalMembers: 45,
+    absentCount: 0,
+    absentReasons: 'Không vắng',
+    contentsSummary: '1. Phân công giáo viên trẻ phụ trách các Chi đội và phong trào Đội TNTP Hồ Chí Minh.\n2. Phát động phong trào "Tiết kiệm nuôi heo đất giúp bạn đến trường".\n3. Lên lịch tập huấn công tác phòng chống tai nạn thương tích và bạo lực học đường.',
+    resolutions: 'Đăng ký 100% đoàn viên giáo viên đạt danh hiệu Đoàn viên xuất sắc và Chi đoàn vững mạnh tiêu biểu.',
+    votesPercent: 100,
+    status: 'COMPLETED',
+    createdAt: '10/09/2026 17:30'
+  }
+];
+
+export const INITIAL_YOUTH_PROJECTS: BranchYouthProject[] = [
+  {
+    id: 'yp_001',
+    branchId: 'kp1',
+    branchName: 'Chi đoàn Khu phố 1',
+    title: 'Công trình bích họa "Tuyến hẻm văn minh không rác thải"',
+    category: 'BẢO VỆ MÔI TRƯỜNG',
+    description: 'Vẽ tranh bích họa tuyên truyền bảo vệ môi trường, lắp đặt 15 thùng rác phân loại và hệ thống chiếu sáng năng lượng mặt trời dài 150m.',
+    location: 'Tổ 3, Khu phố 1, Phường Chánh Hiệp',
+    budgetVND: 18500000,
+    completionPercent: 100,
+    status: 'COMPLETED',
+    startDate: '01/06/2026',
+    endDate: '15/08/2026',
+    leaderName: 'Trần Thị Bích',
+    volunteerCount: 25
+  },
+  {
+    id: 'yp_002',
+    branchId: 'kp6',
+    branchName: 'Chi đoàn Khu phố 6',
+    title: 'Tổ tư vấn pháp luật & Số hóa thủ tục hành chính miễn phí cho thanh niên công nhân',
+    category: 'CHUYỂN ĐỔI SỐ',
+    description: 'Tổ chức định kỳ thứ 7 hàng tuần hỗ trợ thanh niên công nhân tại các khu nhà trọ khai báo tạm trú, làm CCCD gắn chip và hỗ trợ bảo hiểm y tế.',
+    location: 'Nhà văn hóa Khu phố 6, Phường Chánh Hiệp',
+    budgetVND: 8000000,
+    completionPercent: 85,
+    status: 'IN_PROGRESS',
+    startDate: '10/03/2026',
+    endDate: '30/11/2026',
+    leaderName: 'Đặng Mai Phương',
+    volunteerCount: 18
+  },
+  {
+    id: 'yp_003',
+    branchId: 'thcs',
+    branchName: 'Chi đoàn Trường THCS Chánh Hiệp',
+    title: 'Thư viện số xanh và Góc đọc sách thông minh cho học sinh',
+    category: 'CHUYỂN ĐỔI SỐ',
+    description: 'Trang bị 5 máy tính bảng tra cứu sách trực tuyến, mã QR kho sách thiếu nhi và không gian đọc sách thân thiện ngoài trời.',
+    location: 'Khuôn viên Trường THCS Chánh Hiệp',
+    budgetVND: 22000000,
+    completionPercent: 90,
+    status: 'IN_PROGRESS',
+    startDate: '01/07/2026',
+    endDate: '20/10/2026',
+    leaderName: 'Nguyễn Thị Thu Hà',
+    volunteerCount: 30
+  },
+  {
+    id: 'yp_004',
+    branchId: 'ca',
+    branchName: 'Chi đoàn Công an Phường Chánh Hiệp',
+    title: 'Mô hình "Camera an ninh & Mã QR tố giác tội phạm tại khu dân cư"',
+    category: 'CHUYỂN ĐỔI SỐ',
+    description: 'Lắp đặt 10 điểm tiếp nhận thông tin phản ánh qua mã QR và hỗ trợ số hóa hệ thống camera an ninh các tuyến đường trọng điểm.',
+    location: '10 Khu phố trên địa bàn Phường Chánh Hiệp',
+    budgetVND: 35000000,
+    completionPercent: 100,
+    status: 'COMPLETED',
+    startDate: '01/01/2026',
+    endDate: '19/08/2026',
+    leaderName: 'Nguyễn Minh Hải',
+    volunteerCount: 22
+  }
+];
+
+export const loadStoredMeetingMinutes = (): BranchMeetingMinute[] => {
+  try {
+    const raw = localStorage.getItem(KEY_MEETING_MINUTES);
+    if (!raw) return INITIAL_MEETING_MINUTES;
+    return JSON.parse(raw);
+  } catch {
+    return INITIAL_MEETING_MINUTES;
+  }
+};
+
+export const saveStoredMeetingMinutes = (items: BranchMeetingMinute[]) => {
+  localStorage.setItem(KEY_MEETING_MINUTES, JSON.stringify(items));
+  window.dispatchEvent(new CustomEvent(EVENT_UPDATE, { detail: { type: 'meeting_minutes' } }));
+};
+
+export const loadStoredYouthProjects = (): BranchYouthProject[] => {
+  try {
+    const raw = localStorage.getItem(KEY_YOUTH_PROJECTS);
+    if (!raw) return INITIAL_YOUTH_PROJECTS;
+    return JSON.parse(raw);
+  } catch {
+    return INITIAL_YOUTH_PROJECTS;
+  }
+};
+
+export const saveStoredYouthProjects = (items: BranchYouthProject[]) => {
+  localStorage.setItem(KEY_YOUTH_PROJECTS, JSON.stringify(items));
+  window.dispatchEvent(new CustomEvent(EVENT_UPDATE, { detail: { type: 'youth_projects' } }));
+};
 
 // Storage helper functions
 export const loadStoredArticles = (): YouthArticle[] => {
@@ -580,6 +1243,784 @@ export const loadStoredSettings = (): EmulationSettings => {
 export const saveStoredSettings = (settings: EmulationSettings) => {
   localStorage.setItem(KEY_SETTINGS, JSON.stringify(settings));
   window.dispatchEvent(new CustomEvent(EVENT_UPDATE, { detail: { type: 'settings' } }));
+};
+
+export const KEY_YOUTH_MEMBERS = 'youth_union_members_v2026';
+export const KEY_WORK_GROUPS = 'youth_union_work_groups_v1';
+export const KEY_TRAINING_RECORDS = 'youth_union_training_records_v1';
+
+export const INITIAL_WORK_GROUPS: YouthWorkGroup[] = [
+  {
+    id: 'wg_001',
+    branchId: 'kp1',
+    name: 'Tổ Công nghệ số cộng đồng & Dịch vụ công',
+    code: 'TỔ-CNS-01',
+    description: 'Hướng dẫn người dân kích hoạt VNeID mức 2, chữ ký số cá nhân, nộp hồ sơ dịch vụ công trực tuyến và thanh toán không tiền mặt.',
+    leaderId: 'ym_002',
+    leaderName: 'Nguyễn Thành Nam',
+    leaderPhone: '0938.112.445',
+    memberIds: ['ym_002', 'ym_001', 'ym_013', 'ym_014'],
+    colorTheme: 'blue',
+    targetTasksCount: 6,
+    completedTasksCount: 5,
+    emulationScore: 96,
+    ranking: 'XUẤT SẮC',
+    quarter: 'Quý III/2026',
+    tasks: [
+      { id: 'ts_1', title: 'Ra quân hỗ trợ cấp chữ ký số công dân tại Văn phòng BĐH KP1', assignedDate: '05/09/2026', deadline: '10/09/2026', status: 'COMPLETED', assignedMemberNames: ['Nguyễn Thành Nam', 'Trần Thị Bích'], points: 20, resultNote: 'Cấp thành công 125 chữ ký số cá nhân cho thanh niên và người dân.' },
+      { id: 'ts_2', title: 'Tạo mã QR tra cứu thông tin thủ tục hành chính khu phố', assignedDate: '12/09/2026', deadline: '18/09/2026', status: 'COMPLETED', assignedMemberNames: ['Nguyễn Thành Nam'], points: 15, resultNote: 'Đặt 4 điểm bảng quét mã QR tại các nhà sinh hoạt cộng đồng.' },
+      { id: 'ts_3', title: 'Hướng dẫn tiểu thương chợ Chánh Hiệp cài đặt mã QR thanh toán', assignedDate: '20/09/2026', deadline: '28/09/2026', status: 'IN_PROGRESS', assignedMemberNames: ['Nguyễn Thành Nam', 'Phạm Thu Trang'], points: 25 },
+      { id: 'ts_4', title: 'Tập huấn kỹ năng an toàn thông tin & phòng chống lừa đảo mạng', assignedDate: '15/08/2026', deadline: '22/08/2026', status: 'COMPLETED', assignedMemberNames: ['Nguyễn Thành Nam', 'Lê Hữu Đạt'], points: 20, resultNote: 'Có 45 đoàn viên thanh niên tham gia tập huấn.' }
+    ],
+    evaluationNotes: 'Hoạt động nổi bật, dẫn đầu khối thi đua chuyển đổi số cấp chi đoàn.'
+  },
+  {
+    id: 'wg_002',
+    branchId: 'kp1',
+    name: 'Đội Tình nguyện Xung kích Môi trường & Đô thị văn minh',
+    code: 'ĐỘI-TNMT-02',
+    description: 'Ra quân Ngày Chủ nhật xanh, xóa bảng quảng cáo sai quy định, phân loại rác tại nguồn và duy trì tuyến hẻm thanh niên tự quản.',
+    leaderId: 'ym_013',
+    leaderName: 'Phạm Thu Trang',
+    leaderPhone: '0979.223.344',
+    memberIds: ['ym_013', 'ym_016', 'ym_017'],
+    colorTheme: 'emerald',
+    targetTasksCount: 5,
+    completedTasksCount: 4,
+    emulationScore: 92,
+    ranking: 'XUẤT SẮC',
+    quarter: 'Quý III/2026',
+    tasks: [
+      { id: 'ts_5', title: 'Ra quân Ngày Chủ nhật xanh lần 3 dọn vệ sinh tuyến kênh rạch KP1', assignedDate: '01/09/2026', deadline: '06/09/2026', status: 'COMPLETED', assignedMemberNames: ['Phạm Thu Trang', 'Đặng Quốc Bảo'], points: 25, resultNote: 'Thu gom hơn 350kg rác thải nhựa và khơi thông dòng chảy.' },
+      { id: 'ts_6', title: 'Bóc xóa 150 biển quảng cáo rao vặt trái phép trên cột điện', assignedDate: '10/09/2026', deadline: '14/09/2026', status: 'COMPLETED', assignedMemberNames: ['Phạm Thu Trang', 'Hoàng Kim Ngân'], points: 20, resultNote: 'Chỉnh trang sạch sẽ 3 tuyến hẻm chính.' },
+      { id: 'ts_7', title: 'Trồng và chăm sóc 50 cây hoàng yến tạo cảnh quan tuyến hẻm 42', assignedDate: '18/09/2026', deadline: '30/09/2026', status: 'IN_PROGRESS', assignedMemberNames: ['Phạm Thu Trang'], points: 25 }
+    ],
+    evaluationNotes: 'Lực lượng nòng cốt trong các phong trào xung kích vì môi trường của địa bàn.'
+  },
+  {
+    id: 'wg_003',
+    branchId: 'kp1',
+    name: 'Tổ An sinh Xã hội & Đền ơn đáp nghĩa',
+    code: 'TỔ-ASXH-03',
+    description: 'Thăm hỏi gia đình chính sách, người có công, chăm lo học bổng cho thiếu nhi có hoàn cảnh khó khăn và tham gia ngày hội hiến máu tình nguyện.',
+    leaderId: 'ym_014',
+    leaderName: 'Lê Hữu Đạt',
+    leaderPhone: '0918.776.889',
+    memberIds: ['ym_014', 'ym_017', 'ym_001'],
+    colorTheme: 'rose',
+    targetTasksCount: 4,
+    completedTasksCount: 4,
+    emulationScore: 95,
+    ranking: 'XUẤT SẮC',
+    quarter: 'Quý III/2026',
+    tasks: [
+      { id: 'ts_8', title: 'Thăm và tặng quà 5 gia đình chính sách nhân dịp lễ kỷ niệm', assignedDate: '25/08/2026', deadline: '01/09/2026', status: 'COMPLETED', assignedMemberNames: ['Lê Hữu Đạt', 'Trần Thị Bích'], points: 25, resultNote: 'Trao 5 phần quà trị giá 2.500.000đ từ nguồn vận động.' },
+      { id: 'ts_9', title: 'Tổ chức vận động đoàn viên tham gia Ngày hội Giọt hồng Chánh Hiệp', assignedDate: '08/09/2026', deadline: '15/09/2026', status: 'COMPLETED', assignedMemberNames: ['Lê Hữu Đạt'], points: 30, resultNote: 'Có 14 đoàn viên tham gia hiến máu thành công.' }
+    ],
+    evaluationNotes: 'Gắn kết chặt chẽ với công tác an sinh xã hội địa phương, tinh thần tương thân tương ái cao.'
+  },
+  {
+    id: 'wg_004',
+    branchId: 'kp1',
+    name: 'Tổ Tuyên truyền, Văn nghệ - Thể thao & Dư luận',
+    code: 'TỔ-VNTT-04',
+    description: 'Biên tập bản tin thanh niên, vận hành Fanpage Chi đoàn, tổ chức các giải giao lưu thể thao và nắm bắt dư luận xã hội trong thanh niên.',
+    leaderId: 'ym_015',
+    leaderName: 'Võ Hoàng Quân',
+    leaderPhone: '0908.445.667',
+    memberIds: ['ym_015', 'ym_016'],
+    colorTheme: 'purple',
+    targetTasksCount: 4,
+    completedTasksCount: 3,
+    emulationScore: 89,
+    ranking: 'TỐT',
+    quarter: 'Quý III/2026',
+    tasks: [
+      { id: 'ts_10', title: 'Thiết kế infographic tuyên truyền Luật Nghĩa vụ Quân sự năm 2026', assignedDate: '02/09/2026', deadline: '08/09/2026', status: 'COMPLETED', assignedMemberNames: ['Võ Hoàng Quân'], points: 20, resultNote: 'Đạt hơn 1.200 lượt xem và tương tác trên mạng xã hội.' },
+      { id: 'ts_11', title: 'Tổ chức Giải bóng đá mini Tứ hùng thanh niên các khu phố', assignedDate: '15/09/2026', deadline: '22/09/2026', status: 'IN_PROGRESS', assignedMemberNames: ['Võ Hoàng Quân', 'Đặng Quốc Bảo'], points: 30 }
+    ],
+    evaluationNotes: 'Kênh truyền thông sinh động, tích cực thu hút thanh thiếu nhi tham gia sinh hoạt.'
+  },
+  {
+    id: 'wg_005',
+    branchId: 'kp1',
+    name: 'Tổ Nòng cốt Bồi dưỡng Phát triển Đảng & Cán bộ nguồn',
+    code: 'TỔ-NCPTĐ-05',
+    description: 'Theo dõi, rèn luyện đoàn viên ưu tú, hướng dẫn hồ sơ xin vào Đảng, bồi dưỡng nhận thức về Đảng và tạo nguồn cán bộ kế cận.',
+    leaderId: 'ym_001',
+    leaderName: 'Trần Thị Bích',
+    leaderPhone: '0912.345.678',
+    memberIds: ['ym_001', 'ym_002', 'ym_013'],
+    colorTheme: 'amber',
+    targetTasksCount: 3,
+    completedTasksCount: 3,
+    emulationScore: 98,
+    ranking: 'XUẤT SẮC',
+    quarter: 'Quý III/2026',
+    tasks: [
+      { id: 'ts_12', title: 'Tổ chức Tọa đàm: "Đoàn viên thanh niên phấn đấu trở thành Đảng viên"', assignedDate: '18/08/2026', deadline: '25/08/2026', status: 'COMPLETED', assignedMemberNames: ['Trần Thị Bích', 'Nguyễn Thành Nam'], points: 30, resultNote: '100% đoàn viên ưu tú tham gia viết thu hoạch chính trị.' },
+      { id: 'ts_13', title: 'Hoàn thiện hồ sơ giới thiệu 2 đoàn viên ưu tú cho Chi bộ xem xét kết nạp', assignedDate: '01/09/2026', deadline: '15/09/2026', status: 'COMPLETED', assignedMemberNames: ['Trần Thị Bích'], points: 40, resultNote: 'Chi bộ đã tiếp nhận và lập danh sách thẩm tra lý lịch.' }
+    ],
+    evaluationNotes: 'Đảm bảo công tác phát triển Đảng viên trẻ đạt và vượt chỉ tiêu Đoàn cấp trên giao.'
+  }
+];
+
+export const INITIAL_TRAINING_RECORDS: YouthMemberTrainingRecord[] = [
+  {
+    id: 'tr_001',
+    memberId: 'ym_001',
+    memberName: 'Trần Thị Bích',
+    memberCode: 'ĐV-CH-2026-001',
+    branchId: 'kp1',
+    year: 2026,
+    workGroupId: 'wg_005',
+    workGroupName: 'Tổ Nòng cốt Phát triển Đảng',
+    ideologyScore: 20,
+    ethicsScore: 20,
+    studyLaborScore: 19,
+    physicalSkillScore: 19,
+    disciplineVolunteerScore: 20,
+    totalScore: 98,
+    meetingAttendance: 12,
+    monthlyAttendance: [true, true, true, true, true, true, true, true, true, true, true, true],
+    volunteerActivitiesCount: 16,
+    digitalSkillsCompleted: true,
+    trainingStatus: 'XUẤT SẮC',
+    selfEvaluationComment: 'Luôn gương mẫu đi đầu trong mọi phong trào của Chi đoàn, hoàn thành xuất sắc nhiệm vụ Bí thư Chi đoàn và bồi dưỡng đoàn viên ưu tú.',
+    branchEvaluationComment: 'Cán bộ Đoàn gương mẫu, uy tín cao trong thanh niên, đóng góp tích cực cho công tác tập hợp và phát triển Đảng viên mới.',
+    verifiedDate: '15/09/2026',
+    verifiedBy: 'BCH Đoàn Phường Chánh Hiệp'
+  },
+  {
+    id: 'tr_002',
+    memberId: 'ym_002',
+    memberName: 'Nguyễn Thành Nam',
+    memberCode: 'ĐV-CH-2026-002',
+    branchId: 'kp1',
+    year: 2026,
+    workGroupId: 'wg_001',
+    workGroupName: 'Tổ Công nghệ số cộng đồng',
+    ideologyScore: 19,
+    ethicsScore: 20,
+    studyLaborScore: 20,
+    physicalSkillScore: 18,
+    disciplineVolunteerScore: 19,
+    totalScore: 96,
+    meetingAttendance: 11,
+    monthlyAttendance: [true, true, true, true, true, true, true, true, true, true, true, false],
+    volunteerActivitiesCount: 14,
+    digitalSkillsCompleted: true,
+    trainingStatus: 'XUẤT SẮC',
+    selfEvaluationComment: 'Chủ động nghiên cứu và triển khai nhiều mô hình số hóa cho Chi đoàn và hỗ trợ người dân khu phố sử dụng dịch vụ công trực tuyến.',
+    branchEvaluationComment: 'Đoàn viên ưu tú, nhiệt huyết, có nhiều sáng kiến công nghệ nổi bật được Đoàn phường tuyên dương.',
+    verifiedDate: '15/09/2026',
+    verifiedBy: 'Trần Thị Bích (Bí thư Chi đoàn)'
+  },
+  {
+    id: 'tr_013',
+    memberId: 'ym_013',
+    memberName: 'Phạm Thu Trang',
+    memberCode: 'ĐV-CH-2026-013',
+    branchId: 'kp1',
+    year: 2026,
+    workGroupId: 'wg_002',
+    workGroupName: 'Đội Tình nguyện Môi trường',
+    ideologyScore: 18,
+    ethicsScore: 19,
+    studyLaborScore: 18,
+    physicalSkillScore: 19,
+    disciplineVolunteerScore: 19,
+    totalScore: 93,
+    meetingAttendance: 10,
+    monthlyAttendance: [true, true, true, true, false, true, true, true, true, true, false, true],
+    volunteerActivitiesCount: 12,
+    digitalSkillsCompleted: true,
+    trainingStatus: 'XUẤT SẮC',
+    selfEvaluationComment: 'Tích cực huy động lực lượng tham gia các hoạt động Ngày Chủ nhật xanh và bảo vệ môi trường khu phố.',
+    branchEvaluationComment: 'Hoàn thành tốt nhiệm vụ phụ trách công tác môi trường, tinh thần trách nhiệm cao.',
+    verifiedDate: '15/09/2026',
+    verifiedBy: 'Trần Thị Bích (Bí thư Chi đoàn)'
+  },
+  {
+    id: 'tr_014',
+    memberId: 'ym_014',
+    memberName: 'Lê Hữu Đạt',
+    memberCode: 'ĐV-CH-2026-014',
+    branchId: 'kp1',
+    year: 2026,
+    workGroupId: 'wg_003',
+    workGroupName: 'Tổ An sinh Xã hội',
+    ideologyScore: 18,
+    ethicsScore: 19,
+    studyLaborScore: 18,
+    physicalSkillScore: 18,
+    disciplineVolunteerScore: 19,
+    totalScore: 92,
+    meetingAttendance: 10,
+    monthlyAttendance: [true, true, true, true, true, true, false, true, true, true, false, true],
+    volunteerActivitiesCount: 11,
+    digitalSkillsCompleted: true,
+    trainingStatus: 'XUẤT SẮC',
+    selfEvaluationComment: 'Luôn nhiệt tình trong công tác chăm lo gia đình chính sách và tham gia hiến máu tình nguyện đầy đủ.',
+    branchEvaluationComment: 'Tích cực tham gia các phong trào thiện nguyện, lối sống trong sạch, hòa đồng.',
+    verifiedDate: '15/09/2026',
+    verifiedBy: 'Trần Thị Bích (Bí thư Chi đoàn)'
+  },
+  {
+    id: 'tr_015',
+    memberId: 'ym_015',
+    memberName: 'Võ Hoàng Quân',
+    memberCode: 'ĐV-CH-2026-015',
+    branchId: 'kp1',
+    year: 2026,
+    workGroupId: 'wg_004',
+    workGroupName: 'Tổ Tuyên truyền & Thể thao',
+    ideologyScore: 17,
+    ethicsScore: 18,
+    studyLaborScore: 17,
+    physicalSkillScore: 19,
+    disciplineVolunteerScore: 17,
+    totalScore: 88,
+    meetingAttendance: 9,
+    monthlyAttendance: [true, true, false, true, true, true, false, true, true, false, true, true],
+    volunteerActivitiesCount: 8,
+    digitalSkillsCompleted: true,
+    trainingStatus: 'XUẤT SẮC',
+    selfEvaluationComment: 'Phụ trách tốt đội bóng đá thanh niên và hỗ trợ thiết kế poster sinh hoạt chi đoàn.',
+    branchEvaluationComment: 'Năng nổ, nhiệt tình trong các hoạt động văn hóa văn nghệ thể dục thể thao.',
+    verifiedDate: '15/09/2026',
+    verifiedBy: 'Trần Thị Bích (Bí thư Chi đoàn)'
+  },
+  {
+    id: 'tr_016',
+    memberId: 'ym_016',
+    memberName: 'Đặng Quốc Bảo',
+    memberCode: 'ĐV-CH-2026-016',
+    branchId: 'kp1',
+    year: 2026,
+    workGroupId: 'wg_002',
+    workGroupName: 'Đội Tình nguyện Môi trường',
+    ideologyScore: 16,
+    ethicsScore: 17,
+    studyLaborScore: 16,
+    physicalSkillScore: 17,
+    disciplineVolunteerScore: 16,
+    totalScore: 82,
+    meetingAttendance: 8,
+    monthlyAttendance: [true, true, false, true, false, true, true, false, true, true, false, true],
+    volunteerActivitiesCount: 6,
+    digitalSkillsCompleted: true,
+    trainingStatus: 'KHÁ',
+    selfEvaluationComment: 'Tham gia các buổi sinh hoạt chi đoàn và dọn vệ sinh môi trường, tiếp tục cố gắng trong năm tới.',
+    branchEvaluationComment: 'Đoàn viên chấp hành tốt kỷ luật chi đoàn, cần nâng cao tỷ lệ tham gia sinh hoạt định kỳ.',
+    verifiedDate: '15/09/2026',
+    verifiedBy: 'Trần Thị Bích (Bí thư Chi đoàn)'
+  },
+  {
+    id: 'tr_017',
+    memberId: 'ym_017',
+    memberName: 'Hoàng Kim Ngân',
+    memberCode: 'ĐV-CH-2026-017',
+    branchId: 'kp1',
+    year: 2026,
+    workGroupId: 'wg_003',
+    workGroupName: 'Tổ An sinh Xã hội',
+    ideologyScore: 16,
+    ethicsScore: 17,
+    studyLaborScore: 17,
+    physicalSkillScore: 16,
+    disciplineVolunteerScore: 15,
+    totalScore: 81,
+    meetingAttendance: 8,
+    monthlyAttendance: [true, false, true, true, false, true, false, true, true, false, true, true],
+    volunteerActivitiesCount: 5,
+    digitalSkillsCompleted: true,
+    trainingStatus: 'KHÁ',
+    selfEvaluationComment: 'Tích cực tham gia phụ trách các gian hàng trò chơi dân gian cho thiếu nhi khu phố.',
+    branchEvaluationComment: 'Đoàn viên sinh hoạt đều đặn, đoàn kết với tập thể.',
+    verifiedDate: '15/09/2026',
+    verifiedBy: 'Trần Thị Bích (Bí thư Chi đoàn)'
+  }
+];
+
+export const loadStoredWorkGroups = (): YouthWorkGroup[] => {
+  try {
+    const raw = localStorage.getItem(KEY_WORK_GROUPS);
+    if (!raw) return INITIAL_WORK_GROUPS;
+    return JSON.parse(raw);
+  } catch {
+    return INITIAL_WORK_GROUPS;
+  }
+};
+
+export const saveStoredWorkGroups = (groups: YouthWorkGroup[]) => {
+  localStorage.setItem(KEY_WORK_GROUPS, JSON.stringify(groups));
+  window.dispatchEvent(new CustomEvent(EVENT_UPDATE, { detail: { type: 'work_groups' } }));
+};
+
+export const loadStoredTrainingRecords = (): YouthMemberTrainingRecord[] => {
+  try {
+    const raw = localStorage.getItem(KEY_TRAINING_RECORDS);
+    if (!raw) return INITIAL_TRAINING_RECORDS;
+    return JSON.parse(raw);
+  } catch {
+    return INITIAL_TRAINING_RECORDS;
+  }
+};
+
+export const saveStoredTrainingRecords = (records: YouthMemberTrainingRecord[]) => {
+  localStorage.setItem(KEY_TRAINING_RECORDS, JSON.stringify(records));
+  window.dispatchEvent(new CustomEvent(EVENT_UPDATE, { detail: { type: 'training_records' } }));
+};
+
+export const INITIAL_YOUTH_MEMBERS: YouthMember[] = [
+  {
+    id: 'ym_001',
+    memberCode: 'ĐV-CH-2026-001',
+    fullName: 'Trần Thị Bích',
+    gender: 'Nữ',
+    birthDate: '12/04/2001',
+    branchId: 'kp1',
+    branchName: 'Chi đoàn Khu phố 1',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '26/03/2016',
+    joinedPlace: 'Đoàn trường THPT Võ Minh Đức',
+    phone: '0912.345.678',
+    email: 'bich.tranthi@chanhhiep.org.vn',
+    address: 'Số 12, Tổ 1, Khu phố 1, P. Chánh Hiệp',
+    educationLevel: 'Đại học',
+    profession: 'Chuyên viên Hành chính / Cán bộ Đoàn',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'COMMENDED',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
+    skills: ['MC / Dẫn chương trình', 'Tổ chức sự kiện', 'Kỹ năng làm việc nhóm', 'Truyền thông mạng xã hội'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Đoàn viên ưu tú đã hoàn thành lớp bồi dưỡng nhận thức về Đảng năm 2025.'
+  },
+  {
+    id: 'ym_002',
+    memberCode: 'ĐV-CH-2026-002',
+    fullName: 'Nguyễn Thành Nam',
+    gender: 'Nam',
+    birthDate: '18/09/2003',
+    branchId: 'kp1',
+    branchName: 'Chi đoàn Khu phố 1',
+    position: 'Phó Bí thư Chi đoàn',
+    joinedDate: '26/03/2018',
+    joinedPlace: 'Đoàn trường THCS Chánh Hiệp',
+    phone: '0938.112.445',
+    email: 'nam.nguyenthanh@gmail.com',
+    address: 'Số 45/2, Tổ 3, Khu phố 1, P. Chánh Hiệp',
+    educationLevel: 'Đại học (Năm 4)',
+    profession: 'Sinh viên ĐH Thủ Dầu Một - Khoa CNTT',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'ACTIVE',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80',
+    skills: ['Chuyển đổi số - IT', 'Thiết kế đồ họa Canva', 'Tổ chức sinh hoạt hè'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Trưởng nhóm Tổ công nghệ số cộng đồng Khu phố 1.'
+  },
+  {
+    id: 'ym_003',
+    memberCode: 'ĐV-CH-2026-003',
+    fullName: 'Lê Văn Nam',
+    gender: 'Nam',
+    birthDate: '05/11/1999',
+    branchId: 'kp2',
+    branchName: 'Chi đoàn Khu phố 2',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '19/05/2015',
+    joinedPlace: 'Đoàn trường THCS Chánh Hiệp',
+    phone: '0903.112.233',
+    email: 'nam.levan@gmail.com',
+    address: 'Số 88 đường Lê Chí Dân, KP2, P. Chánh Hiệp',
+    educationLevel: 'Đại học',
+    profession: 'Kỹ sư Xây dựng đô thị',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'ACTIVE',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80',
+    skills: ['Thể thao - Bóng đá', 'Kỹ thuật xung kích', 'Cứu hộ phòng cháy'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: false,
+    notes: 'Tích cực phụ trách các công trình thanh niên sáng - xanh - sạch - đẹp.'
+  },
+  {
+    id: 'ym_004',
+    memberCode: 'ĐV-CH-2026-004',
+    fullName: 'Võ Thị Thanh Thảo',
+    gender: 'Nữ',
+    birthDate: '22/07/2004',
+    branchId: 'kp2',
+    branchName: 'Chi đoàn Khu phố 2',
+    position: 'Ủy viên BCH Chi đoàn',
+    joinedDate: '26/03/2019',
+    joinedPlace: 'Đoàn trường THPT An Mỹ',
+    phone: '0984.776.554',
+    email: 'thao.vothanh@gmail.com',
+    address: 'Số 31, Tổ 2, Khu phố 2, P. Chánh Hiệp',
+    educationLevel: 'Cao đẳng',
+    profession: 'Dược sĩ / Nhân viên y tế',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'ACTIVE',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80',
+    skills: ['Cứu hộ - Sơ cấp cứu', 'Tuyên truyền phòng dịch', 'Văn nghệ'],
+    emulationRanking: 'KHÁ',
+    partyTarget: false,
+    notes: 'Đội trưởng đội sơ cấp cứu tình nguyện thanh niên.'
+  },
+  {
+    id: 'ym_005',
+    memberCode: 'ĐV-CH-2026-005',
+    fullName: 'Nguyễn Văn Minh',
+    gender: 'Nam',
+    birthDate: '10/02/2000',
+    branchId: 'kp3',
+    branchName: 'Chi đoàn Khu phố 3',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '26/03/2016',
+    joinedPlace: 'Đoàn trường THCS Chánh Hiệp',
+    phone: '0988.776.655',
+    email: 'minh.nguyenvan@chanhhiep.org.vn',
+    address: 'Số 19, Tổ 4, Khu phố 3, P. Chánh Hiệp',
+    educationLevel: 'Đại học',
+    profession: 'Kinh doanh tự do / Cán bộ Đoàn',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'COMMENDED',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&auto=format&fit=crop&q=80',
+    skills: ['Tập hợp thanh niên', 'Khởi nghiệp đổi mới sáng tạo', 'Nhiếp ảnh'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Đã hoàn thành hồ sơ lý lịch người xin vào Đảng tháng 01/2026.'
+  },
+  {
+    id: 'ym_006',
+    memberCode: 'ĐV-CH-2026-006',
+    fullName: 'Phạm Hồng Nhung',
+    gender: 'Nữ',
+    birthDate: '14/08/2002',
+    branchId: 'kp4',
+    branchName: 'Chi đoàn Khu phố 4',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '19/05/2017',
+    joinedPlace: 'Đoàn trường THPT Trịnh Hoài Đức',
+    phone: '0977.889.900',
+    email: 'nhung.phamhong@gmail.com',
+    address: 'Số 62 đường Nguyễn Văn Cừ, KP4, P. Chánh Hiệp',
+    educationLevel: 'Cử nhân Sư phạm',
+    profession: 'Giáo viên tiếng Anh',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'COMMENDED',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=80',
+    skills: ['Ngoại ngữ - Tiếng Anh', 'Dạy học tình nguyện', 'MC song ngữ'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Chủ nhiệm CLB Tiếng Anh miễn phí cho trẻ em nghèo khu phố.'
+  },
+  {
+    id: 'ym_007',
+    memberCode: 'ĐV-CH-2026-007',
+    fullName: 'Nguyễn Thị Thu Hà',
+    gender: 'Nữ',
+    birthDate: '03/03/1998',
+    branchId: 'thcs',
+    branchName: 'Chi đoàn Trường THCS Chánh Hiệp',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '26/03/2014',
+    joinedPlace: 'Đoàn trường ĐH Thủ Dầu Một',
+    phone: '0908.667.788',
+    email: 'ha.nguyenthithu@thcschanhhiep.edu.vn',
+    address: 'Số 104, Đường 30/4, P. Chánh Hiệp',
+    educationLevel: 'Thạc sĩ Giáo dục',
+    profession: 'Giáo viên Ngữ văn / Tổng phụ trách Đội',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'COMMENDED',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80',
+    skills: ['Công tác Đội TNTP', 'Soạn thảo văn bản', 'Thuyết trình truyền cảm'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Đảng viên dự bị / Bí thư Chi đoàn trường học tiêu biểu năm 2025.'
+  },
+  {
+    id: 'ym_008',
+    memberCode: 'ĐV-CH-2026-008',
+    fullName: 'Trịnh Hoài Nam',
+    gender: 'Nam',
+    birthDate: '15/12/2001',
+    branchId: 'qs',
+    branchName: 'Chi đoàn Quân sự Phường Chánh Hiệp',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '22/12/2017',
+    joinedPlace: 'Ban CHQS Phường Chánh Hiệp',
+    phone: '0972.334.455',
+    email: 'nam.trinhhoai@quansu.chanhhiep.gov.vn',
+    address: 'Trụ sở Ban CHQS Phường Chánh Hiệp',
+    educationLevel: 'Đại học Quân sự',
+    profession: 'Sĩ quan / Cán bộ Ban Chỉ huy Quân sự Phường',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'COMMENDED',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&auto=format&fit=crop&q=80',
+    skills: ['Huấn luyện quân sự', 'Thể lực - Võ thuật', 'Phòng chống lụt bão'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Đảng viên chính thức / Chỉ huy trưởng hoạt động xung kích cứu hộ.'
+  },
+  {
+    id: 'ym_009',
+    memberCode: 'ĐV-CH-2026-009',
+    fullName: 'Nguyễn Minh Hải',
+    gender: 'Nam',
+    birthDate: '28/06/2000',
+    branchId: 'ca',
+    branchName: 'Chi đoàn Công an Phường Chánh Hiệp',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '19/08/2016',
+    joinedPlace: 'Đoàn Công an TP Thủ Dầu Một',
+    phone: '0913.445.566',
+    email: 'hai.nguyenminh@congan.chanhhiep.gov.vn',
+    address: 'Trụ sở Công an Phường Chánh Hiệp',
+    educationLevel: 'Đại học Cảnh sát',
+    profession: 'Cán bộ Công an Phường Chánh Hiệp',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'COMMENDED',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80',
+    skills: ['Tuyên truyền pháp luật', 'Hỗ trợ VNeID / Dịch vụ công', 'An ninh trật tự'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Đảng viên chính thức / Đi đầu trong đề án 06 Chuyển đổi số dân cư.'
+  },
+  {
+    id: 'ym_010',
+    memberCode: 'ĐV-CH-2026-010',
+    fullName: 'Đoàn Gia Bảo',
+    gender: 'Nam',
+    birthDate: '09/09/2002',
+    branchId: 'dn',
+    branchName: 'Chi đoàn Doanh nghiệp Ngoài nhà nước',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '26/03/2018',
+    joinedPlace: 'Đoàn khối Doanh nghiệp',
+    phone: '0909.887.766',
+    email: 'bao.doangia@enterprise.com',
+    address: 'Khu thương mại dịch vụ Chánh Hiệp',
+    educationLevel: 'Đại học Kinh tế',
+    profession: 'Trưởng phòng Marketing Doanh nghiệp',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'ACTIVE',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300&auto=format&fit=crop&q=80',
+    skills: ['Kinh tế - Tài chính', 'Kết nối tài trợ thiện nguyện', 'Thiết kế media'],
+    emulationRanking: 'KHÁ',
+    partyTarget: false,
+    notes: 'Vận động nguồn lực doanh nghiệp hỗ trợ quỹ học bổng thanh thiếu nhi.'
+  },
+  {
+    id: 'ym_011',
+    memberCode: 'ĐV-CH-2026-011',
+    fullName: 'Trương Ngọc Ánh',
+    gender: 'Nữ',
+    birthDate: '19/01/2005',
+    branchId: 'kp10',
+    branchName: 'Chi đoàn Khu phố 10',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '26/03/2021',
+    joinedPlace: 'Đoàn trường THPT Chuyên Hùng Vương',
+    phone: '0981.234.567',
+    email: 'anh.truongngoc@gmail.com',
+    address: 'Số 112, KP10, P. Chánh Hiệp',
+    educationLevel: 'Đại học (Năm 2)',
+    profession: 'Sinh viên ĐH Quốc tế Miền Đông',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'ACTIVE',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80',
+    skills: ['Ngoại ngữ', 'Hoạt náo viên', 'Văn nghệ - Guitar'],
+    emulationRanking: 'KHÁ',
+    partyTarget: false,
+    notes: 'Tích cực tổ chức các sân chơi cuối tuần cho thiếu nhi khu phố.'
+  },
+  {
+    id: 'ym_012',
+    memberCode: 'ĐV-CH-2026-012',
+    fullName: 'Đặng Mai Phương',
+    gender: 'Nữ',
+    birthDate: '30/10/2001',
+    branchId: 'kp6',
+    branchName: 'Chi đoàn Khu phố 6',
+    position: 'Bí thư Chi đoàn',
+    joinedDate: '19/05/2017',
+    joinedPlace: 'Đoàn trường THCS Chánh Hiệp',
+    phone: '0944.556.677',
+    email: 'phuong.dangmai@gmail.com',
+    address: 'Số 74, Tổ 5, KP6, P. Chánh Hiệp',
+    educationLevel: 'Đại học Luật',
+    profession: 'Chuyên viên pháp lý',
+    ethnic: 'Kinh',
+    religion: 'Không',
+    status: 'COMMENDED',
+    unionDuesStatus: 'PAID',
+    unionBookStatus: 'DIGITAL_VERIFIED',
+    avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&auto=format&fit=crop&q=80',
+    skills: ['Tư vấn pháp luật', 'Hòa giải cơ sở', 'Tranh biện'],
+    emulationRanking: 'XUẤT SẮC',
+    partyTarget: true,
+    notes: 'Tham gia tổ tư vấn pháp lý miễn phí cho thanh niên công nhân.'
+  }
+];
+
+export const getDefaultTrainingHistory = (member: Partial<YouthMember>): TrainingHistoryItem[] => {
+  const baseScore = member.trainingScore ?? 88;
+  return [
+    {
+      year: 2024,
+      period: 'Năm 2024',
+      score: Math.max(70, baseScore - 6),
+      ranking: 'XUẤT SẮC',
+      evaluation: 'Chấp hành nghiêm chỉnh Điều lệ Đoàn, nhiệt tình tham gia hoạt động tình nguyện cơ sở.',
+      reviewer: 'BCH Chi đoàn',
+      reviewedAt: '15/12/2024'
+    },
+    {
+      year: 2025,
+      period: 'Năm 2025',
+      score: Math.max(75, baseScore - 2),
+      ranking: 'XUẤT SẮC',
+      evaluation: 'Gương mẫu trong các phong trào xung kích, hoàn thành xuất sắc nhiệm vụ được phân công.',
+      reviewer: 'BCH Chi đoàn',
+      reviewedAt: '20/12/2025'
+    },
+    {
+      year: 2026,
+      period: 'Năm 2026 (Đang rèn luyện)',
+      score: baseScore,
+      ranking: member.emulationRanking || 'XUẤT SẮC',
+      evaluation: 'Tiên phong trong chuyển đổi số cơ sở, tích cực tham gia sinh hoạt chi đoàn và nhóm công tác.',
+      reviewer: 'BCH Chi đoàn & Đoàn phường',
+      reviewedAt: '15/03/2026'
+    }
+  ];
+};
+
+export const getDefaultEmulationAwards = (member: Partial<YouthMember>): EmulationAwardItem[] => {
+  const memberId = member.id || 'ym_new';
+  const awards: EmulationAwardItem[] = [
+    {
+      id: `award_${memberId}_1`,
+      title: 'Đoàn viên Xuất sắc tiêu biểu cấp cơ sở',
+      awardedBy: 'BCH Đoàn Phường Chánh Hiệp',
+      level: 'CẤP PHƯỜNG',
+      decisionNumber: 'QĐ-08/QĐ-ĐTN',
+      awardedDate: '26/03/2025',
+      category: 'DANH HIỆU',
+      note: 'Thành tích xuất sắc trong công tác Đoàn và phong trào thanh thiếu nhi'
+    },
+    {
+      id: `award_${memberId}_2`,
+      title: 'Giấy khen Chiến sĩ Tình nguyện Xuất sắc Chiến dịch Hè',
+      awardedBy: 'BCH Đoàn Phường Chánh Hiệp',
+      level: 'CẤP PHƯỜNG',
+      decisionNumber: 'QĐ-34/QĐ-ĐTN',
+      awardedDate: '15/08/2025',
+      category: 'GIẤY KHEN',
+      note: 'Đóng góp tích cực trong chiến dịch tình nguyện Mùa Hè Xanh và Ngày Chủ Nhật Xanh'
+    }
+  ];
+
+  if (member.partyTarget || (member.position && member.position.includes('Bí thư'))) {
+    awards.push({
+      id: `award_${memberId}_3`,
+      title: 'Thanh niên tiên tiến làm theo lời Bác',
+      awardedBy: 'BCH Thành Đoàn Thủ Dầu Một',
+      level: 'CẤP THÀNH PHỐ',
+      decisionNumber: 'QĐ-112/QĐ-TĐ',
+      awardedDate: '19/05/2025',
+      category: 'DANH HIỆU',
+      note: 'Gương mặt trẻ điển hình tiên tiến học tập và làm theo tư tưởng, đạo đức, phong cách Hồ Chí Minh'
+    });
+  }
+
+  return awards;
+};
+
+export const loadStoredYouthMembers = (): YouthMember[] => {
+  try {
+    const raw = localStorage.getItem(KEY_YOUTH_MEMBERS);
+    if (!raw) {
+      return INITIAL_YOUTH_MEMBERS.map(m => ({
+        ...m,
+        unionResolutionNumber: m.unionResolutionNumber || `NQ-KN/2020-0${m.id.replace(/\D/g, '') || '1'}`,
+        recommender: m.recommender || 'Ban Chấp hành Chi đoàn',
+        partyStatus: m.partyTarget ? 'CẢM TÌNH ĐẢNG' : 'CHƯA',
+        trainingHistory: m.trainingHistory || getDefaultTrainingHistory(m),
+        emulationAwards: m.emulationAwards || getDefaultEmulationAwards(m)
+      }));
+    }
+    const parsed: YouthMember[] = JSON.parse(raw);
+    const initialMap = new Map(INITIAL_YOUTH_MEMBERS.map(m => [m.id, m]));
+    return parsed.map(m => {
+      const init = initialMap.get(m.id);
+      return {
+        ...m,
+        unionResolutionNumber: m.unionResolutionNumber || init?.unionResolutionNumber || `NQ-KN/2020-0${m.id.replace(/\D/g, '') || '1'}`,
+        recommender: m.recommender || init?.recommender || 'Ban Chấp hành Chi đoàn',
+        partyStatus: m.partyStatus || (m.partyTarget ? 'CẢM TÌNH ĐẢNG' : 'CHƯA'),
+        workGroupId: m.workGroupId || init?.workGroupId || 'wg_001',
+        workGroupName: m.workGroupName || init?.workGroupName || 'Tổ Công nghệ số cộng đồng',
+        workGroupRole: m.workGroupRole || init?.workGroupRole || 'THÀNH VIÊN',
+        trainingScore: m.trainingScore !== undefined ? m.trainingScore : (init?.trainingScore ?? 85),
+        volunteerDays: m.volunteerDays !== undefined ? m.volunteerDays : (init?.volunteerDays ?? 6),
+        meetingAttendance: m.meetingAttendance !== undefined ? m.meetingAttendance : (init?.meetingAttendance ?? 10),
+        trainingHistory: (m.trainingHistory && m.trainingHistory.length > 0) ? m.trainingHistory : getDefaultTrainingHistory(m),
+        emulationAwards: (m.emulationAwards && m.emulationAwards.length > 0) ? m.emulationAwards : getDefaultEmulationAwards(m)
+      };
+    });
+  } catch {
+    return INITIAL_YOUTH_MEMBERS.map(m => ({
+      ...m,
+      unionResolutionNumber: `NQ-KN/2020-0${m.id.replace(/\D/g, '') || '1'}`,
+      recommender: 'Ban Chấp hành Chi đoàn',
+      partyStatus: m.partyTarget ? 'CẢM TÌNH ĐẢNG' : 'CHƯA',
+      trainingHistory: getDefaultTrainingHistory(m),
+      emulationAwards: getDefaultEmulationAwards(m)
+    }));
+  }
+};
+
+export const saveStoredYouthMembers = (members: YouthMember[]) => {
+  localStorage.setItem(KEY_YOUTH_MEMBERS, JSON.stringify(members));
+  window.dispatchEvent(new CustomEvent(EVENT_UPDATE, { detail: { type: 'youth_members' } }));
 };
 
 export const loadStoredSubmissions = (): Record<string, Record<string, CriterionSubmissionState>> => {
