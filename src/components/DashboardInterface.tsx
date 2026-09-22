@@ -395,7 +395,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
   );
 
   return (
-    <div className="h-screen font-sans text-[#071753] flex flex-col overflow-hidden selection:bg-blue-200">
+    <div className="h-screen font-sans text-[#071753] flex flex-col overflow-hidden selection:bg-blue-200 govtech-premium-bg">
       
       {/* Toast Notification */}
       {notificationToast && (
@@ -406,7 +406,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       )}
 
       {/* TOP HEADER - 74px height with Glassmorphism */}
-      <header className="h-[74px] bg-white/95 backdrop-blur-md border-b border-[#D8E5F4] px-4 sm:px-8 lg:px-12 flex items-center justify-between shadow-xs sticky top-0 z-30 transition-all">
+      <header className="w-full h-[74px] bg-white/95 backdrop-blur-md border-b border-[#D8E5F4] px-4 sm:px-8 lg:px-12 flex items-center justify-between shadow-xs sticky top-0 z-30 transition-all">
         
         {/* Agency Logo & Title */}
         <div 
@@ -493,7 +493,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
             <div className="relative">
               <div 
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 pl-3 border-l border-[#D8E5F4] cursor-pointer hover:opacity-90 transition-opacity"
+                className="flex items-center gap-2 pl-3 cursor-pointer hover:opacity-90 transition-opacity"
               >
                 <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs border-2 border-blue-200 shrink-0 shadow-xs">
                   {displayName.split(' ').pop()?.slice(0, 2).toUpperCase() || 'H'}

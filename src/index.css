@@ -299,6 +299,15 @@
     border: 1px dashed rgba(255, 255, 255, 0.18);
     border-radius: 9999px;
   }
+
+  /* Premium Govtech Dashboard Background */
+  .govtech-premium-bg {
+    background-image: url('https://res.cloudinary.com/idt08wyp/image/upload/v1790081734/e1f62ce0-f713-4fb3-9483-9138645f2ca4.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
 }
 
 @keyframes spinSlow {
