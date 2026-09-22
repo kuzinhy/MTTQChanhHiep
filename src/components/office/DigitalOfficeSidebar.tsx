@@ -86,7 +86,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
         { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: '21 KP' },
         { id: 'ai_assistant', label: 'Trợ lý AI Tổng hợp', icon: Sparkles, badge: 'WORKSPACE' },
-        { id: 'home', label: 'Về trang chủ', icon: Building2 },
       ]
     },
     {

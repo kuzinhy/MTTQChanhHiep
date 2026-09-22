@@ -9,6 +9,7 @@ import {
   ChevronRight, 
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
   Clock, 
   Settings, 
   FileText, 
@@ -68,7 +69,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
   onGoToOffice,
   onOpenStaffLogin,
 }) => {
-  const displayName = currentStaffUser?.fullname || "Nguyễn Minh Huy";
+  const displayName = currentStaffUser?.fullname || "Khách (Chưa đăng nhập)";
   const userRole = currentStaffUser?.role === 'SUPER_ADMIN' 
     ? "Quản trị hệ thống" 
     : currentStaffUser?.role === 'ADMIN' 
@@ -145,6 +146,10 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       cms: nextState,
       admin: nextState,
     });
+  };
+
+  const toggleExpandCard = (key: 'overview' | 'cms' | 'admin') => {
+    setExpandedCards(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   // 1. NHÓM 1: TỔNG QUAN & ĐIỀU HÀNH (6 CHỨC NĂNG - Đúng hình 1)
@@ -339,20 +344,44 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     );
   };
 
-  const renderItem = (item: ActionItem) => {
-    const IconComp = item.icon;
+  const DashboardMainContent = () => (
+    <div className="flex-1 overflow-y-auto max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-6">
+      {/* Dashboard Main Content Content */}
+    </div>
+  );
+
+  // Back button
+  const GroupDetailView = ({ group }: { group: 'overview' | 'cms' | 'admin' }) => {
+    const items = group === 'overview' ? overviewItems : group === 'cms' ? cmsItems : adminItems;
+    const groupTitle = group === 'overview' ? 'TỔNG QUAN & ĐIỀU HÀNH' : group === 'cms' ? 'NGHIỆP VỤ & CỔNG TT' : 'QUẢN TRỊ HỆ THỐNG';
+
     return (
-      <div
-        key={item.id}
-        onClick={item.action}
-        className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-400 hover:shadow-md cursor-pointer transition-all group"
-      >
-        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
-          <IconComp className="w-5 h-5" />
-        </div>
-        <div>
-          <h4 className="text-xs font-bold text-[#071753] group-hover:text-blue-700">{item.title}</h4>
-          {item.desc && <p className="text-[10px] text-slate-500 mt-0.5">{item.desc}</p>}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-12 py-6 animate-in fade-in zoom-in-95 duration-300">
+        <button 
+          onClick={() => setActiveGroup(null)}
+          className="flex items-center gap-2 mb-6 text-blue-700 hover:text-blue-900 font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200"
+        >
+          <ChevronLeft className="w-5 h-5" /> Quay lại Bảng điều khiển chính
+        </button>
+        
+        <h2 className="text-xl font-black text-[#071753] uppercase tracking-tight mb-6">{groupTitle}</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {items.map(item => (
+            <div
+              key={item.id}
+              onClick={item.action}
+              className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-2xl hover:border-blue-400 hover:shadow-lg cursor-pointer transition-all group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
+                <item.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#071753] group-hover:text-blue-700">{item.title}</h4>
+                {item.desc && <p className="text-xs text-slate-500 mt-1">{item.desc}</p>}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -425,7 +454,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
           {/* Quick Portal Switch */}
           <button 
             onClick={() => onNavigatePortalTab && onNavigatePortalTab('home')}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-700 border border-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-sm"
             title="Quay lại Cổng thông tin công dân"
           >
             <Home className="w-3.5 h-3.5" />
@@ -459,56 +488,66 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
             </div>
           </div>
 
-          {/* User profile */}
-          <div className="relative">
-            <div 
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="flex items-center gap-2 pl-3 border-l border-[#D8E5F4] cursor-pointer hover:opacity-90 transition-opacity"
-            >
-              <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs border-2 border-blue-200 shrink-0 shadow-xs">
-                {displayName.split(' ').pop()?.slice(0, 2).toUpperCase() || 'H'}
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-[13px] font-bold text-[#071753] leading-tight">
-                  {displayName}
-                </p>
-                <p className="text-[10px] text-[#536A95] font-medium leading-tight">
-                  {userRole}
-                </p>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-[#536A95] hidden md:block" />
-            </div>
-
-            {isUserMenuOpen && (
-              <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="px-4 py-2 border-b border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tài khoản cán bộ</p>
-                  <p className="text-sm font-bold text-[#071753]">{displayName}</p>
-                  <p className="text-xs text-slate-500">{userRole}</p>
+          {/* User profile / Login */}
+          {currentStaffUser ? (
+            <div className="relative">
+              <div 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2 pl-3 border-l border-[#D8E5F4] cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs border-2 border-blue-200 shrink-0 shadow-xs">
+                  {displayName.split(' ').pop()?.slice(0, 2).toUpperCase() || 'H'}
                 </div>
-                <button
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    onGoToOffice && onGoToOffice('dashboard');
-                  }}
-                  className="w-full text-left px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 flex items-center gap-2"
-                >
-                  <Building2 className="w-4 h-4" />
-                  <span>Văn phòng số nội bộ</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    onNavigatePortalTab && onNavigatePortalTab('home');
-                  }}
-                  className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                >
-                  <Home className="w-4 h-4" />
-                  <span>Về Cổng thông tin</span>
-                </button>
+                <div className="hidden md:block text-left">
+                  <p className="text-[13px] font-bold text-[#071753] leading-tight">
+                    {displayName}
+                  </p>
+                  <p className="text-[10px] text-[#536A95] font-medium leading-tight">
+                    {userRole}
+                  </p>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-[#536A95] hidden md:block" />
               </div>
-            )}
-          </div>
+
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tài khoản cán bộ</p>
+                    <p className="text-sm font-bold text-[#071753]">{displayName}</p>
+                    <p className="text-xs text-slate-500">{userRole}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      onGoToOffice && onGoToOffice('dashboard');
+                    }}
+                    className="w-full text-left px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span>Văn phòng số nội bộ</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      onNavigatePortalTab && onNavigatePortalTab('home');
+                    }}
+                    className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <Home className="w-4 h-4" />
+                    <span>Về Cổng thông tin</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button 
+              onClick={onOpenStaffLogin}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-2"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Đăng nhập</span>
+            </button>
+          )}
 
         </div>
       </header>
@@ -618,34 +657,33 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                 </div>
 
                 {/* Danh sách chức năng (Mặc định 4 mục để 3 thẻ dài bằng nhau) */}
-                <div className="space-y-1.5 animate-in fade-in duration-200">
+                <div className="space-y-2 animate-in fade-in duration-300">
                   {filterItems(expandedCards.overview ? overviewItems : overviewItems.slice(0, 4)).map((item) => {
                     const IconComp = item.icon;
                     return (
                       <div
                         key={item.id}
                         onClick={item.action}
-                        className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-slate-50/80 hover:bg-blue-50/90 border border-slate-100 hover:border-blue-200 shadow-2xs hover:shadow-xs hover:translate-x-0.5 transition-all cursor-pointer group/row"
+                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-blue-300 hover:shadow-sm hover:shadow-blue-100 transition-all cursor-pointer group/row"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <IconComp className="w-3.5 h-3.5 text-blue-600 shrink-0 group-hover/row:scale-120 group-hover/row:text-indigo-600 transition-transform" />
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover/row:bg-blue-600 group-hover/row:text-white transition-all">
+                            <IconComp className="w-4 h-4" />
+                          </div>
                           <div className="min-w-0">
-                            <span className="text-[11px] font-bold text-[#071753] truncate block group-hover/row:text-blue-700 transition-colors">
+                            <span className="text-xs font-bold text-slate-800 truncate block group-hover/row:text-blue-700 transition-colors">
                               {item.title}
-                            </span>
-                            <span className="text-[9px] text-slate-500 truncate block">
-                              {item.desc}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
+                        <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-blue-100/70 text-blue-700 border border-blue-200/80 uppercase tracking-wider">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest">
                               {item.badge}
                             </span>
                           )}
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/row:text-blue-600 group-hover/row:translate-x-1 transition-all" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-blue-500 transition-colors" />
                         </div>
                       </div>
                     );
@@ -730,34 +768,33 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                 </div>
 
                 {/* Danh sách chức năng (Mặc định 4 mục để 3 thẻ dài bằng nhau) */}
-                <div className="space-y-1.5 animate-in fade-in duration-200">
+                <div className="space-y-2 animate-in fade-in duration-300">
                   {filterItems(expandedCards.cms ? cmsItems : cmsItems.slice(0, 4)).map((item) => {
                     const IconComp = item.icon;
                     return (
                       <div
                         key={item.id}
                         onClick={item.action}
-                        className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-slate-50/80 hover:bg-emerald-50/90 border border-slate-100 hover:border-emerald-200 shadow-2xs hover:shadow-xs hover:translate-x-0.5 transition-all cursor-pointer group/row"
+                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-emerald-300 hover:shadow-sm hover:shadow-emerald-100 transition-all cursor-pointer group/row"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <IconComp className="w-3.5 h-3.5 text-emerald-600 shrink-0 group-hover/row:scale-120 group-hover/row:text-teal-600 transition-transform" />
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover/row:bg-emerald-600 group-hover/row:text-white transition-all">
+                            <IconComp className="w-4 h-4" />
+                          </div>
                           <div className="min-w-0">
-                            <span className="text-[11px] font-bold text-[#071753] truncate block group-hover/row:text-emerald-700 transition-colors">
+                            <span className="text-xs font-bold text-slate-800 truncate block group-hover/row:text-emerald-700 transition-colors">
                               {item.title}
-                            </span>
-                            <span className="text-[9px] text-slate-500 truncate block">
-                              {item.desc}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
+                        <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-100/70 text-emerald-700 border border-emerald-200/80 uppercase tracking-wider">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest">
                               {item.badge}
                             </span>
                           )}
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/row:text-emerald-600 group-hover/row:translate-x-1 transition-all" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-emerald-500 transition-colors" />
                         </div>
                       </div>
                     );
@@ -842,34 +879,33 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                 </div>
 
                 {/* Danh sách chức năng (Mặc định 4 mục để 3 thẻ dài bằng nhau) */}
-                <div className="space-y-1.5 animate-in fade-in duration-200">
+                <div className="space-y-2 animate-in fade-in duration-300">
                   {filterItems(expandedCards.admin ? adminItems : adminItems.slice(0, 4)).map((item) => {
                     const IconComp = item.icon;
                     return (
                       <div
                         key={item.id}
                         onClick={item.action}
-                        className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-slate-50/80 hover:bg-purple-50/90 border border-slate-100 hover:border-purple-200 shadow-2xs hover:shadow-xs hover:translate-x-0.5 transition-all cursor-pointer group/row"
+                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-purple-300 hover:shadow-sm hover:shadow-purple-100 transition-all cursor-pointer group/row"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <IconComp className="w-3.5 h-3.5 text-purple-600 shrink-0 group-hover/row:scale-120 group-hover/row:text-pink-600 transition-transform" />
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover/row:bg-purple-600 group-hover/row:text-white transition-all">
+                            <IconComp className="w-4 h-4" />
+                          </div>
                           <div className="min-w-0">
-                            <span className="text-[11px] font-bold text-[#071753] truncate block group-hover/row:text-purple-700 transition-colors">
+                            <span className="text-xs font-bold text-slate-800 truncate block group-hover/row:text-purple-700 transition-colors">
                               {item.title}
-                            </span>
-                            <span className="text-[9px] text-slate-500 truncate block">
-                              {item.desc}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
+                        <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-purple-100/70 text-purple-700 border border-purple-200/80 uppercase tracking-wider">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest">
                               {item.badge}
                             </span>
                           )}
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/row:text-purple-600 group-hover/row:translate-x-1 transition-all" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-purple-500 transition-colors" />
                         </div>
                       </div>
                     );

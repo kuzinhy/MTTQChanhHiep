@@ -1,139 +1,67 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Hàm hỗ trợ xác thực cán bộ
-    function isAuthenticated() {
-      return request.auth != null;
-    }
 
-    // 1. Dữ liệu công khai phục vụ người dân tra cứu thông tin
-    match /articles/{articleId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+    // --- Helper Functions ---
+    function isSignedIn() { return request.auth != null; }
+    
+    // Get user role document from staff_users
+    function getUserRole(uid) {
+      return get(/databases/$(database)/documents/staff_users/$(uid)).data.role;
     }
     
-    match /documents/{docId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
-    
-    match /competitions/{compId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
+    function isAdmin() { return isSignedIn() && getUserRole(request.auth.uid) == 'admin'; }
+    function isStaff() { return isSignedIn() && (getUserRole(request.auth.uid) == 'admin' || getUserRole(request.auth.uid) == 'staff'); }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
 
-    match /memberOrganizations/{orgId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
+    // --- Collections ---
 
-    match /areas/{areaId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
+    // 1. Public Portal (Read-only for guests, Admin write)
+    match /articles/{articleId} { allow read: if true; allow write: if isAdmin(); }
+    match /documents/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /competitions/{compId} { allow read: if true; allow write: if isAdmin(); }
+    match /memberOrganizations/{orgId} { allow read: if true; allow write: if isAdmin(); }
+    match /areas/{areaId} { allow read: if true; allow write: if isAdmin(); }
+    match /organizations/{orgId} { allow read: if true; allow write: if isAdmin(); }
 
-    match /organizations/{orgId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
-
-    // 2. Dân nguyện & Phản ánh kiến nghị: Người dân gửi ý kiến, cán bộ xử lý
+    // 2. Public Opinions (Owner access + Staff/Admin access)
     match /publicOpinions/{opinionId} {
-      allow read: if true;
-      allow create: if request.resource.data.content != null;
-      allow update, delete: if isAuthenticated();
+      allow read: if isOwner(resource.data.userId) || isStaff();
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
-    // 3. Thi trực tuyến & Đăng ký tình nguyện viên
+    // 3. Submissions/Registrations
     match /competitionSubmissions/{subId} {
-      allow read: if true;
-      allow create: if request.resource.data.participantName != null;
-      allow update, delete: if isAuthenticated();
+      allow read: if isOwner(resource.data.userId) || isStaff();
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
     }
-
     match /volunteerRegistrations/{regId} {
-      allow create: if request.resource.data.fullName != null;
-      allow read, update, delete: if isAuthenticated();
+      allow read: if isOwner(resource.data.userId) || isStaff();
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
-    // Email Notification System Collections
-    match /article_submissions/{subId} {
-      allow read: if true;
-      allow create: if request.resource.data.title != null && request.resource.data.content != null;
-      allow update, delete: if isAuthenticated();
-    }
-
-    match /feedback/{feedbackId} {
-      allow read: if true;
-      allow create: if request.resource.data.feedbackCode != null && request.resource.data.content != null;
-      allow update, delete: if isAuthenticated();
-    }
-
+    // 4. Notifications/Email (User restricted)
     match /notifications/{notiId} {
-      allow read: if true;
-      allow create, delete: if isAuthenticated();
-      allow update: if isAuthenticated() || 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read_by', 'read_count', 'updated_at']);
+      allow read: if isOwner(resource.data.userId) || isStaff();
+      allow create: if isSignedIn();
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
+    match /email_logs/{logId} { allow read, write: if isStaff(); }
 
-    match /notification_reads/{userOrDeviceId} {
-      allow read, write: if true;
-    }
-
-    match /push_subscriptions/{subId} {
-      allow read, write: if true;
-    }
-
-    match /notification_preferences/{prefId} {
-      allow read, write: if true;
-    }
-
-    match /email_logs/{logId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    match /system_settings/{settingsId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
-
-    // 4. Thống kê truy cập & giám sát thời gian thực
-    match /analytics_stats/{docId} {
-      allow read, write: if true;
-      match /{allSubcollections=**} {
-        allow read, write: if true;
-      }
-    }
-
-    match /active_visitors/{sessionId} {
-      allow read, write: if true;
-    }
-
-    // 5. Cán bộ & Tài khoản nội bộ
+    // 5. System/Internal (Admin only)
+    match /system_settings/{settingsId} { allow read: if true; allow write: if isAdmin(); }
     match /staff_users/{userId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read: if isOwner(userId) || isStaff();
+      allow write: if isAdmin();
     }
+    match /audit_logs/{logId} { allow read, write: if isAdmin(); }
+    match /internal_notes/{noteId} { allow read, write: if isStaff(); }
 
-    match /audit_logs/{logId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    match /internal_notes/{noteId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    match /document_plans/{planId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    // 6. Mặc định các collection nội bộ khác: Chỉ cán bộ đã đăng nhập
-    match /{document=**} {
-      allow read, write: if isAuthenticated();
-    }
+    // Catch-all: Deny all by default
+    match /{document=**} { allow read, write: if false; }
   }
 }
-
-
-
