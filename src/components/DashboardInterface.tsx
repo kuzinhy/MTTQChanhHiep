@@ -664,10 +664,10 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                       <div
                         key={item.id}
                         onClick={item.action}
-                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-blue-300 hover:shadow-sm hover:shadow-blue-100 transition-all cursor-pointer group/row"
+                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-blue-400 hover:shadow-[0_8px_20px_-4px_rgba(37,99,235,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group/row"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover/row:bg-blue-600 group-hover/row:text-white transition-all">
+                          <div className="p-2 rounded-lg bg-blue-50/80 text-blue-600 group-hover/row:bg-gradient-to-r group-hover/row:from-blue-600 group-hover/row:to-indigo-600 group-hover/row:text-white transition-all shadow-2xs group-hover/row:shadow-xs">
                             <IconComp className="w-4 h-4" />
                           </div>
                           <div className="min-w-0">
@@ -679,11 +679,11 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-blue-50 group-hover/row:text-blue-600 transition-colors">
                               {item.badge}
                             </span>
                           )}
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-blue-500 transition-colors" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-blue-600 group-hover/row:translate-x-0.5 transition-all" />
                         </div>
                       </div>
                     );
@@ -775,10 +775,10 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                       <div
                         key={item.id}
                         onClick={item.action}
-                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-emerald-300 hover:shadow-sm hover:shadow-emerald-100 transition-all cursor-pointer group/row"
+                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-emerald-400 hover:shadow-[0_8px_20px_-4px_rgba(16,185,129,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group/row"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover/row:bg-emerald-600 group-hover/row:text-white transition-all">
+                          <div className="p-2 rounded-lg bg-emerald-50/80 text-emerald-600 group-hover/row:bg-gradient-to-r group-hover/row:from-emerald-600 group-hover/row:to-teal-600 group-hover/row:text-white transition-all shadow-2xs group-hover/row:shadow-xs">
                             <IconComp className="w-4 h-4" />
                           </div>
                           <div className="min-w-0">
@@ -790,11 +790,11 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-emerald-50 group-hover/row:text-emerald-700 transition-colors">
                               {item.badge}
                             </span>
                           )}
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-emerald-500 transition-colors" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-emerald-600 group-hover/row:translate-x-0.5 transition-all" />
                         </div>
                       </div>
                     );
@@ -886,10 +886,10 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                       <div
                         key={item.id}
                         onClick={item.action}
-                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-purple-300 hover:shadow-sm hover:shadow-purple-100 transition-all cursor-pointer group/row"
+                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-purple-400 hover:shadow-[0_8px_20px_-4px_rgba(147,51,234,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group/row"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover/row:bg-purple-600 group-hover/row:text-white transition-all">
+                          <div className="p-2 rounded-lg bg-purple-50/80 text-purple-600 group-hover/row:bg-gradient-to-r group-hover/row:from-indigo-600 via-purple-600 group-hover/row:to-pink-500 group-hover/row:text-white transition-all shadow-2xs group-hover/row:shadow-xs">
                             <IconComp className="w-4 h-4" />
                           </div>
                           <div className="min-w-0">
@@ -901,11 +901,11 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-purple-50 group-hover/row:text-purple-700 transition-colors">
                               {item.badge}
                             </span>
                           )}
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-purple-500 transition-colors" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-purple-600 group-hover/row:translate-x-0.5 transition-all" />
                         </div>
                       </div>
                     );
@@ -951,22 +951,22 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
         </div>
 
         {/* QUICK STATS BAR - 5 Columns, Compact, Flat & Fully Clickable */}
-        <div className="bg-white/95 backdrop-blur-md rounded-[20px] border border-[#DCE8F5] shadow-[0_8px_20px_rgba(20,50,90,0.06)] p-3 sm:p-4 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 lg:gap-0 divide-y lg:divide-y-0 lg:divide-x divide-[#E5EDF6] mb-3">
+        <div className="bg-white/95 backdrop-blur-md rounded-[22px] border border-[#DCE8F5] shadow-[0_10px_30px_-5px_rgba(20,50,90,0.08)] hover:shadow-[0_16px_36px_-6px_rgba(37,99,235,0.14)] hover:border-blue-300 transition-all duration-300 p-3 sm:p-4 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 lg:gap-0 divide-y lg:divide-y-0 lg:divide-x divide-[#E5EDF6] mb-3">
           
           {/* Item 1: Đang online */}
           <div 
             onClick={() => setIsStatsModalOpen(true)}
-            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1 cursor-pointer hover:bg-slate-50/60 rounded-xl transition-colors group/stat"
+            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1.5 cursor-pointer hover:bg-emerald-50/50 hover:shadow-xs rounded-xl transition-all duration-200 group/stat"
             title="Bấm để xem chi tiết lưu lượng"
           >
-            <div className="relative w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover/stat:scale-105 transition-transform">
+            <div className="relative w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover/stat:scale-110 group-hover/stat:bg-emerald-100/80 transition-all shadow-2xs">
               <Users className="w-5 h-5" />
               <span className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse" />
             </div>
             <div className="text-left">
               <p className="text-[11px] font-bold text-emerald-600">Đang online</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-[#071753]">{onlineCount || 1}</span>
+                <span className="text-xl font-black text-[#071753] group-hover/stat:text-emerald-700 transition-colors">{onlineCount || 1}</span>
                 <span className="text-[11px] text-[#536A95] font-medium">người</span>
               </div>
             </div>
@@ -975,16 +975,16 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
           {/* Item 2: Bài viết đã xuất bản */}
           <div 
             onClick={() => onNavigatePortalTab && onNavigatePortalTab('news')}
-            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1 cursor-pointer hover:bg-slate-50/60 rounded-xl transition-colors group/stat"
+            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1.5 cursor-pointer hover:bg-blue-50/50 hover:shadow-xs rounded-xl transition-all duration-200 group/stat"
             title="Xem danh mục tin bài"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/stat:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/stat:scale-110 group-hover/stat:bg-blue-100/80 transition-all shadow-2xs">
               <Newspaper className="w-5 h-5" />
             </div>
             <div className="text-left">
               <p className="text-[11px] font-medium text-[#536A95]">Bài viết đã xuất bản</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-[#071753]">{publishedArticlesCount}</span>
+                <span className="text-xl font-black text-[#071753] group-hover/stat:text-blue-700 transition-colors">{publishedArticlesCount}</span>
                 <span className="text-[11px] text-[#536A95] font-medium">bài</span>
               </div>
             </div>
@@ -993,16 +993,16 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
           {/* Item 3: Phản ánh chờ xử lý */}
           <div 
             onClick={() => onNavigatePortalTab && onNavigatePortalTab('opinion')}
-            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1 cursor-pointer hover:bg-slate-50/60 rounded-xl transition-colors group/stat"
+            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1.5 cursor-pointer hover:bg-amber-50/50 hover:shadow-xs rounded-xl transition-all duration-200 group/stat"
             title="Xem phản ánh chờ duyệt"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/stat:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/stat:scale-110 group-hover/stat:bg-amber-100/80 group-hover/stat:text-amber-700 transition-all shadow-2xs">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div className="text-left">
               <p className="text-[11px] font-medium text-[#536A95]">Phản ánh chờ xử lý</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-[#071753]">{pendingOpinionsCount}</span>
+                <span className="text-xl font-black text-[#071753] group-hover/stat:text-amber-700 transition-colors">{pendingOpinionsCount}</span>
                 <span className="text-[11px] text-[#536A95] font-medium">phiếu</span>
               </div>
             </div>
@@ -1011,16 +1011,16 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
           {/* Item 4: Đơn vị trực thuộc */}
           <div 
             onClick={() => onNavigatePortalTab ? onNavigatePortalTab('map') : onGoToOffice && onGoToOffice('neighborhood_map')}
-            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1 cursor-pointer hover:bg-slate-50/60 rounded-xl transition-colors group/stat"
+            className="flex items-center gap-3 flex-1 min-w-[160px] justify-center px-3 py-1.5 cursor-pointer hover:bg-indigo-50/50 hover:shadow-xs rounded-xl transition-all duration-200 group/stat"
             title="Xem bản đồ 21 khu phố"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/stat:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/stat:scale-110 group-hover/stat:bg-indigo-100/80 group-hover/stat:text-indigo-700 transition-all shadow-2xs">
               <Building2 className="w-5 h-5" />
             </div>
             <div className="text-left">
               <p className="text-[11px] font-medium text-[#536A95]">Đơn vị trực thuộc</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-[#071753]">21</span>
+                <span className="text-xl font-black text-[#071753] group-hover/stat:text-indigo-700 transition-colors">21</span>
                 <span className="text-[11px] text-[#536A95] font-medium">khu phố/đơn vị</span>
               </div>
             </div>
@@ -1029,17 +1029,17 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
           {/* Item 5: Lịch công tác hôm nay */}
           <div 
             onClick={() => showToast('Hôm nay phường có 3 hoạt động công tác, hội họp và tuyên truyền.')}
-            className="flex items-center justify-between flex-1 min-w-[180px] px-3 py-1 cursor-pointer hover:bg-slate-50/60 rounded-xl transition-colors group/item5"
+            className="flex items-center justify-between flex-1 min-w-[180px] px-3 py-1.5 cursor-pointer hover:bg-blue-50/50 hover:shadow-xs rounded-xl transition-all duration-200 group/item5"
             title="Xem lịch hoạt động"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/item5:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover/item5:scale-110 group-hover/item5:bg-blue-100/80 transition-all shadow-2xs">
                 <CalendarDays className="w-5 h-5" />
               </div>
               <div className="text-left">
                 <p className="text-[11px] font-medium text-[#536A95]">Lịch công tác hôm nay</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl font-black text-[#071753]">3</span>
+                  <span className="text-xl font-black text-[#071753] group-hover/item5:text-blue-700 transition-colors">3</span>
                   <span className="text-[11px] text-[#536A95] font-medium">hoạt động</span>
                 </div>
               </div>

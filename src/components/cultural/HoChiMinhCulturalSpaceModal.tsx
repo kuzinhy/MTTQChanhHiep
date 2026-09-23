@@ -970,20 +970,6 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
               </span>
             </button>
 
-            {/* Superadmin Mode Toggle */}
-            <button
-              onClick={() => setIsSuperAdminMode((prev) => !prev)}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                isSuperAdminMode
-                  ? 'bg-amber-400 hover:bg-amber-300 text-rose-950 border-amber-500 shadow-xs ring-2 ring-amber-400/40 font-black'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
-              }`}
-              title={isSuperAdminMode ? 'Đang bật chế độ chỉnh sửa trực tiếp trên từng mục' : 'Bật chế độ chỉnh sửa trực tiếp'}
-            >
-              <Edit3 className="w-3.5 h-3.5 text-rose-900" />
-              <span>{isSuperAdminMode ? 'Chế độ Chỉnh Sửa: BẬT' : 'Bật Chỉnh Sửa'}</span>
-            </button>
-
             {/* Quick Switch to Full Admin View */}
             <button
               onClick={() => setActiveMuseumTab('admin')}

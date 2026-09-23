@@ -47,7 +47,7 @@ interface ChanhHiepPortalHomeProps {
   onOpenHcmSpaceModal: () => void;
   onOpenVolunteerModal: () => void;
   onOpenDirectory?: () => void;
-  onGoToOffice: () => void;
+  onGoToOffice: (view?: any) => void;
 }
 
 export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
