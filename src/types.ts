@@ -834,6 +834,7 @@ export interface Organization {
   bannerUrl?: string;
   membersCount?: number;
   partyMembersCount?: number;
+  branchesCount?: number;
   displayOrder?: number;
   status: 'ACTIVE' | 'INACTIVE';
   establishedDate?: string;

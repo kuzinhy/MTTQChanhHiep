@@ -598,7 +598,20 @@ export const AppStorageEngine = {
   },
 
   getMapLocations: (): MapLocation[] => {
-    return loadInitialData(STORAGE_KEYS.MAP_LOCATIONS, INITIAL_MAP_LOCATIONS);
+    const stored = loadInitialData<MapLocation[]>(STORAGE_KEYS.MAP_LOCATIONS, []);
+    if (!stored || stored.length === 0 || !stored.some(l => l.id.startsWith('LOC-'))) {
+      saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, INITIAL_MAP_LOCATIONS);
+      return INITIAL_MAP_LOCATIONS;
+    }
+    // Automatically merge any missing official locations by ID
+    const storedIds = new Set(stored.map(l => l.id));
+    const missingOfficial = INITIAL_MAP_LOCATIONS.filter(l => !storedIds.has(l.id));
+    if (missingOfficial.length > 0) {
+      const merged = [...stored, ...missingOfficial];
+      saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, merged);
+      return merged;
+    }
+    return stored;
   },
   saveMapLocations: (locations: MapLocation[]) => {
     saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, locations || []);
@@ -1007,13 +1020,17 @@ export const AppStorageEngine = {
       if (o && o.id) {
         if (!o.areaId || validAreaIds.has(o.areaId)) {
           const canonical = orgMap.get(o.id);
-          orgMap.set(o.id, { 
+          const merged = { 
             ...(canonical || {}), 
             ...o,
             name: canonical?.name || o.name,
             shortName: canonical?.shortName || o.shortName,
             areaName: canonical?.areaName || o.areaName
-          });
+          };
+          if (canonical && canonical.id === 'org-doan-tn') {
+            merged.branchesCount = 21;
+          }
+          orgMap.set(o.id, merged);
         }
       }
     });

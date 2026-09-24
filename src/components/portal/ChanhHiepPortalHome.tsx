@@ -446,7 +446,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           
           {/* Metric 1: Hoạt động tháng */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-black text-[#0068ff]">28</span>
@@ -460,7 +460,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 2: Tin tức mới */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-black text-rose-600">13</span>
@@ -474,7 +474,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 3: Hồ sơ an sinh */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-black text-emerald-600">42</span>
@@ -488,7 +488,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 4: Dân nguyện tiếp nhận */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-black text-orange-500">56</span>
@@ -502,7 +502,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 5: Đã xử lý */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-black text-purple-600">48</span>
@@ -516,7 +516,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 6: Tình nguyện viên */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-black text-sky-600">120</span>

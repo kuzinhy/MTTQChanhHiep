@@ -1878,6 +1878,7 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     bannerUrl: 'https://sv2.anhsieuviet.com/2026/09/02/775fbdb9-40fc-4b75-979f-7ebf40ecd00fb813d9fe5f77bf4c.png',
     membersCount: 520,
     partyMembersCount: 56,
+    branchesCount: 21,
     displayOrder: 6,
     status: 'ACTIVE',
     createdAt: '2026-01-01'

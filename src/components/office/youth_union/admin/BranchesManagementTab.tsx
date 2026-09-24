@@ -42,13 +42,16 @@ import {
   BranchMeetingMinute,
   BranchYouthProject,
   YouthMember,
+  BranchAccount,
   loadStoredBranches, 
   saveStoredBranches,
   loadStoredMeetingMinutes,
   saveStoredMeetingMinutes,
   loadStoredYouthProjects,
   saveStoredYouthProjects,
-  loadStoredYouthMembers
+  loadStoredYouthMembers,
+  loadStoredAccounts,
+  saveStoredAccounts
 } from '../youthUnionData';
 
 interface Props {
@@ -97,8 +100,13 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
   const [formYouthGatheringRate, setFormYouthGatheringRate] = useState<number>(75);
   const [formMeetingDay, setFormMeetingDay] = useState('Ngày 15 hàng tháng');
   const [formRating, setFormRating] = useState<BranchInfo['threeInitiativesRating']>('XUẤT SẮC');
-  const [formAddress, setFormAddress] = useState('Văn phòng BĐH Khu phố, P. Chánh Hiệp');
+  const [formAddress, setFormAddress] = useState('Văn phòng BĐH Chi đoàn, P. Chánh Hiệp');
   const [formMembersCount, setFormMembersCount] = useState<number>(30);
+
+  // Form State - Account creation alongside branch creation
+  const [createAccountForNewBranch, setCreateAccountForNewBranch] = useState(true);
+  const [newBranchUsername, setNewBranchUsername] = useState('');
+  const [newBranchPassword, setNewBranchPassword] = useState('');
 
   // Form State - Meeting Minute
   const [formMinuteBranchId, setFormMinuteBranchId] = useState(branches[0]?.id || 'kp1');
@@ -176,8 +184,12 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
     setFormYouthGatheringRate(75);
     setFormMeetingDay('Ngày 15 hàng tháng');
     setFormRating('XUẤT SẮC');
-    setFormAddress('Văn phòng BĐH Khu phố, P. Chánh Hiệp');
+    setFormAddress('Văn phòng BĐH Chi đoàn, P. Chánh Hiệp');
     setFormMembersCount(30);
+    setCreateAccountForNewBranch(true);
+    // Generate a default clean and short username based on random suffix
+    setNewBranchUsername('cd_' + Math.floor(100 + Math.random() * 900));
+    setNewBranchPassword('Doan@' + Math.floor(1000 + Math.random() * 9000));
     setIsBranchModalOpen(true);
   };
 
@@ -234,6 +246,22 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
       });
       setBranches(updated);
       saveStoredBranches(updated);
+
+      // Keep associated account perfectly updated in database
+      const accounts = loadStoredAccounts();
+      const updatedAccounts = accounts.map(a => {
+        if (a.branchId === editingBranch.id) {
+          return {
+            ...a,
+            branchName: formName.trim(),
+            fullName: formSecretary.trim() || a.fullName,
+            phone: formPhone.trim() || a.phone
+          };
+        }
+        return a;
+      });
+      saveStoredAccounts(updatedAccounts);
+
       onNotify(`Đã cập nhật hồ sơ Chi đoàn: ${formName}`);
     } else {
       const newId = 'branch_' + Date.now();
@@ -262,6 +290,26 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
       const updated = [...branches, newBranch];
       setBranches(updated);
       saveStoredBranches(updated);
+
+      // Create associated account if selected
+      if (createAccountForNewBranch && newBranchUsername.trim()) {
+        const accounts = loadStoredAccounts();
+        const newAccount: BranchAccount = {
+          id: 'acc_' + Date.now(),
+          branchId: newId,
+          branchName: newBranch.name,
+          username: newBranchUsername.trim().toLowerCase(),
+          passwordMasked: newBranchPassword.trim() || 'Doan@2026',
+          fullName: newBranch.secretary,
+          position: 'Bí thư Chi đoàn',
+          phone: newBranch.phone,
+          status: 'ACTIVE',
+          createdAt: new Date().toLocaleDateString('vi-VN'),
+          lastLogin: 'Chưa đăng nhập'
+        };
+        saveStoredAccounts([newAccount, ...accounts]);
+      }
+
       onNotify(`Đã tạo mới hồ sơ Chi đoàn: ${formName}`);
     }
 
@@ -282,11 +330,17 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
   };
 
   const handleDeleteBranch = (branchId: string, name: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa Chi đoàn "${name}"? Dữ liệu tự chấm và sổ sách liên quan sẽ được cập nhật.`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa Chi đoàn "${name}"? Toàn bộ dữ liệu tự chấm điểm, hồ sơ nộp, biên bản sinh hoạt lệ và tài khoản đăng nhập Workspace liên quan cũng sẽ được xóa sạch.`)) {
       const updated = branches.filter(b => b.id !== branchId);
       setBranches(updated);
       saveStoredBranches(updated);
-      onNotify(`Đã xóa Chi đoàn: ${name}`);
+
+      // Clean up associated account from the list
+      const accounts = loadStoredAccounts();
+      const updatedAccounts = accounts.filter(a => a.branchId !== branchId);
+      saveStoredAccounts(updatedAccounts);
+
+      onNotify(`Đã xóa Chi đoàn và tài khoản liên quan: ${name}`);
     }
   };
 
@@ -532,7 +586,7 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
               Quản Lý Chi Đoàn & Hệ Thống Tổ Chức Trực Thuộc
             </h2>
             <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
-              Quản lý toàn diện 16 Chi đoàn trực thuộc, hồ sơ Ban Chấp hành, sổ biên bản sinh hoạt lệ định kỳ, công trình thanh niên và đánh giá "Chi đoàn mạnh 3 chủ động" chuẩn Điều lệ Đoàn TNCS Hồ Chí Minh.
+              Quản lý toàn diện {branches.length} Chi đoàn trực thuộc, hồ sơ Ban Chấp hành, sổ biên bản sinh hoạt lệ định kỳ, công trình thanh niên và đánh giá "Chi đoàn mạnh 3 chủ động" chuẩn Điều lệ Đoàn TNCS Hồ Chí Minh.
             </p>
           </div>
 
@@ -571,7 +625,7 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
               <span className="text-[10px] font-black uppercase tracking-wider">ĐỊA BÀN DÂN CƯ</span>
             </div>
             <p className="text-2xl font-black text-blue-900">{residentialCount} Chi đoàn</p>
-            <p className="text-[11px] text-blue-600 mt-0.5 font-medium">10 Khu phố trọng điểm</p>
+            <p className="text-[11px] text-blue-600 mt-0.5 font-medium">Địa bàn dân cư tiêu biểu</p>
           </div>
 
           <div className="bg-emerald-50/70 rounded-2xl p-4 border border-emerald-100">
@@ -934,7 +988,7 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
                 Sổ Biên Bản Sinh Hoạt Chi Đoàn Định Kỳ (Điện Tử)
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Theo dõi chế độ sinh hoạt lệ định kỳ hàng tháng của 16 Chi đoàn trực thuộc, tỷ lệ tham gia sinh hoạt và lưu trữ nghị quyết cuộc họp.
+                Theo dõi chế độ sinh hoạt lệ định kỳ hàng tháng của {branches.length} Chi đoàn trực thuộc, tỷ lệ tham gia sinh hoạt và lưu trữ nghị quyết cuộc họp.
               </p>
             </div>
             <button
@@ -1210,7 +1264,7 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
               <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
                 Bảng Tổng Hợp Đánh Giá & Xếp Hạng Chi Đoàn Mạnh 3 Chủ Động
               </h4>
-              <span className="text-xs text-slate-400 font-bold">16 / 16 Đơn vị đã được thẩm định</span>
+              <span className="text-xs text-slate-400 font-bold">{branches.length} / {branches.length} Đơn vị đã được thẩm định</span>
             </div>
 
             <div className="overflow-x-auto">
@@ -1434,7 +1488,7 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="VD: Chi đoàn Khu phố 11 (Chi đoàn Dân cư)"
+                  placeholder="VD: Chi đoàn Định Hòa 1"
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
@@ -1601,10 +1655,55 @@ export const BranchesManagementTab: React.FC<Props> = ({ onNotify }) => {
                   type="text"
                   value={formAddress}
                   onChange={(e) => setFormAddress(e.target.value)}
-                  placeholder="VD: Văn phòng BĐH Khu phố 1, P. Chánh Hiệp"
+                  placeholder="VD: Văn phòng BĐH Chi đoàn Định Hòa 1, P. Chánh Hiệp"
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
+
+              {!editingBranch && (
+                <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-3">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={createAccountForNewBranch}
+                      onChange={(e) => setCreateAccountForNewBranch(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 rounded-md border-blue-200 focus:ring-blue-500"
+                    />
+                    <span className="text-xs font-black text-blue-900 select-none">
+                      Cấp tài khoản Workspace số cho Chi đoàn ngay
+                    </span>
+                  </label>
+
+                  {createAccountForNewBranch && (
+                    <div className="grid grid-cols-2 gap-3.5 pt-2 border-t border-blue-200/40">
+                      <div>
+                        <label className="block text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1">
+                          Tên đăng nhập <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newBranchUsername}
+                          onChange={(e) => setNewBranchUsername(e.target.value)}
+                          placeholder="cd_username"
+                          className="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1">
+                          Mật khẩu khởi tạo <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newBranchPassword}
+                          onChange={(e) => setNewBranchPassword(e.target.value)}
+                          placeholder="Mật khẩu"
+                          className="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

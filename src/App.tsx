@@ -1608,7 +1608,7 @@ export default function App() {
                     )}
 
                     {officeView === 'youth_union_workspace' && (
-                      <WorkspaceShell />
+                      <WorkspaceShell currentUser={currentStaffUser} />
                     )}
 
                     {(officeView === 'cms' || officeView === 'cms_articles') && (

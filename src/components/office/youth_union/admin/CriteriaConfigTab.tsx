@@ -21,7 +21,8 @@ import {
   loadStoredCriteria, 
   saveStoredCriteria,
   INITIAL_CATEGORIES,
-  EmulationCategory
+  EmulationCategory,
+  loadStoredBranches
 } from '../youthUnionData';
 
 interface Props {
@@ -31,6 +32,7 @@ interface Props {
 export const CriteriaConfigTab: React.FC<Props> = ({ onNotify }) => {
   const [criteria, setCriteria] = useState<CriterionItem[]>(() => loadStoredCriteria());
   const [activeCategory, setActiveCategory] = useState<'I' | 'II' | 'III' | 'IV' | 'ALL'>('ALL');
+  const [branchesCount] = useState<number>(() => loadStoredBranches().length);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -159,7 +161,7 @@ export const CriteriaConfigTab: React.FC<Props> = ({ onNotify }) => {
               Cài Đặt Nội Dung & Thang Điểm Thi Đua Chi Đoàn
             </h2>
             <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-              Cấu hình các tiêu chí, thang điểm tối đa, căn cứ hồ sơ minh chứng áp dụng cho toàn bộ 16 Chi đoàn trực thuộc Phường Chánh Hiệp. Thay đổi sẽ cập nhật ngay lập tức vào Workspace Chi đoàn.
+              Cấu hình các tiêu chí, thang điểm tối đa, căn cứ hồ sơ minh chứng áp dụng cho toàn bộ {branchesCount} Chi đoàn trực thuộc Phường Chánh Hiệp. Thay đổi sẽ cập nhật ngay lập tức vào Workspace Chi đoàn.
             </p>
           </div>
 

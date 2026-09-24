@@ -123,9 +123,9 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
     return () => clearTimeout(timer);
   }, [isOpen, activeMuseumTab, exhibits]);
 
-  // SuperAdmin mode & editing state (Enabled so user can easily edit and adjust all contents)
-  const isUserSuperAdmin = currentStaffUser?.role === 'SUPER_ADMIN' || currentStaffUser?.role === 'ADMIN' || true;
-  const [isSuperAdminMode, setIsSuperAdminMode] = useState<boolean>(true);
+  // SuperAdmin mode & editing state (Enabled for actual authenticated admins/superadmins)
+  const isUserSuperAdmin = !!(currentStaffUser?.role === 'SUPER_ADMIN' || currentStaffUser?.role === 'ADMIN');
+  const [isSuperAdminMode, setIsSuperAdminMode] = useState<boolean>(isUserSuperAdmin);
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
   const [editingExhibit, setEditingExhibit] = useState<ExhibitItem | null>(null);
   const [saveToastMessage, setSaveToastMessage] = useState<string | null>(null);
@@ -193,9 +193,7 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
 
   // Synchronize superadmin role when currentStaffUser changes
   useEffect(() => {
-    if (isUserSuperAdmin) {
-      setIsSuperAdminMode(true);
-    }
+    setIsSuperAdminMode(isUserSuperAdmin);
   }, [isUserSuperAdmin]);
 
   // Keep selected exhibit synchronized with updated exhibits state
@@ -1943,10 +1941,12 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
                     <span className="font-bold">Xem chi tiết:</span>
                     <span className="text-amber-800 font-bold">Click vào bục trưng bày / hotspot</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                    <span className="font-bold">Chế độ Superadmin:</span>
-                    <span className="text-emerald-700 font-bold">Bật nút Superadmin để sửa trực tiếp</span>
-                  </div>
+                  {isUserSuperAdmin && (
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                      <span className="font-bold">Chế độ Superadmin:</span>
+                      <span className="text-emerald-700 font-bold">Quyền sửa trực tiếp đang hoạt động</span>
+                    </div>
+                  )}
                 </div>
 
                 <button

@@ -56,7 +56,11 @@ import { YouthMembersRosterTab } from '../admin/YouthMembersRosterTab';
 import { YouthWorkGroupsTab } from './YouthWorkGroupsTab';
 import { YouthTrainingRecordsTab } from './YouthTrainingRecordsTab';
 
-export const WorkspaceShell: React.FC = () => {
+interface WorkspaceShellProps {
+  currentUser?: any;
+}
+
+export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({ currentUser }) => {
   // Dynamic state loaded from admin storage
   const [branches, setBranches] = useState<BranchInfo[]>(() => loadStoredBranches());
   const [criteria, setCriteria] = useState<CriterionItem[]>(() => loadStoredCriteria());
@@ -73,7 +77,15 @@ export const WorkspaceShell: React.FC = () => {
   // Selected branch
   const [selectedBranchId, setSelectedBranchId] = useState<string>(() => {
     const list = loadStoredBranches();
-    return list[0]?.id || 'kp1';
+    if (currentUser && currentUser.department) {
+      const match = list.find(b => 
+        b.name.toLowerCase() === currentUser.department.toLowerCase() ||
+        currentUser.department.toLowerCase().includes(b.name.toLowerCase()) ||
+        b.name.toLowerCase().includes(currentUser.department.toLowerCase())
+      );
+      if (match) return match.id;
+    }
+    return list[0]?.id || 'dh1';
   });
 
   // Active view
@@ -117,16 +129,94 @@ export const WorkspaceShell: React.FC = () => {
 
   // Sync data whenever Admin makes edits in another tab or window
   useEffect(() => {
-    const handleDataUpdate = () => {
-      setBranches(loadStoredBranches());
-      setCriteria(loadStoredCriteria());
-      setSettings(loadStoredSettings());
-      setSubmissions(loadStoredSubmissions());
-      setArticles(loadStoredArticles());
-      setEvents(loadStoredEvents());
-      setCompetitions(loadStoredCompetitions());
-      setDocuments(loadStoredDocuments());
-      setInitiatives(loadStoredInitiatives());
+    const handleDataUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const type = customEvent?.detail?.type;
+
+      // Avoid self-inflicted infinite loops for submissions
+      if (type === 'submissions') {
+        return;
+      }
+
+      if (type === 'branches') {
+        setBranches(prev => {
+          const next = loadStoredBranches();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else if (type === 'criteria') {
+        setCriteria(prev => {
+          const next = loadStoredCriteria();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else if (type === 'settings') {
+        setSettings(prev => {
+          const next = loadStoredSettings();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else if (type === 'articles') {
+        setArticles(prev => {
+          const next = loadStoredArticles();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else if (type === 'events') {
+        setEvents(prev => {
+          const next = loadStoredEvents();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else if (type === 'competitions') {
+        setCompetitions(prev => {
+          const next = loadStoredCompetitions();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else if (type === 'documents') {
+        setDocuments(prev => {
+          const next = loadStoredDocuments();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else if (type === 'initiatives') {
+        setInitiatives(prev => {
+          const next = loadStoredInitiatives();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      } else {
+        // Fallback for generic event or storage changes
+        setBranches(prev => {
+          const next = loadStoredBranches();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setCriteria(prev => {
+          const next = loadStoredCriteria();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setSettings(prev => {
+          const next = loadStoredSettings();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setSubmissions(prev => {
+          const next = loadStoredSubmissions();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setArticles(prev => {
+          const next = loadStoredArticles();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setEvents(prev => {
+          const next = loadStoredEvents();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setCompetitions(prev => {
+          const next = loadStoredCompetitions();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setDocuments(prev => {
+          const next = loadStoredDocuments();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+        setInitiatives(prev => {
+          const next = loadStoredInitiatives();
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+        });
+      }
     };
 
     window.addEventListener('youth_union_data_updated', handleDataUpdate);
@@ -454,17 +544,20 @@ export const WorkspaceShell: React.FC = () => {
               <Building2 className="w-4 h-4 text-blue-600" />
               <span className="text-xs font-bold text-slate-700 whitespace-nowrap">Đơn vị:</span>
             </div>
-            <select
-              value={selectedBranchId}
-              onChange={(e) => setSelectedBranchId(e.target.value)}
-              className="bg-white border border-slate-300 text-slate-900 text-xs font-bold rounded-xl px-3 py-2.5 shadow-2xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none cursor-pointer pr-8"
-            >
-              {branches.map(b => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative flex items-center">
+              <select
+                value={selectedBranchId}
+                onChange={(e) => setSelectedBranchId(e.target.value)}
+                className="bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-xl pl-3 pr-10 py-2.5 shadow-sm hover:border-slate-300 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none cursor-pointer appearance-none transition-all duration-200"
+              >
+                {branches.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
