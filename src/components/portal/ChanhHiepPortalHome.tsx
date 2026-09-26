@@ -23,7 +23,8 @@ import {
   CheckCircle2,
   FileText,
   Users,
-  Compass
+  Compass,
+  Award
 } from 'lucide-react';
 import { sortArticlesNewestFirst } from '../../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -33,6 +34,8 @@ import { AppStorageEngine } from '../../lib/storage';
 import { MapLocation } from '../../data/mapSchema';
 import { DigitalCommunityMap } from '../map/DigitalCommunityMap';
 import { CitizenPublicServiceGuide } from './CitizenPublicServiceGuide';
+import { CitizenOpinionTrackerModal } from './CitizenOpinionTrackerModal';
+import { CitizenWelfareHubModal } from './CitizenWelfareHubModal';
 
 const getImageUrl = (image?: string | CloudinaryImageMeta): string => {
   if (!image) return 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1200&q=80';
@@ -124,6 +127,16 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   const [selectedNewsCategory, setSelectedNewsCategory] = useState<string>('ALL');
   const [newsSearchTerm, setNewsSearchTerm] = useState<string>('');
   const [visibleNewsCount, setVisibleNewsCount] = useState<number>(6);
+
+  // Citizen Hub Modals State (Trụ cột 1)
+  const [isOpinionTrackerOpen, setIsOpinionTrackerOpen] = useState(false);
+  const [isWelfareHubOpen, setIsWelfareHubOpen] = useState(false);
+  const [welfareHubDefaultTab, setWelfareHubDefaultTab] = useState<'sos_aid' | 'donation' | 'solidarity_handbook'>('sos_aid');
+
+  const openWelfareModal = (tab: 'sos_aid' | 'donation' | 'solidarity_handbook') => {
+    setWelfareHubDefaultTab(tab);
+    setIsWelfareHubOpen(true);
+  };
 
   const newsCategories = [
     { id: 'ALL', label: 'Tất cả tin tức' },
@@ -477,15 +490,18 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
         </div>
 
-        {/* 6 Metric Cards */}
+        {/* 6 Metric Cards - Khởi tạo làm mới bắt đầu chu kỳ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           
           {/* Metric 1: Hoạt động tháng */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+          <div 
+            onClick={() => onSelectTab('activities')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+          >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-[#0068ff]">28</span>
-                <span className="text-[10px] font-bold text-emerald-600">↑ 12%</span>
+                <span className="text-xl sm:text-2xl font-black text-[#0068ff]">0</span>
+                <span className="text-[10px] font-bold text-slate-400">Kỳ mới</span>
               </div>
               <p className="text-[11px] text-slate-600 font-medium leading-tight">Hoạt động tháng</p>
             </div>
@@ -495,11 +511,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 2: Tin tức mới */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+          <div 
+            onClick={() => onSelectTab('news')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+          >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-rose-600">13</span>
-                <span className="text-[10px] font-bold text-emerald-600">↑ 8%</span>
+                <span className="text-xl sm:text-2xl font-black text-rose-600">0</span>
+                <span className="text-[10px] font-bold text-slate-400">Kỳ mới</span>
               </div>
               <p className="text-[11px] text-slate-600 font-medium leading-tight">Tin tức mới</p>
             </div>
@@ -509,11 +528,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 3: Hồ sơ an sinh */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+          <div 
+            onClick={() => onSelectTab('social_welfare')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+          >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-emerald-600">42</span>
-                <span className="text-[10px] font-bold text-emerald-600">↑ 15%</span>
+                <span className="text-xl sm:text-2xl font-black text-emerald-600">0</span>
+                <span className="text-[10px] font-bold text-slate-400">Kỳ mới</span>
               </div>
               <p className="text-[11px] text-slate-600 font-medium leading-tight">Hồ sơ an sinh</p>
             </div>
@@ -523,11 +545,18 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 4: Dân nguyện tiếp nhận */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+          <div 
+            onClick={() => onSelectTab('opinions')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+          >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-orange-500">56</span>
-                <span className="text-[10px] font-bold text-emerald-600">↑ 9%</span>
+                <span className="text-xl sm:text-2xl font-black text-orange-500">
+                  {opinions && opinions.length > 0 ? opinions.length : 0}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {opinions && opinions.length > 0 ? `+${opinions.length}` : 'Kỳ mới'}
+                </span>
               </div>
               <p className="text-[11px] text-slate-600 font-medium leading-tight">Dân nguyện tiếp nhận</p>
             </div>
@@ -537,11 +566,18 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 5: Đã xử lý */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+          <div 
+            onClick={() => onSelectTab('opinions')}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+          >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-purple-600">48</span>
-                <span className="text-[10px] font-bold text-emerald-600">↑ 20%</span>
+                <span className="text-xl sm:text-2xl font-black text-purple-600">
+                  {opinions && opinions.length > 0 ? opinions.filter(o => o.status === 'RESOLVED' || o.status === 'CLOSED').length : 0}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {opinions && opinions.length > 0 ? 'Trực tiếp' : 'Kỳ mới'}
+                </span>
               </div>
               <p className="text-[11px] text-slate-600 font-medium leading-tight">Đã xử lý</p>
             </div>
@@ -551,16 +587,158 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
           {/* Metric 6: Tình nguyện viên */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+          <div 
+            onClick={() => onOpenVolunteerModal()}
+            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+          >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-sky-600">120</span>
-                <span className="text-[10px] font-bold text-emerald-600">↑ 18%</span>
+                <span className="text-xl sm:text-2xl font-black text-sky-600">
+                  {AppStorageEngine.getVolunteers?.()?.length || 0}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {AppStorageEngine.getVolunteers?.()?.length ? `+${AppStorageEngine.getVolunteers().length}` : 'Kỳ mới'}
+                </span>
               </div>
               <p className="text-[11px] text-slate-600 font-medium leading-tight">Tình nguyện viên</p>
             </div>
             <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
               <Users className="w-4 h-4" />
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 3.5. CỔNG DỊCH VỤ CÔNG DÂN & AN SINH SỐ (TRỤ CỘT 1)                         */}
+      {/* ========================================================================= */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-gradient-to-br from-red-600 via-rose-600 to-amber-500 rounded-xs shrink-0" />
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight uppercase">
+              Cổng Dịch Vụ Công Dân &amp; An Sinh Số
+            </h2>
+            <span className="px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px] font-black uppercase">
+              Trụ cột 1
+            </span>
+          </div>
+          <span className="text-xs text-slate-500 font-medium hidden sm:inline">Phục vụ nhân dân 21 Khu phố Phường Chánh Hiệp</span>
+        </div>
+
+        {/* 4 Primary Interactive Citizen Service Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          
+          {/* Card 1: Tra cứu Dân nguyện Realtime */}
+          <div
+            onClick={() => setIsOpinionTrackerOpen(true)}
+            className="group bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-blue-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="space-y-2 relative z-10">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
+                  <Search className="w-5 h-5 text-cyan-300" />
+                </div>
+                <span className="text-[10px] font-black bg-cyan-400/20 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/30">
+                  REALTIME
+                </span>
+              </div>
+              <h3 className="text-sm font-black text-white group-hover:text-cyan-200 transition-colors">
+                Tra Cứu Tiến Độ Dân Nguyện
+              </h3>
+              <p className="text-xs text-blue-200/80 leading-relaxed font-medium">
+                Nhập mã hồ sơ / SĐT để theo dõi quy trình xử lý 4 bước và đánh giá mức độ hài lòng.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-cyan-300">
+              <span>Tra cứu ngay</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 2: SOS Cứu trợ khẩn cấp */}
+          <div
+            onClick={() => openWelfareModal('sos_aid')}
+            className="group bg-gradient-to-br from-red-900 via-rose-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-red-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="space-y-2 relative z-10">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
+                  <HeartHandshake className="w-5 h-5 text-amber-300" />
+                </div>
+                <span className="text-[10px] font-black bg-red-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30 animate-pulse">
+                  SOS 24/7
+                </span>
+              </div>
+              <h3 className="text-sm font-black text-white group-hover:text-amber-200 transition-colors">
+                Cứu Trợ An Sinh Khẩn Cấp
+              </h3>
+              <p className="text-xs text-rose-200/80 leading-relaxed font-medium">
+                Gửi yêu cầu trợ cấp gạo, viện phí, học bổng hoặc sửa chữa nhà Đại đoàn kết 21 khu phố.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-300">
+              <span>Gửi yêu cầu trợ giúp</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 3: Ủng hộ Quỹ & Tấm Lòng Vàng */}
+          <div
+            onClick={() => openWelfareModal('donation')}
+            className="group bg-gradient-to-br from-amber-900 via-yellow-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-amber-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="space-y-2 relative z-10">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
+                  <Award className="w-5 h-5 text-amber-300" />
+                </div>
+                <span className="text-[10px] font-black bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
+                  VIETQR
+                </span>
+              </div>
+              <h3 className="text-sm font-black text-white group-hover:text-amber-200 transition-colors">
+                Ủng Hộ Quỹ &amp; Tấm Lòng Vàng
+              </h3>
+              <p className="text-xs text-amber-200/80 leading-relaxed font-medium">
+                Chuyển khoản VietQR tự động và nhận ngay Giấy chứng nhận Tấm Lòng Vàng Số có mộc MTTQ.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-300">
+              <span>Đóng góp &amp; Nhận chứng nhận</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 4: Sổ tay Gia đình Đại đoàn kết */}
+          <div
+            onClick={() => openWelfareModal('solidarity_handbook')}
+            className="group bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-emerald-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+            <div className="space-y-2 relative z-10">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
+                  <ShieldCheck className="w-5 h-5 text-emerald-300" />
+                </div>
+                <span className="text-[10px] font-black bg-emerald-400/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                  10 TIÊU CHÍ
+                </span>
+              </div>
+              <h3 className="text-sm font-black text-white group-hover:text-emerald-200 transition-colors">
+                Gia Đình Đại Đoàn Kết
+              </h3>
+              <p className="text-xs text-emerald-200/80 leading-relaxed font-medium">
+                Bảng tự đánh giá 10 tiêu chí văn hóa trực tuyến /100 điểm gửi Ban CTMT 21 Khu phố.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-300">
+              <span>Tự chấm điểm online</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
@@ -781,6 +959,22 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         onSelectTab={onSelectTab}
         onOpenVolunteerModal={onOpenVolunteerModal}
         onOpenDirectory={onOpenDirectory}
+      />
+
+      {/* ========================================================================= */}
+      {/* MODALS - TRỤ CỘT 1 PHỤC VỤ NHÂN DÂN                                       */}
+      {/* ========================================================================= */}
+      <CitizenOpinionTrackerModal
+        isOpen={isOpinionTrackerOpen}
+        onClose={() => setIsOpinionTrackerOpen(false)}
+        opinions={opinions}
+        onOpenNewOpinionForm={() => onSelectTab('opinion')}
+      />
+
+      <CitizenWelfareHubModal
+        isOpen={isWelfareHubOpen}
+        onClose={() => setIsWelfareHubOpen(false)}
+        defaultTab={welfareHubDefaultTab}
       />
 
     </div>

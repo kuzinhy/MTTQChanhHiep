@@ -24,18 +24,24 @@ interface DraftingWizardToolViewProps {
 }
 
 const DOCUMENT_TYPES = [
+  { id: 'Luật', name: 'Luật / Dự thảo Luật', desc: 'Dự thảo luật, văn bản quy phạm pháp luật, điều khoản thi hành' },
+  { id: 'Nghị quyết', name: 'Nghị quyết', desc: 'Nghị quyết Đại hội, Hội nghị Ủy ban MTTQ các cấp, HĐND' },
+  { id: 'Nghị định', name: 'Nghị định / Quy định', desc: 'Quy định chi tiết và biện pháp thi hành chính sách' },
+  { id: 'Thông tư', name: 'Thông tư / Hướng dẫn', desc: 'Thông tư hướng dẫn chuyên môn nghiệp vụ của Bộ, Ngành' },
+  { id: 'Quyết định', name: 'Quyết định', desc: 'Quyết định thành lập đoàn kiểm tra, ban hành quy chế, khen thưởng' },
+  { id: 'Chỉ thị', name: 'Chỉ thị', desc: 'Chỉ thị về các đợt cao điểm, phong trào, nhiệm vụ trọng tâm' },
   { id: 'Kế hoạch', name: 'Kế hoạch', desc: 'Kế hoạch hành động, tổ chức ngày hội, phong trào thi đua' },
-  { id: 'Báo cáo', name: 'Báo cáo', desc: 'Báo cáo định kỳ tuần, tháng, quý, năm, chuyên đề' },
-  { id: 'Tờ trình', name: 'Tờ trình', desc: 'Tờ trình xin chủ trương, kinh phí, phê duyệt đề án' },
+  { id: 'Chương trình', name: 'Chương trình', desc: 'Chương trình phối hợp thống nhất hành động' },
+  { id: 'Hướng dẫn', name: 'Hướng dẫn', desc: 'Hướng dẫn nghiệp vụ cho các Ban CTMT Khu phố' },
   { id: 'Công văn', name: 'Công văn', desc: 'Công văn trao đổi, phối hợp công tác với ban ngành' },
   { id: 'Thông báo', name: 'Thông báo', desc: 'Thông báo kết luận, phân công, lịch làm việc' },
-  { id: 'Hướng dẫn', name: 'Hướng dẫn', desc: 'Hướng dẫn nghiệp vụ cho 21 Ban CTMT Khu phố' },
-  { id: 'Quyết định', name: 'Quyết định', desc: 'Quyết định thành lập đoàn kiểm tra, khen thưởng' },
-  { id: 'Chương trình', name: 'Chương trình', desc: 'Chương trình phối hợp thống nhất hành động' },
-  { id: 'Thư mời', name: 'Thư mời / Giấy mời', desc: 'Giấy mời hội nghị, tiếp xúc cử tri, họp mặt' },
-  { id: 'Thư ngỏ', name: 'Thư ngỏ vận động', desc: 'Thư ngỏ vận động ủng hộ Quỹ Vì người nghèo' },
+  { id: 'Tờ trình', name: 'Tờ trình', desc: 'Tờ trình xin chủ trương, kinh phí, phê duyệt đề án' },
+  { id: 'Báo cáo', name: 'Báo cáo', desc: 'Báo cáo định kỳ tuần, tháng, quý, năm, chuyên đề' },
+  { id: 'Kết luận', name: 'Kết luận', desc: 'Kết luận thanh tra, kiểm tra, giám sát, phản biện' },
   { id: 'Biên bản', name: 'Biên bản cuộc họp', desc: 'Biên bản ghi nhận diễn biến và kết luận họp' },
-  { id: 'Quy chế', name: 'Quy chế hoạt động', desc: 'Quy chế làm việc, phối hợp liên ngành' }
+  { id: 'Quy chế', name: 'Quy chế hoạt động', desc: 'Quy chế làm việc, phối hợp liên ngành' },
+  { id: 'Thư mời', name: 'Thư mời / Giấy mời', desc: 'Giấy mời hội nghị, tiếp xúc cử tri, họp mặt' },
+  { id: 'Thư ngỏ', name: 'Thư ngỏ vận động', desc: 'Thư ngỏ vận động ủng hộ Quỹ Vì người nghèo' }
 ];
 
 const STYLES = [

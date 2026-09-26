@@ -209,13 +209,23 @@ export const AiTemplateManager: React.FC<AiTemplateManagerProps> = ({
                     }}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-hidden focus:border-purple-600 focus:bg-white text-xs"
                   >
+                    <option value="Luật">Luật / Dự thảo Luật</option>
+                    <option value="Nghị quyết">Nghị quyết</option>
+                    <option value="Nghị định">Nghị định</option>
+                    <option value="Quyết định">Quyết định</option>
+                    <option value="Chỉ thị">Chỉ thị</option>
+                    <option value="Thông tư">Thông tư</option>
                     <option value="Kế hoạch">Kế hoạch</option>
-                    <option value="Báo cáo">Báo cáo</option>
-                    <option value="Bài phát biểu">Bài phát biểu</option>
-                    <option value="Công văn">Công văn</option>
-                    <option value="Tờ trình">Tờ trình</option>
-                    <option value="Thông báo">Thông báo</option>
+                    <option value="Chương trình">Chương trình</option>
                     <option value="Hướng dẫn">Hướng dẫn</option>
+                    <option value="Công văn">Công văn</option>
+                    <option value="Thông báo">Thông báo</option>
+                    <option value="Tờ trình">Tờ trình</option>
+                    <option value="Báo cáo">Báo cáo</option>
+                    <option value="Kết luận">Kết luận</option>
+                    <option value="Biên bản">Biên bản</option>
+                    <option value="Bài phát biểu">Bài phát biểu</option>
+                    <option value="Quy chế">Quy chế</option>
                   </select>
                 </div>
               </div>

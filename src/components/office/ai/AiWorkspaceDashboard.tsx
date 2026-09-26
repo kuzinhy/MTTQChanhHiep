@@ -46,6 +46,9 @@ import { DraftAndProofreadDocToolView } from './tools/DraftAndProofreadDocToolVi
 import { AiSentenceRewriterToolView } from './tools/AiSentenceRewriterToolView';
 import { SpeechAndScriptToolView } from './tools/SpeechAndScriptToolView';
 import { ProofreadToolView } from './tools/ProofreadToolView';
+import { AiLegalMediatorToolView } from './tools/AiLegalMediatorToolView';
+import { AiSocialOpinionReporterToolView } from './tools/AiSocialOpinionReporterToolView';
+import { AiVisualInfographicToolView } from './tools/AiVisualInfographicToolView';
 
 interface AiWorkspaceDashboardProps {
   onBackToOffice?: () => void;
@@ -196,6 +199,9 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
               {currentView === 'tool' && currentToolId === 'draft_proofread_doc' && 'Tạo Văn Bản Hành Chính (Kế hoạch, Công văn, Phát biểu...)'}
               {currentView === 'tool' && currentToolId === 'proofread' && 'Sửa Lỗi Văn Bản & Rà Soát Thể Thức NĐ 30'}
               {currentView === 'tool' && (currentToolId === 'speech_script' || currentToolId === 'speech') && 'Gợi Ý Viết Lại Câu & Văn Phong MTTQ'}
+              {currentView === 'tool' && currentToolId === 'legal_mediator' && 'Trợ Lý AI Pháp Lý & Hòa Giải Cơ Sở 21 Khu Phố'}
+              {currentView === 'tool' && currentToolId === 'social_opinion_report' && 'AI Tổng Hợp Báo Cáo Dư Luận Xã Hội & Dân Nguyện'}
+              {currentView === 'tool' && currentToolId === 'visual_infographic' && 'AI Tạo Infographic & Tuyên Truyền Đa Phương Tiện'}
               {currentView === 'templates' && 'Thư Viện Mẫu Văn Bản Chuẩn'}
               {currentView === 'my_documents' && 'Kho Văn Bản Đã Soạn'}
             </h1>
@@ -486,6 +492,26 @@ export const AiWorkspaceDashboard: React.FC<AiWorkspaceDashboardProps> = ({
               {/* Rephrase & Sentence Rewriter Tool View */}
               {(currentToolId === 'speech_script' || currentToolId === 'speech') && (
                 <AiSentenceRewriterToolView />
+              )}
+
+              {/* Legal Mediator Tool View */}
+              {currentToolId === 'legal_mediator' && (
+                <AiLegalMediatorToolView
+                  onSaveDocument={handleSaveDocument}
+                  workspaceContext={workspaceContext}
+                />
+              )}
+
+              {/* Social Opinion & Public Sentiment Reporter Tool View */}
+              {currentToolId === 'social_opinion_report' && (
+                <AiSocialOpinionReporterToolView
+                  onSaveDocument={handleSaveDocument}
+                />
+              )}
+
+              {/* Visual Infographic Tool View */}
+              {currentToolId === 'visual_infographic' && (
+                <AiVisualInfographicToolView />
               )}
             </div>
           )}

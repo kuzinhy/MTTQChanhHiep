@@ -133,6 +133,48 @@ export const AI_TOOLS_CATALOG: AiToolMetadata[] = [
     ]
   },
   {
+    id: 'legal_mediator',
+    name: '9. Trợ lý AI Pháp lý & Hòa giải cơ sở',
+    shortDesc: 'Cố vấn pháp lý tranh chấp 21 khu phố, quy trình hòa giải 4 bước tâm lý & Soạn biên bản hòa giải thành chuẩn thể thức.',
+    group: 'group2_advisory_report',
+    iconName: 'Scale',
+    badge: 'HÒA GIẢI 21 KP',
+    tags: ['hòa giải', 'pháp lý', 'đất đai', 'tiếng ồn', 'biên bản hòa giải', 'luật dân chủ cơ sở'],
+    suggestedPrompts: [
+      'Phân tích tranh chấp ranh giới đất và lối đi chung',
+      'Xử lý mâu thuẫn tiếng ồn karaoke và ô nhiễm xóm trọ',
+      'Lập biên bản hòa giải thành tranh chấp dân sự xóm giềng'
+    ]
+  },
+  {
+    id: 'social_opinion_report',
+    name: '10. AI Báo cáo Dư luận Xã hội & Dân nguyện',
+    shortDesc: 'Tổng hợp phân tích xu hướng dư luận 21 khu phố, nhận diện điểm nóng & Soạn báo cáo tham mưu cấp ủy.',
+    group: 'group2_advisory_report',
+    iconName: 'BarChart3',
+    badge: 'DƯ LUẬN 21 KP',
+    tags: ['dư luận xã hội', 'báo cáo', 'dân nguyện', 'điểm nóng', 'tham mưu đảng ủy'],
+    suggestedPrompts: [
+      'Tổng hợp tình hình dư luận xã hội tháng 9/2026',
+      'Phân tích các phản ánh nóng về trật tự đô thị và môi trường',
+      'Soạn báo cáo tham mưu gửi Thường trực Đảng ủy và UBND Phường'
+    ]
+  },
+  {
+    id: 'visual_infographic',
+    name: '11. AI Tạo Infographic & Truyền thông Đa phương tiện',
+    shortDesc: 'Chuyển thể văn bản thành Thẻ Infographic đồ họa, Bài đăng Zalo OA & Kịch bản phát thanh loa phường 21 khu phố.',
+    group: 'group3_meeting_event',
+    iconName: 'Palette',
+    badge: 'ĐỒ HỌA & LOA PHƯỜNG',
+    tags: ['infographic', 'truyền thông', 'zalo oa', 'phát thanh loa phường', 'tuyên truyền'],
+    suggestedPrompts: [
+      'Tạo thẻ Infographic cho Tháng cao điểm Vì người nghèo',
+      'Soạn bài đăng Zalo OA tuyên truyền phân loại rác tại nguồn',
+      'Viết kịch bản phát thanh 3 phút cho Ngày hội Đại đoàn kết'
+    ]
+  },
+  {
     id: 'ai_assistant',
     name: 'Trợ lý AI Tổng hợp',
     shortDesc: 'Trợ lý thông minh hỗ trợ xử lý công việc Mặt trận.',
@@ -257,6 +299,17 @@ export const aiWorkspaceService = {
     } catch (err: any) {
       console.error(`AI Workspace Error on /api/ai/workspace/${endpoint}:`, err);
       throw err;
+    }
+  },
+
+  // Helper for direct AI draft generation
+  async generateAiDraft(prompt: string, title?: string): Promise<{ content: string; success: boolean }> {
+    try {
+      const res = await this.callAiTool('draft', { prompt, title });
+      return { content: res.content || res.result || res.text || '', success: true };
+    } catch (err) {
+      console.warn('generateAiDraft fallback:', err);
+      return { content: '', success: false };
     }
   },
 

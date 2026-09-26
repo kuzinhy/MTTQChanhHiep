@@ -89,6 +89,45 @@ const FIELDS = [
   'Xây dựng chính quyền'
 ];
 
+const getDocTypeBadgeStyle = (type: string) => {
+  switch (type) {
+    case 'Luật':
+    case 'Bộ luật':
+    case 'Pháp lệnh':
+      return 'bg-red-100 text-red-800 border-red-300 font-black';
+    case 'Nghị định':
+    case 'Thông tư':
+    case 'Thông tư liên tịch':
+      return 'bg-amber-100 text-amber-900 border-amber-300 font-bold';
+    case 'Nghị quyết':
+      return 'bg-purple-100 text-purple-800 border-purple-300 font-bold';
+    case 'Quyết định':
+    case 'Chỉ thị':
+      return 'bg-indigo-100 text-indigo-800 border-indigo-300 font-bold';
+    case 'Kế hoạch':
+    case 'Chương trình':
+      return 'bg-blue-100 text-blue-800 border-blue-300 font-bold';
+    case 'Hướng dẫn':
+    case 'Quy định':
+    case 'Quy chế':
+    case 'Điều lệ':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold';
+    case 'Công văn':
+    case 'Thông báo':
+    case 'Tờ trình':
+      return 'bg-sky-100 text-sky-800 border-sky-300 font-bold';
+    case 'Báo cáo':
+    case 'Kết luận':
+    case 'Biên bản':
+      return 'bg-teal-100 text-teal-800 border-teal-300 font-bold';
+    case 'Chính sách':
+    case 'Tài liệu tuyên truyền':
+      return 'bg-rose-100 text-rose-800 border-rose-300 font-bold';
+    default:
+      return 'bg-slate-100 text-slate-800 border-slate-300 font-bold';
+  }
+};
+
 export const DocumentsSection: React.FC<DocumentsSectionProps> = ({ 
   documents, 
   onSelectDocument,
@@ -101,14 +140,29 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
 
   const docTypes: string[] = [
     'ALL',
+    // Văn bản Quy phạm pháp luật & Trung ương
+    'Luật',
+    'Bộ luật',
+    'Pháp lệnh',
     'Nghị quyết',
+    'Nghị định',
+    'Quyết định',
+    'Chỉ thị',
+    'Thông tư',
+    'Thông tư liên tịch',
+    'Điều lệ',
+    // Văn bản Hành chính, Chỉ đạo & Điều hành
+    'Quy định',
+    'Quy chế',
+    'Hướng dẫn',
     'Kế hoạch',
+    'Chương trình',
     'Công văn',
     'Thông báo',
-    'Hướng dẫn',
-    'Quyết định',
-    'Chương trình',
     'Báo cáo',
+    'Tờ trình',
+    'Kết luận',
+    'Biên bản',
     'Chính sách',
     'Tài liệu tuyên truyền'
   ];
@@ -211,11 +265,34 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
               onChange={(e) => setSelectedType(e.target.value)}
               className="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold cursor-pointer"
             >
-              {docTypes.map(t => (
-                <option key={t} value={t}>
-                  {t === 'ALL' ? 'Tất cả loại văn bản' : t}
-                </option>
-              ))}
+              <option value="ALL">Tất cả loại văn bản</option>
+              <optgroup label="🏛️ Văn bản Quy phạm pháp luật & Trung ương">
+                <option value="Luật">Luật (Quốc hội)</option>
+                <option value="Bộ luật">Bộ luật</option>
+                <option value="Pháp lệnh">Pháp lệnh (UBTVQH)</option>
+                <option value="Nghị định">Nghị định (Chính phủ)</option>
+                <option value="Nghị quyết">Nghị quyết</option>
+                <option value="Quyết định">Quyết định</option>
+                <option value="Chỉ thị">Chỉ thị</option>
+                <option value="Thông tư">Thông tư (Bộ / Ngành)</option>
+                <option value="Thông tư liên tịch">Thông tư liên tịch</option>
+                <option value="Điều lệ">Điều lệ</option>
+              </optgroup>
+              <optgroup label="📋 Văn bản Chỉ đạo & Nghiệp vụ">
+                <option value="Quy định">Quy định</option>
+                <option value="Quy chế">Quy chế</option>
+                <option value="Hướng dẫn">Hướng dẫn</option>
+                <option value="Kế hoạch">Kế hoạch</option>
+                <option value="Chương trình">Chương trình</option>
+                <option value="Công văn">Công văn</option>
+                <option value="Thông báo">Thông báo</option>
+                <option value="Kết luận">Kết luận</option>
+                <option value="Tờ trình">Tờ trình</option>
+                <option value="Báo cáo">Báo cáo</option>
+                <option value="Biên bản">Biên bản</option>
+                <option value="Chính sách">Chính sách</option>
+                <option value="Tài liệu tuyên truyền">Tài liệu tuyên truyền</option>
+              </optgroup>
             </select>
           </div>
 
@@ -272,7 +349,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
                     {doc.codeNumber}
                   </span>
                   <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded-lg text-[10px] border border-slate-200">
+                    <span className={`px-2 py-0.5 font-bold rounded-lg text-[10px] border ${getDocTypeBadgeStyle(doc.docType)}`}>
                       {doc.docType}
                     </span>
                     {doc.isDigitalSigned && (
@@ -374,7 +451,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
                       )}
                     </td>
                     <td className="p-4 whitespace-nowrap">
-                      <span className="px-2.5 py-1 bg-slate-100 text-slate-800 font-bold rounded-lg text-[10px] border border-slate-200 block w-fit">
+                      <span className={`px-2.5 py-1 font-bold rounded-lg text-[10px] border block w-fit ${getDocTypeBadgeStyle(doc.docType)}`}>
                         {doc.docType}
                       </span>
                       <span className="text-[10px] text-slate-500 mt-1 block">

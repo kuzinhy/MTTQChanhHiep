@@ -145,14 +145,29 @@ export interface Article {
 }
 
 export type DocType = 
+  // Văn bản Quy phạm pháp luật & Trung ương
+  | 'Luật'
+  | 'Bộ luật'
+  | 'Pháp lệnh'
   | 'Nghị quyết'
+  | 'Nghị định'
+  | 'Quyết định'
+  | 'Chỉ thị'
+  | 'Thông tư'
+  | 'Thông tư liên tịch'
+  | 'Quy định'
+  | 'Quy chế'
+  | 'Điều lệ'
+  // Văn bản Hành chính, Chỉ đạo & Điều hành
+  | 'Hướng dẫn'
   | 'Kế hoạch'
+  | 'Chương trình'
   | 'Công văn'
   | 'Thông báo'
-  | 'Hướng dẫn'
-  | 'Quyết định'
-  | 'Chương trình'
   | 'Báo cáo'
+  | 'Tờ trình'
+  | 'Kết luận'
+  | 'Biên bản'
   | 'Chính sách'
   | 'Tài liệu tuyên truyền';
 
@@ -295,6 +310,15 @@ export type OpinionTopic =
 export type OpinionStatus = 'NEW' | 'PROCESSING' | 'FORWARDED' | 'RESOLVED' | 'CLOSED';
 export type PriorityLevel = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
+export interface OpinionTimelineEvent {
+  id: string;
+  step: 'RECEIVED' | 'VERIFIED' | 'ASSIGNED' | 'PROCESSING' | 'RESOLVED';
+  title: string;
+  timestamp: string;
+  note: string;
+  actor: string;
+}
+
 export interface PublicOpinion {
   id: string;
   receiptCode: string;
@@ -314,6 +338,64 @@ export interface PublicOpinion {
   updatedAt?: string;
   attachments?: string[];
   tags?: string[];
+  // Enhanced Realtime Tracking & Feedback
+  timeline?: OpinionTimelineEvent[];
+  resolutionEvidenceImage?: string;
+  citizenSatisfaction?: 'VERY_SATISFIED' | 'SATISFIED' | 'NEEDS_IMPROVEMENT';
+  citizenFeedback?: string;
+  satisfactionSubmittedAt?: string;
+}
+
+export interface UrgentWelfareRequest {
+  id: string;
+  requestCode: string;
+  fullname: string;
+  phone: string;
+  idCardNumber?: string;
+  neighborhood: string;
+  address: string;
+  aidType: 'FOOD_ESSENTIALS' | 'EMERGENCY_MEDICAL' | 'SCHOLARSHIP' | 'GREAT_SOLIDARITY_HOUSE' | 'WHEELCHAIR_DISABILITY' | 'OTHER_URGENT';
+  description: string;
+  estimatedPeople: number;
+  status: 'SUBMITTED' | 'VERIFIED' | 'APPROVED' | 'DISBURSED' | 'REJECTED';
+  adminNotes?: string;
+  assignedOfficer?: string;
+  createdAt: string;
+  disbursedAt?: string;
+  photos?: string[];
+}
+
+export interface DonationRecord {
+  id: string;
+  receiptNumber: string;
+  donorName: string;
+  donorPhone?: string;
+  donorEmail?: string;
+  donorAddress?: string;
+  amount: number;
+  fundType: 'POOR_FUND' | 'EMERGENCY_DISASTER' | 'SCHOLARSHIP_FUND' | 'GREAT_SOLIDARITY_HOUSE' | 'COVID_COMMUNITY';
+  paymentMethod: 'VIETQR_BANK' | 'CASH' | 'ZALO_PAY' | 'MOMO';
+  message?: string;
+  isAnonymous: boolean;
+  certificateGenerated: boolean;
+  createdAt: string;
+  verified: boolean;
+}
+
+export interface FamilySolidarityAssessment {
+  id: string;
+  registrationCode: string;
+  headOfHousehold: string;
+  phone: string;
+  neighborhood: string;
+  address: string;
+  membersCount: number;
+  scores: Record<string, number>; // 10 criteria scores (0-10)
+  totalScore: number; // 0-100
+  rating: 'EXCELLENT' | 'QUALIFIED' | 'NEEDS_STRIVE';
+  selfNotes?: string;
+  submittedAt: string;
+  verifiedByNeighborhood?: boolean;
 }
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'OVERDUE' | 'CANCELLED';
@@ -627,6 +709,10 @@ export type AiToolId =
   | 'speech_script'       // 6. Bài phát biểu – Kịch bản
   | 'task_tracking'       // 7. Trích nhiệm vụ & Theo dõi tiến độ
   | 'lookup_templates'    // 8. Tra cứu nghiệp vụ & Mẫu biểu
+  // Next-Gen AI Assistants (Trụ cột 3)
+  | 'legal_mediator'      // Trợ lý AI Pháp lý & Hòa giải cơ sở 21 khu phố
+  | 'social_opinion_report' // AI Tổng hợp Báo cáo Dư luận Xã hội & Dân nguyện
+  | 'visual_infographic'  // AI Tạo Infographic & Tuyên truyền Đa phương tiện
   | 'ai_assistant'
   | 'document_ai_plan_generator'
   | 'administrative_report_exporter'

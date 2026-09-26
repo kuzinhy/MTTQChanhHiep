@@ -437,7 +437,7 @@ Hãy chỉ ra chi tiết:
       const { fileName, textContent, driveUrl } = req.body;
       const ai = getGeminiClient();
 
-      const prompt = `Bạn là Trợ lý AI chuyên gia phân tích văn bản hành chính nhà nước, Mặt trận Tổ quốc Việt Nam, UBND, HĐND.
+      const prompt = `Bạn là Trợ lý AI chuyên gia phân tích văn bản quy phạm pháp luật và văn bản hành chính nhà nước Việt Nam, Mặt trận Tổ quốc Việt Nam, Quốc hội, Chính phủ, Bộ ngành, UBND, HĐND.
 Nhiệm vụ: Phân tích tên tệp, liên kết Drive và nội dung văn bản dưới đây để trích xuất đầy đủ các thuộc tính hành chính theo định dạng JSON.
 
 Tên tệp văn bản: ${fileName || 'Chưa cung cấp'}
@@ -449,12 +449,13 @@ ${textContent || ''}
 
 Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ (KHÔNG chứa bất kỳ ký tự nào khác ngoài JSON, KHÔNG dùng block \`\`\`json):
 {
-  "codeNumber": "Số/ký hiệu văn bản (Ví dụ: 15/KH-MTTQ, 08/NQ-HĐND, 102/TB-UBND...)",
-  "title": "Trích yếu tên văn bản (Ví dụ: Kế hoạch tổ chức Ngày hội Đại đoàn kết toàn dân tộc năm 2026...)",
-  "docType": "Loại văn bản (Chỉ chọn đúng 1 trong các giá trị: 'Kế hoạch', 'Nghị quyết', 'Thông báo', 'Báo cáo', 'Hướng dẫn', 'Tờ trình', 'Quyết định', 'Công văn', 'Quy chế', 'Chương trình')",
-  "field": "Lĩnh vực (Ví dụ: 'Tổ chức - Tuyên giáo', 'Thi đua - An sinh', 'Giám sát - Phản biện', 'Dân chủ - Pháp luật', 'Thường trực Mặt trận')",
-  "signer": "Chức danh và Họ tên người ký ban hành (Ví dụ: Chủ tịch Trần Thị Hoa, Phó Chủ tịch...)",
-  "summary": "Tóm tắt ngắn gọn 2-3 câu về nội dung chỉ đạo, mục đích của văn bản",
+  "codeNumber": "Số/ký hiệu văn bản (Ví dụ: 75/2015/QH13, 15/2020/NĐ-CP, 08/2021/TT-BNV, 15/KH-MTTQ, 08/NQ-HĐND...)",
+  "title": "Trích yếu tên văn bản (Ví dụ: Luật Mặt trận Tổ quốc Việt Nam, Kế hoạch tổ chức Ngày hội Đại đoàn kết toàn dân tộc...)",
+  "docType": "Loại văn bản (Chỉ chọn đúng 1 trong các giá trị: 'Luật', 'Bộ luật', 'Pháp lệnh', 'Nghị quyết', 'Nghị định', 'Quyết định', 'Chỉ thị', 'Thông tư', 'Thông tư liên tịch', 'Quy định', 'Quy chế', 'Điều lệ', 'Hướng dẫn', 'Kế hoạch', 'Chương trình', 'Công văn', 'Thông báo', 'Báo cáo', 'Tờ trình', 'Kết luận', 'Biên bản', 'Chính sách', 'Tài liệu tuyên truyền')",
+  "issuer": "Cơ quan ban hành (Ví dụ: 'Quốc hội nước CHXHCN Việt Nam', 'Chính phủ', 'Thủ tướng Chính phủ', 'Ủy ban Trung ương MTTQ Việt Nam', 'Bộ Nội vụ', 'UBND phường Chánh Hiệp', 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp')",
+  "field": "Lĩnh vực (Ví dụ: 'Tổ chức - Tuyên giáo', 'Dân chủ - Pháp luật', 'Phong trào - Thi đua', 'An sinh xã hội', 'Dân tộc - Tôn giáo', 'Xây dựng chính quyền')",
+  "signer": "Chức danh và Họ tên người ký ban hành (Ví dụ: Chủ tịch Quốc hội Nguyễn Sinh Hùng, Thủ tướng Chính phủ, Chủ tịch MTTQ Trần Thị Hoa...)",
+  "summary": "Tóm tắt ngắn gọn 2-3 câu về nội dung chỉ đạo, mục đích, phạm vi điều chỉnh của văn bản",
   "issueDate": "Ngày ban hành định dạng YYYY-MM-DD"
 }`;
 

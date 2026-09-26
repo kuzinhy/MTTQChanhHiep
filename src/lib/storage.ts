@@ -87,7 +87,7 @@ export interface StorageSyncStatus {
   pendingSummary: { entityName: string; count: number }[];
 }
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   ARTICLES: 'mttq_chanhhiep_articles_v2',
   DOCUMENTS: 'mttq_chanhhiep_documents_v2',
   DELETED_DOCS: 'mttq_chanhhiep_deleted_docs_v2',
@@ -122,7 +122,10 @@ const STORAGE_KEYS = {
   NEIGHBORHOOD_HOUSEHOLDS: 'mttq_chanhhiep_households_v1',
   NEIGHBORHOOD_BROADCASTS: 'mttq_chanhhiep_broadcasts_v1',
   NEIGHBORHOOD_PETITIONS: 'mttq_chanhhiep_petitions_v1',
-  NEIGHBORHOOD_REGISTRATIONS: 'mttq_chanhhiep_registrations_v1'
+  NEIGHBORHOOD_REGISTRATIONS: 'mttq_chanhhiep_registrations_v1',
+  URGENT_AID_REQUESTS: 'mttq_chanhhiep_urgent_aid_v1',
+  DONATIONS: 'mttq_chanhhiep_donations_v1',
+  SOLIDARITY_ASSESSMENTS: 'mttq_chanhhiep_solidarity_v1'
 };
 
 const KEY_ENTITY_NAME_MAP: Record<string, string> = {
@@ -147,7 +150,10 @@ const KEY_ENTITY_NAME_MAP: Record<string, string> = {
   [STORAGE_KEYS.NEIGHBORHOOD_HOUSEHOLDS]: 'Hộ dân 21 Khu phố',
   [STORAGE_KEYS.NEIGHBORHOOD_BROADCASTS]: 'Phát thanh & Thông báo số khu phố',
   [STORAGE_KEYS.NEIGHBORHOOD_PETITIONS]: 'Phản ánh cấp khu phố',
-  [STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS]: 'Đăng ký cư dân khu phố'
+  [STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS]: 'Đăng ký cư dân khu phố',
+  [STORAGE_KEYS.URGENT_AID_REQUESTS]: 'Yêu cầu Cứu trợ An sinh Khẩn cấp',
+  [STORAGE_KEYS.DONATIONS]: 'Ủng hộ Quỹ An sinh Xã hội',
+  [STORAGE_KEYS.SOLIDARITY_ASSESSMENTS]: 'Tự đánh giá Gia đình Đại đoàn kết'
 };
 
 const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
@@ -659,6 +665,34 @@ export const AppStorageEngine = {
   resetMapLocationsToSeed: (): MapLocation[] => {
     saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, INITIAL_MAP_LOCATIONS);
     return INITIAL_MAP_LOCATIONS;
+  },
+
+  // Generic Helpers
+  getItem: <T>(key: string, defaultValue: T): T => {
+    return loadInitialData<T>(key, defaultValue);
+  },
+  setItem: <T>(key: string, value: T, _description?: string) => {
+    saveStorageData(key, value);
+  },
+
+  // Welfare & Citizen Hub Helpers
+  getUrgentAidRequests: (): any[] => {
+    return loadInitialData(STORAGE_KEYS.URGENT_AID_REQUESTS, []);
+  },
+  saveUrgentAidRequests: (reqs: any[]) => {
+    saveStorageData(STORAGE_KEYS.URGENT_AID_REQUESTS, reqs || []);
+  },
+  getDonations: (): any[] => {
+    return loadInitialData(STORAGE_KEYS.DONATIONS, []);
+  },
+  saveDonations: (donations: any[]) => {
+    saveStorageData(STORAGE_KEYS.DONATIONS, donations || []);
+  },
+  getSolidarityAssessments: (): any[] => {
+    return loadInitialData(STORAGE_KEYS.SOLIDARITY_ASSESSMENTS, []);
+  },
+  saveSolidarityAssessments: (assessments: any[]) => {
+    saveStorageData(STORAGE_KEYS.SOLIDARITY_ASSESSMENTS, assessments || []);
   },
 
   // ==========================================

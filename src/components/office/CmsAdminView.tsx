@@ -152,14 +152,29 @@ const ARTICLE_CATEGORIES: ArticleCategory[] = [
 ];
 
 const DOC_TYPES: DocType[] = [
-  'Kế hoạch',
+  // Văn bản Quy phạm pháp luật & Trung ương
+  'Luật',
+  'Bộ luật',
+  'Pháp lệnh',
   'Nghị quyết',
-  'Thông báo',
-  'Hướng dẫn',
+  'Nghị định',
   'Quyết định',
-  'Công văn',
+  'Chỉ thị',
+  'Thông tư',
+  'Thông tư liên tịch',
+  'Quy định',
+  'Quy chế',
+  'Điều lệ',
+  // Văn bản Hành chính, Chỉ đạo & Điều hành
+  'Hướng dẫn',
+  'Kế hoạch',
   'Chương trình',
+  'Công văn',
+  'Thông báo',
   'Báo cáo',
+  'Tờ trình',
+  'Kết luận',
+  'Biên bản',
   'Chính sách',
   'Tài liệu tuyên truyền'
 ];
@@ -2883,9 +2898,33 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                           onChange={(e) => setDocType(e.target.value as DocType)}
                           className="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold bg-white cursor-pointer"
                         >
-                          {DOC_TYPES.map(type => (
-                            <option key={type} value={type}>{type}</option>
-                          ))}
+                          <optgroup label="🏛️ Văn bản Quy phạm pháp luật & Trung ương">
+                            <option value="Luật">Luật (Quốc hội)</option>
+                            <option value="Bộ luật">Bộ luật</option>
+                            <option value="Pháp lệnh">Pháp lệnh (UBTVQH)</option>
+                            <option value="Nghị định">Nghị định (Chính phủ)</option>
+                            <option value="Nghị quyết">Nghị quyết</option>
+                            <option value="Quyết định">Quyết định</option>
+                            <option value="Chỉ thị">Chỉ thị</option>
+                            <option value="Thông tư">Thông tư (Bộ / Ngành)</option>
+                            <option value="Thông tư liên tịch">Thông tư liên tịch</option>
+                            <option value="Điều lệ">Điều lệ</option>
+                          </optgroup>
+                          <optgroup label="📋 Văn bản Chỉ đạo, Điều hành & Nghiệp vụ">
+                            <option value="Quy định">Quy định</option>
+                            <option value="Quy chế">Quy chế</option>
+                            <option value="Hướng dẫn">Hướng dẫn</option>
+                            <option value="Kế hoạch">Kế hoạch</option>
+                            <option value="Chương trình">Chương trình</option>
+                            <option value="Công văn">Công văn</option>
+                            <option value="Thông báo">Thông báo</option>
+                            <option value="Kết luận">Kết luận</option>
+                            <option value="Tờ trình">Tờ trình</option>
+                            <option value="Báo cáo">Báo cáo</option>
+                            <option value="Biên bản">Biên bản</option>
+                            <option value="Chính sách">Chính sách</option>
+                            <option value="Tài liệu tuyên truyền">Tài liệu tuyên truyền</option>
+                          </optgroup>
                         </select>
                       </div>
 

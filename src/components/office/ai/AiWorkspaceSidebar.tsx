@@ -18,7 +18,10 @@ import {
   CalendarCheck,
   CheckSquare,
   FileSearch,
-  Compass
+  Compass,
+  Scale,
+  BarChart3,
+  Palette
 } from 'lucide-react';
 import { AiToolId, WorkspaceContextData } from '../../../types';
 
@@ -185,6 +188,76 @@ export const AiWorkspaceSidebar: React.FC<AiWorkspaceSidebarProps> = ({
                     className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-all cursor-pointer ${
                       isActive
                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-500/20 border border-blue-400/50'
+                        : 'hover:bg-slate-800/80 text-slate-300 hover:text-white border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="p-1 rounded-lg bg-slate-950/60 border border-slate-800 shrink-0">
+                        {tool.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="truncate text-xs font-bold text-white">{tool.name}</p>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate group-hover:text-slate-300 font-normal">
+                          {tool.shortDesc}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* NEXT-GEN AI TOOLS (PILLAR 3) */}
+          <div className="space-y-2 pt-2 border-t border-blue-900/40">
+            <div className="px-2 flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>AI THAM MƯU THẾ HỆ MỚI</span>
+              </span>
+              <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-400/40 font-black">
+                TRỤ CỘT 3
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              {[
+                {
+                  id: 'legal_mediator' as AiToolId,
+                  name: 'AI Pháp Lý & Hòa Giải 21 KP',
+                  shortDesc: 'Cố vấn pháp luật & Biên bản hòa giải',
+                  icon: <Scale className="w-4 h-4 text-amber-400" />,
+                  badge: 'Hòa giải'
+                },
+                {
+                  id: 'social_opinion_report' as AiToolId,
+                  name: 'AI Báo Cáo Dư Luận Xã Hội',
+                  shortDesc: 'Phân tích điểm nóng & Tham mưu',
+                  icon: <BarChart3 className="w-4 h-4 text-purple-400" />,
+                  badge: 'Dư luận'
+                },
+                {
+                  id: 'visual_infographic' as AiToolId,
+                  name: 'AI Infographic & Loa Phường',
+                  shortDesc: 'Visual card, Zalo OA & Loa phường',
+                  icon: <Palette className="w-4 h-4 text-pink-400" />,
+                  badge: 'Đa kênh'
+                }
+              ].map((tool) => {
+                const isActive = currentView === 'tool' && currentToolId === tool.id;
+
+                return (
+                  <div
+                    key={tool.id}
+                    onClick={() => {
+                      onSelectTool(tool.id);
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-amber-600 via-rose-600 to-indigo-600 text-white font-bold shadow-md shadow-amber-500/20 border border-amber-400/50'
                         : 'hover:bg-slate-800/80 text-slate-300 hover:text-white border border-transparent'
                     }`}
                   >
