@@ -75,7 +75,6 @@ import { HcmQuoteRotator } from './components/common/HcmQuoteRotator';
 import { NewInterfacePage } from './components/NewInterfacePage';
 
 import { 
-  INITIAL_COMPETITIONS, 
   INITIAL_TRIVIA_QUESTIONS, 
   INITIAL_TEMPLATES
 } from './data/seedData';
@@ -319,10 +318,96 @@ export default function App() {
     } catch {}
   }, [isLocked]);
 
-  // Data Collections with Local Persistence Engine
-  const [articles, setArticles] = useState<Article[]>(() => AppStorageEngine.getArticles());
-  const [documents, setDocuments] = useState<OfficialDocument[]>(() => AppStorageEngine.getDocuments());
-  const [competitions, setCompetitions] = useState<Competition[]>(() => AppStorageEngine.getCompetitions());
+  // Seed Filter Helpers: Xóa toàn bộ nội dung mẫu (seed data) trong articles, documents, competitions
+  const isSeedArticle = (a: Article | null | undefined): boolean => {
+    if (!a || !a.id) return true;
+    if (['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8'].includes(a.id)) return true;
+    if (a.id.startsWith('demo-') || (a as any).isSample) return true;
+    return false;
+  };
+
+  const isSeedDocument = (d: OfficialDocument | null | undefined): boolean => {
+    if (!d || !d.id) return true;
+    if (['doc-1', 'doc-2', 'doc-3', 'doc-4', 'doc-mttq-01', 'doc-mttq-02', 'doc-mttq-03', 'doc-mttq-04', 'doc-mttq-05', 'doc-mttq-06', 'doc-mttq-07', 'doc-mttq-08', 'doc-mttq-09'].includes(d.id)) return true;
+    if (d.id.startsWith('seed-') || d.id.startsWith('doc-sample')) return true;
+    return false;
+  };
+
+  const isSeedCompetition = (c: Competition | null | undefined): boolean => {
+    if (!c || !c.id) return true;
+    if (['comp-1', 'comp-2', 'comp-3', 'comp-4'].includes(c.id)) return true;
+    if (c.id.startsWith('demo-')) return true;
+    return false;
+  };
+
+  // Data Collections: Khởi tạo dữ liệu mặc định - Xóa toàn bộ nội dung mẫu (seed data) trong các state articles, documents và competitions khi ứng dụng khởi chạy lần đầu trên tên miền mới, đảm bảo chỉ hiển thị nội dung do cán bộ đăng tải
+  const [articles, setArticles] = useState<Article[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const currentHostname = window.location.hostname;
+        const lastHostname = localStorage.getItem('mttq_last_hostname_init');
+        const isNewDomain = !lastHostname || lastHostname !== currentHostname;
+        const isPurged = localStorage.getItem('mttq_seed_purged_domain_v2') === 'true';
+
+        if (isNewDomain || !isPurged) {
+          const stored = AppStorageEngine.getArticles();
+          const cleanArticles = (stored || []).filter(a => !isSeedArticle(a));
+          AppStorageEngine.saveArticles(cleanArticles);
+          return cleanArticles;
+        }
+      }
+    } catch (e) {
+      console.warn('[Init] Articles domain init check:', e);
+    }
+    const loaded = AppStorageEngine.getArticles();
+    return (loaded || []).filter(a => !isSeedArticle(a));
+  });
+
+  const [documents, setDocuments] = useState<OfficialDocument[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const currentHostname = window.location.hostname;
+        const lastHostname = localStorage.getItem('mttq_last_hostname_init');
+        const isNewDomain = !lastHostname || lastHostname !== currentHostname;
+        const isPurged = localStorage.getItem('mttq_seed_purged_domain_v2') === 'true';
+
+        if (isNewDomain || !isPurged) {
+          const stored = AppStorageEngine.getDocuments();
+          const cleanDocs = (stored || []).filter(d => !isSeedDocument(d));
+          AppStorageEngine.saveDocuments(cleanDocs);
+          return cleanDocs;
+        }
+      }
+    } catch (e) {
+      console.warn('[Init] Documents domain init check:', e);
+    }
+    const loaded = AppStorageEngine.getDocuments();
+    return (loaded || []).filter(d => !isSeedDocument(d));
+  });
+
+  const [competitions, setCompetitions] = useState<Competition[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const currentHostname = window.location.hostname;
+        const lastHostname = localStorage.getItem('mttq_last_hostname_init');
+        const isNewDomain = !lastHostname || lastHostname !== currentHostname;
+        const isPurged = localStorage.getItem('mttq_seed_purged_domain_v2') === 'true';
+
+        if (isNewDomain || !isPurged) {
+          const stored = AppStorageEngine.getCompetitions();
+          const cleanComps = (stored || []).filter(c => !isSeedCompetition(c));
+          AppStorageEngine.saveCompetitions(cleanComps);
+          localStorage.setItem('mttq_last_hostname_init', currentHostname);
+          localStorage.setItem('mttq_seed_purged_domain_v2', 'true');
+          return cleanComps;
+        }
+      }
+    } catch (e) {
+      console.warn('[Init] Competitions domain init check:', e);
+    }
+    const loaded = AppStorageEngine.getCompetitions();
+    return (loaded || []).filter(c => !isSeedCompetition(c));
+  });
   const [submissions, setSubmissions] = useState<CompetitionSubmission[]>(() => AppStorageEngine.getSubmissions());
   const [opinions, setOpinions] = useState<PublicOpinion[]>(() => AppStorageEngine.getOpinions());
   const [driveFiles, setDriveFiles] = useState<DriveFileItem[]>(() => AppStorageEngine.getDriveFiles());
@@ -339,7 +424,7 @@ export default function App() {
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>(() => AppStorageEngine.getFeedback());
   const [isDataSyncing, setIsDataSyncing] = useState<boolean>(true);
   // Track known article IDs to detect new articles published by other admins
-  const knownArticleIdsRef = React.useRef<Set<string>>(new Set(AppStorageEngine.getArticles().map(a => a.id)));
+  const knownArticleIdsRef = React.useRef<Set<string>>(new Set(AppStorageEngine.getArticles().filter(a => !isSeedArticle(a)).map(a => a.id)));
   const isInitialArticlesLoadRef = React.useRef<boolean>(true);
 
   // Initialize real-time visitor & session tracking, Offline Sync & Firebase Cloud Sync
@@ -347,16 +432,26 @@ export default function App() {
     VisitorTrackerEngine.init();
     const cleanupOfflineSync = AppStorageEngine.initOfflineSyncEngine();
 
+    // Đánh dấu tên miền đã khởi tạo và dọn sạch seed data
+    try {
+      if (typeof window !== 'undefined') {
+        const currentHostname = window.location.hostname;
+        localStorage.setItem('mttq_last_hostname_init', currentHostname);
+        localStorage.setItem('mttq_seed_purged_domain_v2', 'true');
+      }
+    } catch {}
+
     // Start Realtime Cloud Database Sync with Firebase Firestore
     CloudDatabase.initCloudDatabase({
       onArticlesUpdate: (arts) => {
-        setArticles(arts);
+        const cleanArts = (arts || []).filter(a => !isSeedArticle(a));
+        setArticles(cleanArts);
         setIsDataSyncing(false);
 
         // Detect if any new article was published by another admin in realtime
-        if (!isInitialArticlesLoadRef.current && arts && arts.length > 0) {
+        if (!isInitialArticlesLoadRef.current && cleanArts && cleanArts.length > 0) {
           const currentKnownIds = knownArticleIdsRef.current;
-          const newArticles = arts.filter(a => a && a.id && !currentKnownIds.has(a.id));
+          const newArticles = cleanArts.filter(a => a && a.id && !currentKnownIds.has(a.id));
 
           newArticles.forEach(newArt => {
             currentKnownIds.add(newArt.id);
@@ -390,15 +485,19 @@ export default function App() {
         } else {
           isInitialArticlesLoadRef.current = false;
           // Populate known IDs on initial load
-          arts.forEach(a => { if (a && a.id) knownArticleIdsRef.current.add(a.id); });
+          cleanArts.forEach(a => { if (a && a.id) knownArticleIdsRef.current.add(a.id); });
         }
       },
       onDocumentsUpdate: (docs) => {
-        setDocuments(docs);
+        const cleanDocs = (docs || []).filter(d => !isSeedDocument(d));
+        setDocuments(cleanDocs);
         setIsDataSyncing(false);
       },
       onOpinionsUpdate: (ops) => setOpinions(ops),
-      onCompetitionsUpdate: (comps) => setCompetitions(comps),
+      onCompetitionsUpdate: (comps) => {
+        const cleanComps = (comps || []).filter(c => !isSeedCompetition(c));
+        setCompetitions(cleanComps);
+      },
       onStaffUsersUpdate: (users) => {
         setStaffUsers(users);
         // If current staff user is logged in, sync their state from cloud updates
@@ -1169,37 +1268,11 @@ export default function App() {
   };
 
   const handleRestoreDefaultCompetitions = () => {
-    const defaultComps = AppStorageEngine.restoreDefaultCompetitions();
-    setCompetitions(defaultComps);
-    defaultComps.forEach(comp => {
-      CloudDatabase.saveCompetition(comp);
-    });
-    handleTriggerSystemToast('Khôi phục 4 Cuộc Thi', 'Đã nạp lại thành công 4 cuộc thi mặc định trên hệ thống.');
+    handleTriggerSystemToast('Thông báo', 'Hệ thống đã cấu hình chỉ hiển thị các cuộc thi do cán bộ đăng tải.');
   };
 
   const handleRestoreDefaultBanners = () => {
-    const seedMap = new Map<string, string>();
-    INITIAL_COMPETITIONS.forEach(c => {
-      if (c && c.id && c.bannerUrl) {
-        seedMap.set(c.id, c.bannerUrl);
-      }
-    });
-
-    setCompetitions(prev => {
-      const next = prev.map(c => {
-        if (seedMap.has(c.id)) {
-          const defaultBanner = seedMap.get(c.id)!;
-          const updated = { ...c, bannerUrl: defaultBanner };
-          CloudDatabase.saveCompetition(updated);
-          return updated;
-        }
-        return c;
-      });
-      AppStorageEngine.saveCompetitions(next);
-      return next;
-    });
-
-    handleTriggerSystemToast('Đã khôi phục 4 banner', 'Đã khôi phục thành công hình ảnh banner gốc của 4 hội thi chính thức.');
+    handleTriggerSystemToast('Thông báo', 'Hình ảnh các cuộc thi do cán bộ thiết lập và tải lên trực tiếp.');
   };
 
   const handleDeleteCompetition = (compId: string) => {

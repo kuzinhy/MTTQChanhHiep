@@ -443,11 +443,11 @@ export const CitizenPublicServiceGuide: React.FC<CitizenPublicServiceGuideProps>
           {/* Quick Direct Emergency Trigger */}
           <div className="flex items-center gap-2 flex-wrap shrink-0">
             <a
-              href="tel:02743822123"
+              href="tel:0989614614"
               className="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <Phone className="w-3.5 h-3.5" />
-              <span>Đường dây nóng MTTQ: 0274.3822.123</span>
+              <span>Liên hệ: 0989614614</span>
             </a>
           </div>
         </div>
@@ -902,7 +902,7 @@ export const CitizenPublicServiceGuide: React.FC<CitizenPublicServiceGuideProps>
                   <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
                   <h4 className="text-sm font-black text-amber-900">Không tìm thấy mã phản ánh phù hợp</h4>
                   <p className="text-xs text-amber-700 max-w-md mx-auto">
-                    Vui lòng kiểm tra lại mã hồ sơ hoặc liên hệ Thường trực MTTQ Phường Chánh Hiệp theo số <strong>0274.3822.123</strong> để được tra cứu trực tiếp.
+                    Vui lòng kiểm tra lại mã hồ sơ hoặc liên hệ Thường trực MTTQ Phường Chánh Hiệp theo số <strong>0989614614</strong> để được tra cứu trực tiếp.
                   </p>
                 </div>
               )}
@@ -996,11 +996,11 @@ export const CitizenPublicServiceGuide: React.FC<CitizenPublicServiceGuideProps>
                 <p className="text-xs text-blue-200 mt-0.5">Tiếp nhận phản ánh dân nguyện &amp; an sinh</p>
               </div>
               <a
-                href="tel:02743822123"
+                href="tel:0989614614"
                 className="w-full py-2.5 bg-white text-blue-900 hover:bg-blue-50 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span>Gọi ngay: 0274.3822.123</span>
+                <span>Gọi ngay: 0989614614</span>
               </a>
             </div>
 

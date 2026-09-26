@@ -36,7 +36,7 @@ export const DEFAULT_ABOUT_DATA: AboutPageData = {
   termTitle: 'Ban Thường Trực Ủy Ban MTTQ Phường Khóa 1 (Nhiệm kỳ 2025 - 2030)',
   termSubtitle: 'ĐƠN VỊ CÔNG TÁC THƯỜNG TRỰC',
   address: 'Số 1240, đường Đại Lộ Bình Dương, Khu phố Định Hòa 5, phường Chánh Hiệp, Thành phố Hồ Chí Minh',
-  hotline: '0989614614 (Đồng chí Nguyễn Xuân Kiều)',
+  hotline: '0989614614',
   email: 'mttqvietnamphuongchanhhiep@gmail.com',
   pillars: [
     {

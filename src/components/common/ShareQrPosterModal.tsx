@@ -24,7 +24,7 @@ export const ShareQrPosterModal: React.FC<ShareQrPosterModalProps> = ({
   isOpen,
   onClose,
   title,
-  shareUrl = typeof window !== 'undefined' ? window.location.href : 'https://mttq-chanhhiep.gov.vn',
+  shareUrl = typeof window !== 'undefined' ? window.location.href : 'https://www.mattranphuongchanhhiep.com/',
   category = 'Thông Tin Tuyên Truyền Mặt Trận'
 }) => {
   const [copied, setCopied] = useState<boolean>(false);

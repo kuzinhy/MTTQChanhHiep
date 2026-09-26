@@ -29,18 +29,23 @@ import {
 import { sortArticlesNewestFirst } from '../../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { Article, OfficialDocument, PublicOpinion, CloudinaryImageMeta, StaffUser } from '../../types';
-import { INITIAL_ARTICLES } from '../../data/seedData';
 import { AppStorageEngine } from '../../lib/storage';
 import { MapLocation } from '../../data/mapSchema';
 import { DigitalCommunityMap } from '../map/DigitalCommunityMap';
 import { CitizenPublicServiceGuide } from './CitizenPublicServiceGuide';
 import { CitizenOpinionTrackerModal } from './CitizenOpinionTrackerModal';
 import { CitizenWelfareHubModal } from './CitizenWelfareHubModal';
+import { ARTICLE_BANNERS, getBannerForCategory } from '../../utils/officialImages';
+import { handleOptimizedImageError } from '../../lib/imageOptimization';
 
-const getImageUrl = (image?: string | CloudinaryImageMeta): string => {
-  if (!image) return 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1200&q=80';
-  if (typeof image === 'string') return image;
-  return image.secureUrl || image.url || 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1200&q=80';
+const getImageUrl = (image?: string | CloudinaryImageMeta, category?: string): string => {
+  const fallback = category ? getBannerForCategory(category) : ARTICLE_BANNERS.default;
+  if (!image) return fallback;
+  if (typeof image === 'string') {
+    const trimmed = image.trim();
+    return trimmed || fallback;
+  }
+  return image.secureUrl || image.url || fallback;
 };
 
 interface ChanhHiepPortalHomeProps {
@@ -68,23 +73,15 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   onGoToOffice,
   currentStaffUser
 }) => {
-  // Safe articles fallback
+  // Safe articles: Chỉ hiển thị bài viết chính thống do cán bộ đăng tải (đã duyệt hoặc xuất bản)
   const safeArticles: Article[] = useMemo(() => {
-    const cloudList = Array.isArray(articles) ? articles : [];
-    const cloudIds = new Set(cloudList.map(a => a.id).filter(Boolean));
-    
-    // Combine lists, preferring cloud versions if IDs overlap (though unlikely)
-    const combined = [
-      ...cloudList,
-      ...INITIAL_ARTICLES.filter(a => a && a.id && !cloudIds.has(a.id))
-    ];
-
-    // Public portal should show Published & Approved articles
-    const filtered = combined.filter(a => 
-      (a.status && (a.status.toLowerCase() === 'published' || a.status.toLowerCase() === 'approved')) || 
-      !a.status
+    const list = Array.isArray(articles) ? articles : [];
+    const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
+    const filtered = list.filter(a => 
+      a && a.id && !demoIds.has(a.id) && !a.id.startsWith('demo-') && !(a as any).isSample &&
+      ((a.status && (a.status.toLowerCase() === 'published' || a.status.toLowerCase() === 'approved')) || 
+      !a.status)
     );
-    
     return sortArticlesNewestFirst(filtered);
   }, [articles]);
 
@@ -316,157 +313,201 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
       {/* ========================================================================= */}
       {/* 2. HERO FEATURED CAROUSEL + 3 RIGHT NEWS */}
       {/* ========================================================================= */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        
-        {/* Left Side: Big Hero Carousel (Col 1-8 / 65%) */}
-        <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80 group flex flex-col justify-end min-h-[360px] sm:min-h-[420px]">
+      {/* ========================================================================= */}
+      {/* 2. HERO FEATURED CAROUSEL + 3 RIGHT NEWS */}
+      {/* ========================================================================= */}
+      {currentHero ? (
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
           
-          {/* Top Red Slogan Ribbon */}
-          <div className="absolute top-0 inset-x-0 z-20 bg-gradient-to-r from-red-700 via-red-600 to-red-700 text-amber-200 text-center py-2 px-4 shadow-sm border-b border-amber-400/30">
-            <p className="text-[11px] sm:text-xs font-black uppercase tracking-wider drop-shadow-xs">
-              ĐẢNG CỘNG SẢN VIỆT NAM QUANG VINH MUÔN NĂM!
-            </p>
-          </div>
+          {/* Left Side: Big Hero Carousel (Col 1-8 / 65%) */}
+          <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80 group flex flex-col justify-end min-h-[360px] sm:min-h-[420px]">
+            
 
-          {/* Background Image */}
-          <div className="absolute inset-0 z-0">
-            <img
-              src={getImageUrl(currentHero.featuredImage)}
-              alt={currentHero.title}
-              className="w-full h-full object-cover object-top sm:object-center transition-transform duration-700 group-hover:scale-[1.02]"
-            />
-            {/* Low-profile Soft Bottom Gradient Overlay - only bottom 30-35% to keep original photo clear and bright */}
-            <div className="absolute inset-x-0 bottom-0 h-32 sm:h-40 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent pointer-events-none" />
-          </div>
 
-          {/* Left / Right Nav Arrows */}
-          <button
-            onClick={handlePrevHero}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 text-white backdrop-blur-xs flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
-            aria-label="Tin trước"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleNextHero}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 text-white backdrop-blur-xs flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
-            aria-label="Tin sau"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* Bottom Article Content Info - Compact & Low to prevent covering subject */}
-          <div className="relative z-20 p-3 sm:p-4.5 space-y-1.5 text-white">
-            {/* Tag Badge & Dots row */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="px-2.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black uppercase tracking-wide shadow-xs">
-                {currentHero.category || 'Hoạt động Mặt trận'}
-              </span>
-
-              {/* Compact Pagination Dots */}
-              <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-xs px-2 py-0.5 rounded-full border border-white/10">
-                {featuredArticles.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setHeroIndex(idx)}
-                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                      idx === heroIndex ? 'w-4 bg-white shadow-2xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
-                    }`}
-                    aria-label={`Chuyển tin ${idx + 1}`}
-                  />
-                ))}
-              </div>
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+              <img
+                src={getImageUrl(currentHero.featuredImage, currentHero.category)}
+                alt={currentHero.title}
+                onError={(e) => handleOptimizedImageError(e, getBannerForCategory(currentHero.category))}
+                className="w-full h-full object-cover object-top sm:object-center transition-transform duration-700 group-hover:scale-[1.02]"
+              />
+              {/* Low-profile Soft Bottom Gradient Overlay */}
+              <div className="absolute inset-x-0 bottom-0 h-32 sm:h-40 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent pointer-events-none" />
             </div>
 
-            {/* Title - Compact leading, drop shadow for readability on bright photos */}
-            <h3 
-              onClick={() => onSelectArticle(currentHero)}
-              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.85)' }}
-              className="text-xs sm:text-sm md:text-base font-black text-white leading-snug cursor-pointer hover:text-amber-200 transition-colors line-clamp-2"
-            >
-              {currentHero.title}
-            </h3>
+            {/* Left / Right Nav Arrows */}
+            {featuredArticles.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevHero}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 text-white backdrop-blur-xs flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
+                  aria-label="Tin trước"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleNextHero}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 border border-white/20 text-white backdrop-blur-xs flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer opacity-80 hover:opacity-100"
+                  aria-label="Tin sau"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
 
-            {/* Bottom Meta & Action */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-              <div className="flex items-center gap-3 text-[11px] sm:text-xs text-slate-200 font-medium">
-                <span className="flex items-center gap-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                  <Calendar className="w-3.5 h-3.5 text-amber-300" />
-                  {currentHero.publishDate ? new Date(currentHero.publishDate).toLocaleDateString('vi-VN') : '04/09/2026'}
+            {/* Bottom Article Content Info */}
+            <div className="relative z-20 p-3 sm:p-4.5 space-y-1.5 text-white">
+              {/* Tag Badge & Dots row */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="px-2.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black uppercase tracking-wide shadow-xs">
+                  {currentHero.category || 'Hoạt động Mặt trận'}
                 </span>
-                <span className="flex items-center gap-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                  <Eye className="w-3.5 h-3.5 text-amber-300" />
-                  {(currentHero.views || 1256).toLocaleString('vi-VN')} lượt xem
-                </span>
+
+                {/* Compact Pagination Dots */}
+                {featuredArticles.length > 1 && (
+                  <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-xs px-2 py-0.5 rounded-full border border-white/10">
+                    {featuredArticles.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setHeroIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          idx === heroIndex ? 'w-4 bg-white shadow-2xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                        }`}
+                        aria-label={`Chuyển tin ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <button
+              {/* Title */}
+              <h3 
                 onClick={() => onSelectArticle(currentHero)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white hover:bg-slate-100 text-slate-900 text-[11px] sm:text-xs font-bold rounded-full shadow-md transition-all active:scale-95 cursor-pointer"
+                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.85)' }}
+                className="text-xs sm:text-sm md:text-base font-black text-white leading-snug cursor-pointer hover:text-amber-200 transition-colors line-clamp-2"
               >
-                <span>Xem chi tiết</span>
-                <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
+                {currentHero.title}
+              </h3>
+
+              {/* Bottom Meta & Action */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                <div className="flex items-center gap-3 text-[11px] sm:text-xs text-slate-200 font-medium">
+                  <span className="flex items-center gap-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                    <Calendar className="w-3.5 h-3.5 text-amber-300" />
+                    {currentHero.publishDate ? new Date(currentHero.publishDate).toLocaleDateString('vi-VN') : 'Mới cập nhật'}
+                  </span>
+                  <span className="flex items-center gap-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                    <Eye className="w-3.5 h-3.5 text-amber-300" />
+                    {(currentHero.views || 0).toLocaleString('vi-VN')} lượt xem
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => onSelectArticle(currentHero)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white hover:bg-slate-100 text-slate-900 text-[11px] sm:text-xs font-bold rounded-full shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                  <span>Xem chi tiết</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side: 3 Stacked Articles (Col 9-12 / 35%) */}
+          <div className="lg:col-span-4 flex flex-col justify-between gap-2.5">
+            {sideArticles.length > 0 ? (
+              sideArticles.map((art, idx) => {
+                const badgeBg = 
+                  art.category === 'An sinh xã hội' ? 'bg-rose-100 text-rose-700' :
+                  art.category === 'Tuyên truyền' ? 'bg-orange-100 text-orange-700' :
+                  'bg-blue-100 text-blue-700';
+
+                return (
+                  <motion.div
+                    key={art.id || idx}
+                    whileHover={{ y: -1 }}
+                    onClick={() => onSelectArticle(art)}
+                    className="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex items-center gap-3 group flex-1"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-24 h-20 sm:w-28 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative">
+                      <img
+                        src={getImageUrl(art.featuredImage, art.category)}
+                        alt={art.title}
+                        onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category))}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pr-1">
+                      <div className="mb-1">
+                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide ${badgeBg}`}>
+                          {art.category || 'Hoạt động Mặt trận'}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-xs text-slate-900 group-hover:text-[#0068ff] transition-colors line-clamp-2 leading-snug">
+                        {art.title}
+                      </h4>
+                      <div className="flex items-center gap-3 text-[10px] text-slate-400 font-medium mt-1.5">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          {art.publishDate ? new Date(art.publishDate).toLocaleDateString('vi-VN') : ''}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3 text-slate-400" />
+                          {art.views || 0}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="text-slate-300 group-hover:text-blue-600 transition-colors shrink-0">
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </motion.div>
+                );
+              })
+            ) : (
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-center items-center text-center space-y-2 h-full">
+                <FileText className="w-8 h-8 text-slate-300" />
+                <p className="text-xs font-bold text-slate-600">Đang cập nhật tin tiếp theo</p>
+                <p className="text-[11px] text-slate-400">Các bài viết mới do cán bộ đăng tải sẽ xuất hiện tại đây.</p>
+              </div>
+            )}
+          </div>
+
+        </section>
+      ) : (
+        <section className="rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-red-800 via-red-700 to-amber-900 text-white p-6 sm:p-8 shadow-md border border-red-700/50 relative">
+          <div className="relative z-10 max-w-3xl space-y-3">
+            <span className="inline-block px-3 py-1 bg-amber-400/20 text-amber-200 border border-amber-300/30 rounded-full text-[11px] font-black tracking-wide uppercase">
+              Cổng Thông Tin Điện Tử Chính Thức
+            </span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">
+              Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp
+            </h2>
+            <p className="text-xs sm:text-sm text-red-100 leading-relaxed">
+              Trang thông tin chính thống phục vụ công tác tuyên truyền, tiếp nhận ý kiến nhân dân, công khai văn bản pháp lý và các phong trào thi đua tại 21 khu phố. Các tin bài, thông báo mới nhất do Ban biên tập đăng tải sẽ được hiển thị tại đây.
+            </p>
+            <div className="flex flex-wrap gap-2.5 pt-1">
+              <button
+                onClick={() => onSelectTab('about')}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                Giới thiệu tổ chức
+              </button>
+              <button
+                onClick={() => onSelectTab('documents')}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Văn bản - Kế hoạch
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Right Side: 3 Stacked Articles (Col 9-12 / 35%) */}
-        <div className="lg:col-span-4 flex flex-col justify-between gap-2.5">
-          {sideArticles.map((art, idx) => {
-            const badgeBg = 
-              art.category === 'An sinh xã hội' ? 'bg-rose-100 text-rose-700' :
-              art.category === 'Tuyên truyền' ? 'bg-orange-100 text-orange-700' :
-              'bg-blue-100 text-blue-700';
-
-            return (
-              <motion.div
-                key={art.id || idx}
-                whileHover={{ y: -1 }}
-                onClick={() => onSelectArticle(art)}
-                className="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex items-center gap-3 group flex-1"
-              >
-                {/* Thumbnail */}
-                <div className="w-24 h-20 sm:w-28 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative">
-                  <img
-                    src={getImageUrl(art.featuredImage)}
-                    alt={art.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0 pr-1">
-                  <div className="mb-1">
-                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide ${badgeBg}`}>
-                      {art.category || 'Hoạt động Mặt trận'}
-                    </span>
-                  </div>
-                  <h4 className="font-bold text-xs text-slate-900 group-hover:text-[#0068ff] transition-colors line-clamp-2 leading-snug">
-                    {art.title}
-                  </h4>
-                  <div className="flex items-center gap-3 text-[10px] text-slate-400 font-medium mt-1.5">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
-                      {art.publishDate ? new Date(art.publishDate).toLocaleDateString('vi-VN') : '28/08/2026'}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Eye className="w-3 h-3 text-slate-400" />
-                      {art.views || 520}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Arrow */}
-                <div className="text-slate-300 group-hover:text-blue-600 transition-colors shrink-0">
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-      </section>
+        </section>
+      )}
 
       {/* ========================================================================= */}
       {/* 3. MẶT TRẬN SỐ HÔM NAY - Metrics Dashboard */}
@@ -858,8 +899,9 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                     className="h-44 sm:h-48 overflow-hidden bg-slate-100 cursor-pointer relative"
                   >
                     <img
-                      src={getImageUrl(art.featuredImage)}
+                      src={getImageUrl(art.featuredImage, art.category)}
                       alt={art.title}
+                      onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category))}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-2.5 left-2.5">

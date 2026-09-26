@@ -46,10 +46,10 @@ const EMERGENCY_CONTACTS: ContactItem[] = [
   },
   {
     id: 'em-2',
-    name: 'Trực ban Thường trực Ủy ban MTTQ',
-    position: 'Đường dây nóng Dân nguyện',
+    name: 'Đường dây nóng Liên hệ',
+    position: 'Đường dây nóng tiếp nhận',
     unit: 'Ủy ban MTTQ Phường Chánh Hiệp',
-    phone: '0274.3822.123',
+    phone: '0989614614',
     category: 'EMERGENCY',
     badgeColor: 'bg-blue-600 text-white'
   },
@@ -302,7 +302,7 @@ export const DigitalDirectoryModal: React.FC<DigitalDirectoryModalProps> = ({ is
         <div className="p-3 bg-blue-50/80 rounded-2xl border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-blue-900 font-medium">
           <div className="flex items-center gap-1.5">
             <Shield className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>Đường dây nóng Thường trực MTTQ Phường Chánh Hiệp: <strong>0274.3822.123</strong></span>
+            <span>Đường dây nóng Thường trực MTTQ Phường Chánh Hiệp: <strong>0989614614</strong></span>
           </div>
           <span className="text-slate-600">Trực ban 24/7 tiếp nhận &amp; giải quyết phản ánh</span>
         </div>

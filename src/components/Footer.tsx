@@ -238,11 +238,11 @@ export const Footer: React.FC<{
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Hotline Dân nguyện: <strong className="text-white">(028) 38.xxx.xxx</strong></span>
+                <span>Liên hệ: <strong className="text-white">0989614614</strong></span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Email: <strong className="text-white">mttq.chanhhiep@tphcm.gov.vn</strong></span>
+                <span>Email: <strong className="text-white">mttqvietnamphuongchanhhiep@gmail.com</strong></span>
               </div>
               <div className="flex items-start gap-2">
                 <Clock className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />

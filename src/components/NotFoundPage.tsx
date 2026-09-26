@@ -54,7 +54,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
     { id: 'documents', label: 'Văn bản & Chỉ đạo', desc: 'Tra cứu kế hoạch, thông tri, nghị quyết', icon: FileText, color: 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100' },
     { id: 'supervision', label: 'Giám sát & Phản biện', desc: 'Ban TTND & Giám sát đầu tư cộng đồng', icon: ShieldCheck, color: 'text-purple-600 bg-purple-50 hover:bg-purple-100' },
     { id: 'competitions', label: 'Hội thi Trực tuyến', desc: 'Thi trắc nghiệm, tìm hiểu pháp luật & Nghị quyết', icon: Award, color: 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' },
-    { id: 'opinion', label: 'Góp ý Dân nguyện', desc: 'Gửi kiến nghị dân sinh, phản ánh khu phố', icon: MessageSquareHeart, color: 'text-rose-600 bg-rose-50 hover:bg-rose-100' },
+    { id: 'opinion', label: 'Lắng nghe Nhân dân', desc: 'Gửi kiến nghị dân sinh, phản ánh khu phố', icon: MessageSquareHeart, color: 'text-rose-600 bg-rose-50 hover:bg-rose-100' },
   ];
 
   return (
@@ -195,7 +195,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
             <span className="flex items-center gap-1">
               <Phone className="w-3.5 h-3.5 text-blue-600" />
-              <span>Đường dây nóng: <strong>0989614614</strong> (Đ/c Nguyễn Xuân Kiều)</span>
+              <span>Liên hệ: <strong>0989614614</strong></span>
             </span>
             <span className="flex items-center gap-1">
               <Mail className="w-3.5 h-3.5 text-blue-600" />

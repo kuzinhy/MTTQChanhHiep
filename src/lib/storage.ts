@@ -367,14 +367,14 @@ export const AppStorageEngine = {
   KEYS: STORAGE_KEYS,
 
   getArticles: (): Article[] => {
-    const raw = loadInitialData(STORAGE_KEYS.ARTICLES, INITIAL_ARTICLES);
+    const raw = loadInitialData<Article[]>(STORAGE_KEYS.ARTICLES, []);
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
-    const filtered = (raw || []).filter(a => a && a.id && !demoIds.has(a.id));
+    const filtered = (raw || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.id.startsWith('demo-') && !(a as any).isSample);
     return sortArticlesNewestFirst(filtered);
   },
   saveArticles: (articles: Article[]) => {
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
-    const filtered = (articles || []).filter(a => a && a.id && !demoIds.has(a.id));
+    const filtered = (articles || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.id.startsWith('demo-') && !(a as any).isSample);
     saveStorageData(STORAGE_KEYS.ARTICLES, sortArticlesNewestFirst(filtered));
   },
 
@@ -401,25 +401,15 @@ export const AppStorageEngine = {
   },
 
   getDocuments: (): OfficialDocument[] => {
-    const raw = loadInitialData(STORAGE_KEYS.DOCUMENTS, INITIAL_DOCUMENTS);
-    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
+    const raw = loadInitialData<OfficialDocument[]>(STORAGE_KEYS.DOCUMENTS, []);
+    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4', 'doc-mttq-01', 'doc-mttq-02', 'doc-mttq-03', 'doc-mttq-04', 'doc-mttq-05', 'doc-mttq-06', 'doc-mttq-07', 'doc-mttq-08', 'doc-mttq-09']);
     const deletedIds = AppStorageEngine.getDeletedDocIds();
 
-    const docMap = new Map<string, OfficialDocument>();
-    INITIAL_DOCUMENTS.forEach(d => {
-      if (d && d.id && !deletedIds.has(d.id)) {
-        docMap.set(d.id, d);
-      }
-    });
-    (raw || []).forEach(d => {
-      if (d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id)) {
-        docMap.set(d.id, { ...(docMap.get(d.id) || {}), ...d });
-      }
-    });
-    return sortDocumentsNewestFirst(Array.from(docMap.values()));
+    const filtered = (raw || []).filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id) && !d.id.startsWith('seed-') && !d.id.startsWith('doc-sample'));
+    return sortDocumentsNewestFirst(filtered);
   },
   saveDocuments: (documents: OfficialDocument[]) => {
-    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
+    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4', 'doc-mttq-01', 'doc-mttq-02', 'doc-mttq-03', 'doc-mttq-04', 'doc-mttq-05', 'doc-mttq-06', 'doc-mttq-07', 'doc-mttq-08', 'doc-mttq-09']);
     const deletedIds = AppStorageEngine.getDeletedDocIds();
     
     // Check if any existing documents were omitted (deleted)
@@ -431,50 +421,22 @@ export const AppStorageEngine = {
       }
     });
 
-    const filtered = (documents || []).filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id));
+    const filtered = (documents || []).filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id) && !d.id.startsWith('seed-'));
     saveStorageData(STORAGE_KEYS.DOCUMENTS, sortDocumentsNewestFirst(filtered));
   },
 
   getCompetitions: (): Competition[] => {
-    const raw = loadInitialData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
+    const raw = loadInitialData<Competition[]>(STORAGE_KEYS.COMPETITIONS, []);
+    const demoIds = new Set(['comp-1', 'comp-2', 'comp-3', 'comp-4']);
     const deletedIds = AppStorageEngine.getDeletedCompIds();
-    const compMap = new Map<string, Competition>();
-    INITIAL_COMPETITIONS.forEach(c => {
-      if (c && c.id && !deletedIds.has(c.id)) compMap.set(c.id, c);
-    });
-    (raw || []).forEach(c => {
-      if (c && c.id && !deletedIds.has(c.id)) {
-        if (!compMap.has(c.id)) {
-          compMap.set(c.id, c);
-        } else {
-          const existing = compMap.get(c.id)!;
-          compMap.set(c.id, {
-            ...existing,
-            ...c,
-            bannerUrl: c.bannerUrl && c.bannerUrl.trim() !== '' ? c.bannerUrl : existing.bannerUrl,
-            questions: c.questions && c.questions.length > 0 ? c.questions : existing.questions,
-            rules: c.rules || existing.rules
-          });
-        }
-      }
-    });
-
-    const result = Array.from(compMap.values());
-    if (result.length === 0 && INITIAL_COMPETITIONS.length > 0) {
-      // Auto-recover default competitions if list is empty
-      localStorage.removeItem(STORAGE_KEYS.DELETED_COMPS);
-      saveStorageData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
-      return sortCompetitionsNewestFirst([...INITIAL_COMPETITIONS]);
-    }
-
-    return sortCompetitionsNewestFirst(result);
+    const filtered = (raw || []).filter(c => c && c.id && !demoIds.has(c.id) && !deletedIds.has(c.id) && !c.id.startsWith('demo-'));
+    return sortCompetitionsNewestFirst(filtered);
   },
   restoreDefaultCompetitions: (): Competition[] => {
-    localStorage.removeItem(STORAGE_KEYS.DELETED_COMPS);
-    saveStorageData(STORAGE_KEYS.COMPETITIONS, INITIAL_COMPETITIONS);
-    return sortCompetitionsNewestFirst([...INITIAL_COMPETITIONS]);
+    return [];
   },
   saveCompetitions: (competitions: Competition[]) => {
+    const demoIds = new Set(['comp-1', 'comp-2', 'comp-3', 'comp-4']);
     const deletedIds = AppStorageEngine.getDeletedCompIds();
     const currentComps = loadInitialData<Competition[]>(STORAGE_KEYS.COMPETITIONS, []);
     const newCompIds = new Set((competitions || []).map(c => c?.id).filter(Boolean));
@@ -484,7 +446,7 @@ export const AppStorageEngine = {
       }
     });
 
-    const filtered = (competitions || []).filter(c => c && c.id && !deletedIds.has(c.id));
+    const filtered = (competitions || []).filter(c => c && c.id && !demoIds.has(c.id) && !deletedIds.has(c.id));
     saveStorageData(STORAGE_KEYS.COMPETITIONS, sortCompetitionsNewestFirst(filtered));
   },
 
