@@ -44,9 +44,30 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
 
   const getStatusBadge = (s: OpinionStatus) => {
     switch (s) {
-      case 'RESOLVED': return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-md">ĐÃ GIẢI QUYẾT</span>;
-      case 'PROCESSING': return <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-md">ĐANG XỬ LÝ</span>;
-      default: return <span className="px-2 py-0.5 bg-rose-100 text-rose-800 font-bold text-[10px] rounded-md">MỚI TẠO</span>;
+      case 'RESOLVED':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300/80 font-black text-[11px] rounded-lg shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>HOÀN THÀNH</span>
+          </span>
+        );
+      case 'PROCESSING':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-300/80 font-black text-[11px] rounded-lg shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            <span>ĐANG XỬ LÝ</span>
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-300/80 font-black text-[11px] rounded-lg shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+            <span>MỚI GỬI</span>
+          </span>
+        );
     }
   };
 
@@ -82,85 +103,140 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
         </div>
       </div>
 
-      {/* Filter and Stats Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-700">Lọc theo trạng thái:</span>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="text-xs px-3 py-1.5 border border-slate-300 rounded-lg outline-hidden focus:ring-2 focus:ring-blue-600"
+      {/* Filter and Stats Bar with Status Summary Badges */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-black text-slate-700 mr-1">Bộ lọc:</span>
+          <button
+            onClick={() => setFilterStatus('ALL')}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+              filterStatus === 'ALL'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
           >
-            <option value="ALL">Tất cả ({opinions.length})</option>
-            <option value="NEW">Mới gửi</option>
-            <option value="PROCESSING">Đang xử lý</option>
-            <option value="RESOLVED">Đã giải quyết</option>
-          </select>
+            Tất cả ({opinions.length})
+          </button>
+          <button
+            onClick={() => setFilterStatus('NEW')}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              filterStatus === 'NEW'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>Mới ({opinions.filter(o => o.status === 'NEW' || !o.status).length})</span>
+          </button>
+          <button
+            onClick={() => setFilterStatus('PROCESSING')}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              filterStatus === 'PROCESSING'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>Đang xử lý ({opinions.filter(o => o.status === 'PROCESSING').length})</span>
+          </button>
+          <button
+            onClick={() => setFilterStatus('RESOLVED')}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              filterStatus === 'RESOLVED'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Hoàn thành ({opinions.filter(o => o.status === 'RESOLVED').length})</span>
+          </button>
         </div>
 
-        <div className="text-slate-500 font-bold">
-          Hiển thị {filteredOpinions.length} phản ánh
+        <div className="text-slate-500 font-bold self-end lg:self-center">
+          Hiển thị <span className="text-blue-700 font-black">{filteredOpinions.length}</span> phản ánh
         </div>
       </div>
 
       {/* Opinions List Table */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="divide-y divide-slate-100">
-          {filteredOpinions.map((op) => (
-            <div key={op.id} className="p-5 hover:bg-blue-50/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
-              <div className="space-y-1.5 max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-blue-900">{op.receiptCode}</span>
-                  {getStatusBadge(op.status)}
-                  <span className="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-md text-[10px]">
-                    {op.topic}
-                  </span>
-                  <span className="text-slate-400 font-medium">• {op.neighborhood}</span>
-                </div>
-
-                <p className="font-medium text-slate-800 leading-relaxed text-sm">{op.content}</p>
-
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 text-[11px] pt-1">
-                  <span>Người gửi: <strong className="text-slate-700">{op.isAnonymous ? 'Ẩn danh' : op.fullname || 'Người dân'}</strong></span>
-                  {op.phone && <span>SĐT: <strong className="text-slate-700">{op.phone}</strong></span>}
-                  {op.address && <span>Địa chỉ: <strong className="text-slate-700">{op.address}</strong></span>}
-                  <span>Thời gian: {op.createdAt}</span>
-                </div>
-
-                {op.adminResponse && (
-                  <div className="mt-2 p-3 bg-emerald-50 text-emerald-950 rounded-xl border border-emerald-200 text-xs">
-                    <span className="font-bold block text-emerald-900 mb-0.5">Kết quả phản hồi cán bộ:</span>
-                    <p>{op.adminResponse}</p>
+        {filteredOpinions.length === 0 ? (
+          <div className="p-12 text-center text-slate-400 space-y-2">
+            <MessageSquare className="w-8 h-8 mx-auto text-slate-300" />
+            <p className="text-xs font-bold">Không có ý kiến nào trong danh mục lọc này.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {filteredOpinions.map((op) => (
+              <div 
+                key={op.id} 
+                className={`p-5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs ${
+                  op.status === 'NEW' || !op.status 
+                    ? 'bg-rose-50/20 hover:bg-rose-50/40 border-l-4 border-l-rose-500' 
+                    : op.status === 'PROCESSING' 
+                    ? 'bg-amber-50/20 hover:bg-amber-50/40 border-l-4 border-l-amber-500' 
+                    : 'hover:bg-slate-50 border-l-4 border-l-emerald-500'
+                }`}
+              >
+                <div className="space-y-2 max-w-3xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-extrabold text-blue-900 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                      {op.receiptCode || op.id}
+                    </span>
+                    {getStatusBadge(op.status)}
+                    <span className="bg-slate-100 text-slate-700 font-semibold px-2.5 py-0.5 rounded-md text-[10px] border border-slate-200">
+                      {op.topic}
+                    </span>
+                    <span className="text-slate-500 font-semibold">• {op.neighborhood}</span>
                   </div>
-                )}
-              </div>
 
-              <div className="shrink-0 flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedOpinion(op);
-                    setResponseText(op.adminResponse || '');
-                  }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer"
-                >
-                  Xử lý &amp; Phản hồi
-                </button>
+                  <p className="font-bold text-slate-900 leading-relaxed text-sm">{op.content}</p>
 
-                {onDeleteOpinion && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-[11px] pt-1">
+                    <span>Người gửi: <strong className="text-slate-800">{op.isAnonymous ? 'Ẩn danh' : op.fullname || 'Người dân'}</strong></span>
+                    {op.phone && <span>SĐT: <strong className="text-slate-800">{op.phone}</strong></span>}
+                    {op.address && <span>Địa chỉ: <strong className="text-slate-800">{op.address}</strong></span>}
+                    <span>Thời gian: {op.createdAt}</span>
+                  </div>
+
+                  {op.adminResponse && (
+                    <div className="mt-2 p-3 bg-emerald-50/90 text-emerald-950 rounded-xl border border-emerald-300 text-xs shadow-2xs">
+                      <div className="flex items-center gap-1.5 font-black text-emerald-900 mb-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Kết quả phản hồi của Ban Thường trực MTTQ:</span>
+                      </div>
+                      <p className="leading-relaxed">{op.adminResponse}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
                   <button
-                    type="button"
-                    onClick={() => setOpinionToDelete(op)}
-                    className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                    title="Xóa phản ánh dư luận này"
+                    onClick={() => {
+                      setSelectedOpinion(op);
+                      setResponseText(op.adminResponse || '');
+                    }}
+                    className="px-4 py-2 bg-[#0052cc] hover:bg-[#0043aa] text-white font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                    <span>Xóa</span>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Xử lý &amp; Phản hồi</span>
                   </button>
-                )}
+
+                  {onDeleteOpinion && (
+                    <button
+                      type="button"
+                      onClick={() => setOpinionToDelete(op)}
+                      className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                      title="Xóa phản ánh dư luận này"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Xóa</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* RESPONSE MODAL */}

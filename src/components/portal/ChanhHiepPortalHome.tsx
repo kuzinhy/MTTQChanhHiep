@@ -630,115 +630,139 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         {/* 4 Primary Interactive Citizen Service Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           
-          {/* Card 1: Tra cứu Dân nguyện Realtime */}
+          {/* Card 1: Tra cứu Dân nguyện Realtime - Tech Blue / Cyan Glow */}
           <div
             onClick={() => setIsOpinionTrackerOpen(true)}
-            className="group bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-blue-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+            className="group bg-gradient-to-br from-blue-600 via-sky-600 to-indigo-700 text-white p-5 rounded-3xl border border-sky-300/40 shadow-lg shadow-blue-500/20 hover:shadow-2xl hover:shadow-sky-500/30 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
-            <div className="space-y-2 relative z-10">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/25 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:12px_12px] opacity-60 pointer-events-none" />
+            
+            <div className="space-y-3 relative z-10">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-                  <Search className="w-5 h-5 text-cyan-300" />
+                <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-inner group-hover:scale-105 transition-transform">
+                  <Search className="w-5 h-5 text-white drop-shadow-xs" />
                 </div>
-                <span className="text-[10px] font-black bg-cyan-400/20 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/30">
+                <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 backdrop-blur-md tracking-wider shadow-xs">
                   REALTIME
                 </span>
               </div>
-              <h3 className="text-sm font-black text-white group-hover:text-cyan-200 transition-colors">
-                Tra Cứu Tiến Độ Dân Nguyện
-              </h3>
-              <p className="text-xs text-blue-200/80 leading-relaxed font-medium">
-                Nhập mã hồ sơ / SĐT để theo dõi quy trình xử lý 4 bước và đánh giá mức độ hài lòng.
-              </p>
+              <div>
+                <h3 className="text-sm font-black text-white group-hover:text-cyan-100 transition-colors tracking-tight">
+                  Tra Cứu Tiến Độ Dân Nguyện
+                </h3>
+                <p className="text-xs text-blue-100 leading-relaxed font-medium mt-1">
+                  Nhập mã hồ sơ / SĐT để theo dõi quy trình xử lý 4 bước và đánh giá mức độ hài lòng.
+                </p>
+              </div>
             </div>
-            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-cyan-300">
-              <span>Tra cứu ngay</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <div className="pt-3.5 mt-3 border-t border-white/25 flex items-center justify-between text-xs font-black text-white relative z-10">
+              <span className="group-hover:translate-x-0.5 transition-transform">Tra cứu ngay</span>
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-blue-600 transition-all">
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </div>
             </div>
           </div>
 
-          {/* Card 2: SOS Cứu trợ khẩn cấp */}
+          {/* Card 2: SOS Cứu trợ khẩn cấp - Bright Crimson / Vibrant Coral */}
           <div
             onClick={() => openWelfareModal('sos_aid')}
-            className="group bg-gradient-to-br from-red-900 via-rose-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-red-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+            className="group bg-gradient-to-br from-rose-500 via-red-500 to-amber-600 text-white p-5 rounded-3xl border border-rose-300/40 shadow-lg shadow-rose-500/20 hover:shadow-2xl hover:shadow-rose-500/30 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
-            <div className="space-y-2 relative z-10">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/25 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:12px_12px] opacity-60 pointer-events-none" />
+
+            <div className="space-y-3 relative z-10">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-                  <HeartHandshake className="w-5 h-5 text-amber-300" />
+                <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-inner group-hover:scale-105 transition-transform">
+                  <HeartHandshake className="w-5 h-5 text-white drop-shadow-xs" />
                 </div>
-                <span className="text-[10px] font-black bg-red-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30 animate-pulse">
+                <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 backdrop-blur-md tracking-wider shadow-xs animate-pulse">
                   SOS 24/7
                 </span>
               </div>
-              <h3 className="text-sm font-black text-white group-hover:text-amber-200 transition-colors">
-                Cứu Trợ An Sinh Khẩn Cấp
-              </h3>
-              <p className="text-xs text-rose-200/80 leading-relaxed font-medium">
-                Gửi yêu cầu trợ cấp gạo, viện phí, học bổng hoặc sửa chữa nhà Đại đoàn kết 21 khu phố.
-              </p>
+              <div>
+                <h3 className="text-sm font-black text-white group-hover:text-amber-100 transition-colors tracking-tight">
+                  Cứu Trợ An Sinh Khẩn Cấp
+                </h3>
+                <p className="text-xs text-rose-100 leading-relaxed font-medium mt-1">
+                  Gửi yêu cầu trợ cấp gạo, viện phí, học bổng hoặc sửa chữa nhà Đại đoàn kết 21 khu phố.
+                </p>
+              </div>
             </div>
-            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-300">
-              <span>Gửi yêu cầu trợ giúp</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <div className="pt-3.5 mt-3 border-t border-white/25 flex items-center justify-between text-xs font-black text-white relative z-10">
+              <span className="group-hover:translate-x-0.5 transition-transform">Gửi yêu cầu trợ giúp</span>
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-rose-600 transition-all">
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </div>
             </div>
           </div>
 
-          {/* Card 3: Ủng hộ Quỹ & Tấm Lòng Vàng */}
+          {/* Card 3: Ủng hộ Quỹ & Tấm Lòng Vàng - Tech Amber / Golden Orange */}
           <div
             onClick={() => openWelfareModal('donation')}
-            className="group bg-gradient-to-br from-amber-900 via-yellow-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-amber-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+            className="group bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 text-white p-5 rounded-3xl border border-amber-300/40 shadow-lg shadow-orange-500/20 hover:shadow-2xl hover:shadow-amber-500/30 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
-            <div className="space-y-2 relative z-10">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/25 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:12px_12px] opacity-60 pointer-events-none" />
+
+            <div className="space-y-3 relative z-10">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-                  <Award className="w-5 h-5 text-amber-300" />
+                <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-inner group-hover:scale-105 transition-transform">
+                  <Award className="w-5 h-5 text-white drop-shadow-xs" />
                 </div>
-                <span className="text-[10px] font-black bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
+                <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 backdrop-blur-md tracking-wider shadow-xs">
                   VIETQR
                 </span>
               </div>
-              <h3 className="text-sm font-black text-white group-hover:text-amber-200 transition-colors">
-                Ủng Hộ Quỹ &amp; Tấm Lòng Vàng
-              </h3>
-              <p className="text-xs text-amber-200/80 leading-relaxed font-medium">
-                Chuyển khoản VietQR tự động và nhận ngay Giấy chứng nhận Tấm Lòng Vàng Số có mộc MTTQ.
-              </p>
+              <div>
+                <h3 className="text-sm font-black text-white group-hover:text-yellow-100 transition-colors tracking-tight">
+                  Ủng Hộ Quỹ &amp; Tấm Lòng Vàng
+                </h3>
+                <p className="text-xs text-amber-100 leading-relaxed font-medium mt-1">
+                  Chuyển khoản VietQR tự động và nhận ngay Giấy chứng nhận Tấm Lòng Vàng Số có mộc MTTQ.
+                </p>
+              </div>
             </div>
-            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-amber-300">
-              <span>Đóng góp &amp; Nhận chứng nhận</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <div className="pt-3.5 mt-3 border-t border-white/25 flex items-center justify-between text-xs font-black text-white relative z-10">
+              <span className="group-hover:translate-x-0.5 transition-transform">Đóng góp &amp; Nhận chứng nhận</span>
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-amber-600 transition-all">
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </div>
             </div>
           </div>
 
-          {/* Card 4: Sổ tay Gia đình Đại đoàn kết */}
+          {/* Card 4: Sổ tay Gia đình Đại đoàn kết - Bright Emerald / Cyber Teal */}
           <div
             onClick={() => openWelfareModal('solidarity_handbook')}
-            className="group bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-4 sm:p-5 rounded-3xl border border-emerald-800 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+            className="group bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 text-white p-5 rounded-3xl border border-emerald-300/40 shadow-lg shadow-emerald-500/20 hover:shadow-2xl hover:shadow-teal-500/30 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
-            <div className="space-y-2 relative z-10">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/25 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:12px_12px] opacity-60 pointer-events-none" />
+
+            <div className="space-y-3 relative z-10">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-                  <ShieldCheck className="w-5 h-5 text-emerald-300" />
+                <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-inner group-hover:scale-105 transition-transform">
+                  <ShieldCheck className="w-5 h-5 text-white drop-shadow-xs" />
                 </div>
-                <span className="text-[10px] font-black bg-emerald-400/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 backdrop-blur-md tracking-wider shadow-xs">
                   10 TIÊU CHÍ
                 </span>
               </div>
-              <h3 className="text-sm font-black text-white group-hover:text-emerald-200 transition-colors">
-                Gia Đình Đại Đoàn Kết
-              </h3>
-              <p className="text-xs text-emerald-200/80 leading-relaxed font-medium">
-                Bảng tự đánh giá 10 tiêu chí văn hóa trực tuyến /100 điểm gửi Ban CTMT 21 Khu phố.
-              </p>
+              <div>
+                <h3 className="text-sm font-black text-white group-hover:text-emerald-100 transition-colors tracking-tight">
+                  Gia Đình Đại Đoàn Kết
+                </h3>
+                <p className="text-xs text-emerald-100 leading-relaxed font-medium mt-1">
+                  Bảng tự đánh giá 10 tiêu chí văn hóa trực tuyến /100 điểm gửi Ban CTMT 21 Khu phố.
+                </p>
+              </div>
             </div>
-            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-300">
-              <span>Tự chấm điểm online</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <div className="pt-3.5 mt-3 border-t border-white/25 flex items-center justify-between text-xs font-black text-white relative z-10">
+              <span className="group-hover:translate-x-0.5 transition-transform">Tự chấm điểm online</span>
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-emerald-600 transition-all">
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </div>
             </div>
           </div>
 
