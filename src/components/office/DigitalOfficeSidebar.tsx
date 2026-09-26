@@ -23,6 +23,7 @@ import {
   Settings,
   ShieldAlert,
   PieChart,
+  MapPin,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -84,8 +85,19 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
         { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
         { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
-        { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: Building2, badge: '21 KP' },
         { id: 'ai_assistant', label: 'Trợ lý AI Tổng hợp', icon: Sparkles, badge: 'WORKSPACE' },
+      ]
+    },
+    {
+      id: 'group_neighborhood',
+      title: 'QUẢN LÝ 21 KHU PHỐ',
+      icon: Building2,
+      badgeText: '21 KP',
+      accentColor: 'amber',
+      items: [
+        { id: 'neighborhood_management', label: 'Quản lý Khu phố Số', icon: Building2, badge: 'ĐỊA BÀN' },
+        { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: MapPin, badge: 'GIS' },
+        { id: 'neighborhood_emulation', label: 'Thi đua 21 Khu phố', icon: Award, badge: 'THI ĐUA' },
       ]
     },
     {
@@ -93,7 +105,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       title: 'NGHIỆP VỤ & CỔNG TT',
       icon: Layers,
       badgeText: 'MTTQ',
-      accentColor: 'amber',
+      accentColor: 'blue',
       items: [
         { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
         { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
@@ -125,6 +137,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   // Track expanded groups state
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     group_overview: true,
+    group_neighborhood: true,
     group_cms: true,
     group_admin: true
   });

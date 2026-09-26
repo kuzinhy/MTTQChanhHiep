@@ -85,7 +85,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({ currentUser }) =
       );
       if (match) return match.id;
     }
-    return list[0]?.id || 'dh1';
+    return list[0]?.id || 'kp1';
   });
 
   // Active view

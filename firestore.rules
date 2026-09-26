@@ -2,66 +2,287 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions ---
-    function isSignedIn() { return request.auth != null; }
-    
-    // Get user role document from staff_users
-    function getUserRole(uid) {
-      return get(/databases/$(database)/documents/staff_users/$(uid)).data.role;
-    }
-    
-    function isAdmin() { return isSignedIn() && getUserRole(request.auth.uid) == 'admin'; }
-    function isStaff() { return isSignedIn() && (getUserRole(request.auth.uid) == 'admin' || getUserRole(request.auth.uid) == 'staff'); }
-    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    // =========================================================================
+    // RBAC Security Helper Functions (Role-Based Access Control)
+    // =========================================================================
 
-    // --- Collections ---
-
-    // 1. Public Portal (Read-only for guests, Admin write)
-    match /articles/{articleId} { allow read: if true; allow write: if isAdmin(); }
-    match /documents/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /competitions/{compId} { allow read: if true; allow write: if isAdmin(); }
-    match /memberOrganizations/{orgId} { allow read: if true; allow write: if isAdmin(); }
-    match /areas/{areaId} { allow read: if true; allow write: if isAdmin(); }
-    match /organizations/{orgId} { allow read: if true; allow write: if isAdmin(); }
-
-    // 2. Public Opinions (Owner access + Staff/Admin access)
-    match /publicOpinions/{opinionId} {
-      allow read: if isOwner(resource.data.userId) || isStaff();
-      allow create: if isSignedIn();
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    // 1. Authentication Status
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // 3. Submissions/Registrations
-    match /competitionSubmissions/{subId} {
-      allow read: if isOwner(resource.data.userId) || isStaff();
-      allow create: if isSignedIn();
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
-    }
-    match /volunteerRegistrations/{regId} {
-      allow read: if isOwner(resource.data.userId) || isStaff();
-      allow create: if isSignedIn();
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    // 2. User Document Checkers
+    function hasUserDoc() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
-    // 4. Notifications/Email (User restricted)
-    match /notifications/{notiId} {
-      allow read: if isOwner(resource.data.userId) || isStaff();
-      allow create: if isSignedIn();
-      allow update: if isOwner(resource.data.userId) || isAdmin();
-      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    function hasStaffDoc() {
+      return isSignedIn() && exists(/databases/$(database)/documents/staffUsers/$(request.auth.uid));
     }
-    match /email_logs/{logId} { allow read, write: if isStaff(); }
 
-    // 5. System/Internal (Admin only)
-    match /system_settings/{settingsId} { allow read: if true; allow write: if isAdmin(); }
-    match /staff_users/{userId} {
-      allow read: if isOwner(userId) || isStaff();
-      allow write: if isAdmin();
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
-    match /audit_logs/{logId} { allow read, write: if isAdmin(); }
-    match /internal_notes/{noteId} { allow read, write: if isStaff(); }
 
-    // Catch-all: Deny all by default
-    match /{document=**} { allow read, write: if false; }
+    function getStaffData() {
+      return get(/databases/$(database)/documents/staffUsers/$(request.auth.uid)).data;
+    }
+
+    // 3. Active User Validation (Account not locked or suspended)
+    function isActiveUser() {
+      return isSignedIn() && (
+        (hasUserDoc() && (getUserData().status == 'active' || getUserData().active != false)) ||
+        (hasStaffDoc() && (getStaffData().status == 'active' || getStaffData().active != false))
+      );
+    }
+
+    // 4. Role Extractor
+    function getUserRole() {
+      return hasUserDoc() ? getUserData().role : (hasStaffDoc() ? getStaffData().role : 'member');
+    }
+
+    // 5. Super Admin Check
+    function isSuperAdmin() {
+      return isActiveUser() && (
+        getUserRole() == 'super_admin' ||
+        getUserRole() == 'SUPER_ADMIN' ||
+        getUserRole() == 'MTTQ_ADMIN'
+      );
+    }
+
+    // 6. Admin Check (Super Admin, MTTQ Admin, Admin, Manager, Leader)
+    function isAdmin() {
+      return isActiveUser() && (
+        isSuperAdmin() ||
+        getUserRole() == 'admin' ||
+        getUserRole() == 'ADMIN' ||
+        getUserRole() == 'MANAGER' ||
+        getUserRole() == 'LEADER'
+      );
+    }
+
+    // 7. Staff & Editor Check
+    function isStaff() {
+      return isActiveUser() && (
+        isAdmin() ||
+        getUserRole() == 'editor' ||
+        getUserRole() == 'EDITOR' ||
+        getUserRole() == 'PUBLISHER' ||
+        getUserRole() == 'REVIEWER' ||
+        getUserRole() == 'STAFF' ||
+        getUserRole() == 'CLERK' ||
+        getUserRole() == 'SPECIALIST' ||
+        getUserRole() == 'ORGANIZATION_ADMIN' ||
+        getUserRole() == 'CONTEST_MANAGER' ||
+        getUserRole() == 'FEEDBACK_OFFICER' ||
+        getUserRole() == 'NEIGHBORHOOD_LEADER' ||
+        getUserRole() == 'CONTRIBUTOR' ||
+        getUserRole() == 'member'
+      );
+    }
+
+    // 8. Granular Permission Checker (by permission key)
+    function hasPermission(permission) {
+      return isActiveUser() && (
+        isSuperAdmin() ||
+        (hasUserDoc() && (
+          (getUserData().permissions != null && getUserData().permissions[permission] == true) ||
+          (getUserData().permissionMap != null && getUserData().permissionMap[permission] == true)
+        )) ||
+        (hasStaffDoc() && (
+          (getStaffData().permissionMap != null && getStaffData().permissionMap[permission] == true) ||
+          (getStaffData().permissions != null && (
+            'all' in getStaffData().permissions ||
+            permission in getStaffData().permissions
+          ))
+        ))
+      );
+    }
+
+    // =========================================================================
+    // Collection Security Rules
+    // =========================================================================
+
+    // 1. Articles & News (Public Read, RBAC Controlled Write)
+    match /articles/{id} {
+      allow read: if true;
+      allow create: if isSuperAdmin() || isAdmin() || hasPermission('post_create') || isStaff();
+      allow update: if isSuperAdmin() || isAdmin() || hasPermission('post_edit') || hasPermission('post_publish') || isStaff();
+      allow delete: if isSuperAdmin() || isAdmin() || hasPermission('post_delete');
+    }
+
+    // 2. Official Documents & Circulars
+    match /documents/{id} {
+      allow read: if true;
+      allow create: if isSuperAdmin() || isAdmin() || hasPermission('document_create') || isStaff();
+      allow update: if isSuperAdmin() || isAdmin() || hasPermission('document_edit') || isStaff();
+      allow delete: if isSuperAdmin() || isAdmin() || hasPermission('document_delete');
+    }
+
+    // 3. Competitions & Questions
+    match /competitions/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || hasPermission('competition_manage') || isStaff();
+    }
+
+    // 4. Member Organizations, Areas, Templates, Cultural Media & Files
+    match /memberOrganizations/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /areas/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /organizations/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /templates/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /driveFiles/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff() || hasPermission('media_upload');
+    }
+    match /culturalMedia/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff() || hasPermission('cultural_manage');
+    }
+
+    // 5. Ho Chi Minh Cultural Space
+    match /hcm_exhibits/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_works/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_audios/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_videos/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_quotes/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_footsteps/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_chanh_hiep_actions/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_chapters/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_events/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_cover/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+
+    // 6. Public Submissions & Citizen Contributions
+    match /publicOpinions/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSuperAdmin() || isAdmin() || hasPermission('opinion_manage') || isStaff();
+    }
+    match /competitionSubmissions/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSuperAdmin() || isAdmin() || hasPermission('competition_manage') || isStaff();
+    }
+    match /volunteers/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /article_submissions/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSuperAdmin() || isAdmin() || hasPermission('post_publish') || isStaff();
+    }
+    match /feedback/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+
+    // 7. Internal Tasks, Events, Notes, AI Chats & Audit Logs
+    match /tasks/{id} {
+      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /events/{id} {
+      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /notes/{id} {
+      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /knowledgeNotes/{id} {
+      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /aiChats/{id} {
+      allow read, write: if isSignedIn();
+    }
+    match /auditLogs/{id} {
+      allow read: if isSuperAdmin() || isAdmin() || hasPermission('audit_view') || isStaff();
+      allow write: if isSignedIn();
+    }
+
+    // 8. User Management (users & staffUsers collections)
+    // - Authenticated users can create/update their own profile on login / sync
+    // - Super Admin and Admins can create, update, and manage all users
+    // - Super Admin can delete any user; Admins cannot delete Super Admins or themselves
+    match /users/{id} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && (
+        request.auth.uid == id ||
+        isSuperAdmin() ||
+        isAdmin() ||
+        hasPermission('user_manage')
+      );
+      allow delete: if isSuperAdmin() || (
+        isAdmin() &&
+        hasPermission('user_manage') &&
+        request.auth.uid != id
+      );
+    }
+
+    match /staffUsers/{id} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && (
+        request.auth.uid == id ||
+        isSuperAdmin() ||
+        isAdmin() ||
+        hasPermission('user_manage')
+      );
+      allow delete: if isSuperAdmin() || (
+        isAdmin() &&
+        hasPermission('user_manage') &&
+        request.auth.uid != id
+      );
+    }
+
+    // 9. System Settings & Realtime Presence
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || hasPermission('settings_manage');
+    }
+    match /admin_notifications/{id} {
+      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /admin_presence/{id} {
+      allow read, write: if isSignedIn();
+    }
+    match /entity_editing_presence/{id} {
+      allow read, write: if isSignedIn();
+    }
+    match /admin_notification_preferences/{id} {
+      allow read, write: if isSignedIn();
+    }
+    match /notifications/{id} {
+      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /email_logs/{id} {
+      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /notification_reads/{id} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 10. Visitor Analytics
+    match /analytics_stats/{id} {
+      allow read, write: if true;
+    }
+    match /active_visitors/{id} {
+      allow read, write: if true;
+    }
+
+    // Default catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

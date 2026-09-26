@@ -1,8 +1,12 @@
 import { UserRole, StaffUser } from '../types';
+import { hasPermission, isSuperAdmin, isAdmin } from '../services/permissionService';
+
+export * from '../services/permissionService';
 
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
   PUBLIC: 0,
   CONTRIBUTOR: 1,
+  NEIGHBORHOOD_LEADER: 2,
   STAFF: 2,
   CLERK: 3,
   YOUTH_UNION: 4,
@@ -20,11 +24,12 @@ export const ROLE_HIERARCHY: Record<UserRole, number> = {
   SUPER_ADMIN: 13
 };
 
-// Map office view IDs to minimum required roles
+// Map office view IDs to minimum required roles / permissions
 export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   dashboard: 'STAFF',
   profile: 'STAFF',
   neighborhood_map: 'STAFF',
+  neighborhood_management: 'STAFF',
   opinions: 'FEEDBACK_OFFICER',
   tasks: 'STAFF',
   ai_assistant: 'STAFF',
@@ -48,7 +53,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   youth_union_workspace: 'STAFF',
   neighborhood_emulation: 'STAFF',
   analytics: 'STAFF',
-  users: 'STAFF',
+  users: 'ADMIN',
   audit_logs: 'STAFF',
   notifications: 'STAFF',
   email_settings: 'ADMIN'
@@ -61,9 +66,29 @@ export function hasMinRole(userRole: UserRole | undefined, requiredRole: UserRol
   return currentLevel >= requiredLevel;
 }
 
-export function canAccessView(userRole: UserRole | undefined, viewId: string): boolean {
+export function canAccessView(user: StaffUser | UserRole | undefined, viewId: string): boolean {
+  if (!user) return false;
+  
+  // If passed user object
+  if (typeof user === 'object') {
+    if (!user.active && user.status === 'inactive') return false;
+    if (isSuperAdmin(user)) return true;
+
+    // Granular permission checks for specific views
+    if (viewId === 'users') return hasPermission(user, 'user_manage') || isAdmin(user);
+    if (viewId === 'email_settings') return hasPermission(user, 'settings_manage') || isSuperAdmin(user);
+    if (viewId === 'audit_logs') return hasPermission(user, 'audit_view') || isAdmin(user);
+    if (viewId === 'opinions') return hasPermission(user, 'opinion_manage') || hasMinRole(user.role, 'FEEDBACK_OFFICER');
+    if (viewId === 'surveys_admin') return hasPermission(user, 'survey_manage') || hasMinRole(user.role, 'REVIEWER');
+    if (viewId === 'competitions_admin' || viewId === 'question_banks') return hasPermission(user, 'competition_manage') || hasMinRole(user.role, 'CONTEST_MANAGER');
+
+    const minRole = VIEW_ROLE_REQUIREMENTS[viewId] || 'STAFF';
+    return hasMinRole(user.role, minRole);
+  }
+
+  // If passed role string directly
   const minRole = VIEW_ROLE_REQUIREMENTS[viewId] || 'STAFF';
-  return hasMinRole(userRole, minRole);
+  return hasMinRole(user, minRole);
 }
 
 export function getRoleLabel(role: UserRole): string {
@@ -83,6 +108,7 @@ export function getRoleLabel(role: UserRole): string {
     case 'YOUTH_UNION': return 'Chi Đoàn';
     case 'CLERK': return 'Cán Bộ Văn Thư';
     case 'STAFF': return 'Cán Bộ MTTQ';
+    case 'NEIGHBORHOOD_LEADER': return 'Trưởng Ban CTMT Khu Phố';
     case 'CONTRIBUTOR': return 'Cộng Tác Viên';
     case 'PUBLIC': return 'Người Dân';
     default: return role;
@@ -113,6 +139,8 @@ export function getRoleBadgeStyle(role: UserRole): string {
     case 'CLERK':
     case 'STAFF':
       return 'bg-emerald-700 text-white font-semibold';
+    case 'NEIGHBORHOOD_LEADER':
+      return 'bg-amber-600 text-white font-bold border border-amber-300';
     case 'CONTRIBUTOR':
       return 'bg-stone-600 text-white font-medium';
     default:

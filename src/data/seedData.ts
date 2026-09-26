@@ -16,38 +16,9 @@ import {
   MemberOrganization
 } from '../types';
 import { ARTICLE_BANNERS, getOfficialCadreAvatarSvg } from '../utils/officialImages';
+import { OFFICIAL_21_NEIGHBORHOODS } from './neighborhoodsList';
 
 export const INITIAL_ARTICLES: Article[] = [
-  {
-    id: 'art-chanh-hiep-01',
-    title: 'Đoàn phường Chánh Hiệp công bố quyết định kết thúc hoạt động, thành lập Chi đoàn khu phố',
-    slug: 'doan-phuong-chanh-hiep-cong-bo-quyet-dinh-ket-thuc-hoat-dong-thanh-lap-chi-doan-khu-pho',
-    category: 'Hoạt động Mặt trận',
-    summary: 'Ngày 09/8/2026, Đoàn phường Chánh Hiệp tổ chức Hội nghị công bố Quyết định kết thúc hoạt động, chuyển giao và thành lập Chi đoàn khu phố trực thuộc nhằm tinh gọn bộ máy và nâng cao hiệu quả hoạt động cơ sở.',
-    content: 'Ngày 09/8/2026, Đoàn phường Chánh Hiệp tổ chức Hội nghị công bố Quyết định kết thúc hoạt động Đoàn cấp phường, chuyển giao tổ chức đoàn viên về các Chi đoàn khu phố nhằm đổi mới phương thức hoạt động, phát huy sức trẻ xung kích tại cơ sở theo đúng tinh thần nghị quyết của cấp trên.',
-    featuredImage: 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=1200&q=80',
-    tags: ['Đoàn thanh niên', 'Chi đoàn khu phố', 'Chánh Hiệp'],
-    authorName: 'Ban Tuyên giáo MTTQ',
-    publishDate: '2026-09-04',
-    views: 1256,
-    isFeatured: true,
-    status: 'Published'
-  },
-  {
-    id: 'art-chanh-hiep-02',
-    title: 'Lãnh đạo phường Chánh Hiệp thăm, chúc mừng các cơ sở tôn giáo nhân dịp Đại lễ Vu Lan',
-    slug: 'lanh-dao-phuong-chanh-hiep-tham-chuc-mung-cac-co-so-ton-giao-nhan-dip-dai-le-vu-lan',
-    category: 'An sinh xã hội',
-    summary: 'Nhân Đại lễ Vu Lan báo hiếu năm 2026, phường Chánh Hiệp tổ chức các đoàn đến thăm, chúc mừng các cơ sở tôn giáo trên địa bàn, biểu dương tinh thần đại đoàn kết toàn dân tộc.',
-    content: 'Đoàn đại biểu Đảng ủy - HĐND - UBND - UBMTTQ Việt Nam phường Chánh Hiệp đã đến thăm và chúc mừng các chức sắc tôn giáo, chư tôn đức tăng ni và đồng bào phật tử nhân mùa Vu Lan Báo hiếu.',
-    featuredImage: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=800&q=80',
-    tags: ['Đại lễ Vu Lan', 'Tôn giáo', 'Đại đoàn kết'],
-    authorName: 'Ủy ban MTTQ',
-    publishDate: '2026-08-31',
-    views: 842,
-    isFeatured: true,
-    status: 'Published'
-  },
   {
     id: 'art-chanh-hiep-03',
     title: 'Phường Chánh Hiệp công bố quyết định về công tác cán bộ',
@@ -152,7 +123,7 @@ export const INITIAL_ARTICLES: Article[] = [
     views: 672,
     isFeatured: false,
     status: 'Published'
-  }
+  },
 ];
 
 export const INITIAL_DOCUMENTS: OfficialDocument[] = [
@@ -1361,6 +1332,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     role: 'SUPER_ADMIN',
     permissions: ['all'],
     active: true,
+    userLevel: 'WARD',
     createdAt: '2026-01-01'
   },
   {
@@ -1375,6 +1347,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     role: 'ADMIN',
     permissions: ['all'],
     active: true,
+    userLevel: 'WARD',
     createdAt: '2026-01-01'
   },
   {
@@ -1387,6 +1360,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     role: 'MANAGER',
     permissions: ['manage_tasks', 'manage_cms', 'manage_opinions'],
     active: true,
+    userLevel: 'WARD',
     createdAt: '2026-01-01'
   },
   {
@@ -1399,8 +1373,27 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     role: 'EDITOR',
     permissions: ['write_articles', 'manage_competitions'],
     active: true,
+    userLevel: 'WARD',
     createdAt: '2026-01-01'
-  }
+  },
+  // 21 Neighborhood Leader accounts (Each neighborhood has its own leader account with locked scope)
+  ...OFFICIAL_21_NEIGHBORHOODS.map((nh, idx) => ({
+    id: `staff-kp-${idx + 1}`,
+    email: `kp${idx + 1}@chanhhiep.gov.vn`,
+    fullname: nh.leaderName,
+    position: `Trưởng Ban CTMT Khu phố ${nh.name}`,
+    department: `Ban Điều hành Khu phố ${nh.name}`,
+    avatar: getOfficialCadreAvatarSvg(nh.leaderName, `Khu phố ${nh.name}`),
+    phone: nh.phone,
+    bio: `Trưởng Ban Công tác Mặt trận Khu phố ${nh.name} - Quản trị và điều hành địa bàn Khu phố ${nh.name}.`,
+    role: 'NEIGHBORHOOD_LEADER' as const,
+    permissions: ['neighborhood_management'],
+    active: true,
+    assignedNeighborhoodId: nh.id,
+    assignedNeighborhoodName: nh.name,
+    userLevel: 'NEIGHBORHOOD' as const,
+    createdAt: '2026-01-01'
+  }))
 ];
 
 export const INITIAL_AUDIT_LOGS: AuditLog[] = [

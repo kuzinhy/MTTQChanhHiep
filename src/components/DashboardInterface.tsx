@@ -91,10 +91,12 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     overview: boolean;
     cms: boolean;
     admin: boolean;
+    neighborhood: boolean;
   }>({
     overview: false,
     cms: false,
     admin: false,
+    neighborhood: false,
   });
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
@@ -133,11 +135,11 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     setTimeout(() => setNotificationToast(null), 3500);
   };
 
-  const handleGroupClick = (groupKey: 'overview' | 'cms' | 'admin') => {
+  const handleGroupClick = (groupKey: 'overview' | 'cms' | 'admin' | 'neighborhood') => {
     setActiveGroup(groupKey);
   };
 
-  const areAllExpanded = expandedCards.overview && expandedCards.cms && expandedCards.admin;
+  const areAllExpanded = expandedCards.overview && expandedCards.cms && expandedCards.admin && expandedCards.neighborhood;
 
   const toggleAllExpanded = () => {
     const nextState = !areAllExpanded;
@@ -145,10 +147,11 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       overview: nextState,
       cms: nextState,
       admin: nextState,
+      neighborhood: nextState,
     });
   };
 
-  const toggleExpandCard = (key: 'overview' | 'cms' | 'admin') => {
+  const toggleExpandCard = (key: 'overview' | 'cms' | 'admin' | 'neighborhood') => {
     setExpandedCards(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
@@ -333,6 +336,64 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     },
   ];
 
+  // 4. NHÓM 4: QUẢN LÝ KHU PHỐ (6 CHỨC NĂNG - THEO YÊU CẦU & Ý TƯỞNG NÂNG CẤP)
+  const neighborhoodItems: ActionItem[] = [
+    {
+      id: 'neighborhood_management',
+      title: 'Quản lý Khu phố Số',
+      desc: 'Trung tâm quản trị số hóa địa bàn 21 khu phố Chánh Hiệp',
+      icon: Building2,
+      badge: '21 KP',
+      badgeType: 'amber',
+      action: () => onGoToOffice && onGoToOffice('neighborhood_management')
+    },
+    {
+      id: 'neighborhood_households',
+      title: 'Sổ bộ & Hộ dân',
+      desc: 'Quản lý 12.850 hộ dân, nhân khẩu, hộ chính sách và kinh doanh',
+      icon: Users,
+      badge: 'HỘ DÂN',
+      badgeType: 'amber',
+      action: () => onGoToOffice && onGoToOffice('neighborhood_management')
+    },
+    {
+      id: 'neighborhood_broadcasts',
+      title: 'Phát thanh & Thông báo số',
+      desc: 'Gửi thông báo tức thì qua Zalo, SMS & loa số tới từng khu phố',
+      icon: Radio,
+      badge: 'ZALO/SMS',
+      badgeType: 'amber',
+      action: () => onGoToOffice && onGoToOffice('neighborhood_management')
+    },
+    {
+      id: 'neighborhood_petitions',
+      title: 'Tiếp nhận Phản ánh Dân',
+      desc: 'Tiếp nhận và giải quyết hiện trường trật tự, môi trường, an sinh',
+      icon: MessageSquare,
+      badge: 'PHẢN ÁNH',
+      badgeType: 'amber',
+      action: () => onGoToOffice && onGoToOffice('neighborhood_management')
+    },
+    {
+      id: 'neighborhood_registrations',
+      title: 'Người dân Đăng ký',
+      desc: 'Duyệt hồ sơ Gia đình văn hóa, trợ cấp, cấp thùng rác, tạm trú',
+      icon: FileCheck,
+      badge: 'ĐĂNG KÝ',
+      badgeType: 'amber',
+      action: () => onGoToOffice && onGoToOffice('neighborhood_management')
+    },
+    {
+      id: 'neighborhood_cadres',
+      title: 'Ban Cán sự & Thi đua',
+      desc: 'Danh bạ 21 Ban điều hành khu phố và phong trào thi đua cơ sở',
+      icon: Award,
+      badge: 'CÁN BỘ',
+      badgeType: 'amber',
+      action: () => onGoToOffice && onGoToOffice('neighborhood_management')
+    },
+  ];
+
   // Search filter
   const filterItems = (items: ActionItem[]) => {
     if (!searchQuery.trim()) return items;
@@ -351,9 +412,21 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
   );
 
   // Back button
-  const GroupDetailView = ({ group }: { group: 'overview' | 'cms' | 'admin' }) => {
-    const items = group === 'overview' ? overviewItems : group === 'cms' ? cmsItems : adminItems;
-    const groupTitle = group === 'overview' ? 'TỔNG QUAN & ĐIỀU HÀNH' : group === 'cms' ? 'NGHIỆP VỤ & CỔNG TT' : 'QUẢN TRỊ HỆ THỐNG';
+  const GroupDetailView = ({ group }: { group: 'overview' | 'cms' | 'admin' | 'neighborhood' }) => {
+    const items = group === 'overview' 
+      ? overviewItems 
+      : group === 'cms' 
+      ? cmsItems 
+      : group === 'admin' 
+      ? adminItems 
+      : neighborhoodItems;
+    const groupTitle = group === 'overview' 
+      ? 'TỔNG QUAN & ĐIỀU HÀNH' 
+      : group === 'cms' 
+      ? 'NGHIỆP VỤ & CỔNG TT' 
+      : group === 'admin' 
+      ? 'QUẢN TRỊ HỆ THỐNG' 
+      : 'QUẢN LÝ KHU PHỐ';
 
     return (
       <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-12 py-6 animate-in fade-in zoom-in-95 duration-300">
@@ -575,14 +648,14 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xs sm:text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-[#071753] via-blue-900 to-indigo-900 uppercase tracking-wider">
-                  3 NHÓM CHỨC NĂNG QUẢN TRỊ VĂN PHÒNG SỐ
+                  4 NHÓM CHỨC NĂNG QUẢN TRỊ VĂN PHÒNG SỐ
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-2xs">
                   GOOGLE STUDIO MESH
                 </span>
               </div>
               <p className="text-[11px] text-[#536A95] font-medium hidden sm:block mt-0.5">
-                Bảng điều khiển tác nghiệp hành chính thông minh • 20 phân hệ nghiệp vụ
+                Bảng điều khiển tác nghiệp hành chính thông minh • 26 phân hệ nghiệp vụ
               </p>
             </div>
           </div>
@@ -603,16 +676,16 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
               ) : (
                 <>
                   <Maximize2 className="w-3.5 h-3.5 text-blue-200 group-hover/btn:scale-110 transition-transform" />
-                  <span className="relative">Mở rộng tất cả (20 chức năng)</span>
+                  <span className="relative">Mở rộng tất cả (26 chức năng)</span>
                 </>
               )}
             </button>
           </div>
         </motion.div>
 
-        {/* 3 WORKSPACE CARDS MATCHING EXACT USER SCREENSHOTS - Google AI Studio Styled with Radiant Gradient Borders */}
-        <div className="w-full max-w-[75%] mx-auto mb-6">
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+        {/* 4 WORKSPACE CARDS - Google AI Studio Styled with Radiant Gradient Borders */}
+        <div className="w-full max-w-[96%] mx-auto mb-6">
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4.5 items-stretch">
             
             {/* ========================================================================= */}
             {/* NHÓM 1: TỔNG QUAN & ĐIỀU HÀNH (6 CHỨC NĂNG - THEO ẢNH 1) */}
@@ -941,6 +1014,117 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
                   className="font-bold text-purple-700 hover:text-purple-900 transition-colors cursor-pointer flex items-center gap-1 hover:gap-1.5"
                 >
                   <span>Cán bộ</span>
+                  <ArrowRight className="w-2.5 h-2.5" />
+                </button>
+              </div>
+
+            </motion.div>
+
+            {/* ========================================================================= */}
+            {/* NHÓM 4: QUẢN LÝ KHU PHỐ (6 CHỨC NĂNG - THEO YÊU CẦU & Ý TƯỞNG NÂNG CẤP) */}
+            {/* ========================================================================= */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.35, ease: 'easeOut' }}
+              whileHover={{ y: -4 }}
+              className="studio-card-amber p-3.5 sm:p-4.5 flex flex-col justify-between h-full group"
+            >
+              <div>
+                {/* Thẻ Header có Icon Minh họa Nhóm */}
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-amber-100/60">
+                  <div className="flex items-center gap-2.5">
+                    {/* 01 Icon minh họa đi kèm thẻ */}
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-orange-600 to-amber-700 text-white flex items-center justify-center shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all shrink-0">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-black text-xs sm:text-[13px] text-[#071753] tracking-tight leading-tight uppercase">
+                          QUẢN LÝ KHU PHỐ
+                        </h3>
+                        <span className="w-4 h-4 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs">
+                          6
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[#536A95] font-medium leading-tight mt-0.5">
+                        Hộ dân, thông báo số, phản ánh & đăng ký
+                      </p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => toggleExpandCard('neighborhood')}
+                    className="w-7 h-7 rounded-full bg-amber-50/80 hover:bg-amber-100 text-amber-700 flex items-center justify-center transition-all cursor-pointer shrink-0 hover:scale-110 shadow-2xs"
+                    title={expandedCards.neighborhood ? "Thu gọn về ban đầu" : "Mở rộng xem thêm chức năng"}
+                  >
+                    {expandedCards.neighborhood ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+
+                {/* Danh sách chức năng (Mặc định 4 mục để các thẻ dài bằng nhau) */}
+                <div className="space-y-2 animate-in fade-in duration-300">
+                  {filterItems(expandedCards.neighborhood ? neighborhoodItems : neighborhoodItems.slice(0, 4)).map((item) => {
+                    const IconComp = item.icon;
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={item.action}
+                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-amber-400 hover:shadow-[0_8px_20px_-4px_rgba(217,119,6,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group/row"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 rounded-lg bg-amber-50/80 text-amber-600 group-hover/row:bg-gradient-to-r group-hover/row:from-amber-600 via-orange-600 to-amber-700 group-hover/row:text-white transition-all shadow-2xs group-hover/row:shadow-xs">
+                            <IconComp className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-bold text-slate-800 truncate block group-hover/row:text-amber-800 transition-colors">
+                              {item.title}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 ml-2">
+                          {item.badge && (
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-amber-50 group-hover/row:text-amber-700 transition-colors">
+                              {item.badge}
+                            </span>
+                          )}
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-amber-600 group-hover/row:translate-x-0.5 transition-all" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Nút bấm mở rộng nếu đang giấu chức năng */}
+                {neighborhoodItems.length > 4 && (
+                  <button
+                    onClick={() => toggleExpandCard('neighborhood')}
+                    className="w-full mt-2 py-1.5 px-2 text-[10px] font-extrabold text-amber-700 hover:text-amber-900 hover:bg-amber-50/90 rounded-xl transition-all flex items-center justify-center gap-1 border border-dashed border-amber-300/80 cursor-pointer shadow-2xs hover:border-amber-400"
+                  >
+                    {expandedCards.neighborhood ? (
+                      <>
+                        <ChevronUp className="w-3 h-3" />
+                        <span>Thu gọn chức năng</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-3 h-3" />
+                        <span>Mở rộng thêm +2 chức năng</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Chân thẻ mở quản trị khu phố */}
+              <div className="pt-2.5 mt-3 border-t border-amber-100/60 flex items-center justify-between text-[10px]">
+                <span className="text-[#536A95] font-semibold">6 phân hệ</span>
+                <button 
+                  onClick={() => onGoToOffice && onGoToOffice('neighborhood_management')}
+                  className="font-bold text-amber-700 hover:text-amber-900 transition-colors cursor-pointer flex items-center gap-1 hover:gap-1.5"
+                >
+                  <span>Vào Quản lý Khu phố</span>
                   <ArrowRight className="w-2.5 h-2.5" />
                 </button>
               </div>

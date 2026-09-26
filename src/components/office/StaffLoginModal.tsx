@@ -30,11 +30,6 @@ import {
   updateProfile
 } from 'firebase/auth';
 
-export const ADMIN_EMAILS = [
-  'nguyenhuy.thudaumot@gmail.com',
-  'buivanhuy0705@gmail.com'
-];
-
 interface StaffLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -74,63 +69,40 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
   if (!isOpen) return null;
 
   // Process user role after successful authentication
-  const handleAuthenticatedUser = (email: string, displayName?: string | null, photoURL?: string | null) => {
+  const handleAuthenticatedUser = async (email: string, displayName?: string | null, photoURL?: string | null, authUid?: string) => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // Check if user is in Admin list
-    if (ADMIN_EMAILS.includes(cleanEmail)) {
-      const existingUser = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
-      const adminUser: StaffUser = existingUser ? { ...existingUser, active: true } : {
-        id: cleanEmail.startsWith('nguyenhuy') ? 'staff-1' : 'staff-2',
-        email: cleanEmail,
-        fullname: cleanEmail.startsWith('nguyenhuy') ? 'Nguyễn Huy' : (displayName || 'Bùi Văn Huy'),
-        position: cleanEmail.startsWith('nguyenhuy') ? 'Trưởng Ban Thường trực MTTQ' : 'Phó Chủ tịch MTTQ',
-        department: 'Ban Thường trực',
-        role: cleanEmail.startsWith('nguyenhuy') ? 'SUPER_ADMIN' : 'ADMIN',
-        permissions: ['all'],
-        active: true,
-        avatar: photoURL || undefined,
-        createdAt: '2026-01-01'
-      };
-      CloudDatabase.saveStaffUser(adminUser).catch(console.warn);
-      onLoginSuccess(adminUser);
-      onClose();
-      return;
+    // Refresh token claims
+    try {
+      await auth.currentUser?.getIdToken(true);
+    } catch {
+      // Ignored
     }
 
-    // Check if user is in staffUsers list
-    const match = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
+    try {
+      const resolvedUser = await CloudDatabase.syncAuthUserProfile(
+        authUid || auth.currentUser?.uid || ('staff-' + Date.now()),
+        cleanEmail,
+        displayName,
+        photoURL,
+        staffUsers
+      );
 
-    if (match) {
-      if (match.active) {
-        CloudDatabase.saveStaffUser(match).catch(console.warn);
-        onLoginSuccess(match);
+      if (resolvedUser.active !== false) {
+        onLoginSuccess(resolvedUser);
         onClose();
       } else {
         setErrorMessage(`TÀI KHOẢN ĐANG CHỜ DUYỆT: Email "${cleanEmail}" đã xác thực nhưng đang chờ Ban Thường trực phê duyệt kích hoạt.`);
       }
-    } else {
-      // Auto-register pending staff record for new staff member
-      const namePart = displayName || cleanEmail.split('@')[0].replace(/[._]/g, ' ');
-      const formattedName = namePart ? namePart.charAt(0).toUpperCase() + namePart.slice(1) : 'Cán bộ MTTQ';
-      
-      const newStaffUser: StaffUser = {
-        id: 'staff-user-' + Date.now(),
-        email: cleanEmail,
-        fullname: formattedName,
-        position: 'Cán bộ MTTQ',
-        department: 'Mặt trận Phường Chánh Hiệp',
-        role: 'STAFF',
-        permissions: ['read'],
-        active: false, // Inactive pending admin approval for strict security
-        avatar: photoURL || undefined,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      CloudDatabase.saveStaffUser(newStaffUser).catch(console.warn);
-      if (onRegisterUser) {
-        onRegisterUser(newStaffUser);
+    } catch (err: any) {
+      console.error('[Auth] Error syncing user profile:', err);
+      const match = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
+      if (match && match.active !== false) {
+        onLoginSuccess(match);
+        onClose();
+      } else {
+        setErrorMessage(`Không thể đồng bộ hồ sơ cán bộ: ${err?.message || 'Vui lòng thử lại.'}`);
       }
-      setErrorMessage(`ĐÃ TẠO HỒ SƠ: Đã khởi tạo thông tin cho cán bộ "${formattedName}" (${cleanEmail}). Hồ sơ đang chờ Ban Thường trực duyệt kích hoạt.`);
     }
   };
 
@@ -173,7 +145,6 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
     let authenticated = false;
 
     try {
-      const isAdmin = ADMIN_EMAILS.includes(cleanEmail);
       const staffMatch = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
 
       // 1. Try Firebase Auth authentication first
@@ -182,14 +153,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
         const user = userCredential.user;
 
         if (user) {
-          if (!user.emailVerified && !isAdmin) {
-            setUnverifiedEmail(cleanEmail);
-            setErrorMessage(`YÊU CẦU XÁC THỰC EMAIL: Email "${cleanEmail}" chưa được xác thực. Vui lòng kiểm tra hộp thư và nhấp vào liên kết xác thực trước khi đăng nhập công vụ.`);
-            setIsLoading(false);
-            return;
-          }
-
-          handleAuthenticatedUser(cleanEmail, user.displayName, user.photoURL);
+          await handleAuthenticatedUser(cleanEmail, user.displayName, user.photoURL, user.uid);
           authenticated = true;
           return;
         }
@@ -197,22 +161,16 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
         console.warn('[Auth] Firebase sign-in notice (falling back to directory auth):', authErr?.code || authErr);
       }
 
-      // 2. Seamless Authentication Fallback (Prevents auth/operation-not-allowed or missing Firebase Auth setup from blocking users)
-      if (isAdmin) {
-        handleAuthenticatedUser(cleanEmail, cleanEmail.includes('buivanhuy') ? 'Bùi Văn Huy' : 'Nguyễn Huy', null);
-        authenticated = true;
-        return;
-      }
-
+      // 2. Seamless Authentication Fallback (for existing authorized staff)
       if (staffMatch) {
-        handleAuthenticatedUser(cleanEmail, staffMatch.fullname, staffMatch.avatar);
+        await handleAuthenticatedUser(cleanEmail, staffMatch.fullname, staffMatch.avatar, staffMatch.id);
         authenticated = true;
         return;
       }
 
-      // 3. Fallback for any staff user input with password
-      if (passwordInput.length >= 3) {
-        handleAuthenticatedUser(cleanEmail, cleanEmail.split('@')[0], null);
+      // 3. Fallback for any staff user input with valid password length
+      if (passwordInput.length >= 6) {
+        await handleAuthenticatedUser(cleanEmail, cleanEmail.split('@')[0], null);
         authenticated = true;
         return;
       }
@@ -328,18 +286,19 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
       }
 
       // 2. Save StaffUser record in Firestore & LocalStorage
-      const isAdminEmail = ADMIN_EMAILS.includes(cleanRegEmail);
       const newStaffUser: StaffUser = {
         id: 'staff-' + Date.now(),
         email: cleanRegEmail,
         fullname: trimmedName,
         position: regPosition || 'Cán bộ MTTQ',
         department: 'Mặt trận Phường Chánh Hiệp',
-        role: isAdminEmail ? 'SUPER_ADMIN' : 'STAFF',
+        role: 'STAFF',
         phone: regPhone || undefined,
         tempPassword: regPassword, // Stored for internal credential validation fallback
-        permissions: isAdminEmail ? ['all'] : ['read'],
-        active: isAdminEmail, // Admin accounts active; regular staff pending admin approval
+        permissions: ['read', 'write'],
+        active: false, // Inactive pending admin approval
+        status: 'inactive',
+        organizationId: 'mttq-chanhhiep',
         createdAt: new Date().toISOString().split('T')[0]
       };
 

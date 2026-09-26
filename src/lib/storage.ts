@@ -47,6 +47,16 @@ import {
   EmailNotification
 } from '../types';
 import {
+  INITIAL_HOUSEHOLDS,
+  INITIAL_BROADCASTS,
+  INITIAL_PETITIONS,
+  INITIAL_REGISTRATIONS,
+  NeighborhoodHousehold,
+  NeighborhoodBroadcast,
+  NeighborhoodPetition,
+  NeighborhoodRegistration
+} from '../data/neighborhoodManagementData';
+import {
   sortArticlesNewestFirst,
   sortDocumentsNewestFirst,
   sortCompetitionsNewestFirst,
@@ -108,7 +118,11 @@ const STORAGE_KEYS = {
   ARTICLE_SUBMISSIONS: 'mttq_chanhhiep_article_submissions_v1',
   FEEDBACK: 'mttq_chanhhiep_feedback_v1',
   NOTIFICATIONS: 'mttq_chanhhiep_notifications_v1',
-  EMAIL_LOGS: 'mttq_chanhhiep_email_logs_v1'
+  EMAIL_LOGS: 'mttq_chanhhiep_email_logs_v1',
+  NEIGHBORHOOD_HOUSEHOLDS: 'mttq_chanhhiep_households_v1',
+  NEIGHBORHOOD_BROADCASTS: 'mttq_chanhhiep_broadcasts_v1',
+  NEIGHBORHOOD_PETITIONS: 'mttq_chanhhiep_petitions_v1',
+  NEIGHBORHOOD_REGISTRATIONS: 'mttq_chanhhiep_registrations_v1'
 };
 
 const KEY_ENTITY_NAME_MAP: Record<string, string> = {
@@ -129,7 +143,11 @@ const KEY_ENTITY_NAME_MAP: Record<string, string> = {
   [STORAGE_KEYS.AREAS]: 'Khu phố (21 KP)',
   [STORAGE_KEYS.ORGANIZATIONS]: 'Tổ chức Chính trị',
   [STORAGE_KEYS.ARTICLE_SUBMISSIONS]: 'Tác phẩm cộng tác',
-  [STORAGE_KEYS.FEEDBACK]: 'Ý kiến phản ánh dân nguyện'
+  [STORAGE_KEYS.FEEDBACK]: 'Ý kiến phản ánh dân nguyện',
+  [STORAGE_KEYS.NEIGHBORHOOD_HOUSEHOLDS]: 'Hộ dân 21 Khu phố',
+  [STORAGE_KEYS.NEIGHBORHOOD_BROADCASTS]: 'Phát thanh & Thông báo số khu phố',
+  [STORAGE_KEYS.NEIGHBORHOOD_PETITIONS]: 'Phản ánh cấp khu phố',
+  [STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS]: 'Đăng ký cư dân khu phố'
 };
 
 const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
@@ -138,6 +156,10 @@ const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
   [STORAGE_KEYS.COMPETITIONS]: 'competitions',
   [STORAGE_KEYS.OPINIONS]: 'public_opinions',
   [STORAGE_KEYS.TASKS]: 'tasks',
+  [STORAGE_KEYS.NEIGHBORHOOD_HOUSEHOLDS]: 'neighborhood_households',
+  [STORAGE_KEYS.NEIGHBORHOOD_BROADCASTS]: 'neighborhood_broadcasts',
+  [STORAGE_KEYS.NEIGHBORHOOD_PETITIONS]: 'neighborhood_petitions',
+  [STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS]: 'neighborhood_registrations',
   [STORAGE_KEYS.EVENTS]: 'work_events',
   [STORAGE_KEYS.NOTES]: 'notes',
   [STORAGE_KEYS.SUBMISSIONS]: 'competition_submissions',
@@ -341,12 +363,12 @@ export const AppStorageEngine = {
   getArticles: (): Article[] => {
     const raw = loadInitialData(STORAGE_KEYS.ARTICLES, INITIAL_ARTICLES);
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
-    const filtered = (raw || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
+    const filtered = (raw || []).filter(a => a && a.id && !demoIds.has(a.id));
     return sortArticlesNewestFirst(filtered);
   },
   saveArticles: (articles: Article[]) => {
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
-    const filtered = (articles || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
+    const filtered = (articles || []).filter(a => a && a.id && !demoIds.has(a.id));
     saveStorageData(STORAGE_KEYS.ARTICLES, sortArticlesNewestFirst(filtered));
   },
 
@@ -595,6 +617,24 @@ export const AppStorageEngine = {
   saveCulturalMedia: (media: CulturalMedia[]) => {
     const filtered = (media || []).filter(m => m && m.id);
     saveStorageData(STORAGE_KEYS.CULTURAL_MEDIA, filtered);
+  },
+
+  getArticleSubmissions: (): ArticleSubmission[] => {
+    const raw = loadInitialData(STORAGE_KEYS.ARTICLE_SUBMISSIONS, []);
+    return (raw || []).filter(s => s && s.id);
+  },
+  saveArticleSubmissions: (subs: ArticleSubmission[]) => {
+    const filtered = (subs || []).filter(s => s && s.id);
+    saveStorageData(STORAGE_KEYS.ARTICLE_SUBMISSIONS, filtered);
+  },
+
+  getFeedback: (): FeedbackItem[] => {
+    const raw = loadInitialData(STORAGE_KEYS.FEEDBACK, []);
+    return (raw || []).filter(f => f && f.id);
+  },
+  saveFeedback: (items: FeedbackItem[]) => {
+    const filtered = (items || []).filter(f => f && f.id);
+    saveStorageData(STORAGE_KEYS.FEEDBACK, filtered);
   },
 
   getMapLocations: (): MapLocation[] => {
@@ -1395,18 +1435,32 @@ export const AppStorageEngine = {
     }
   },
 
-  getArticleSubmissions: (): ArticleSubmission[] => {
-    return loadInitialData<ArticleSubmission[]>(STORAGE_KEYS.ARTICLE_SUBMISSIONS, []);
+  getNeighborhoodHouseholds: (): NeighborhoodHousehold[] => {
+    return loadInitialData<NeighborhoodHousehold[]>(STORAGE_KEYS.NEIGHBORHOOD_HOUSEHOLDS, INITIAL_HOUSEHOLDS);
   },
-  saveArticleSubmissions: (subs: ArticleSubmission[]) => {
-    saveStorageData(STORAGE_KEYS.ARTICLE_SUBMISSIONS, subs || []);
+  saveNeighborhoodHouseholds: (households: NeighborhoodHousehold[]) => {
+    saveStorageData(STORAGE_KEYS.NEIGHBORHOOD_HOUSEHOLDS, households || []);
   },
 
-  getFeedback: (): FeedbackItem[] => {
-    return loadInitialData<FeedbackItem[]>(STORAGE_KEYS.FEEDBACK, []);
+  getNeighborhoodBroadcasts: (): NeighborhoodBroadcast[] => {
+    return loadInitialData<NeighborhoodBroadcast[]>(STORAGE_KEYS.NEIGHBORHOOD_BROADCASTS, INITIAL_BROADCASTS);
   },
-  saveFeedback: (feedbacks: FeedbackItem[]) => {
-    saveStorageData(STORAGE_KEYS.FEEDBACK, feedbacks || []);
+  saveNeighborhoodBroadcasts: (broadcasts: NeighborhoodBroadcast[]) => {
+    saveStorageData(STORAGE_KEYS.NEIGHBORHOOD_BROADCASTS, broadcasts || []);
+  },
+
+  getNeighborhoodPetitions: (): NeighborhoodPetition[] => {
+    return loadInitialData<NeighborhoodPetition[]>(STORAGE_KEYS.NEIGHBORHOOD_PETITIONS, INITIAL_PETITIONS);
+  },
+  saveNeighborhoodPetitions: (petitions: NeighborhoodPetition[]) => {
+    saveStorageData(STORAGE_KEYS.NEIGHBORHOOD_PETITIONS, petitions || []);
+  },
+
+  getNeighborhoodRegistrations: (): NeighborhoodRegistration[] => {
+    return loadInitialData<NeighborhoodRegistration[]>(STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS, INITIAL_REGISTRATIONS);
+  },
+  saveNeighborhoodRegistrations: (registrations: NeighborhoodRegistration[]) => {
+    saveStorageData(STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS, registrations || []);
   },
 
   // Export all application data as a JSON file backup
@@ -1613,6 +1667,10 @@ export const AppStorageEngine = {
             op.retryCount += 1;
             op.status = 'FAILED';
             lastSyncError = cloudErr?.message || 'Lỗi kết nối Firestore';
+            if (cloudErr?.code === 'resource-exhausted' || (cloudErr?.message && cloudErr.message.includes('resource-exhausted'))) {
+              op.retryCount = 5; // Do not repeatedly requeue exhausted writes
+              break;
+            }
           }
         } else {
           syncSuccess = true;

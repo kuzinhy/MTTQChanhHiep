@@ -4,6 +4,7 @@ import { getGoogleDriveDirectImageUrl, handleImageError } from '../lib/googleDri
 import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
 import { OptimizedImage } from './common/OptimizedImage';
 import { ImageLightboxModal } from './common/ImageLightboxModal';
+import { EmbeddedVideoPlayer, parseVideoUrl } from './common/EmbeddedVideoPlayer';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -55,6 +56,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   const [lightboxTitle, setLightboxTitle] = useState<string | undefined>(undefined);
 
   const safeArticles: Article[] = Array.isArray(allArticles) ? allArticles : (Array.isArray(articles) ? articles : []);
+  const effectiveVideoUrl = article?.videoUrl || (article?.originalUrl && parseVideoUrl(article.originalUrl)?.type !== 'unsupported' ? article.originalUrl : undefined);
 
   // Scroll to top when article changes
   useEffect(() => {
@@ -173,6 +175,12 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                   Tin nổi bật
                 </span>
               )}
+              {effectiveVideoUrl && (
+                <span className="bg-red-50 text-red-700 text-[11px] font-extrabold px-2.5 py-1 rounded-xl border border-red-200 flex items-center gap-1.5 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse inline-block" />
+                  Video Phóng sự / Clip
+                </span>
+              )}
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 leading-tight tracking-tight">
@@ -258,6 +266,17 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
           ) : (
             <div className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-relaxed whitespace-pre-line space-y-5 font-normal">
               {article.content}
+            </div>
+          )}
+
+          {/* Embedded Video Section (YouTube / Facebook Video / Direct) */}
+          {effectiveVideoUrl && (
+            <div className="pt-2 space-y-2">
+              <EmbeddedVideoPlayer
+                url={effectiveVideoUrl}
+                title={`Video Phóng sự: ${article.title}`}
+                caption="Video phóng sự tư liệu hoạt động của Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp."
+              />
             </div>
           )}
 

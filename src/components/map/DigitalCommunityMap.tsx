@@ -57,6 +57,7 @@ interface DigitalCommunityMapProps {
   onSelectLocation?: (location: MapLocation) => void;
   onSelectNeighborhood?: (neighborhood: NeighborhoodGIS) => void;
   currentStaffUser?: StaffUser | null;
+  hideHeroBanner?: boolean;
 }
 
 export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
@@ -64,12 +65,24 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
   initialLocationId,
   onSelectLocation,
   onSelectNeighborhood,
-  currentStaffUser
+  currentStaffUser,
+  hideHeroBanner = false
 }) => {
   // Master data
   const [categories] = useState<MapCategory[]>(INITIAL_MAP_CATEGORIES);
   const [neighborhoods] = useState<NeighborhoodGIS[]>(INITIAL_NEIGHBORHOODS_GIS);
   const [locations, setLocations] = useState<MapLocation[]>(() => AppStorageEngine.getMapLocations());
+
+  // Listen to storage sync events so admin updates immediately reflect everywhere
+  useEffect(() => {
+    const handleSync = () => {
+      setLocations(AppStorageEngine.getMapLocations());
+    };
+    window.addEventListener('app_storage_synced', handleSync);
+    return () => {
+      window.removeEventListener('app_storage_synced', handleSync);
+    };
+  }, []);
 
   // User & Admin context
   const currentUser = currentStaffUser || AppStorageEngine.getCurrentUser();
@@ -573,103 +586,163 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
       {/* ========================================================================= */}
       {/* I. HEADER BANNER: BẢN ĐỒ SỐ AN SINH PHƯỜNG CHÁNH HIỆP                     */}
       {/* ========================================================================= */}
-      <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-blue-900 rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute -right-8 -bottom-8 w-60 h-60 bg-sky-300/20 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 max-w-5xl space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white border border-white/30 text-xs font-black uppercase tracking-wider">
-                <Compass className="w-3.5 h-3.5 text-sky-200" />
-                <span>Hệ Thống Dữ Liệu Địa Bàn Số GIS</span>
+      {hideHeroBanner ? (
+        <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-blue-900 rounded-3xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-black uppercase tracking-wider">
+                  <Compass className="w-3 h-3 text-sky-200" />
+                  <span>Bản đồ số GIS 21 Khu phố</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 text-[11px] font-bold">
+                  <HeartHandshake className="w-3 h-3 text-emerald-300" />
+                  <span>Dữ liệu đồng bộ trực tuyến</span>
+                </span>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-100 border border-emerald-300/30 text-xs font-bold">
-                <HeartHandshake className="w-3.5 h-3.5 text-emerald-300" />
-                <span>Bảo trợ &amp; An sinh 21 Khu phố</span>
-              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Bản đồ số Chánh Hiệp
+              </h2>
+              <p className="text-xs sm:text-sm text-sky-100 font-medium mt-0.5 max-w-2xl">
+                Tra cứu trực tuyến địa chỉ đỏ, di tích lịch sử, làng nghề truyền thống, cơ quan hành chính, trường học, trạm y tế và bảo trợ an sinh 21 khu phố.
+              </p>
             </div>
 
-            {/* Admin Management Quick Trigger Button */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               {isAdmin && (
                 <button
                   onClick={() => setShowAdminListModal(true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-white text-blue-800 hover:bg-blue-50 font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-white text-blue-800 hover:bg-blue-50 font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Sliders className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Quản Lý Địa Điểm BQT</span>
-                  <span className="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">
-                    {locations.length}
-                  </span>
+                  <span>Quản lý BQT ({locations.length})</span>
                 </button>
               )}
-
-              {isAdmin && (
-                <button
-                  onClick={() => {
-                    setIsAddingOnMap(true);
-                    showToast('Đã bật chế độ ghim điểm: Hãy bấm trực tiếp vào vị trí bất kỳ trên bản đồ!');
-                  }}
-                  className={`px-3.5 py-1.5 rounded-xl font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer ${
-                    isAddingOnMap ? 'bg-amber-300 text-slate-950 ring-2 ring-white animate-bounce' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
-                  }`}
-                >
-                  <MapPin className="w-4 h-4" />
-                  <span className="hidden sm:inline">{isAddingOnMap ? 'Đang chờ click bản đồ...' : 'Thêm trực tiếp trên bản đồ'}</span>
-                </button>
-              )}
-
               {isAdmin && (
                 <button
                   onClick={handleOpenCreateForm}
-                  className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Thêm Địa Điểm Mới</span>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Thêm điểm mới</span>
                 </button>
               )}
-            </div>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
-            Bản đồ số
-          </h1>
-          <p className="text-sky-100 text-xs sm:text-sm font-medium leading-relaxed max-w-3xl">
-            Khám phá "Địa chỉ đỏ", di tích lịch sử cách mạng, làng nghề truyền thống, thiết chế văn hóa, cơ quan hành chính và các điểm dịch vụ tiện ích tại địa phương.
-          </p>
-
-          {/* Quick Metrics Dashboard Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-            <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-sky-200">Địa chỉ đỏ &amp; Di tích</div>
-              <div className="text-lg sm:text-xl font-black text-red-300">
-                {locations.filter(l => l.category_code === 'DIA_CHI_DO').length}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="px-2.5 py-1 rounded-xl bg-white/10 backdrop-blur-xs text-center border border-white/20">
+                  <div className="text-[9px] uppercase font-bold text-sky-200">Địa chỉ đỏ</div>
+                  <div className="text-sm sm:text-base font-black text-red-300">{locations.filter(l => l.category_code === 'DIA_CHI_DO').length}</div>
+                </div>
+                <div className="px-2.5 py-1 rounded-xl bg-white/10 backdrop-blur-xs text-center border border-white/20">
+                  <div className="text-[9px] uppercase font-bold text-sky-200">Làng nghề</div>
+                  <div className="text-sm sm:text-base font-black text-amber-300">{locations.filter(l => l.category_code === 'LANG_NGHE').length}</div>
+                </div>
+                <div className="px-2.5 py-1 rounded-xl bg-white/10 backdrop-blur-xs text-center border border-white/20">
+                  <div className="text-[9px] uppercase font-bold text-sky-200">Điểm đến</div>
+                  <div className="text-sm sm:text-base font-black text-white">{totalLocationsCount}</div>
+                </div>
               </div>
-              <div className="text-[10px] text-sky-100">Lịch sử cách mạng</div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-sky-200">Làng nghề truyền thống</div>
-              <div className="text-lg sm:text-xl font-black text-amber-300">
-                {locations.filter(l => l.category_code === 'LANG_NGHE').length}
-              </div>
-              <div className="text-[10px] text-sky-100">Di sản thủ công địa phương</div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-sky-200">Tổng điểm (POI)</div>
-              <div className="text-lg sm:text-xl font-black text-white">{totalLocationsCount}</div>
-              <div className="text-[10px] text-sky-100">Cơ quan, tiện ích, y tế</div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
-              <div className="text-[10px] uppercase font-bold text-sky-200">Điểm An sinh</div>
-              <div className="text-lg sm:text-xl font-black text-emerald-300">{welfarePointsCount}</div>
-              <div className="text-[10px] text-sky-100">Bếp ăn, cứu trợ, từ thiện</div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-blue-900 rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute -right-8 -bottom-8 w-60 h-60 bg-sky-300/20 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 max-w-5xl space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white border border-white/30 text-xs font-black uppercase tracking-wider">
+                  <Compass className="w-3.5 h-3.5 text-sky-200" />
+                  <span>Hệ Thống Dữ Liệu Địa Bàn Số GIS</span>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-100 border border-emerald-300/30 text-xs font-bold">
+                  <HeartHandshake className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Bảo trợ &amp; An sinh 21 Khu phố</span>
+                </span>
+              </div>
+
+              {/* Admin Management Quick Trigger Button */}
+              <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowAdminListModal(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-white text-blue-800 hover:bg-blue-50 font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Quản Lý Địa Điểm BQT</span>
+                    <span className="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">
+                      {locations.length}
+                    </span>
+                  </button>
+                )}
+
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      setIsAddingOnMap(true);
+                      showToast('Đã bật chế độ ghim điểm: Hãy bấm trực tiếp vào vị trí bất kỳ trên bản đồ!');
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isAddingOnMap ? 'bg-amber-300 text-slate-950 ring-2 ring-white animate-bounce' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                    }`}
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span className="hidden sm:inline">{isAddingOnMap ? 'Đang chờ click bản đồ...' : 'Thêm trực tiếp trên bản đồ'}</span>
+                  </button>
+                )}
+
+                {isAdmin && (
+                  <button
+                    onClick={handleOpenCreateForm}
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Thêm Địa Điểm Mới</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+              Bản đồ số
+            </h1>
+            <p className="text-sky-100 text-xs sm:text-sm font-medium leading-relaxed max-w-3xl">
+              Khám phá "Địa chỉ đỏ", di tích lịch sử cách mạng, làng nghề truyền thống, thiết chế văn hóa, cơ quan hành chính và các điểm dịch vụ tiện ích tại địa phương.
+            </p>
+
+            {/* Quick Metrics Dashboard Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
+                <div className="text-[10px] uppercase font-bold text-sky-200">Địa chỉ đỏ &amp; Di tích</div>
+                <div className="text-lg sm:text-xl font-black text-red-300">
+                  {locations.filter(l => l.category_code === 'DIA_CHI_DO').length}
+                </div>
+                <div className="text-[10px] text-sky-100">Lịch sử cách mạng</div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
+                <div className="text-[10px] uppercase font-bold text-sky-200">Làng nghề truyền thống</div>
+                <div className="text-lg sm:text-xl font-black text-amber-300">
+                  {locations.filter(l => l.category_code === 'LANG_NGHE').length}
+                </div>
+                <div className="text-[10px] text-sky-100">Di sản thủ công địa phương</div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
+                <div className="text-[10px] uppercase font-bold text-sky-200">Tổng điểm (POI)</div>
+                <div className="text-lg sm:text-xl font-black text-white">{totalLocationsCount}</div>
+                <div className="text-[10px] text-sky-100">Cơ quan, tiện ích, y tế</div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-2.5 sm:p-3 border border-white/15">
+                <div className="text-[10px] uppercase font-bold text-sky-200">Điểm An sinh</div>
+                <div className="text-lg sm:text-xl font-black text-emerald-300">{welfarePointsCount}</div>
+                <div className="text-[10px] text-sky-100">Bếp ăn, cứu trợ, từ thiện</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* II. TOOLBAR: TÌM KIẾM, ĐỊNH VỊ GẦN TÔI & LỚP BẢN ĐỒ                        */}

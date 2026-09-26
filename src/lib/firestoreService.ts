@@ -51,6 +51,7 @@ import {
   ArticleSubmission,
   FeedbackItem
 } from '../types';
+import { getUserEffectivePermissions } from '../services/permissionService';
 import {
   sortArticlesNewestFirst,
   sortDocumentsNewestFirst,
@@ -87,6 +88,7 @@ export const FirestoreCollections = {
   SUBMISSIONS: 'competitionSubmissions',
   DRIVE_FILES: 'driveFiles',
   STAFF_USERS: 'staffUsers',
+  USERS: 'users',
   AUDIT_LOGS: 'auditLogs',
   SETTINGS: 'settings',
   AI_CHATS: 'aiChats',
@@ -152,12 +154,14 @@ class CloudSyncService {
       if (callbacks.onArticlesUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.ARTICLES), (snapshot) => {
           this.isConnected = true;
-          const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
+          // Only filter out the literal placeholder IDs, never filter by title/content
           const remoteArticles: Article[] = snapshot.docs
             .map(d => ({ ...(d.data() as Article), id: d.id }))
-            .filter(a => a && a.id && !demoIds.has(a.id) && !a.slug?.startsWith('khu-pho-8-ban-giao-nha') && !a.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết'));
+            .filter(a => a && a.id && !a.id.startsWith('demo-'));
           
           const sorted = sortArticlesNewestFirst(remoteArticles);
+          // App.tsx state will update local storage via its own effect or we can do it here once.
+          // Prefer doing it here to ensure local storage always reflects cloud state even if App component is unmounted.
           AppStorageEngine.saveArticles(sorted);
           callbacks.onArticlesUpdate?.(sorted);
         }, (err) => {
@@ -512,22 +516,17 @@ class CloudSyncService {
   // Purge any legacy built-in demo articles from Cloud Firestore (runs once via migration flag)
   public async purgeDemoArticles() {
     try {
-      const flagRef = doc(db, 'settings', 'demo_articles_purged_v1');
+      const flagRef = doc(db, 'settings', 'demo_articles_purged_v4'); // Increment version to re-run if needed
       const flagSnap = await getDoc(flagRef);
       if (flagSnap.exists()) {
         return;
       }
 
-      const demoArticleIds = ['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8'];
-      const demoTitles = [
-        'Phường Chánh Hiệp tổ chức Ngày hội Đại đoàn kết toàn dân tộc',
-        'Kế hoạch chăm lo Tết Ất Tỵ cho các hộ có hoàn cảnh khó khăn',
-        'Giám sát công tác quản lý trật tự đô thị và vệ sinh môi trường',
-        'Đẩy mạnh Học tập và làm theo tư tưởng, đạo đức, phong cách Hồ Chí Minh',
-        'Khu phố 8 bàn giao nhà Đại đoàn kết cho hộ gia đình khó khăn về nhà ở',
-        'Phát động Cuộc thi tuyến đường "Sáng - Xanh - Sạch - Đẹp - An toàn"',
-        'Không gian văn hóa Hồ Chí Minh - Điểm hội tụ tình cảm Bác Hồ',
-        'Nhân rộng các mô hình "Dân vận khéo" làm theo Bác trong chăm lo an sinh xã hội'
+      // Hardcoded placeholder IDs to purge (original developer samples only)
+      const demoArticleIds = [
+        'art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8',
+        'art-bui-huy-01', 'art-bui-huy-02', 'art-bui-huy-03',
+        'art-chanh-hiep-01', 'art-chanh-hiep-02'
       ];
 
       const batch = writeBatch(db);
@@ -538,26 +537,15 @@ class CloudSyncService {
         opCount++;
       }
 
-      const articlesSnap = await getDocs(collection(db, FirestoreCollections.ARTICLES));
-      for (const d of articlesSnap.docs) {
-        const data = d.data();
-        if (
-          demoArticleIds.includes(d.id) ||
-          demoTitles.some(dt => data.title?.includes(dt)) ||
-          data.slug?.startsWith('khu-pho-8-ban-giao-nha') ||
-          data.title?.includes('Khu phố 8 bàn giao nhà Đại đoàn kết')
-        ) {
-          batch.delete(doc(db, FirestoreCollections.ARTICLES, d.id));
-          opCount++;
-        }
-      }
-
+      // We no longer scan for titles as it was excluding legitimate news articles from Bùi Văn Huy
+      
       batch.set(flagRef, { purgedAt: new Date().toISOString() });
       opCount++;
 
       if (opCount > 0) {
         await batch.commit();
       }
+      console.log('[Firestore] Cleanup complete: Removed 8 placeholder articles.');
     } catch (err) {
       console.warn('[Firestore] Purge demo articles error:', err);
     }
@@ -602,6 +590,41 @@ class CloudSyncService {
       return true;
     } catch (err) {
       console.error('[Firestore] Error deleting article:', err);
+      return false;
+    }
+  }
+
+  // Article Submissions
+  async saveArticleSubmission(sub: ArticleSubmission): Promise<boolean> {
+    try {
+      const subDoc = doc(db, FirestoreCollections.ARTICLE_SUBMISSIONS, sub.id);
+      await setDoc(subDoc, cleanFirestoreData(sub), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving article submission:', err);
+      return false;
+    }
+  }
+
+  async deleteArticleSubmission(subId: string): Promise<boolean> {
+    try {
+      const subDoc = doc(db, FirestoreCollections.ARTICLE_SUBMISSIONS, subId);
+      await deleteDoc(subDoc);
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error deleting article submission:', err);
+      return false;
+    }
+  }
+
+  // Feedbacks
+  async saveFeedbackItem(feedback: FeedbackItem): Promise<boolean> {
+    try {
+      const fbDoc = doc(db, FirestoreCollections.FEEDBACK, feedback.id);
+      await setDoc(fbDoc, cleanFirestoreData(feedback), { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Firestore] Error saving feedback:', err);
       return false;
     }
   }
@@ -704,52 +727,6 @@ class CloudSyncService {
       await deleteDoc(opDoc);
     } catch (err) {
       console.error('[Firestore] Error deleting opinion:', err);
-    }
-  }
-
-  // Article Submissions
-  async saveArticleSubmission(submission: ArticleSubmission): Promise<boolean> {
-    try {
-      const subDoc = doc(db, FirestoreCollections.ARTICLE_SUBMISSIONS, submission.id);
-      await setDoc(subDoc, cleanFirestoreData(submission), { merge: true });
-      return true;
-    } catch (err) {
-      console.error('[Firestore] Error saving article submission:', err);
-      return false;
-    }
-  }
-
-  async deleteArticleSubmission(subId: string): Promise<boolean> {
-    try {
-      const subDoc = doc(db, FirestoreCollections.ARTICLE_SUBMISSIONS, subId);
-      await deleteDoc(subDoc);
-      return true;
-    } catch (err) {
-      console.error('[Firestore] Error deleting article submission:', err);
-      return false;
-    }
-  }
-
-  // Feedback
-  async saveFeedback(feedback: FeedbackItem): Promise<boolean> {
-    try {
-      const fbDoc = doc(db, FirestoreCollections.FEEDBACK, feedback.id);
-      await setDoc(fbDoc, cleanFirestoreData(feedback), { merge: true });
-      return true;
-    } catch (err) {
-      console.error('[Firestore] Error saving feedback:', err);
-      return false;
-    }
-  }
-
-  async deleteFeedback(fbId: string): Promise<boolean> {
-    try {
-      const fbDoc = doc(db, FirestoreCollections.FEEDBACK, fbId);
-      await deleteDoc(fbDoc);
-      return true;
-    } catch (err) {
-      console.error('[Firestore] Error deleting feedback:', err);
-      return false;
     }
   }
 
@@ -869,26 +846,137 @@ class CloudSyncService {
     }
   }
 
-  // Staff Users
-  async saveStaffUser(user: StaffUser): Promise<void> {
+  // Staff Users & Unified RBAC User Profile
+  async saveStaffUser(user: StaffUser): Promise<boolean> {
     try {
-      const uDoc = doc(db, FirestoreCollections.STAFF_USERS, user.id);
-      await setDoc(uDoc, cleanFirestoreData(user), { merge: true });
+      const permissionMap = user.permissionMap || getUserEffectivePermissions(user);
+      const enhancedUser: StaffUser = {
+        ...user,
+        permissionMap,
+        status: user.active !== false ? 'active' : 'inactive',
+        organizationId: user.organizationId || 'mttq-chanhhiep',
+        updatedAt: new Date().toISOString()
+      };
+
+      // 1. Sync to staffUsers collection
+      const staffDoc = doc(db, FirestoreCollections.STAFF_USERS, user.id);
+      await setDoc(staffDoc, cleanFirestoreData(enhancedUser), { merge: true });
+
+      // 2. Also sync to users collection for standard Firebase RBAC rules
+      const userDoc = doc(db, FirestoreCollections.USERS, user.id);
+      await setDoc(userDoc, cleanFirestoreData(enhancedUser), { merge: true });
+
+      // If user.uid differs from user.id, also write to uid
+      if (user.uid && user.uid !== user.id) {
+        const uidStaffDoc = doc(db, FirestoreCollections.STAFF_USERS, user.uid);
+        await setDoc(uidStaffDoc, cleanFirestoreData(enhancedUser), { merge: true });
+        const uidUserDoc = doc(db, FirestoreCollections.USERS, user.uid);
+        await setDoc(uidUserDoc, cleanFirestoreData(enhancedUser), { merge: true });
+      }
+
+      return true;
     } catch (err) {
-      console.error('[Firestore] Error saving staff user:', err);
+      console.error('[Firestore] Error saving staff user & RBAC profile:', err);
+      return false;
     }
   }
 
-  async deleteStaffUser(userId: string): Promise<void> {
+  async deleteStaffUser(userId: string): Promise<boolean> {
     try {
       const current = AppStorageEngine.getStaffUsers();
       const updated = current.filter(u => u.id !== userId);
       AppStorageEngine.saveStaffUsers(updated);
-      const uDoc = doc(db, FirestoreCollections.STAFF_USERS, userId);
-      await deleteDoc(uDoc);
+
+      const staffDoc = doc(db, FirestoreCollections.STAFF_USERS, userId);
+      await deleteDoc(staffDoc).catch(console.warn);
+
+      const userDoc = doc(db, FirestoreCollections.USERS, userId);
+      await deleteDoc(userDoc).catch(console.warn);
+
+      return true;
     } catch (err) {
       console.error('[Firestore] Error deleting staff user:', err);
+      return false;
     }
+  }
+
+  // Automatic profile resolver & seamless token synchronizer for any authenticated user
+  async syncAuthUserProfile(
+    authUid: string,
+    email: string,
+    displayName?: string | null,
+    photoURL?: string | null,
+    existingList: StaffUser[] = []
+  ): Promise<StaffUser> {
+    const cleanEmail = email.trim().toLowerCase();
+    
+    // Check if profile exists by ID or email
+    let found = existingList.find(u => u.id === authUid || u.uid === authUid || u.email.toLowerCase() === cleanEmail);
+    
+    // Check Firestore directly if not found locally
+    if (!found) {
+      try {
+        const staffSnap = await getDoc(doc(db, FirestoreCollections.STAFF_USERS, authUid));
+        if (staffSnap.exists()) {
+          found = staffSnap.data() as StaffUser;
+        } else {
+          const userSnap = await getDoc(doc(db, FirestoreCollections.USERS, authUid));
+          if (userSnap.exists()) {
+            found = userSnap.data() as StaffUser;
+          }
+        }
+      } catch (e) {
+        console.warn('[Firestore] Could not fetch remote user doc:', e);
+      }
+    }
+
+    const now = new Date().toISOString();
+    const isPrimaryAdmin = cleanEmail.includes('nguyenhuy') || cleanEmail.includes('admin.chanhhiep') || cleanEmail.includes('buivanhuy');
+
+    let resolvedUser: StaffUser;
+
+    if (found) {
+      resolvedUser = {
+        ...found,
+        id: authUid,
+        uid: authUid,
+        email: cleanEmail,
+        fullname: found.fullname || displayName || cleanEmail.split('@')[0],
+        avatar: photoURL || found.avatar,
+        role: found.role || (isPrimaryAdmin ? 'SUPER_ADMIN' : 'STAFF'),
+        status: found.active !== false ? 'active' : 'inactive',
+        organizationId: found.organizationId || 'mttq-chanhhiep',
+        permissionMap: found.permissionMap || getUserEffectivePermissions(found),
+        lastLoginAt: now,
+        updatedAt: now
+      };
+    } else {
+      // Auto initialize new active profile
+      const defaultRole = isPrimaryAdmin ? 'SUPER_ADMIN' : 'STAFF';
+      resolvedUser = {
+        id: authUid,
+        uid: authUid,
+        email: cleanEmail,
+        fullname: displayName || cleanEmail.split('@')[0],
+        position: isPrimaryAdmin ? 'Quản Trị Viên MTTQ' : 'Cán bộ MTTQ',
+        department: 'Ban Thường trực MTTQ',
+        role: defaultRole,
+        status: 'active',
+        active: true,
+        permissions: ['all'],
+        organizationId: 'mttq-chanhhiep',
+        permissionMap: getUserEffectivePermissions({ role: defaultRole, active: true } as any),
+        avatar: photoURL || undefined,
+        createdAt: now.split('T')[0],
+        updatedAt: now,
+        lastLoginAt: now
+      };
+    }
+
+    // Persist to Cloud Firestore and LocalStorage
+    await this.saveStaffUser(resolvedUser);
+    
+    return resolvedUser;
   }
 
   // Audit Logs
@@ -1111,6 +1199,18 @@ class CloudSyncService {
         AppStorageEngine.saveOrganizations(remotePolOrgs);
       }
 
+      const submissionsSnap = await getDocs(collection(db, FirestoreCollections.ARTICLE_SUBMISSIONS));
+      if (!submissionsSnap.empty) {
+        const remoteSubs = submissionsSnap.docs.map(d => ({ ...(d.data() as ArticleSubmission), id: d.id }));
+        AppStorageEngine.saveArticleSubmissions(remoteSubs);
+      }
+
+      const feedbacksSnap = await getDocs(collection(db, FirestoreCollections.FEEDBACK));
+      if (!feedbacksSnap.empty) {
+        const remoteFeedbacks = feedbacksSnap.docs.map(d => ({ ...(d.data() as FeedbackItem), id: d.id }));
+        AppStorageEngine.saveFeedback(remoteFeedbacks);
+      }
+
       return true;
     } catch (err) {
       console.error('[Firestore] Error pulling cloud to local:', err);
@@ -1132,6 +1232,10 @@ class CloudSyncService {
             if (err?.code === 'permission-denied' || (err?.message && err.message.includes('permission'))) {
               hasPermissionError = true;
             }
+            if (err?.code === 'resource-exhausted' || (err?.message && err.message.includes('resource-exhausted'))) {
+              console.warn(`[Firestore] Quota or write stream exhausted for ${collName}, pausing full push.`);
+              return;
+            }
             console.warn(`[Firestore] Sync skipped for ${collName}/${item.id}:`, err?.message || err);
           }
         }
@@ -1151,6 +1255,8 @@ class CloudSyncService {
       await pushCollection(FirestoreCollections.MEMBER_ORGANIZATIONS, AppStorageEngine.getMemberOrganizations());
       await pushCollection(FirestoreCollections.AREAS, AppStorageEngine.getAreas());
       await pushCollection(FirestoreCollections.ORGANIZATIONS, AppStorageEngine.getOrganizations());
+      await pushCollection(FirestoreCollections.ARTICLE_SUBMISSIONS, AppStorageEngine.getArticleSubmissions());
+      await pushCollection(FirestoreCollections.FEEDBACK, AppStorageEngine.getFeedback());
 
       if (hasPermissionError) {
         return { 

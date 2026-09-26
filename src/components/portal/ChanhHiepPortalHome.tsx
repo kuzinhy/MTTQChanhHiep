@@ -25,11 +25,13 @@ import {
   Users,
   Compass
 } from 'lucide-react';
+import { sortArticlesNewestFirst } from '../../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
-import { Article, OfficialDocument, PublicOpinion, CloudinaryImageMeta } from '../../types';
+import { Article, OfficialDocument, PublicOpinion, CloudinaryImageMeta, StaffUser } from '../../types';
 import { INITIAL_ARTICLES } from '../../data/seedData';
-import { INITIAL_MAP_LOCATIONS } from '../../data/mapSeedData';
-import { PortalHomeGoogleMap } from './PortalHomeGoogleMap';
+import { AppStorageEngine } from '../../lib/storage';
+import { MapLocation } from '../../data/mapSchema';
+import { DigitalCommunityMap } from '../map/DigitalCommunityMap';
 import { CitizenPublicServiceGuide } from './CitizenPublicServiceGuide';
 
 const getImageUrl = (image?: string | CloudinaryImageMeta): string => {
@@ -48,6 +50,7 @@ interface ChanhHiepPortalHomeProps {
   onOpenVolunteerModal: () => void;
   onOpenDirectory?: () => void;
   onGoToOffice: (view?: any) => void;
+  currentStaffUser?: StaffUser | null;
 }
 
 export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
@@ -59,11 +62,27 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   onOpenHcmSpaceModal,
   onOpenVolunteerModal,
   onOpenDirectory,
-  onGoToOffice
+  onGoToOffice,
+  currentStaffUser
 }) => {
   // Safe articles fallback
   const safeArticles: Article[] = useMemo(() => {
-    return Array.isArray(articles) && articles.length > 0 ? articles : INITIAL_ARTICLES;
+    const cloudList = Array.isArray(articles) ? articles : [];
+    const cloudIds = new Set(cloudList.map(a => a.id).filter(Boolean));
+    
+    // Combine lists, preferring cloud versions if IDs overlap (though unlikely)
+    const combined = [
+      ...cloudList,
+      ...INITIAL_ARTICLES.filter(a => a && a.id && !cloudIds.has(a.id))
+    ];
+
+    // Public portal should show Published & Approved articles
+    const filtered = combined.filter(a => 
+      (a.status && (a.status.toLowerCase() === 'published' || a.status.toLowerCase() === 'approved')) || 
+      !a.status
+    );
+    
+    return sortArticlesNewestFirst(filtered);
   }, [articles]);
 
   // Featured hero article index
@@ -75,15 +94,31 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   const sideArticles = safeArticles.slice(1, 4);
 
   // Map state
-  const homeFeaturedLocations = useMemo(() => {
-    return INITIAL_MAP_LOCATIONS.filter(
-      loc => loc.is_featured || ['DIA_CHI_DO', 'LANG_NGHE', 'CO_QUAN', 'Y_TE'].includes(loc.category_code)
-    ).slice(0, 6);
+  const [locations, setLocations] = useState<MapLocation[]>(() => AppStorageEngine.getMapLocations());
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      setLocations(AppStorageEngine.getMapLocations());
+    };
+    window.addEventListener('app_storage_synced', handleSync);
+    return () => {
+      window.removeEventListener('app_storage_synced', handleSync);
+    };
   }, []);
 
-  const [selectedLandmarkId, setSelectedLandmarkId] = useState<string | null>(() => {
-    return homeFeaturedLocations[0]?.id || 'loc-ubnd';
-  });
+  const homeFeaturedLocations = useMemo(() => {
+    return locations.filter(
+      loc => loc.status === 'ACTIVE' && (loc.is_featured || ['DIA_CHI_DO', 'LANG_NGHE', 'CO_QUAN', 'Y_TE'].includes(loc.category_code))
+    ).slice(0, 6);
+  }, [locations]);
+
+  const [selectedLandmarkId, setSelectedLandmarkId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (homeFeaturedLocations.length > 0 && !selectedLandmarkId) {
+      setSelectedLandmarkId(homeFeaturedLocations[0].id);
+    }
+  }, [homeFeaturedLocations, selectedLandmarkId]);
 
   // Local News filter & pagination state
   const [selectedNewsCategory, setSelectedNewsCategory] = useState<string>('ALL');
@@ -727,132 +762,15 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. BẢN ĐỒ SỐ CHÁNH HIỆP - Interactive Digital Map Preview */}
+      {/* 5. BẢN ĐỒ SỐ CHÁNH HIỆP - HỆ THỐNG GIS & 21 KHU PHỐ                        */}
       {/* ========================================================================= */}
-      <section className="space-y-3">
-        {/* Section Header */}
-        <div className="flex items-center gap-2">
-          <div className="w-3.5 h-3.5 bg-[#0068ff] rounded-xs shrink-0" />
-          <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-            Bản đồ số Chánh Hiệp
-          </h2>
-          <span className="text-xs text-slate-500 font-medium">
-            Tra cứu thông tin, khám phá các địa điểm, công trình trên địa bàn phường
-          </span>
-        </div>
-
-        {/* Map Container */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-          
-          {/* Left: Google Maps Interactive Canvas Preview (7 cols) */}
-          <div className="lg:col-span-7 relative min-h-[380px] sm:min-h-[440px] border-b lg:border-b-0 lg:border-r border-slate-200 overflow-hidden">
-            <PortalHomeGoogleMap
-              selectedLocationId={selectedLandmarkId}
-              onSelectLocation={(loc) => setSelectedLandmarkId(loc.id)}
-              onOpenFullMap={() => onSelectTab('map')}
-            />
-          </div>
-
-          {/* Right: Featured Landmarks List (5 cols) */}
-          <div className="lg:col-span-5 p-4 sm:p-6 flex flex-col justify-between space-y-4 bg-slate-50/50">
-            
-            {/* Header of Landmarks */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200/80">
-              <div>
-                <h3 className="font-extrabold text-sm text-slate-900">
-                  Địa điểm trọng điểm
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Chọn địa điểm để định vị nhanh trên bản đồ Google Maps
-                </p>
-              </div>
-              <button
-                onClick={() => onSelectTab('map')}
-                className="text-xs font-bold text-[#0068ff] hover:text-blue-700 inline-flex items-center gap-1 cursor-pointer shrink-0 ml-2"
-              >
-                <span>Bản đồ đầy đủ</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Landmarks List */}
-            <div className="space-y-2.5 flex-1 max-h-[360px] overflow-y-auto pr-1">
-              {homeFeaturedLocations.map((loc) => {
-                const isSelected = selectedLandmarkId === loc.id;
-                const isRedAddress = loc.category_code === 'DIA_CHI_DO';
-                const isCraftVillage = loc.category_code === 'LANG_NGHE';
-                const isHealth = loc.category_code === 'Y_TE';
-
-                return (
-                  <div
-                    key={loc.id}
-                    onClick={() => setSelectedLandmarkId(loc.id)}
-                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                      isSelected 
-                        ? 'border-blue-500 bg-blue-50/80 shadow-xs ring-2 ring-blue-500/20' 
-                        : 'border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-2xs'
-                    }`}
-                  >
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs text-white ${
-                      isRedAddress 
-                        ? 'bg-red-600' 
-                        : isCraftVillage 
-                        ? 'bg-amber-600' 
-                        : isHealth 
-                        ? 'bg-emerald-600' 
-                        : 'bg-blue-600'
-                    }`}>
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
-                          isRedAddress 
-                            ? 'bg-red-100 text-red-700' 
-                            : isCraftVillage 
-                            ? 'bg-amber-100 text-amber-800' 
-                            : isHealth 
-                            ? 'bg-emerald-100 text-emerald-800' 
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {isRedAddress ? 'Địa chỉ đỏ' : isCraftVillage ? 'Làng nghề' : isHealth ? 'Y tế' : 'Cơ quan'}
-                        </span>
-                        {loc.neighborhood_name && (
-                          <span className="text-[9px] text-slate-500 font-semibold">
-                            {loc.neighborhood_name}
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="font-bold text-xs text-slate-900 truncate leading-snug mt-1">
-                        {loc.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                        {loc.address}
-                      </p>
-                      {loc.phone && (
-                        <p className="text-[10px] text-blue-600 font-bold mt-0.5">
-                          📞 {loc.phone}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Bottom Button to Open Full Digital Community Map */}
-            <button
-              onClick={() => onSelectTab('map')}
-              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Compass className="w-4 h-4" />
-              <span>Khám phá bản đồ số 21 Khu phố Chánh Hiệp</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-          </div>
-
-        </div>
+      <section className="space-y-4">
+        <DigitalCommunityMap
+          hideHeroBanner={true}
+          currentStaffUser={currentStaffUser}
+          onSelectLocation={() => {}}
+          onSelectNeighborhood={() => {}}
+        />
       </section>
 
       {/* ========================================================================= */}

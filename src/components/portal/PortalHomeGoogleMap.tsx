@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import L from 'leaflet';
 import { 
   Compass, 
@@ -19,7 +19,7 @@ import {
   GraduationCap,
   HeartHandshake
 } from 'lucide-react';
-import { INITIAL_MAP_LOCATIONS } from '../../data/mapSeedData';
+import { AppStorageEngine } from '../../lib/storage';
 import { MapLocation } from '../../data/mapSchema';
 
 interface PortalHomeGoogleMapProps {
@@ -42,10 +42,28 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
   const [mapStyle, setMapStyle] = useState<'roadmap' | 'satellite'>('roadmap');
   const [isLocating, setIsLocating] = useState(false);
 
-  // Key locations to display on the home map preview
-  const previewLocations = INITIAL_MAP_LOCATIONS.filter(
-    loc => loc.is_featured || ['DIA_CHI_DO', 'LANG_NGHE', 'CO_QUAN', 'Y_TE'].includes(loc.category_code)
-  ).slice(0, 10);
+  const [locations, setLocations] = useState<MapLocation[]>(() => AppStorageEngine.getMapLocations());
+
+  useEffect(() => {
+    const handleSync = () => {
+      setLocations(AppStorageEngine.getMapLocations());
+    };
+    window.addEventListener('app_storage_synced', handleSync);
+    return () => {
+      window.removeEventListener('app_storage_synced', handleSync);
+    };
+  }, []);
+
+  // Key locations to display on the home map preview (only active locations)
+  const previewLocations = useMemo(() => {
+    return locations.filter(loc => {
+      if (!loc) return false;
+      const lat = typeof loc.latitude === 'number' ? loc.latitude : parseFloat(loc.latitude);
+      const lng = typeof loc.longitude === 'number' ? loc.longitude : parseFloat(loc.longitude);
+      if (isNaN(lat) || isNaN(lng)) return false;
+      return loc.status === 'ACTIVE';
+    });
+  }, [locations]);
 
   // Get Google Maps Tile URLs
   const getGoogleTileUrl = (style: 'roadmap' | 'satellite') => {
@@ -158,6 +176,10 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
     markersGroupRef.current.clearLayers();
 
     previewLocations.forEach((loc) => {
+      const lat = typeof loc.latitude === 'number' ? loc.latitude : parseFloat(loc.latitude);
+      const lng = typeof loc.longitude === 'number' ? loc.longitude : parseFloat(loc.longitude);
+      if (isNaN(lat) || isNaN(lng)) return;
+
       const isSelected = selectedLocationId === loc.id;
       const color = getCategoryColor(loc.category_code);
       const iconSvg = getCategoryIconSvg(loc.category_code);
@@ -197,16 +219,24 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
         popupAnchor: [0, -44]
       });
 
-      const marker = L.marker([loc.latitude, loc.longitude], { icon: pinIcon });
+      const marker = L.marker([lat, lng], { icon: pinIcon });
 
       // Directions URL for Google Maps
-      const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`;
+      const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
       const popupHtml = `
         <div class="p-1 font-sans w-[250px] sm:w-[270px] space-y-1.5 text-slate-800">
           <div class="flex items-center justify-between gap-1">
             <span style="color: ${color};" class="text-[9.5px] font-black uppercase tracking-wide">
-              ${loc.category_code === 'DIA_CHI_DO' ? '★ Địa chỉ đỏ' : loc.category_code === 'LANG_NGHE' ? '🪵 Làng nghề' : loc.category_code === 'CO_QUAN' ? '🏛️ Cơ quan' : '🏥 Y tế'}
+              ${
+                loc.category_code === 'DIA_CHI_DO' ? '★ Địa chỉ đỏ' : 
+                loc.category_code === 'LANG_NGHE' ? '🪵 Làng nghề' : 
+                loc.category_code === 'CO_QUAN' ? '🏛️ Cơ quan' : 
+                loc.category_code === 'Y_TE' ? '🏥 Y tế' : 
+                loc.category_code === 'AN_SINH' ? '❤️ An sinh' : 
+                loc.category_code === 'GIAO_DUC' ? '🏫 Giáo dục' : 
+                '📍 Địa điểm'
+              }
             </span>
             <span class="text-[9px] text-slate-400 font-medium">Chánh Hiệp</span>
           </div>
@@ -264,7 +294,7 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
 
       // If selected, pan to it
       if (isSelected && mapInstanceRef.current) {
-        mapInstanceRef.current.flyTo([loc.latitude, loc.longitude], 16, { duration: 0.8 });
+        mapInstanceRef.current.flyTo([lat, lng], 16, { duration: 0.8 });
         marker.openPopup();
       }
     });

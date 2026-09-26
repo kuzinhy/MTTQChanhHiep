@@ -53,6 +53,7 @@ import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
 import { CulturalSpaceAdminView } from './components/cultural/CulturalSpaceAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
+import { NeighborhoodManagementAdminView } from './components/office/neighborhood/NeighborhoodManagementAdminView';
 import { AdministrativeReportExporter } from './components/office/AdministrativeReportExporter';
 import { DocumentAiPlanGenerator } from './components/office/DocumentAiPlanGenerator';
 import { NeighborhoodEmulationDashboard } from './components/office/NeighborhoodEmulationDashboard';
@@ -84,6 +85,7 @@ import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewe
 import { AppStorageEngine } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
 import { NotificationService } from './services/notificationService';
+import { canCreatePost, canEditPost, canDeletePost, canPublishPost, mapPermissionError, getUserEffectivePermissions } from './services/permissionService';
 import { VisitorTrackerEngine } from './lib/visitorTracker';
 import { canAccessView } from './lib/rbac';
 import { auth } from './lib/firebase';
@@ -110,6 +112,7 @@ export const VALID_PORTAL_TABS = [
 export const VALID_OFFICE_VIEWS = [
   'dashboard',
   'profile',
+  'neighborhood_management',
   'neighborhood_map',
   'neighborhood_emulation',
   'youth_union_admin',
@@ -332,6 +335,8 @@ export default function App() {
   const [politicalOrganizations, setPoliticalOrganizations] = useState<Organization[]>(() => AppStorageEngine.getOrganizations());
   const [aiChats, setAiChats] = useState<AiChatLog[]>(() => AppStorageEngine.getAiChats());
   const [knowledgeNotes, setKnowledgeNotes] = useState<KnowledgeNote[]>(() => AppStorageEngine.getKnowledgeNotes());
+  const [articleSubmissions, setArticleSubmissions] = useState<ArticleSubmission[]>(() => AppStorageEngine.getArticleSubmissions());
+  const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>(() => AppStorageEngine.getFeedback());
   const [isDataSyncing, setIsDataSyncing] = useState<boolean>(true);
 
   // Initialize real-time visitor & session tracking, Offline Sync & Firebase Cloud Sync
@@ -371,6 +376,8 @@ export default function App() {
       onOrganizationsUpdate: (orgs) => setPoliticalOrganizations(orgs),
       onSubmissionsUpdate: (subs) => setSubmissions(subs),
       onDriveFilesUpdate: (files) => setDriveFiles(files),
+      onArticleSubmissionsUpdate: (subs) => setArticleSubmissions(subs),
+      onFeedbackUpdate: (feedbacks) => setFeedbackItems(feedbacks),
     });
 
     const timer = setTimeout(() => {
@@ -383,28 +390,40 @@ export default function App() {
     };
   }, []);
 
-  // Auto-Sync state changes to Local Storage
-  useEffect(() => { AppStorageEngine.saveArticles(articles); }, [articles]);
-  useEffect(() => { AppStorageEngine.saveDocuments(documents); }, [documents]);
-  useEffect(() => { AppStorageEngine.saveCompetitions(competitions); }, [competitions]);
-  useEffect(() => { AppStorageEngine.saveOpinions(opinions); }, [opinions]);
-  useEffect(() => { AppStorageEngine.saveSubmissions(submissions); }, [submissions]);
-  useEffect(() => { AppStorageEngine.saveDriveFiles(driveFiles); }, [driveFiles]);
-  useEffect(() => { AppStorageEngine.saveStaffUsers(staffUsers); }, [staffUsers]);
-  useEffect(() => { AppStorageEngine.saveMemberOrganizations(memberOrganizations); }, [memberOrganizations]);
-  useEffect(() => { AppStorageEngine.saveAreas(areas); }, [areas]);
-  useEffect(() => { AppStorageEngine.saveOrganizations(politicalOrganizations); }, [politicalOrganizations]);
-  useEffect(() => { AppStorageEngine.saveAuditLogs(auditLogs); }, [auditLogs]);
+  // Auto-Sync current user to Local Storage (Keep this as it's not synced via collection listener)
   useEffect(() => { AppStorageEngine.saveCurrentUser(currentStaffUser); }, [currentStaffUser]);
-  useEffect(() => { AppStorageEngine.saveAiChats(aiChats); }, [aiChats]);
-  useEffect(() => { AppStorageEngine.saveKnowledgeNotes(knowledgeNotes); }, [knowledgeNotes]);
+  
+  // NOTE: Redundant useEffect hooks for articles, documents, etc. have been removed.
+  // Synchronization to LocalStorage is now handled directly within the CloudDatabase listeners 
+  // in firestoreService.ts, preventing race conditions and double-writes.
 
   // Unified Hash-based Router with 404 & Deep Linking
   useEffect(() => {
     const handleHashRouting = () => {
       const rawHash = window.location.hash || '';
-      
-      // Default empty or root routes
+
+      // 1. Digital Office route: #/van-phong-so or #/van-phong-so/:view
+      if (rawHash === '#/van-phong-so' || rawHash === '#/van-phong-so/' || rawHash === '#/van-phong-so/dashboard') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView(prev => prev || 'dashboard');
+        return;
+      }
+
+      if (rawHash.startsWith('#/van-phong-so/')) {
+        const viewPart = rawHash.replace('#/van-phong-so/', '').trim();
+        setCurrentSpace('OFFICE');
+        setNotFoundRoute(null);
+        setOfficeView(viewPart || 'dashboard');
+        return;
+      }
+
+      // If user is currently in OFFICE space and hash is empty, "#", or "#/", keep user in OFFICE space!
+      if (currentSpace === 'OFFICE' && (!rawHash || rawHash === '#' || rawHash === '#/')) {
+        return;
+      }
+
+      // 2. Default empty or root routes
       if (!rawHash || rawHash === '#' || rawHash === '#/' || rawHash === '#/trang-chu') {
         setNotFoundRoute(null);
         setCurrentSpace('PORTAL');
@@ -416,7 +435,7 @@ export default function App() {
         return;
       }
 
-      // 1. Article detail deep link: #/tin-tuc/:id
+      // 3. Article detail deep link: #/tin-tuc/:id
       if (rawHash.startsWith('#/tin-tuc/')) {
         const artId = decodeURIComponent(rawHash.replace('#/tin-tuc/', '').trim());
         const targetArt = articles.find(a => a && a.id === artId);
@@ -428,18 +447,11 @@ export default function App() {
         if (targetArt) {
           setNotFoundRoute(null);
           setSelectedArticle(targetArt);
-        } else if (articles.length > 0) {
-          setSelectedArticle(null);
-          setNotFoundRoute({
-            isNotFound: true,
-            attemptedPath: rawHash,
-            message: `Không tìm thấy bài viết mang mã định danh "${artId}". Có thể bài viết đã được điều chỉnh hoặc chuyển mục.`
-          });
         }
         return;
       }
 
-      // 2. Document detail deep link: #/van-ban/:id
+      // 4. Document detail deep link: #/van-ban/:id
       if (rawHash.startsWith('#/van-ban/')) {
         const docId = decodeURIComponent(rawHash.replace('#/van-ban/', '').trim());
         const targetDoc = documents.find(d => d && d.id === docId);
@@ -451,18 +463,11 @@ export default function App() {
         if (targetDoc) {
           setNotFoundRoute(null);
           setSelectedDocument(targetDoc);
-        } else if (documents.length > 0) {
-          setSelectedDocument(null);
-          setNotFoundRoute({
-            isNotFound: true,
-            attemptedPath: rawHash,
-            message: `Không tìm thấy văn bản pháp quy mang mã "${docId}". Vui lòng tra cứu tại chuyên mục Văn bản & Chỉ đạo.`
-          });
         }
         return;
       }
 
-      // 3. Competition detail deep link: #/hoi-thi/:id
+      // 5. Competition detail deep link: #/hoi-thi/:id
       if (rawHash.startsWith('#/hoi-thi/')) {
         const compId = decodeURIComponent(rawHash.replace('#/hoi-thi/', '').trim());
         const targetComp = competitions.find(c => c && c.id === compId);
@@ -474,18 +479,11 @@ export default function App() {
         if (targetComp) {
           setNotFoundRoute(null);
           setSelectedCompetition(targetComp);
-        } else if (competitions.length > 0) {
-          setSelectedCompetition(null);
-          setNotFoundRoute({
-            isNotFound: true,
-            attemptedPath: rawHash,
-            message: `Hội thi trực tuyến mang mã "${compId}" không tồn tại hoặc đã kết thúc.`
-          });
         }
         return;
       }
 
-      // 4. Staff Login route: #/dang-nhap or #/dang-nhap-can-bo
+      // 6. Staff Login route: #/dang-nhap or #/dang-nhap-can-bo
       if (rawHash === '#/khong-gian-van-hoa-ho-chi-minh' || rawHash === '#/kgvh-ho-chi-minh') {
         setNotFoundRoute(null);
         setCurrentSpace('PORTAL');
@@ -506,23 +504,7 @@ export default function App() {
         return;
       }
 
-      // 5. Digital Office route: #/van-phong-so or #/van-phong-so/:view
-      if (rawHash === '#/van-phong-so' || rawHash === '#/van-phong-so/dashboard') {
-        setNotFoundRoute(null);
-        setCurrentSpace('OFFICE');
-        setOfficeView('dashboard');
-        return;
-      }
-
-      if (rawHash.startsWith('#/van-phong-so/')) {
-        const viewPart = rawHash.replace('#/van-phong-so/', '').trim();
-        setCurrentSpace('OFFICE');
-        setNotFoundRoute(null);
-        setOfficeView(viewPart);
-        return;
-      }
-
-      // 6. Standard Portal Tab routes
+      // 7. Standard Portal Tab routes
       const normalizedPath = rawHash.replace(/^#/, '');
       if (PORTAL_HASH_TO_TAB[normalizedPath]) {
         setNotFoundRoute(null);
@@ -535,23 +517,53 @@ export default function App() {
         return;
       }
 
-      // 7. Unknown hash -> Show 404
-      setCurrentSpace('PORTAL');
-      setSelectedArticle(null);
-      setSelectedDocument(null);
-      setSelectedCompetition(null);
-      setShowStaffLoginPage(false);
-      setNotFoundRoute({
-        isNotFound: true,
-        attemptedPath: rawHash,
-        message: `Đường dẫn "${rawHash}" không tồn tại hoặc đã thay đổi cấu trúc trên hệ thống.`
-      });
+      // 8. Unknown hash -> Show 404 only if not in office
+      if (currentSpace !== 'OFFICE') {
+        setCurrentSpace('PORTAL');
+        setSelectedArticle(null);
+        setSelectedDocument(null);
+        setSelectedCompetition(null);
+        setShowStaffLoginPage(false);
+        setNotFoundRoute({
+          isNotFound: true,
+          attemptedPath: rawHash,
+          message: `Đường dẫn "${rawHash}" không tồn tại hoặc đã thay đổi cấu trúc trên hệ thống.`
+        });
+      }
     };
 
     handleHashRouting();
     window.addEventListener('hashchange', handleHashRouting);
     return () => window.removeEventListener('hashchange', handleHashRouting);
-  }, [articles, documents, competitions]);
+  }, []);
+
+  // Sync deep linked entities when collections update without resetting spaces
+  useEffect(() => {
+    const rawHash = window.location.hash || '';
+    if (rawHash.startsWith('#/tin-tuc/')) {
+      const artId = decodeURIComponent(rawHash.replace('#/tin-tuc/', '').trim());
+      const targetArt = articles.find(a => a && a.id === artId);
+      if (targetArt) setSelectedArticle(targetArt);
+    }
+  }, [articles]);
+
+  useEffect(() => {
+    const rawHash = window.location.hash || '';
+    if (rawHash.startsWith('#/van-ban/')) {
+      const docId = decodeURIComponent(rawHash.replace('#/van-ban/', '').trim());
+      const targetDoc = documents.find(d => d && d.id === docId);
+      if (targetDoc) setSelectedDocument(targetDoc);
+    }
+  }, [documents]);
+
+  useEffect(() => {
+    const rawHash = window.location.hash || '';
+    if (rawHash.startsWith('#/hoi-thi/')) {
+      const compId = decodeURIComponent(rawHash.replace('#/hoi-thi/', '').trim());
+      const targetComp = competitions.find(c => c && c.id === compId);
+      if (targetComp) setSelectedCompetition(targetComp);
+    }
+  }, [competitions]);
 
   // Scroll to top on tab change
   useEffect(() => {
@@ -872,21 +884,40 @@ export default function App() {
 
 
   const handleAddArticle = async (art: Article) => {
-    setArticles(prev => {
-      const next = sortArticlesNewestFirst([art, ...prev.filter(a => a.id !== art.id)]);
-      AppStorageEngine.saveArticles(next);
-      return next;
-    });
+    const currentUid = currentStaffUser?.id || currentStaffUser?.uid || 'staff-1';
+    const currentName = currentStaffUser?.fullname || 'Cán bộ MTTQ';
+    const currentEmail = currentStaffUser?.email || '';
 
-    const isCloudSaved = await CloudDatabase.saveArticle(art);
+    // Standardize article payload with dynamic author & organization IDs
+    const standardizedArt: Article = {
+      ...art,
+      authorId: art.authorId || currentUid,
+      authorName: art.authorName || currentName,
+      createdBy: art.createdBy || currentUid,
+      organizationId: art.organizationId || 'mttq-chanhhiep',
+      createdAt: art.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Save locally for immediate responsive UI
+    AppStorageEngine.saveArticles(sortArticlesNewestFirst([standardizedArt, ...articles.filter(a => a.id !== standardizedArt.id)]));
+    
+    // Save to Cloud Firestore
+    const isCloudSaved = await CloudDatabase.saveArticle(standardizedArt);
 
     const newLog: AuditLog = {
       id: 'log-' + Date.now(),
-      userId: currentStaffUser?.id || 'staff-1',
-      userName: currentStaffUser?.fullname || 'Cán bộ Tuyên giáo',
+      userId: currentUid,
+      userName: currentName,
+      email: currentEmail,
       action: 'XUẤT BẢN BÀI VIẾT',
       entity: 'Tin tức - Tuyên truyền',
-      details: `Đăng bài viết mới: "${art.title}" (Chuyên mục: ${art.category})`,
+      entityId: standardizedArt.id,
+      entityTitle: standardizedArt.title,
+      resource: 'articles',
+      resourceId: standardizedArt.id,
+      result: isCloudSaved ? 'SUCCESS' : 'FAILED',
+      details: `Đăng bài viết mới: "${standardizedArt.title}" (Chuyên mục: ${standardizedArt.category})`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
     setAuditLogs(prev => {
@@ -897,27 +928,44 @@ export default function App() {
     CloudDatabase.logAudit(newLog);
     
     if (isCloudSaved) {
-      handleTriggerSystemToast('Đã lưu bài viết lên Cloud', `Bài viết "${art.title}" đã được đồng bộ trực tuyến lên Firebase và hiển thị trên mọi máy.`);
+      handleTriggerSystemToast('Đã lưu bài viết lên Cloud', `Bài viết "${standardizedArt.title}" đã được đồng bộ trực tuyến lên Firebase và hiển thị trên mọi máy.`);
     } else {
-      handleTriggerSystemToast('Đã lưu bài viết (Cục bộ)', `Bài viết "${art.title}" đã được lưu.`);
+      handleTriggerSystemToast('Đã lưu bài viết (Cục bộ)', `Bài viết "${standardizedArt.title}" đã được lưu cục bộ.`);
     }
   };
 
   const handleUpdateArticle = async (updatedArt: Article) => {
+    const currentUid = currentStaffUser?.id || currentStaffUser?.uid || 'staff-1';
+    const currentName = currentStaffUser?.fullname || 'Cán bộ MTTQ';
+    const currentEmail = currentStaffUser?.email || '';
+
+    const standardizedArt: Article = {
+      ...updatedArt,
+      updatedBy: currentUid,
+      updatedAt: new Date().toISOString(),
+      organizationId: updatedArt.organizationId || 'mttq-chanhhiep'
+    };
+
     setArticles(prev => {
-      const next = sortArticlesNewestFirst(prev.map(a => a.id === updatedArt.id ? updatedArt : a));
+      const next = sortArticlesNewestFirst(prev.map(a => a.id === standardizedArt.id ? standardizedArt : a));
       AppStorageEngine.saveArticles(next);
       return next;
     });
-    const isCloudSaved = await CloudDatabase.saveArticle(updatedArt);
+    const isCloudSaved = await CloudDatabase.saveArticle(standardizedArt);
 
     const newLog: AuditLog = {
       id: 'log-' + Date.now(),
-      userId: currentStaffUser?.id || 'staff-1',
-      userName: currentStaffUser?.fullname || 'Cán bộ Tuyên giáo',
+      userId: currentUid,
+      userName: currentName,
+      email: currentEmail,
       action: 'CẬP NHẬT BÀI VIẾT',
       entity: 'Tin tức - Tuyên truyền',
-      details: `Chỉnh sửa nội dung bài viết: "${updatedArt.title}"`,
+      entityId: standardizedArt.id,
+      entityTitle: standardizedArt.title,
+      resource: 'articles',
+      resourceId: standardizedArt.id,
+      result: isCloudSaved ? 'SUCCESS' : 'FAILED',
+      details: `Chỉnh sửa nội dung bài viết: "${standardizedArt.title}"`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
     setAuditLogs(prev => {
@@ -928,20 +976,66 @@ export default function App() {
     CloudDatabase.logAudit(newLog);
     
     if (isCloudSaved) {
-      handleTriggerSystemToast('Đã cập nhật Cloud thành công', `Nội dung bài viết "${updatedArt.title}" đã được đồng bộ trực tuyến.`);
+      handleTriggerSystemToast('Đã cập nhật Cloud thành công', `Nội dung bài viết "${standardizedArt.title}" đã được đồng bộ trực tuyến.`);
     } else {
-      handleTriggerSystemToast('Đã lưu chỉnh sửa', `Nội dung bài viết "${updatedArt.title}" đã được lưu.`);
+      handleTriggerSystemToast('Đã lưu chỉnh sửa', `Nội dung bài viết "${standardizedArt.title}" đã được lưu.`);
     }
   };
 
   const handleDeleteArticle = async (artId: string) => {
+    const currentUid = currentStaffUser?.id || currentStaffUser?.uid || 'staff-1';
+    const currentName = currentStaffUser?.fullname || 'Cán bộ MTTQ';
+    const currentEmail = currentStaffUser?.email || '';
+    const targetArt = articles.find(a => a.id === artId);
+
     setArticles(prev => {
       const next = prev.filter(a => a.id !== artId);
       AppStorageEngine.saveArticles(next);
       return next;
     });
-    await CloudDatabase.deleteArticle(artId);
+    const isDeleted = await CloudDatabase.deleteArticle(artId);
+
+    const newLog: AuditLog = {
+      id: 'log-' + Date.now(),
+      userId: currentUid,
+      userName: currentName,
+      email: currentEmail,
+      action: 'XÓA BÀI VIẾT',
+      entity: 'Tin tức - Tuyên truyền',
+      entityId: artId,
+      entityTitle: targetArt?.title || artId,
+      resource: 'articles',
+      resourceId: artId,
+      result: isDeleted ? 'SUCCESS' : 'FAILED',
+      details: `Đã xóa bài viết: "${targetArt?.title || artId}"`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+    setAuditLogs(prev => {
+      const next = [newLog, ...prev];
+      AppStorageEngine.saveAuditLogs(next);
+      return next;
+    });
+    CloudDatabase.logAudit(newLog);
+
     handleTriggerSystemToast('Đã xóa bài viết', 'Bài viết đã được xóa và đồng bộ trên tất cả thiết bị.');
+  };
+
+  const handleUpdateArticleSubmission = async (sub: ArticleSubmission) => {
+    setArticleSubmissions(prev => {
+      const next = prev.map(s => s.id === sub.id ? sub : s);
+      AppStorageEngine.saveArticleSubmissions(next);
+      return next;
+    });
+    await CloudDatabase.saveArticleSubmission(sub);
+  };
+
+  const handleDeleteArticleSubmission = async (subId: string) => {
+    setArticleSubmissions(prev => {
+      const next = prev.filter(s => s.id !== subId);
+      AppStorageEngine.saveArticleSubmissions(next);
+      return next;
+    });
+    await CloudDatabase.deleteArticleSubmission(subId);
   };
 
   const handleAddDocument = async (doc: OfficialDocument) => {
@@ -1199,6 +1293,7 @@ export default function App() {
                         if (view) setOfficeView(view);
                         handleSelectPortalTab('new_interface');
                       }}
+                      currentStaffUser={currentStaffUser}
                     />
                   )}
 
@@ -1550,6 +1645,15 @@ export default function App() {
                       />
                     )}
 
+                    {officeView === 'neighborhood_management' && (
+                      <NeighborhoodManagementAdminView
+                        currentStaffUser={currentStaffUser}
+                        onShowToast={(title, msg) => handleTriggerSystemToast(title, msg)}
+                        onNavigateToOpinions={() => handleNavigateOfficeView('opinions')}
+                        onNavigateToMap={() => handleNavigateOfficeView('neighborhood_map')}
+                      />
+                    )}
+
                     {officeView === 'neighborhood_map' && (
                       <NeighborhoodMapDashboard
                         opinions={opinions}
@@ -1614,6 +1718,7 @@ export default function App() {
                     {(officeView === 'cms' || officeView === 'cms_articles') && (
                       <CmsAdminView
                         articles={articles}
+                        articleSubmissions={articleSubmissions}
                         documents={documents}
                         competitions={competitions}
                         opinions={opinions}
@@ -1621,6 +1726,8 @@ export default function App() {
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}
+                        onUpdateArticleSubmission={handleUpdateArticleSubmission}
+                        onDeleteArticleSubmission={handleDeleteArticleSubmission}
                         onAddDocument={handleAddDocument}
                         onUpdateDocument={handleUpdateDocument}
                         onDeleteDocument={handleDeleteDocument}
@@ -1828,10 +1935,12 @@ export default function App() {
                         staffUsers={staffUsers}
                         currentStaffUser={currentStaffUser}
                         onToggleUserActive={(id) => {
+                          const target = staffUsers.find(u => u.id === id);
+                          const nextActive = target ? (target.active === false ? true : false) : true;
                           setStaffUsers(prev => {
                             const next = prev.map(u => {
                               if (u.id === id) {
-                                const updated = { ...u, active: !u.active };
+                                const updated = { ...u, active: nextActive, status: nextActive ? ('active' as const) : ('inactive' as const) };
                                 CloudDatabase.saveStaffUser(updated);
                                 return updated;
                               }
@@ -1840,6 +1949,28 @@ export default function App() {
                             AppStorageEngine.saveStaffUsers(next);
                             return next;
                           });
+
+                          const log: AuditLog = {
+                            id: 'log-' + Date.now(),
+                            userId: currentStaffUser?.id || 'admin',
+                            userName: currentStaffUser?.fullname || 'Quản trị viên',
+                            email: currentStaffUser?.email,
+                            action: nextActive ? 'KÍCH HOẠT TÀI KHOẢN' : 'KHÓA TÀI KHOẢN',
+                            entity: 'Quản trị cán bộ',
+                            entityId: id,
+                            entityTitle: target?.fullname || id,
+                            resource: 'users',
+                            resourceId: id,
+                            result: 'SUCCESS',
+                            details: `${nextActive ? 'Kích hoạt' : 'Khóa'} tài khoản cán bộ: ${target?.fullname || id} (${target?.email || ''})`,
+                            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
+                          };
+                          setAuditLogs(prev => {
+                            const next = [log, ...prev];
+                            AppStorageEngine.saveAuditLogs(next);
+                            return next;
+                          });
+                          CloudDatabase.logAudit(log);
                         }}
                         onAddUser={(u) => {
                           setStaffUsers(prev => {
@@ -1848,6 +1979,29 @@ export default function App() {
                             return next;
                           });
                           CloudDatabase.saveStaffUser(u);
+
+                          const log: AuditLog = {
+                            id: 'log-' + Date.now(),
+                            userId: currentStaffUser?.id || 'admin',
+                            userName: currentStaffUser?.fullname || 'Quản trị viên',
+                            email: currentStaffUser?.email,
+                            action: 'TẠO CÁN BỘ & CẤP QUYỀN',
+                            entity: 'Quản trị cán bộ',
+                            entityId: u.id,
+                            entityTitle: u.fullname,
+                            resource: 'users',
+                            resourceId: u.id,
+                            result: 'SUCCESS',
+                            details: `Tạo tài khoản mới và cấp vai trò [${u.role}] cho cán bộ: ${u.fullname} (${u.email})`,
+                            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
+                          };
+                          setAuditLogs(prev => {
+                            const next = [log, ...prev];
+                            AppStorageEngine.saveAuditLogs(next);
+                            return next;
+                          });
+                          CloudDatabase.logAudit(log);
+
                           handleTriggerSystemToast('Đã thêm cán bộ', `Tài khoản cán bộ ${u.fullname} đã được tạo và lưu trữ.`);
                         }}
                         onUpdateUser={(updatedUser) => {
@@ -1861,15 +2015,62 @@ export default function App() {
                             setCurrentStaffUser(updatedUser);
                             AppStorageEngine.saveCurrentUser(updatedUser);
                           }
+
+                          const log: AuditLog = {
+                            id: 'log-' + Date.now(),
+                            userId: currentStaffUser?.id || 'admin',
+                            userName: currentStaffUser?.fullname || 'Quản trị viên',
+                            email: currentStaffUser?.email,
+                            action: 'CẬP NHẬT PHÂN QUYỀN CÁN BỘ',
+                            entity: 'Quản trị cán bộ',
+                            entityId: updatedUser.id,
+                            entityTitle: updatedUser.fullname,
+                            resource: 'users',
+                            resourceId: updatedUser.id,
+                            result: 'SUCCESS',
+                            details: `Cập nhật hồ sơ & quyền hạn cho cán bộ: ${updatedUser.fullname} [Vai trò: ${updatedUser.role}]`,
+                            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
+                          };
+                          setAuditLogs(prev => {
+                            const next = [log, ...prev];
+                            AppStorageEngine.saveAuditLogs(next);
+                            return next;
+                          });
+                          CloudDatabase.logAudit(log);
+
                           handleTriggerSystemToast('Đã cập nhật cán bộ', `Thông tin cán bộ ${updatedUser.fullname} đã được lưu trữ.`);
                         }}
                         onDeleteUser={(id) => {
+                          const target = staffUsers.find(u => u.id === id);
                           setStaffUsers(prev => {
                             const next = prev.filter(u => u.id !== id);
                             AppStorageEngine.saveStaffUsers(next);
                             return next;
                           });
                           CloudDatabase.deleteStaffUser(id);
+
+                          const log: AuditLog = {
+                            id: 'log-' + Date.now(),
+                            userId: currentStaffUser?.id || 'admin',
+                            userName: currentStaffUser?.fullname || 'Quản trị viên',
+                            email: currentStaffUser?.email,
+                            action: 'XÓA CÁN BỘ',
+                            entity: 'Quản trị cán bộ',
+                            entityId: id,
+                            entityTitle: target?.fullname || id,
+                            resource: 'users',
+                            resourceId: id,
+                            result: 'SUCCESS',
+                            details: `Xóa tài khoản cán bộ: ${target?.fullname || id} (${target?.email || ''})`,
+                            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
+                          };
+                          setAuditLogs(prev => {
+                            const next = [log, ...prev];
+                            AppStorageEngine.saveAuditLogs(next);
+                            return next;
+                          });
+                          CloudDatabase.logAudit(log);
+
                           handleTriggerSystemToast('Đã xóa cán bộ', 'Tài khoản cán bộ đã được xóa khỏi hệ thống.');
                         }}
                         onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}

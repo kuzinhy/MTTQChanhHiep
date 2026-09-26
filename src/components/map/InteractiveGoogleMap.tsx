@@ -252,6 +252,11 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     markersLayerGroupRef.current.clearLayers();
 
     locations.forEach((loc) => {
+      if (!loc) return;
+      const lat = typeof loc.latitude === 'number' ? loc.latitude : parseFloat(loc.latitude);
+      const lng = typeof loc.longitude === 'number' ? loc.longitude : parseFloat(loc.longitude);
+      if (isNaN(lat) || isNaN(lng)) return;
+
       // Check category layer filters
       if (loc.category_code === 'CO_QUAN' && !layerConfig.show_administrative_offices) return;
       if (loc.category_code === 'TO_CHUC' && !layerConfig.show_mttq_organizations) return;
@@ -361,10 +366,10 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         popupAnchor: [0, -50]
       });
 
-      const marker = L.marker([loc.latitude, loc.longitude], { icon: customIcon });
+      const marker = L.marker([lat, lng], { icon: customIcon });
 
       // Build Rich Interactive InfoWindow Popup
-      const directionsUrl = generateGoogleMapsDirectionsUrl(loc.latitude, loc.longitude);
+      const directionsUrl = generateGoogleMapsDirectionsUrl(lat, lng);
       const phoneNum = loc.phone?.trim();
       const openingHoursStr = loc.opening_hours?.trim() || '07:30 - 11:30 | 13:30 - 17:00 (Thứ 2 - Thứ 6)';
       const safeCategoryName = escapeHtml(cat?.name?.split('&')[0]?.trim() || 'Cơ sở');
@@ -547,9 +552,13 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     if (!mapInstanceRef.current) return;
 
     if (activeLocation) {
-      mapInstanceRef.current.flyTo([activeLocation.latitude, activeLocation.longitude], 17, {
-        duration: 0.9
-      });
+      const lat = typeof activeLocation.latitude === 'number' ? activeLocation.latitude : parseFloat(activeLocation.latitude);
+      const lng = typeof activeLocation.longitude === 'number' ? activeLocation.longitude : parseFloat(activeLocation.longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        mapInstanceRef.current.flyTo([lat, lng], 17, {
+          duration: 0.9
+        });
+      }
     }
   }, [activeLocation]);
 

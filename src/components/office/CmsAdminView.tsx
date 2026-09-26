@@ -26,6 +26,7 @@ import { CulturalMediaAdminSection } from '../cultural/CulturalMediaAdminSection
 import { ChanhHiepDriveFolderBar } from './ChanhHiepDriveFolderBar';
 import { SmartMediaDriveUploader } from './SmartMediaDriveUploader';
 import { ContentImageDriveModal } from './ContentImageDriveModal';
+import { EmbeddedVideoPlayer, parseVideoUrl } from '../common/EmbeddedVideoPlayer';
 import { inspectImageFile, formatBytes, getOptimalImageUrl } from '../../lib/imageOptimization';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
@@ -39,7 +40,8 @@ import {
   ArticleStatus, 
   OpinionStatus,
   DocType,
-  CloudinaryImageMeta
+  CloudinaryImageMeta,
+  ArticleSubmission
 } from '../../types';
 import {
   sortArticlesNewestFirst,
@@ -48,6 +50,7 @@ import {
   sortOpinionsNewestFirst
 } from '../../lib/dateUtils';
 import { NotificationService } from '../../services/notificationService';
+import { canCreatePost, canEditPost, canDeletePost, canPublishPost, mapPermissionError } from '../../services/permissionService';
 
 import { 
   Newspaper, 
@@ -61,6 +64,8 @@ import {
   Filter, 
   X, 
   Image as ImageIcon, 
+  Video,
+  Play,
   Sparkles, 
   CheckCircle2, 
   Award,
@@ -102,13 +107,16 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface CmsAdminViewProps {
   articles: Article[];
+  articleSubmissions?: ArticleSubmission[];
   documents: OfficialDocument[];
   competitions?: Competition[];
   opinions?: PublicOpinion[];
-  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA';
+  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'SUBMISSIONS';
   onAddArticle: (art: Article) => void;
   onUpdateArticle: (art: Article) => void;
   onDeleteArticle: (id: string) => void;
+  onUpdateArticleSubmission?: (sub: ArticleSubmission) => void;
+  onDeleteArticleSubmission?: (subId: string) => void;
   onAddDocument: (doc: OfficialDocument) => void;
   onUpdateDocument: (doc: OfficialDocument) => void;
   onDeleteDocument: (id: string) => void;
@@ -170,6 +178,7 @@ function generateSlug(text: string): string {
 
 export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   articles,
+  articleSubmissions = [],
   documents,
   competitions = [],
   opinions = [],
@@ -177,6 +186,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onAddArticle,
   onUpdateArticle,
   onDeleteArticle,
+  onUpdateArticleSubmission,
+  onDeleteArticleSubmission,
   onAddDocument,
   onUpdateDocument,
   onDeleteDocument,
@@ -188,7 +199,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onForceCloudSync,
   onShowToast
 }) => {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'CULTURAL_MEDIA'>(
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'SUBMISSIONS' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'CULTURAL_MEDIA'>(
     (initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT' ? 'ABOUT' : (initialTab as any) || 'ARTICLES'
   );
 
@@ -213,6 +224,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
   const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
+  const [articleSubmissionToDelete, setArticleSubmissionToDelete] = useState<ArticleSubmission | null>(null);
+  const [respondingSubmission, setRespondingSubmission] = useState<ArticleSubmission | null>(null);
 
   // Article Form State
   const [artTitle, setArtTitle] = useState('');
@@ -227,6 +240,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const [artIsFeatured, setArtIsFeatured] = useState<boolean>(false);
   const [artOriginalUrl, setArtOriginalUrl] = useState<string>('');
   const [artSourceName, setArtSourceName] = useState<string>('');
+  const [artVideoUrl, setArtVideoUrl] = useState<string>('');
   const [artPublishDate, setArtPublishDate] = useState<string>(new Date().toISOString().substring(0, 10));
 
   // Attachment & Google Drive Storage State
@@ -338,6 +352,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       if (parsed.sourceName) setArtSourceName(parsed.sourceName);
       if (parsed.publishDate) setArtPublishDate(parsed.publishDate);
       if (parsed.imageUrl) setArtImage(parsed.imageUrl);
+      if (parsed.videoUrl) {
+        setArtVideoUrl(parsed.videoUrl);
+      } else if (parseVideoUrl(targetUrl)?.type !== 'unsupported') {
+        setArtVideoUrl(targetUrl);
+      }
       setArtOriginalUrl(targetUrl);
       showSuccessBanner(`AI đã tự động bóc tách thành công tin tức: "${parsed.title || targetUrl}"`);
     } catch (err: any) {
@@ -547,6 +566,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setArtIsFeatured(false);
     setArtOriginalUrl('');
     setArtSourceName('');
+    setArtVideoUrl('');
     setArtPublishDate(new Date().toISOString().substring(0, 10));
     setArtAttachment('');
     setArtAttachmentName('');
@@ -572,6 +592,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setArtIsFeatured(!!art.isFeatured);
     setArtOriginalUrl(art.originalUrl || '');
     setArtSourceName(art.sourceName || '');
+    setArtVideoUrl(art.videoUrl || '');
     setArtPublishDate(art.publishDate || new Date().toISOString().substring(0, 10));
     setArtAttachment(art.attachment || '');
     setArtAttachmentName(art.attachmentName || '');
@@ -725,6 +746,16 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     const finalSummary = artSummary.trim() || artContent.replace(/<[^>]*>?/gm, '').substring(0, 160) + '...';
 
     const currentUser = AppStorageEngine.getCurrentUser();
+    const currentUid = currentUser?.id || currentUser?.uid || 'staff-1';
+    const currentName = currentUser?.fullname || 'Cán bộ MTTQ';
+    const userCanPublish = canPublishPost(currentUser);
+
+    // If user cannot publish, ensure status is Pending Review or Draft
+    const effectiveStatus: ArticleStatus = (!userCanPublish && artStatus === 'Published') 
+      ? 'Pending Review' 
+      : artStatus;
+
+    const now = new Date().toISOString();
 
     if (editingArticle) {
       const updated: Article = {
@@ -736,12 +767,18 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         featuredImage: artImage,
         category: artCategory,
         tags: parsedTags.length > 0 ? parsedTags : ['Mặt trận', 'Chánh Hiệp'],
-        status: artStatus,
+        status: effectiveStatus,
         isFeatured: artIsFeatured,
         originalUrl: artOriginalUrl.trim() || undefined,
         sourceName: artSourceName.trim() || undefined,
-        authorName: artAuthor.trim() || 'Cán bộ Tuyên giáo',
+        videoUrl: artVideoUrl.trim() || undefined,
+        authorId: editingArticle.authorId || currentUid,
+        authorName: artAuthor.trim() || editingArticle.authorName || currentName,
+        updatedBy: currentUid,
         publishDate: artPublishDate,
+        publishedAt: effectiveStatus === 'Published' ? (editingArticle.publishedAt || now) : undefined,
+        updatedAt: now,
+        organizationId: editingArticle.organizationId || 'mttq-chanhhiep',
         attachment: artAttachment.trim() || undefined,
         attachmentName: artAttachmentName.trim() || undefined,
         attachmentSize: artAttachmentSize.trim() || undefined,
@@ -757,15 +794,15 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           title: updated.title,
           summary: updated.summary || '',
           content: updated.content || '',
-          authorId: 'contributor-1',
+          authorId: updated.authorId || 'contributor-1',
           authorName: updated.authorName || 'Cộng tác viên',
           authorEmail: 'congtacvien@mttqchanhhiep.vn',
           unit: updated.category || 'Tuyên truyền',
           thumbnailUrl: typeof updated.featuredImage === 'string' ? updated.featuredImage : (updated.featuredImage?.url || ''),
           attachments: updated.attachment ? [updated.attachment] : [],
           status: 'pending' as const,
-          createdAt: updated.publishDate || new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: updated.publishDate || now,
+          updatedAt: now
         };
 
         if (updated.status === 'Published' || updated.status === 'Approved') {
@@ -802,12 +839,19 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         featuredImage: artImage,
         category: artCategory,
         tags: parsedTags.length > 0 ? parsedTags : ['Mặt trận', 'Chánh Hiệp'],
-        status: artStatus,
+        status: effectiveStatus,
         isFeatured: artIsFeatured,
         originalUrl: artOriginalUrl.trim() || undefined,
         sourceName: artSourceName.trim() || undefined,
-        authorName: artAuthor.trim() || 'Cán bộ Tuyên giáo',
+        videoUrl: artVideoUrl.trim() || undefined,
+        authorId: currentUid,
+        authorName: artAuthor.trim() || currentName,
+        createdBy: currentUid,
         publishDate: artPublishDate,
+        publishedAt: effectiveStatus === 'Published' ? (artPublishDate || now) : undefined,
+        createdAt: now,
+        updatedAt: now,
+        organizationId: 'mttq-chanhhiep',
         attachment: artAttachment.trim() || undefined,
         attachmentName: artAttachmentName.trim() || undefined,
         attachmentSize: artAttachmentSize.trim() || undefined,
@@ -824,15 +868,15 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           title: newArt.title,
           summary: newArt.summary || '',
           content: newArt.content || '',
-          authorId: currentUser?.id || 'contributor-1',
-          authorName: newArt.authorName || currentUser?.fullname || 'Cộng tác viên',
-          authorEmail: 'congtacvien@mttqchanhhiep.vn',
+          authorId: currentUid,
+          authorName: newArt.authorName || currentName,
+          authorEmail: currentUser?.email || 'congtacvien@mttqchanhhiep.vn',
           unit: newArt.category || 'Tuyên truyền',
           thumbnailUrl: typeof newArt.featuredImage === 'string' ? newArt.featuredImage : (newArt.featuredImage?.url || ''),
           attachments: newArt.attachment ? [newArt.attachment] : [],
           status: 'pending' as const,
-          createdAt: newArt.publishDate || new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: newArt.publishDate || now,
+          updatedAt: now
         };
         NotificationService.notifyArticleSubmitted(sub).catch(console.error);
       }
@@ -849,20 +893,16 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         });
       }
     }
-
     setIsArticleModalOpen(false);
     resetArticleForm();
+    setActiveTab('ARTICLES');
   };
 
   // Confirm Delete Article
   const handleConfirmDeleteArticle = () => {
     if (!articleToDelete) return;
-    const title = articleToDelete.title;
     onDeleteArticle(articleToDelete.id);
     setArticleToDelete(null);
-    if (onShowToast) {
-      onShowToast('Đã xóa bài viết', `Bài viết "${title}" đã được gỡ thành công.`);
-    }
   };
 
   // Reset Document Form
@@ -1102,6 +1142,43 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setOpinionReplyText('');
   };
 
+  // Helper to approve a submission
+  const handleApproveSubmission = (sub: ArticleSubmission) => {
+    const newArt: Article = {
+      id: 'art-' + Date.now(),
+      title: sub.title,
+      slug: generateSlug(sub.title),
+      summary: sub.summary,
+      content: sub.content,
+      featuredImage: sub.thumbnailUrl || DEFAULT_IMAGE_PRESETS[0].url,
+      category: (sub.unit as any) || 'Hoạt động Mặt trận',
+      tags: ['Cộng tác viên', sub.unit],
+      status: 'Published',
+      isFeatured: false,
+      authorName: sub.authorName,
+      publishDate: new Date().toISOString().substring(0, 10),
+      views: 1
+    };
+    onAddArticle(newArt);
+    if (onDeleteArticleSubmission) {
+      onDeleteArticleSubmission(sub.id);
+    }
+    showSuccessBanner(`Đã phê duyệt và xuất bản bài viết của ${sub.authorName}!`);
+  };
+
+  const handleRejectSubmission = (sub: ArticleSubmission, reason: string) => {
+    if (onUpdateArticleSubmission) {
+      onUpdateArticleSubmission({
+        ...sub,
+        status: 'rejected',
+        rejectionReason: reason,
+        updatedAt: new Date().toISOString()
+      });
+      showSuccessBanner(`Đã từ chối bài viết của ${sub.authorName}.`);
+    }
+    setRespondingSubmission(null);
+  };
+
   // Filtered Articles (Always sorted newest first)
   const filteredArticles = useMemo(() => {
     const list = articles.filter(art => {
@@ -1256,7 +1333,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       </div>
 
       {/* Tabs Navigation (Fit on 1 line across Desktop/Tablet) */}
-      <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-2 md:grid-cols-6 gap-2 shadow-2xs">
+      <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 shadow-2xs">
         <button
           onClick={() => { setActiveTab('OVERVIEW'); setSelectedCategory('ALL'); setSearchTerm(''); }}
           className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
@@ -1278,7 +1355,19 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           }`}
         >
           <Newspaper className="w-4 h-4 shrink-0" />
-          <span className="truncate">Tin Tức &amp; Bài Viết ({articles.length})</span>
+          <span className="truncate">Tin Tức ({articles.length})</span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('SUBMISSIONS'); setSelectedCategory('ALL'); setSearchTerm(''); }}
+          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
+            activeTab === 'SUBMISSIONS'
+              ? 'bg-amber-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-amber-700 hover:bg-white/80'
+          }`}
+        >
+          <Clock className="w-4 h-4 shrink-0" />
+          <span className="truncate">Chờ Duyệt ({articleSubmissions.length})</span>
         </button>
 
         <button
@@ -1629,6 +1718,133 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                               title="Xóa bài viết"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1B. SUBMISSIONS MANAGEMENT TAB */}
+      {/* ========================================================================= */}
+      {activeTab === 'SUBMISSIONS' && (
+        <div className="space-y-4 animate-in fade-in duration-300">
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-amber-900 uppercase">Danh sách bài viết chờ phê duyệt</h3>
+                <p className="text-xs text-amber-700 font-medium">Bạn có {articleSubmissions.length} nội dung mới gửi từ cộng tác viên.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[1000px]">
+                <thead>
+                  <tr className="bg-slate-50/80 text-slate-500 text-[10px] font-black uppercase tracking-wider border-b border-slate-200/60">
+                    <th className="px-4 py-3.5 font-black">Người gửi / Đơn vị</th>
+                    <th className="px-4 py-3.5 font-black">Nội dung bài viết</th>
+                    <th className="px-4 py-3.5 font-black">Thời gian gửi</th>
+                    <th className="px-4 py-3.5 font-black">Trạng thái</th>
+                    <th className="px-4 py-3.5 font-black text-right">Thao tác phê duyệt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {articleSubmissions.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-20 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <CheckCircle2 className="w-12 h-12 text-slate-200" />
+                          <p className="text-slate-400 font-bold text-sm">Hiện tại không có bài viết nào chờ phê duyệt.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    articleSubmissions.map((sub) => (
+                      <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black text-xs">
+                              {sub.authorName?.charAt(0) || 'U'}
+                            </div>
+                            <div>
+                              <p className="font-bold text-xs text-slate-900">{sub.authorName}</p>
+                              <p className="text-[10px] text-slate-500 font-medium">{sub.unit || 'Đơn vị không rõ'}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 max-w-md">
+                          <div className="flex items-start gap-3">
+                            <div className="w-16 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                              <img src={sub.thumbnailUrl || DEFAULT_IMAGE_PRESETS[0].url} className="w-full h-full object-cover" alt="" />
+                            </div>
+                            <div className="space-y-0.5">
+                              <p className="font-black text-xs text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors">{sub.title}</p>
+                              <p className="text-[11px] text-slate-500 line-clamp-1">{sub.summary}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-[11px] text-slate-500 font-medium">
+                          {sub.createdAt.replace('T', ' ').substring(0, 16)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                            sub.status === 'pending' ? 'bg-amber-100 text-amber-700' : 
+                            sub.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                          }`}>
+                            {sub.status === 'pending' ? 'Đang chờ' : sub.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleApproveSubmission(sub)}
+                              className="p-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-all cursor-pointer"
+                              title="Phê duyệt & Xuất bản"
+                            >
+                              <CheckCheck className="w-4 h-4 stroke-[3]" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingArticle({
+                                  ...sub,
+                                  category: (sub.unit as any) || 'Hoạt động Mặt trận',
+                                  tags: ['Cộng tác viên', sub.unit],
+                                  status: 'Pending Review',
+                                  isFeatured: false,
+                                  publishDate: new Date().toISOString().substring(0, 10),
+                                  views: 1,
+                                  slug: generateSlug(sub.title)
+                                } as any);
+                                setArtTitle(sub.title);
+                                setArtSummary(sub.summary);
+                                setArtContent(sub.content);
+                                setArtImage(sub.thumbnailUrl);
+                                setArtAuthor(sub.authorName);
+                                setIsArticleModalOpen(true);
+                              }}
+                              className="p-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 shadow-sm transition-all cursor-pointer"
+                              title="Chỉnh sửa nội dung"
+                            >
+                              <Edit3 className="w-4 h-4 stroke-[3]" />
+                            </button>
+                            <button
+                              onClick={() => setArticleSubmissionToDelete(sub)}
+                              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all cursor-pointer"
+                              title="Xóa yêu cầu"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -2180,6 +2396,46 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                           setArtAttachmentSize('');
                         }}
                       />
+
+                      {/* SECTION 2C: Video Embed Field (YouTube & Facebook Video) */}
+                      <div className="p-3.5 bg-gradient-to-r from-red-50/80 via-rose-50/50 to-white rounded-2xl border border-red-200/90 space-y-2.5 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-black text-red-950 flex items-center gap-1.5">
+                            <Video className="w-4 h-4 text-red-600 shrink-0" />
+                            <span>2c. Video Phóng sự (YouTube, Facebook Video, Reels)</span>
+                          </label>
+                          {artVideoUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setArtVideoUrl('')}
+                              className="text-[10.5px] text-red-600 hover:text-red-800 font-bold hover:underline cursor-pointer"
+                            >
+                              Xóa link video
+                            </button>
+                          )}
+                        </div>
+                        <div>
+                          <input
+                            type="url"
+                            placeholder="Dán link video YouTube (youtu.be/..., shorts/...) hoặc Facebook (fb.watch/..., video/...)"
+                            value={artVideoUrl}
+                            onChange={(e) => setArtVideoUrl(e.target.value)}
+                            className="w-full text-xs px-3 py-2 bg-white border border-red-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-hidden font-medium text-slate-800 placeholder:text-slate-400 shadow-2xs"
+                          />
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-tight">
+                          ✨ Hỗ trợ phát trực tiếp video từ <strong className="text-red-700">YouTube</strong> (clip dài & shorts) và <strong className="text-blue-700">Facebook Video / Reels</strong> ngay trong bài viết.
+                        </p>
+                        {artVideoUrl.trim() && (
+                          <div className="pt-1">
+                            <EmbeddedVideoPlayer
+                              url={artVideoUrl.trim()}
+                              title="Xem trước video phát trong bài"
+                              className="max-w-full shadow-xs"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* SECTION 3: Excerpt Summary */}
@@ -2200,19 +2456,36 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   <div className="lg:col-span-7 flex flex-col space-y-3 h-full">
                     
                     {/* Content Editor Toolbar Header */}
-                    <div className="flex items-center justify-between bg-slate-100/90 px-3.5 py-2 rounded-2xl border border-slate-200 shrink-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100/90 px-3.5 py-2 rounded-2xl border border-slate-200 shrink-0">
                       <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                         <span>Nội dung chi tiết bài viết <span className="text-rose-600">*</span></span>
                         <span className="text-[10px] text-slate-500 font-normal">({artContent.length} ký tự)</span>
                       </label>
 
-                      <button
-                        type="button"
-                        onClick={() => setShowInsertContentImageModal(true)}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Chèn ảnh / Tài liệu Drive vào bài
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const userUrl = prompt('Dán liên kết Video YouTube hoặc Facebook của bài viết:');
+                            if (userUrl && userUrl.trim()) {
+                              setArtVideoUrl(userUrl.trim());
+                              showSuccessBanner('Đã gắn link Video vào bài viết thành công!');
+                            }
+                          }}
+                          className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
+                          title="Gắn link video YouTube hoặc Facebook vào bài viết"
+                        >
+                          <Video className="w-3.5 h-3.5" /> <span>Gắn Video YT/FB</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowInsertContentImageModal(true)}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Chèn ảnh / Drive
+                        </button>
+                      </div>
                     </div>
 
                     {/* Rich Main Textarea */}
@@ -3272,6 +3545,122 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         onClose={() => setShowInsertContentImageModal(false)}
         onInsertContent={(snippet) => setArtContent(prev => prev + snippet)}
       />
+
+      {/* ========================================================================= */}
+      {/* ARTICLE SUBMISSION DETAIL / RESPONSE MODAL */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {respondingSubmission && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 text-slate-900 max-h-[92vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                  <span>Chi tiết bài viết cộng tác</span>
+                </h3>
+                <button onClick={() => setRespondingSubmission(null)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                  <img src={respondingSubmission.thumbnailUrl} className="w-32 h-24 rounded-xl object-cover border border-slate-200" alt="" />
+                  <div className="space-y-1 flex-1">
+                    <h2 className="font-black text-lg text-slate-900 leading-tight">{respondingSubmission.title}</h2>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Tác giả: {respondingSubmission.authorName} • {respondingSubmission.unit}</p>
+                    <p className="text-[11px] text-slate-400 font-medium">Gửi lúc: {respondingSubmission.createdAt.replace('T', ' ')}</p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-white border border-slate-100 rounded-2xl text-sm space-y-3">
+                  <p className="font-bold text-slate-800">Tóm tắt: <span className="font-medium text-slate-600">{respondingSubmission.summary}</span></p>
+                  <div className="border-t border-slate-50 pt-3">
+                    <p className="font-bold text-slate-800 mb-1">Nội dung chính:</p>
+                    <div className="text-slate-700 leading-relaxed max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+                      {respondingSubmission.content}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      const reason = prompt('Nhập lý do từ chối bài viết:', 'Nội dung chưa đạt yêu cầu hoặc đã có tin bài tương tự.');
+                      if (reason) handleRejectSubmission(respondingSubmission, reason);
+                    }}
+                    className="px-5 py-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-black transition-all cursor-pointer"
+                  >
+                    Từ chối bài viết
+                  </button>
+                  <button
+                    onClick={() => handleApproveSubmission(respondingSubmission)}
+                    className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <CheckCheck className="w-4 h-4 stroke-[3]" />
+                    <span>Duyệt & Xuất bản Ngay</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================================= */}
+      {/* SUBMISSION DELETE CONFIRMATION MODAL */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {articleSubmissionToDelete && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 text-slate-900"
+            >
+              <div className="flex items-center gap-3 text-rose-600">
+                <div className="p-3 bg-rose-100 rounded-2xl shrink-0">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900">Xóa yêu cầu cộng tác</h3>
+                  <p className="text-xs text-slate-500">Yêu cầu này sẽ bị gỡ vĩnh viễn khỏi danh sách chờ.</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-rose-50/50 border border-rose-200/80 rounded-2xl text-xs">
+                <p className="font-black text-slate-900">{articleSubmissionToDelete.title}</p>
+                <p className="text-[10px] text-slate-500 mt-1">Người gửi: {articleSubmissionToDelete.authorName}</p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  onClick={() => setArticleSubmissionToDelete(null)}
+                  className="px-4 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={() => {
+                    if (onDeleteArticleSubmission) onDeleteArticleSubmission(articleSubmissionToDelete.id);
+                    setArticleSubmissionToDelete(null);
+                    showSuccessBanner('Đã xóa yêu cầu bài viết cộng tác.');
+                  }}
+                  className="px-5 py-2.5 bg-rose-600 text-white text-xs font-black rounded-xl shadow-md cursor-pointer"
+                >
+                  Xác nhận xóa
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

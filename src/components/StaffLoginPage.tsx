@@ -4,7 +4,7 @@ import { ShieldCheck, Lock, Mail, User, ArrowLeft, LogIn, Key, Sparkles, CheckCi
 import { motion } from 'motion/react';
 import { auth, googleProvider } from '../lib/firebase';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
-import { ADMIN_EMAILS } from './office/StaffLoginModal';
+import { CloudDatabase } from '../lib/firestoreService';
 
 interface StaffLoginPageProps {
   onLoginSuccess: (user: StaffUser) => void;
@@ -24,36 +24,38 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
   const [copiedDomain, setCopiedDomain] = useState(false);
 
-  const processAuthenticatedUser = (userEmail: string, displayName?: string | null, photoURL?: string | null) => {
+  const processAuthenticatedUser = async (userEmail: string, displayName?: string | null, photoURL?: string | null, authUid?: string) => {
     const cleanEmail = userEmail.trim().toLowerCase();
-
-    if (ADMIN_EMAILS.includes(cleanEmail)) {
-      const existingUser = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
-      const adminUser: StaffUser = existingUser ? { ...existingUser, active: true } : {
-        id: cleanEmail.startsWith('nguyenhuy') ? 'staff-1' : 'staff-2',
-        email: cleanEmail,
-        fullname: cleanEmail.startsWith('nguyenhuy') ? 'Nguyễn Huy' : (displayName || 'Bùi Văn Huy'),
-        position: cleanEmail.startsWith('nguyenhuy') ? 'Trưởng Ban Thường trực MTTQ' : 'Phó Chủ tịch MTTQ',
-        department: 'Ban Thường trực',
-        role: cleanEmail.startsWith('nguyenhuy') ? 'SUPER_ADMIN' : 'ADMIN',
-        permissions: ['all'],
-        active: true,
-        avatar: photoURL || undefined,
-        createdAt: '2026-01-01'
-      };
-      onLoginSuccess(adminUser);
-      return;
+    
+    // Refresh token if authenticated
+    try {
+      await auth.currentUser?.getIdToken(true);
+    } catch {
+      // Ignored
     }
 
-    const found = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
-    if (found) {
-      if (found.active) {
+    try {
+      const resolvedUser = await CloudDatabase.syncAuthUserProfile(
+        authUid || auth.currentUser?.uid || ('staff-' + Date.now()),
+        cleanEmail,
+        displayName,
+        photoURL,
+        staffUsers
+      );
+
+      if (resolvedUser.active !== false) {
+        onLoginSuccess(resolvedUser);
+      } else {
+        setErrorMsg(`Tài khoản "${cleanEmail}" đang trong trạng thái chờ Ban Thường trực kích hoạt.`);
+      }
+    } catch (err: any) {
+      console.error('Error syncing profile:', err);
+      const found = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
+      if (found && found.active !== false) {
         onLoginSuccess(found);
       } else {
-        setErrorMsg(`Tài khoản "${cleanEmail}" đang chờ Ban Thường trực phê duyệt kích hoạt quyền Cán bộ.`);
+        setErrorMsg(`Không thể đồng bộ hồ sơ cán bộ: ${err?.message || 'Vui lòng thử lại.'}`);
       }
-    } else {
-      setErrorMsg(`Email "${cleanEmail}" chưa được cấp quyền Cán bộ. Vui lòng liên hệ Quản trị viên để được cấp tài khoản.`);
     }
   };
 
@@ -94,7 +96,7 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
         const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
         const user = userCredential.user;
         if (user?.email) {
-          processAuthenticatedUser(user.email, user.displayName, user.photoURL);
+          await processAuthenticatedUser(user.email, user.displayName, user.photoURL, user.uid);
           return;
         }
       } catch (authErr) {
@@ -102,7 +104,7 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
       }
 
       // Directory fallback authentication
-      processAuthenticatedUser(cleanEmail, null, null);
+      await processAuthenticatedUser(cleanEmail, null, null);
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
@@ -125,7 +127,7 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       if (user?.email) {
-        processAuthenticatedUser(user.email, user.displayName, user.photoURL);
+        await processAuthenticatedUser(user.email, user.displayName, user.photoURL, user.uid);
       }
     } catch (err: any) {
       console.error('Google login error:', err);

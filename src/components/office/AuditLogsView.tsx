@@ -159,6 +159,7 @@ export const AuditLogsView: React.FC<AuditLogsViewProps> = ({ logs }) => {
                   <th className="p-3.5">Thời Gian</th>
                   <th className="p-3.5">Cán Bộ Thực Hiện</th>
                   <th className="p-3.5">Hành Động</th>
+                  <th className="p-3.5">Trạng Thái</th>
                   <th className="p-3.5">Đối Tượng</th>
                   <th className="p-3.5">Chi Tiết Thao Tác</th>
                 </tr>
@@ -166,26 +167,43 @@ export const AuditLogsView: React.FC<AuditLogsViewProps> = ({ logs }) => {
               <tbody className="divide-y divide-slate-100 text-slate-800">
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-emerald-50/10 transition-colors">
-                    <td className="p-3.5 font-mono text-[11px] text-slate-500 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{log.timestamp}</span>
+                    <td className="p-3.5 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{log.timestamp}</span>
+                      </div>
                     </td>
                     <td className="p-3.5 font-bold text-slate-900">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-black text-[10px] border border-slate-200">
+                        <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-black text-[10px] border border-slate-200 shrink-0">
                           {log.userName?.charAt(0).toUpperCase()}
                         </div>
-                        <span>{log.userName}</span>
+                        <div>
+                          <div>{log.userName}</div>
+                          {log.email && <div className="text-[10px] text-slate-400 font-mono font-normal">{log.email}</div>}
+                        </div>
                       </div>
                     </td>
                     <td className="p-3.5">
-                      <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold text-[10px] rounded-md border border-emerald-100">
+                      <span className="px-2.5 py-0.5 bg-blue-50 text-blue-800 font-bold text-[10px] rounded-md border border-blue-200 whitespace-nowrap">
                         {log.action}
                       </span>
                     </td>
-                    <td className="p-3.5 font-semibold text-slate-700">{log.entity}</td>
+                    <td className="p-3.5 whitespace-nowrap">
+                      {log.result === 'FAILED' || log.result === 'DENIED' ? (
+                        <span className="px-2 py-0.5 bg-red-50 text-red-700 font-black text-[10px] rounded border border-red-200">
+                          ✕ THẤT BẠI
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-black text-[10px] rounded border border-emerald-200">
+                          ✓ THÀNH CÔNG
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3.5 font-semibold text-slate-700 whitespace-nowrap">{log.entity}</td>
                     <td className="p-3.5 text-slate-600 max-w-md truncate" title={log.details}>
                       {log.details}
+                      {log.reason && <div className="text-[10px] text-red-600 font-bold mt-0.5">Lý do: {log.reason}</div>}
                     </td>
                   </tr>
                 ))}

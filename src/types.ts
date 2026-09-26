@@ -2,6 +2,7 @@ export type UserRole =
   | 'PUBLIC' 
   | 'CONTRIBUTOR' 
   | 'STAFF' 
+  | 'NEIGHBORHOOD_LEADER'
   | 'EDITOR' 
   | 'REVIEWER'
   | 'PUBLISHER'
@@ -17,22 +18,51 @@ export type UserRole =
   | 'YOUTH_UNION'
   | 'CLERK';
 
+export interface UserPermissions {
+  post_create: boolean;
+  post_edit: boolean;
+  post_delete: boolean;
+  post_publish: boolean;
+  document_create: boolean;
+  document_edit: boolean;
+  document_delete: boolean;
+  user_view: boolean;
+  user_manage: boolean;
+  settings_manage: boolean;
+  cultural_manage?: boolean;
+  media_upload?: boolean;
+  audit_view?: boolean;
+  survey_manage?: boolean;
+  competition_manage?: boolean;
+  opinion_manage?: boolean;
+  [key: string]: boolean | undefined;
+}
+
 export interface StaffUser {
   id: string;
   uid?: string;
   email: string;
   fullname: string;
+  displayName?: string;
   avatar?: string;
   position: string;
   department: string;
   role: UserRole;
+  status?: 'active' | 'inactive';
   permissions: string[];
+  permissionMap?: UserPermissions;
+  organizationId?: string;
   active: boolean;
   createdAt: string;
+  updatedAt?: string;
+  lastLoginAt?: string;
   phone?: string;
   bio?: string;
   tempPassword?: string;
   passwordResetAt?: string;
+  assignedNeighborhoodId?: string;
+  assignedNeighborhoodName?: string;
+  userLevel?: 'WARD' | 'NEIGHBORHOOD';
 }
 
 export interface VolunteerRegistration {
@@ -89,18 +119,25 @@ export interface Article {
   category: ArticleCategory;
   tags: string[];
   status: ArticleStatus;
+  authorId?: string;
   authorName: string;
+  createdBy?: string;
+  updatedBy?: string;
   publishDate: string;
+  publishedAt?: string;
   views: number;
   isFeatured?: boolean;
   originalUrl?: string;
   sourceName?: string;
+  videoUrl?: string; // YouTube or Facebook video URL
   neighborhood?: string;
   attachment?: string;
   attachmentName?: string;
   attachmentSize?: string;
   driveFolderUrl?: string;
+  organizationId?: string;
   createdAt?: string;
+  updatedAt?: string;
   imagePositionX?: string;
   imagePositionY?: string;
   imageFocalPoint?: string;
@@ -333,10 +370,15 @@ export interface AuditLog {
   userId: string;
   userName: string;
   userAvatar?: string;
+  email?: string;
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'PUBLISH' | 'UNPUBLISH' | 'APPROVE' | 'RESTORE' | 'UPLOAD' | string;
   entity: string;
   entityId?: string;
   entityTitle?: string;
+  resource?: string;
+  resourceId?: string;
+  result?: 'SUCCESS' | 'DENIED' | 'FAILED';
+  reason?: string;
   details: string;
   route?: string;
   timestamp: string;

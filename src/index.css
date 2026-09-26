@@ -70,7 +70,8 @@
   /* Specific color-themed Google AI Studio gradient borders for the 3 cards: ONLY on the border, PURE WHITE solid card background */
   .studio-card-blue,
   .studio-card-green,
-  .studio-card-purple {
+  .studio-card-purple,
+  .studio-card-amber {
     position: relative;
     border-radius: 1.25rem;
     background-color: #ffffff;
@@ -122,6 +123,19 @@
     filter: drop-shadow(0 2px 8px rgba(124, 58, 237, 0.15));
   }
 
+  .studio-card-amber {
+    border: 2px solid transparent;
+    background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(135deg, #d97706, #f59e0b, #fbbf24, #ea580c, #f59e0b);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 220% 220%;
+    animation: studioBorderFlowAmber 6s ease-in-out infinite alternate;
+  }
+  .studio-card-amber:hover {
+    box-shadow: 0 20px 40px -10px rgba(217, 119, 6, 0.25), 0 0 24px 2px rgba(251, 191, 36, 0.35);
+    filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.18));
+  }
+
   @keyframes studioBorderFlowBlue {
     0% {
       background-position: 0 0, 0% 50%;
@@ -141,6 +155,15 @@
   }
 
   @keyframes studioBorderFlowPurple {
+    0% {
+      background-position: 0 0, 0% 50%;
+    }
+    100% {
+      background-position: 0 0, 100% 50%;
+    }
+  }
+
+  @keyframes studioBorderFlowAmber {
     0% {
       background-position: 0 0, 0% 50%;
     }

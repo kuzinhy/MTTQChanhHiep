@@ -56,6 +56,7 @@ import { HcmVideoArchive } from './HcmVideoArchive';
 import { HcmChanhHiepAction } from './HcmChanhHiepAction';
 import { HcmBiographyView } from './HcmBiographyView';
 import { HcmMediaSection } from './HcmMediaSection';
+import { HcmEvaluationCriteriaTab } from './HcmEvaluationCriteriaTab';
 import { OptimizedImage } from '../common/OptimizedImage';
 
 // Re-export for backward compatibility
@@ -93,6 +94,7 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
     | 'audio'
     | 'video'
     | 'chanh-hiep'
+    | 'criteria'
     | 'virtual-3d'
     | 'admin';
 
@@ -1161,6 +1163,18 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
             </button>
 
             <button
+              onClick={() => setActiveMuseumTab('criteria')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                activeMuseumTab === 'criteria'
+                  ? 'bg-rose-800 text-white shadow-xs'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-rose-800" />
+              <span>Bộ Tiêu Chí Đánh Giá</span>
+            </button>
+
+            <button
               onClick={() => setActiveMuseumTab('admin')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 activeMuseumTab === 'admin'
@@ -1886,6 +1900,12 @@ export const HoChiMinhCulturalSpaceModal: React.FC<HoChiMinhCulturalSpaceModalPr
 
               {activeMuseumTab === 'chanh-hiep' && (
                 <HcmChanhHiepAction
+                  isAdmin={isSuperAdminMode || isUserSuperAdmin}
+                />
+              )}
+
+              {activeMuseumTab === 'criteria' && (
+                <HcmEvaluationCriteriaTab
                   isAdmin={isSuperAdminMode || isUserSuperAdmin}
                 />
               )}

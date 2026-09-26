@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Article } from '../types';
+import { INITIAL_ARTICLES } from '../data/seedData';
 import { sortArticlesNewestFirst } from '../lib/dateUtils';
 import { getGoogleDriveDirectImageUrl, handleImageError } from '../lib/googleDriveService';
 import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
@@ -26,7 +27,9 @@ import {
   MessageSquare,
   Layers,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Video,
+  Play
 } from 'lucide-react';
 
 // Custom Lotus Flower SVG Component matching the exact artistic botanical composition (Three lotus flowers, stems, and wavy leaf)
@@ -256,6 +259,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onSelectArtic
             <span>Facebook</span>
           </span>
         )}
+        {article.videoUrl && (
+          <span className="absolute bottom-3 right-3 bg-red-600/90 backdrop-blur-xs text-white text-[9.5px] font-black px-2 py-0.5 rounded-lg shadow-md flex items-center gap-1">
+            <Play className="w-2.5 h-2.5 fill-current" />
+            <span>Video</span>
+          </span>
+        )}
       </div>
 
       {/* UNCOVERED TEXT CONTAINER */}
@@ -363,8 +372,22 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
     return false;
   };
 
-  // Ensure all incoming articles are sorted newest first
-  const sortedAllArticles = useMemo(() => sortArticlesNewestFirst(articles), [articles]);
+  // Ensure all incoming articles are sorted newest first and filtered for public consumption
+  const sortedAllArticles = useMemo(() => {
+    const cloudList = Array.isArray(articles) ? articles : [];
+    const cloudIds = new Set(cloudList.map(a => a.id).filter(Boolean));
+    
+    const combined = [
+      ...cloudList,
+      ...INITIAL_ARTICLES.filter(a => a && a.id && !cloudIds.has(a.id))
+    ];
+
+    const publishedOnly = combined.filter(a => 
+      (a.status && (a.status.toLowerCase() === 'published' || a.status.toLowerCase() === 'approved')) || 
+      !a.status
+    );
+    return sortArticlesNewestFirst(publishedOnly);
+  }, [articles]);
 
   // Filter articles based on category & search query (always maintaining newest first order)
   const filteredArticles = useMemo(() => {
@@ -491,6 +514,13 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
                   <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-xs ${getCategoryBadgeStyle(mainHero.category)}`}>
                     {mainHero.category}
                   </span>
+
+                  {mainHero.videoUrl && (
+                    <span className="absolute top-3 right-3 bg-red-600/95 backdrop-blur-xs text-white text-[10.5px] font-black px-2.5 py-1 rounded-xl shadow-md flex items-center gap-1.5 border border-white/20">
+                      <Play className="w-3 h-3 fill-current" />
+                      <span>Video phóng sự</span>
+                    </span>
+                  )}
 
                   <div className="absolute bottom-3 left-3 right-3 text-white flex items-center justify-between text-xs font-medium text-slate-200">
                     <span className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-700">

@@ -785,7 +785,8 @@ Hãy phân tích và trả về định dạng JSON thuần hợp lệ (không k
   "authorName": "Tên tác giả hoặc tên cơ quan thông tấn",
   "sourceName": "Tên báo/trang tin gốc (vd: Báo Bình Dương, Cổng TTĐT TP.HCM...)",
   "publishDate": "YYYY-MM-DD",
-  "imageUrl": "Đường dẫn ảnh nếu bóc tách được từ link hoặc chuỗi rỗng nếu không có"
+  "imageUrl": "Đường dẫn ảnh nếu bóc tách được từ link hoặc chuỗi rỗng nếu không có",
+  "videoUrl": "Đường dẫn video YouTube hoặc Facebook nếu bài viết có video clip/phóng sự, hoặc chuỗi rỗng nếu không có"
 }`;
 
       const response = await ai.models.generateContent({
