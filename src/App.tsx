@@ -338,6 +338,9 @@ export default function App() {
   const [articleSubmissions, setArticleSubmissions] = useState<ArticleSubmission[]>(() => AppStorageEngine.getArticleSubmissions());
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>(() => AppStorageEngine.getFeedback());
   const [isDataSyncing, setIsDataSyncing] = useState<boolean>(true);
+  // Track known article IDs to detect new articles published by other admins
+  const knownArticleIdsRef = React.useRef<Set<string>>(new Set(AppStorageEngine.getArticles().map(a => a.id)));
+  const isInitialArticlesLoadRef = React.useRef<boolean>(true);
 
   // Initialize real-time visitor & session tracking, Offline Sync & Firebase Cloud Sync
   useEffect(() => {
@@ -349,6 +352,46 @@ export default function App() {
       onArticlesUpdate: (arts) => {
         setArticles(arts);
         setIsDataSyncing(false);
+
+        // Detect if any new article was published by another admin in realtime
+        if (!isInitialArticlesLoadRef.current && arts && arts.length > 0) {
+          const currentKnownIds = knownArticleIdsRef.current;
+          const newArticles = arts.filter(a => a && a.id && !currentKnownIds.has(a.id));
+
+          newArticles.forEach(newArt => {
+            currentKnownIds.add(newArt.id);
+            const author = newArt.authorName || 'Cán bộ quản trị';
+            const isMe = currentStaffUser && (
+              newArt.authorId === currentStaffUser.id || 
+              newArt.createdBy === currentStaffUser.id ||
+              (newArt.authorName && newArt.authorName === currentStaffUser.fullname)
+            );
+
+            // Notify me if another admin published the article
+            if (!isMe) {
+              const notifTitle = `📰 [BÀI VIẾT MỚI] ${author} vừa đăng bài`;
+              const notifBody = `"${newArt.title}" (Chuyên mục: ${newArt.category})`;
+
+              // 1. In-App System Toast
+              handleTriggerSystemToast(notifTitle, notifBody);
+
+              // 2. Browser Desktop Push Notification
+              browserNotificationService.sendNotification({
+                title: `[MTTQ CHÁNH HIỆP] ${author} vừa đăng bài viết mới`,
+                body: `"${newArt.title}" - Nhấn để xem chi tiết bài viết.`,
+                tag: `article-${newArt.id}`,
+                onClick: () => {
+                  window.focus();
+                  window.location.hash = `#/tin-tuc/${newArt.id}`;
+                }
+              });
+            }
+          });
+        } else {
+          isInitialArticlesLoadRef.current = false;
+          // Populate known IDs on initial load
+          arts.forEach(a => { if (a && a.id) knownArticleIdsRef.current.add(a.id); });
+        }
       },
       onDocumentsUpdate: (docs) => {
         setDocuments(docs);
@@ -926,6 +969,25 @@ export default function App() {
       return next;
     });
     CloudDatabase.logAudit(newLog);
+
+    // Broadcast Realtime Event to other online Admins
+    try {
+      await adminCollaborationService.publishActivityEvent({
+        actor: {
+          id: currentUid,
+          name: currentName,
+          avatar: currentStaffUser?.avatar
+        },
+        action: 'PUBLISH',
+        entity: 'article',
+        entityId: standardizedArt.id,
+        entityTitle: standardizedArt.title,
+        details: `${currentName} vừa đăng bài viết mới: "${standardizedArt.title}" (${standardizedArt.category})`,
+        route: 'cms'
+      });
+    } catch (collabErr) {
+      console.warn('[Collab] Failed to broadcast article publish event:', collabErr);
+    }
     
     if (isCloudSaved) {
       handleTriggerSystemToast('Đã lưu bài viết lên Cloud', `Bài viết "${standardizedArt.title}" đã được đồng bộ trực tuyến lên Firebase và hiển thị trên mọi máy.`);

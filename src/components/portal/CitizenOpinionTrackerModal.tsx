@@ -100,6 +100,19 @@ export const CitizenOpinionTrackerModal: React.FC<CitizenOpinionTrackerModalProp
     }
   };
 
+  // Safe date helper to avoid Invalid Date
+  const formatDateSafe = (dateVal: string | undefined, includeTime: boolean = false) => {
+    if (!dateVal) return 'Đang cập nhật';
+    const parsed = new Date(dateVal);
+    if (isNaN(parsed.getTime())) {
+      // If dateVal is already a formatted Vietnamese string like '2026-09-26 10:30' or '26/09/2026'
+      return dateVal;
+    }
+    return includeTime 
+      ? parsed.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })
+      : parsed.toLocaleDateString('vi-VN');
+  };
+
   const getStatusBadge = (status: OpinionStatus) => {
     switch (status) {
       case 'RESOLVED':
@@ -321,7 +334,7 @@ export const CitizenOpinionTrackerModal: React.FC<CitizenOpinionTrackerModalProp
                   </div>
                   <div>
                     <span className="text-slate-400">Ngày tiếp nhận:</span>
-                    <p className="font-bold text-white">{new Date(selectedOpinion.createdAt).toLocaleString('vi-VN')}</p>
+                    <p className="font-bold text-white">{formatDateSafe(selectedOpinion.createdAt, true)}</p>
                   </div>
                 </div>
               </div>
@@ -361,7 +374,7 @@ export const CitizenOpinionTrackerModal: React.FC<CitizenOpinionTrackerModalProp
                       <div className="flex items-center gap-2">
                         <h5 className="text-xs font-black text-slate-900">Bước 1: Ban Thường trực MTTQ tiếp nhận hồ sơ</h5>
                         <span className="text-[10px] text-slate-400 font-mono">
-                          {new Date(selectedOpinion.createdAt).toLocaleString('vi-VN')}
+                          {formatDateSafe(selectedOpinion.createdAt, true)}
                         </span>
                       </div>
                       <p className="text-xs text-slate-600">
