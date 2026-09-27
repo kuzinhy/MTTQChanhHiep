@@ -69,12 +69,15 @@ export interface VolunteerRegistration {
   id: string;
   fullName: string;
   phone: string;
+  email?: string;
   neighborhood: string;
   teams: string[];
   note?: string;
   submittedAt: string;
   code: string;
   status: 'PENDING' | 'APPROVED' | 'CONTACTED';
+  isNew?: boolean;
+  viewedByAdmin?: boolean;
 }
 
 export type ArticleCategory = 

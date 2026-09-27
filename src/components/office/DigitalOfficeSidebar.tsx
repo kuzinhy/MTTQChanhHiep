@@ -25,9 +25,11 @@ import {
   PieChart,
   HardDrive,
   MapPin,
+  HeartHandshake,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { AppStorageEngine } from '../../lib/storage';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { canAccessView } from '../../lib/rbac';
 import { UserRole } from '../../types';
@@ -73,6 +75,27 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
 
   // State for search query
   const [searchQuery, setSearchQuery] = useState('');
+  const [unviewedVolunteersCount, setUnviewedVolunteersCount] = useState<number>(0);
+
+  useEffect(() => {
+    const checkVolunteers = () => {
+      try {
+        const vols = AppStorageEngine.getVolunteers() || [];
+        const count = vols.filter((v: any) => v.isNew || !v.viewedByAdmin || v.status === 'PENDING').length;
+        setUnviewedVolunteersCount(count);
+      } catch {
+        setUnviewedVolunteersCount(0);
+      }
+    };
+
+    checkVolunteers();
+    window.addEventListener('storage', checkVolunteers);
+    const interval = setInterval(checkVolunteers, 3000);
+    return () => {
+      window.removeEventListener('storage', checkVolunteers);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Defined Sidebar Groups
   const groups: SidebarGroup[] = useMemo(() => [
@@ -116,6 +139,13 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
         { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
         { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
+        { 
+          id: 'volunteers_admin', 
+          label: 'Quản lý Tình nguyện viên', 
+          icon: HeartHandshake, 
+          badge: unviewedVolunteersCount > 0 ? `+${unviewedVolunteersCount} MỚI` : 'TÌNH NGUYỆN',
+          isNewHighlight: unviewedVolunteersCount > 0 
+        },
         { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
       ]
     },
@@ -401,9 +431,11 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                                   {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
                                   {item.badge && isAllowed && (
                                     <span className={`text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 whitespace-nowrap ${
-                                      isActive 
-                                        ? 'bg-amber-300 text-slate-950 shadow-2xs' 
-                                        : 'bg-slate-100 text-slate-600 border border-slate-200/80'
+                                      (item as any).isNewHighlight
+                                        ? 'bg-rose-600 text-white font-black animate-pulse shadow-xs border border-rose-300'
+                                        : isActive 
+                                          ? 'bg-amber-300 text-slate-950 shadow-2xs' 
+                                          : 'bg-slate-100 text-slate-600 border border-slate-200/80'
                                     }`}>
                                       {item.badge}
                                     </span>

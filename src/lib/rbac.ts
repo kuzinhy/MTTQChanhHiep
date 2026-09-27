@@ -56,6 +56,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   users: 'ADMIN',
   audit_logs: 'STAFF',
   notifications: 'STAFF',
+  volunteers_admin: 'STAFF',
   email_settings: 'ADMIN'
 };
 

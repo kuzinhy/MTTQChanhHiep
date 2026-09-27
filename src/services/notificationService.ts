@@ -4,6 +4,7 @@ import {
   StaffUser, 
   ArticleSubmission, 
   FeedbackItem, 
+  VolunteerRegistration,
   EmailNotification, 
   EmailLog, 
   EmailNotificationSettings 
@@ -938,6 +939,131 @@ export class NotificationService {
       });
     } catch (err) {
       console.warn('[NotificationEngine] In-app notification error for feedback status changed:', err);
+    }
+  }
+
+  /**
+   * Event 7: VOLUNTEER_REGISTERED
+   * Tự động gửi Email chúc mừng đến Tình nguyện viên & thông báo cho Ban Quản trị
+   */
+  static async notifyVolunteerRegistered(volunteer: VolunteerRegistration): Promise<void> {
+    const settings = await this.getSettings();
+
+    const eventKey = `VOLUNTEER_REGISTERED_${volunteer.id}`;
+    const subject = `🎉 [MTTQ CHÁNH HIỆP] Chúc mừng bạn ${volunteer.fullName} đã đăng ký Tình nguyện viên thành công!`;
+
+    const htmlBody = `
+      <div style="font-family: 'Be Vietnam Pro', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #072db5 0%, #1e40af 100%); padding: 28px 24px; text-align: center; color: #ffffff;">
+          <img src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" alt="MTTQ Việt Nam" style="width: 64px; height: 64px; margin-bottom: 12px;" />
+          <h1 style="margin: 0; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM</h1>
+          <p style="margin: 4px 0 0; font-size: 12px; font-weight: 600; color: #93c5fd; text-transform: uppercase;">PHƯỜNG CHÁNH HIỆP • ĐỘI HÌNH TÌNH NGUYỆN VIÊN 2026</p>
+        </div>
+
+        <div style="padding: 28px 24px; color: #1e293b; line-height: 1.6;">
+          <h2 style="margin-top: 0; color: #0f172a; font-size: 17px; font-weight: 700;">Thư Chúc Mừng &amp; Xác Nhận Đăng Ký Tình Nguyện Viên</h2>
+          <p>Kính gửi anh/chị <strong>${volunteer.fullName}</strong>,</p>
+          <p>Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp trân trọng cảm ơn và chúc mừng anh/chị đã chính thức đăng ký gia nhập <strong>Đội hình Tình nguyện viên An sinh &amp; Chuyển đổi số</strong> Phường Chánh Hiệp!</p>
+
+          <div style="background: #f0f9ff; border: 1px dashed #0284c7; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center;">
+            <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #0369a1; text-transform: uppercase;">MÃ TÌNH NGUYỆN VIÊN CHÍNH THỨC</p>
+            <p style="margin: 0; font-size: 24px; font-weight: 900; color: #0284c7; font-family: monospace;">${volunteer.code}</p>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px;">
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600; width: 40%;">Họ và tên:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 700;">${volunteer.fullName}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Số điện thoại / Zalo:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 700;">${volunteer.phone}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Email:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 700;">${volunteer.email || 'Chưa cung cấp'}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Khu phố sinh sống:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 700;">${volunteer.neighborhood}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Đội hình tham gia:</td>
+              <td style="padding: 8px 0; color: #2563eb; font-weight: 700;">${volunteer.teams.join(', ')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 600;">Thời gian gửi:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 600;">${volunteer.submittedAt}</td>
+            </tr>
+          </table>
+
+          <p style="font-size: 13px; color: #475569;">
+            Ban Thường trực Ủy ban MTTQ Phường Chánh Hiệp sẽ chủ động liên hệ trực tiếp với anh/chị qua SĐT/Zalo để phổ biến lịch tập huấn và lịch phân công các chương trình an sinh, vệ sinh môi trường, hỗ trợ nhân dân tại 21 Khu phố.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px 24px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center;">
+          <p style="margin: 0 0 6px; font-weight: 700; color: #334155;">ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG CHÁNH HIỆP</p>
+          <p style="margin: 0 0 4px;">Địa chỉ: Đường Nguyễn Đức Thuận, Khu phố 5, Phường Chánh Hiệp</p>
+          <p style="margin: 0;">Email: mttqvietnamphuongchanhhiep@gmail.com</p>
+        </div>
+      </div>
+    `;
+
+    const plainTextBody = `
+      Kính gửi ${volunteer.fullName},
+      Chúc mừng bạn đã đăng ký Tình nguyện viên Phường Chánh Hiệp thành công!
+      Mã TNV: ${volunteer.code}
+      Đội hình: ${volunteer.teams.join(', ')}
+      Khu phố: ${volunteer.neighborhood}
+      Ban Thường trực MTTQ Phường Chánh Hiệp sẽ sớm liên hệ qua SĐT ${volunteer.phone}.
+      Trân trọng!
+    `;
+
+    // 1. Send congratulatory email to registrant
+    if (volunteer.email && volunteer.email.includes('@')) {
+      await this.sendEmail(
+        'VOLUNTEER_CONGRATS',
+        `${eventKey}_TO_${volunteer.email}`,
+        'volunteers',
+        volunteer.id,
+        volunteer.email,
+        volunteer.fullName,
+        subject,
+        plainTextBody,
+        { htmlContent: htmlBody }
+      );
+    }
+
+    // 2. Notify Admin emails
+    const adminSubject = `[MTTQ CHÁNH HIỆP] Có Tình nguyện viên mới đăng ký: ${volunteer.fullName} (${volunteer.code})`;
+    for (const adminEmail of settings.adminEmails) {
+      await this.sendEmail(
+        'VOLUNTEER_REGISTERED_ADMIN',
+        `${eventKey}_ADMIN_${adminEmail}`,
+        'volunteers',
+        volunteer.id,
+        adminEmail,
+        'Ban Quản trị',
+        adminSubject,
+        `Tình nguyện viên mới: ${volunteer.fullName} - SĐT: ${volunteer.phone} - Khu phố: ${volunteer.neighborhood} - Đội hình: ${volunteer.teams.join(', ')}`,
+        { htmlContent: htmlBody }
+      );
+    }
+
+    // 3. In-App Activity Event to Admin
+    try {
+      adminCollaborationService.publishActivityEvent({
+        actor: { id: 'volunteer-public', name: volunteer.fullName },
+        action: 'CREATE',
+        entity: 'volunteer',
+        entityId: volunteer.id,
+        entityTitle: `${volunteer.fullName} (${volunteer.code})`,
+        details: `Tình nguyện viên mới ${volunteer.fullName} vừa đăng ký Đội hình ${volunteer.teams.join(', ')} tại ${volunteer.neighborhood}`,
+        route: 'volunteers_admin'
+      });
+    } catch (err) {
+      console.warn('[NotificationEngine] In-app notification error for volunteer registration:', err);
     }
   }
 }

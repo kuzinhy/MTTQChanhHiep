@@ -35,7 +35,8 @@ import {
   Zap,
   Globe,
   Radio,
-  FileCheck
+  FileCheck,
+  HeartHandshake
 } from 'lucide-react';
 import { Article, OfficialDocument, PublicOpinion, StaffUser } from '../types';
 import { VisitorTrackerEngine, VisitorStats } from '../lib/visitorTracker';
@@ -258,6 +259,15 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
       badge: 'THÀNH VIÊN',
       badgeType: 'gray',
       action: () => onGoToOffice && onGoToOffice('member_orgs_admin')
+    },
+    {
+      id: 'volunteers_admin',
+      title: 'Quản lý Tình nguyện viên',
+      desc: 'Tiếp nhận, phân loại và quản lý lực lượng đăng ký TNV',
+      icon: HeartHandshake,
+      badge: 'TÌNH NGUYỆN',
+      badgeType: 'gray',
+      action: () => onGoToOffice && onGoToOffice('volunteers_admin')
     },
     {
       id: 'cultural_space_admin',

@@ -62,6 +62,7 @@ import { ShareQrPosterModal } from './components/common/ShareQrPosterModal';
 import { NotificationAdminView } from './components/office/NotificationAdminView';
 import { EmailSettingsView } from './components/office/EmailSettingsView';
 import { GoogleDriveAdminView } from './components/office/GoogleDriveAdminView';
+import { VolunteersAdminView } from './components/office/VolunteersAdminView';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
@@ -140,7 +141,8 @@ export const VALID_OFFICE_VIEWS = [
   'audit_logs',
   'notifications',
   'email_settings',
-  'google_drive_storage'
+  'google_drive_storage',
+  'volunteers_admin'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -2240,6 +2242,10 @@ export default function App() {
 
                     {officeView === 'google_drive_storage' && (
                       <GoogleDriveAdminView />
+                    )}
+
+                    {officeView === 'volunteers_admin' && (
+                      <VolunteersAdminView onTriggerToast={(title, msg) => handleTriggerSystemToast(title, msg)} />
                     )}
 
                     {/* Office 404 Fallback when view is not recognized */}
