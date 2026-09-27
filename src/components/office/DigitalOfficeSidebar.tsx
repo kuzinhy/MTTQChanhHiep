@@ -23,6 +23,7 @@ import {
   Settings,
   ShieldAlert,
   PieChart,
+  HardDrive,
   MapPin,
   LucideIcon 
 } from 'lucide-react';
@@ -125,6 +126,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       badgeText: 'HỆ THỐNG',
       accentColor: 'emerald',
       items: [
+        { id: 'google_drive_storage', label: 'Cơ chế lưu trữ Google Drive', icon: HardDrive, badge: 'DRIVE' },
         { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
         { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
         { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },

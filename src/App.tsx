@@ -61,6 +61,7 @@ import { WelfareCommunityMapModal } from './components/map/WelfareCommunityMapMo
 import { ShareQrPosterModal } from './components/common/ShareQrPosterModal';
 import { NotificationAdminView } from './components/office/NotificationAdminView';
 import { EmailSettingsView } from './components/office/EmailSettingsView';
+import { GoogleDriveAdminView } from './components/office/GoogleDriveAdminView';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
@@ -138,7 +139,8 @@ export const VALID_OFFICE_VIEWS = [
   'analytics',
   'audit_logs',
   'notifications',
-  'email_settings'
+  'email_settings',
+  'google_drive_storage'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -2234,6 +2236,10 @@ export default function App() {
 
                     {officeView === 'email_settings' && (
                       <EmailSettingsView />
+                    )}
+
+                    {officeView === 'google_drive_storage' && (
+                      <GoogleDriveAdminView />
                     )}
 
                     {/* Office 404 Fallback when view is not recognized */}

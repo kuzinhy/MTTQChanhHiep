@@ -1347,128 +1347,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         </div>
       </div>
 
-      {/* Tabs Navigation (Fit on 1 line across Desktop/Tablet) */}
-      <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 shadow-2xs">
-        <button
-          onClick={() => { setActiveTab('OVERVIEW'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'OVERVIEW'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <Layers className="w-4 h-4 shrink-0" />
-          <span className="truncate">Thống Kê Tổng Quan</span>
-        </button>
 
-        <button
-          onClick={() => { setActiveTab('ARTICLES'); setSelectedCategory('ALL'); setStatusFilter('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'ARTICLES'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <Newspaper className="w-4 h-4 shrink-0" />
-          <span className="truncate">Tin Tức ({articles.length})</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('SUBMISSIONS'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'SUBMISSIONS'
-              ? 'bg-amber-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-amber-700 hover:bg-white/80'
-          }`}
-        >
-          <Clock className="w-4 h-4 shrink-0" />
-          <span className="truncate">Chờ Duyệt ({articleSubmissions.length})</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('DOCUMENTS'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'DOCUMENTS'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <FileText className="w-4 h-4 shrink-0" />
-          <span className="truncate">Văn Bản Chỉ Đạo ({documents.length})</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('COMPETITIONS'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'COMPETITIONS'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <Award className="w-4 h-4 shrink-0" />
-          <span className="truncate">Hội Thi ({competitions.length})</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('OPINIONS'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'OPINIONS'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <MessageSquare className="w-4 h-4 shrink-0" />
-          <span className="truncate">Ý Kiến Dân Sinh ({opinions.length})</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('INITIATIVES'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'INITIATIVES'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <Lightbulb className="w-4 h-4 shrink-0 text-amber-300" />
-          <span className="truncate">Sáng Kiến 21 Khu Phố</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('ABOUT'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'ABOUT'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <Info className="w-4 h-4 shrink-0 text-amber-300" />
-          <span className="truncate">Trang Giới Thiệu</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('MEDIA'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'MEDIA'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <ImageIcon className="w-4 h-4 shrink-0 text-emerald-400" />
-          <span className="truncate">Thư Viện Ảnh (Cloudinary)</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('CULTURAL_MEDIA'); setSelectedCategory('ALL'); setSearchTerm(''); }}
-          className={`w-full py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
-            activeTab === 'CULTURAL_MEDIA'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-blue-700 hover:bg-white/80'
-          }`}
-        >
-          <Sparkles className="w-4 h-4 shrink-0 text-purple-400" />
-          <span className="truncate">Tư Liệu Văn Hóa</span>
-        </button>
-      </div>
 
       {/* ========================================================================= */}
       {/* 0. OVERVIEW ANALYTICS TAB */}
@@ -1510,8 +1389,6 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
             </div>
           </div>
 
-          {/* Google Drive Chanh Hiep 7 Folders Bar */}
-          <ChanhHiepDriveFolderBar />
 
           {/* Search & Filter Toolbar */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col lg:flex-row items-center justify-between gap-3 shadow-2xs">

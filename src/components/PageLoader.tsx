@@ -10,7 +10,10 @@ import {
   ArrowRight,
   Wifi,
   Layers,
-  Lock
+  Lock,
+  MapPin,
+  Newspaper,
+  Zap
 } from 'lucide-react';
 import { OptimizedImage } from './common/OptimizedImage';
 import { bootstrapManager, BootstrapState } from '../lib/AppBootstrapManager';
@@ -22,8 +25,8 @@ interface PageLoaderProps {
 export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
   const [state, setState] = useState<BootstrapState>(() => ({
     status: 'idle',
-    progress: 10,
-    currentTask: 'Khởi tạo hệ thống quản trị MTTQ...',
+    progress: 15,
+    currentTask: 'Khởi tạo hệ thống Cổng thông tin...',
     ready: false,
     error: null,
   }));
@@ -34,13 +37,13 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
     let timer: NodeJS.Timeout;
     let safetyTimer: NodeJS.Timeout;
 
-    // Safety fallback: Never keep user waiting longer than 2.5 seconds
+    // Safety fallback: Never keep user waiting longer than 2.0 seconds
     safetyTimer = setTimeout(() => {
       setIsFinishing(true);
       setTimeout(() => {
         if (onLoaded) onLoaded();
-      }, 350);
-    }, 2500);
+      }, 300);
+    }, 2000);
 
     const unsubscribe = bootstrapManager.subscribe((newState) => {
       setState(newState);
@@ -48,7 +51,7 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
         setIsFinishing(true);
         timer = setTimeout(() => {
           if (onLoaded) onLoaded();
-        }, 400);
+        }, 350);
       }
     });
 
@@ -66,14 +69,14 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
     if (onLoaded) onLoaded();
   };
 
-  const { progress, currentTask, statusText = currentTask } = state;
+  const { progress, currentTask, statusText = currentTask, loadedDetails } = state;
 
-  // Milestone check logic
+  // 4 Core Preloading Milestones
   const steps = [
-    { id: 1, label: 'Lõi PWA', min: 15, icon: Cpu },
-    { id: 2, label: 'CSDL Cloud', min: 45, icon: Database },
-    { id: 3, label: 'Dữ liệu Tin tức', min: 75, icon: Globe },
-    { id: 4, label: 'Sẵn sàng', min: 95, icon: CheckCircle2 }
+    { id: 1, label: 'Lõi PWA & Cache', min: 20, icon: Cpu },
+    { id: 2, label: 'CSDL Cloud', min: 50, icon: Database },
+    { id: 3, label: 'Bản đồ 21 Khu phố', min: 78, icon: MapPin },
+    { id: 4, label: 'Trang chủ sẵn sàng', min: 95, icon: Sparkles }
   ];
 
   return (
@@ -83,95 +86,94 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
         animate={{ opacity: 1 }}
         exit={{ 
           opacity: 0, 
-          scale: 1.03, 
-          filter: 'blur(10px)', 
-          transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } 
+          scale: 1.02, 
+          filter: 'blur(12px)', 
+          transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } 
         }}
-        className="fixed inset-0 z-[99999] bg-slate-950/90 backdrop-blur-[10px] text-white flex flex-col items-center justify-between p-4 sm:p-8 select-none overflow-hidden antialiased"
-        style={{ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        className="fixed inset-0 z-[99999] bg-gradient-to-br from-slate-50 via-blue-50/70 to-cyan-50 text-slate-800 flex flex-col items-center justify-between p-4 sm:p-8 select-none overflow-hidden antialiased"
       >
-        {/* Background Ambient Glow & Grid Pattern */}
+        {/* Luminous Background Ambient Effects */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Subtle Radial Gradients */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] sm:w-[55rem] sm:h-[55rem] bg-gradient-to-tr from-blue-700/20 via-cyan-500/15 to-indigo-700/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]" />
+          {/* Subtle Radial Sunburst Gradients */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[45rem] h-[45rem] bg-gradient-to-tr from-blue-200/40 via-cyan-100/50 to-amber-100/40 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-red-100/60 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100/60 rounded-full blur-[120px]" />
 
-          {/* Precision Dot/Grid Matrix Background */}
+          {/* Clean Dot Matrix Pattern */}
           <div 
-            className="absolute inset-0 opacity-[0.07]"
+            className="absolute inset-0 opacity-[0.35]"
             style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)`,
-              backgroundSize: '32px 32px'
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(37, 99, 235, 0.12) 1.2px, transparent 0)`,
+              backgroundSize: '28px 28px'
             }}
           />
 
-          {/* Elegant Circular Rings for subtle depth */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] sm:w-[42rem] sm:h-[42rem] rounded-full border border-blue-500/15 animate-spin" style={{ animationDuration: '90s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[24rem] h-[24rem] sm:w-[32rem] sm:h-[32rem] rounded-full border border-dashed border-cyan-400/20 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '60s' }} />
+          {/* Orbital Ambient Rings */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] rounded-full border border-blue-200/50 animate-spin" style={{ animationDuration: '80s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[26rem] h-[26rem] rounded-full border border-dashed border-cyan-300/60 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '50s' }} />
         </div>
 
-        {/* Top Header Bar */}
+        {/* Top Header Badge Bar */}
         <header className="relative z-10 w-full max-w-4xl flex items-center justify-between gap-4 pt-2">
-          {/* Organization Badge */}
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-lg">
-            <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center border border-yellow-400/70 shadow-xs shrink-0">
+          {/* Government Unit Title */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-white/90 border border-slate-200/90 shadow-sm backdrop-blur-md">
+            <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center border border-yellow-300 shadow-xs shrink-0">
               <span className="text-[11px] text-yellow-300 font-black leading-none">★</span>
             </div>
-            <span className="text-[11px] sm:text-xs font-bold text-slate-200 tracking-wide">
-              Ủy ban MTTQ Việt Nam Phường Chánh Hiệp
+            <span className="text-xs sm:text-sm font-extrabold text-slate-800 tracking-tight">
+              Ủy ban MTTQ VN Phường Chánh Hiệp
             </span>
           </div>
 
-          {/* Realtime Live Status Tag */}
-          <div className="flex items-center gap-2 text-[11px] text-cyan-300/90 font-mono bg-cyan-950/40 border border-cyan-800/50 px-3 py-1 rounded-full backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <span className="hidden sm:inline">Hệ Thống Trực Tuyến</span>
-            <span className="sm:hidden">Realtime</span>
+          {/* Realtime & Cache Status Tag */}
+          <div className="flex items-center gap-2 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-2xl backdrop-blur-md shadow-xs">
+            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+            <span className="hidden sm:inline">Cache Trình Duyệt Tải Nhanh</span>
+            <span className="sm:hidden">Tải Cực Nhanh</span>
           </div>
         </header>
 
-        {/* Central Core Content Card */}
-        <main className="relative z-10 max-w-xl w-full flex flex-col items-center text-center space-y-6 sm:space-y-8 my-auto py-4">
+        {/* Central Luminous Card */}
+        <main className="relative z-10 max-w-lg w-full flex flex-col items-center text-center space-y-6 sm:space-y-7 my-auto py-6 px-6 sm:px-8 bg-white/80 border border-white/90 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] backdrop-blur-xl">
           
-          {/* MTTQ Emblem Emblem with Glowing Halo */}
+          {/* Glowing Emblem Container */}
           <div className="relative group">
-            {/* Pulsing Aura Rings */}
-            <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-red-600/30 via-yellow-500/20 to-blue-600/30 blur-xl animate-pulse" />
+            {/* Pulsing Red/Gold Aura */}
+            <div className="absolute -inset-3 rounded-full bg-gradient-to-r from-red-500/20 via-yellow-400/30 to-blue-500/20 blur-xl animate-pulse" />
             
             <motion.div 
-              initial={{ scale: 0.85, opacity: 0 }}
+              initial={{ scale: 0.88, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1.5 bg-gradient-to-br from-yellow-400 via-red-500 to-blue-600 shadow-[0_0_50px_rgba(37,99,235,0.4)]"
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+              className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full p-1.5 bg-gradient-to-br from-yellow-400 via-red-500 to-blue-600 shadow-[0_10px_35px_rgba(37,99,235,0.25)]"
             >
-              <div className="w-full h-full rounded-full bg-slate-950 border-2 border-yellow-400/80 flex items-center justify-center p-3 overflow-hidden shadow-inner backdrop-blur-md">
+              <div className="w-full h-full rounded-full bg-white border-2 border-yellow-400 flex items-center justify-center p-2.5 overflow-hidden shadow-inner">
                 <OptimizedImage 
                   src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" 
                   alt="Biểu trưng Mặt trận Tổ quốc Việt Nam" 
                   variant="thumbnail"
                   priority={true}
-                  className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.85)]"
+                  className="w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
                 />
               </div>
             </motion.div>
           </div>
 
           {/* Titles & Typography */}
-          <div className="space-y-2 max-w-lg">
-            <h1 className="text-base sm:text-xl md:text-2xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-md">
+          <div className="space-y-1.5">
+            <h1 className="text-base sm:text-xl font-black uppercase tracking-tight text-slate-900 leading-tight">
               Ủy Ban Mặt Trận Tổ Quốc Việt Nam
             </h1>
-            <p className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-cyan-300 drop-shadow-sm">
-              Phường Chánh Hiệp • Cổng Thông Tin &amp; An Sinh Số
+            <p className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-blue-700">
+              Phường Chánh Hiệp • Cổng Thông Tin Điện Tử
             </p>
-            <p className="text-[11px] sm:text-xs text-slate-400 font-medium max-w-md mx-auto leading-relaxed pt-1">
-              Nền tảng số hóa quản trị đại đoàn kết, tiếp nhận ý kiến nhân dân và dịch vụ an sinh xã hội trực tuyến
+            <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto leading-relaxed pt-1">
+              Hệ thống số hóa chuyển đổi số an sinh, tiếp nhận ý kiến nhân dân &amp; thông tin 21 Khu phố
             </p>
           </div>
 
-          {/* Pipeline Milestone Grid */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full max-w-md">
+          {/* Preloading Step Milestones */}
+          <div className="grid grid-cols-4 gap-2 w-full">
             {steps.map((s) => {
               const isDone = progress >= s.min;
               const isCurrent = progress >= s.min - 25 && progress < s.min;
@@ -181,73 +183,73 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ onLoaded }) => {
                   key={s.id}
                   className={`p-2.5 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-1.5 ${
                     isDone 
-                      ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300 shadow-xs' 
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800 shadow-xs' 
                       : isCurrent
-                      ? 'bg-blue-900/40 border-cyan-400/60 text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
-                      : 'bg-slate-900/40 border-slate-800/80 text-slate-500'
+                      ? 'bg-blue-50 border-blue-400/80 text-blue-900 shadow-[0_0_12px_rgba(37,99,235,0.15)]'
+                      : 'bg-slate-50 border-slate-200/80 text-slate-400'
                   }`}
                 >
-                  <IconComp className={`w-4 h-4 ${isDone ? 'text-emerald-400' : isCurrent ? 'text-cyan-300 animate-bounce' : 'text-slate-600'}`} />
+                  <IconComp className={`w-4 h-4 ${isDone ? 'text-emerald-600' : isCurrent ? 'text-blue-600 animate-bounce' : 'text-slate-400'}`} />
                   <span className="text-[10px] font-bold truncate max-w-full">{s.label}</span>
                 </div>
               );
             })}
           </div>
 
-          {/* High-Tech Progress Bar & Readout */}
-          <div className="w-full max-w-md space-y-3">
-            <div className="relative w-full h-3 rounded-full bg-slate-900 border border-slate-700/80 overflow-hidden shadow-inner p-0.5 backdrop-blur-md">
+          {/* High-Tech Bright Progress Bar & Readout */}
+          <div className="w-full space-y-2.5">
+            <div className="relative w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shadow-inner p-0.5">
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-400 shadow-[0_0_20px_rgba(34,211,238,0.7)] relative"
-                initial={{ width: '5%' }}
+                className="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 shadow-[0_0_12px_rgba(34,211,238,0.6)] relative"
+                initial={{ width: '15%' }}
                 animate={{ width: `${Math.min(progress, 100)}%` }}
-                transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.5 }}
+                transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.4 }}
               >
-                {/* Glowing Leading Head */}
-                <div className="absolute right-0 top-0 bottom-0 w-2.5 bg-white rounded-full shadow-[0_0_10px_#fff]" />
+                {/* Glowing Leading Edge */}
+                <div className="absolute right-0 top-0 bottom-0 w-2.5 bg-white rounded-full shadow-[0_0_8px_#fff]" />
               </motion.div>
             </div>
 
-            {/* Live Progress Data & Current Step */}
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-300 px-1">
-              <div className="flex items-center gap-2 text-cyan-200 truncate pr-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
-                <span className="truncate text-left font-medium text-[11px] sm:text-xs">{statusText}</span>
+            {/* Live Progress Status & Readout */}
+            <div className="flex items-center justify-between text-xs font-bold text-slate-600 px-1">
+              <div className="flex items-center gap-2 text-blue-800 truncate pr-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping shrink-0" />
+                <span className="truncate text-left font-semibold text-[11px] sm:text-xs">{statusText}</span>
               </div>
-              <span className="font-mono font-black text-cyan-300 text-sm shrink-0">
+              <span className="font-mono font-black text-blue-700 text-sm shrink-0">
                 {Math.min(progress, 100)}%
               </span>
             </div>
           </div>
 
-          {/* Fast Skip Button */}
-          <div className="pt-2">
+          {/* Fast Action Skip Button */}
+          <div className="pt-1">
             <button
               onClick={handleSkip}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 text-xs font-bold transition-all cursor-pointer shadow-md hover:border-slate-500"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <span>Vào trang chủ ngay</span>
-              <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+              <ArrowRight className="w-4 h-4 text-cyan-200" />
             </button>
           </div>
 
         </main>
 
-        {/* Footer Info & Security Protocols */}
-        <footer className="relative z-10 w-full max-w-4xl border-t border-slate-800/80 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
-          <div className="flex items-center gap-2 text-slate-300 font-medium">
-            <Lock className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Mã hóa SSL 256-bit • Chứng nhận số Hành chính công 4.0</span>
+        {/* Footer Security & Speed Badges */}
+        <footer className="relative z-10 w-full max-w-4xl border-t border-slate-200/80 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+          <div className="flex items-center gap-2 text-slate-700 font-semibold">
+            <Lock className="w-3.5 h-3.5 text-blue-600" />
+            <span>Hành chính công 4.0 • Bảo mật kết nối SSL 256-Bit</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400 font-medium">
+          <div className="flex items-center gap-4 text-slate-600 font-medium">
             <span className="flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 text-blue-400" />
-              PWA Offline Ready
+              <Layers className="w-3.5 h-3.5 text-blue-600" />
+              Lưu Cache Trình Duyệt Tự Động
             </span>
             <span className="flex items-center gap-1">
-              <Wifi className="w-3.5 h-3.5 text-emerald-400" />
-              Đồng bộ Firebase Cloud
+              <Wifi className="w-3.5 h-3.5 text-emerald-600" />
+              Đồng Bộ Realtime Cloud
             </span>
           </div>
         </footer>

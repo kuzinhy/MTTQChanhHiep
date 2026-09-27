@@ -28,6 +28,7 @@ import {
   Search,
   Maximize2,
   Minimize2,
+  HardDrive,
   PieChart,
   SlidersHorizontal,
   ShieldCheck,
@@ -269,8 +270,17 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     },
   ];
 
-  // 3. NHÓM 3: QUẢN TRỊ HỆ THỐNG (5 CHỨC NĂNG - Đúng hình 3)
+  // 3. NHÓM 3: QUẢN TRỊ HỆ THỐNG
   const adminItems: ActionItem[] = [
+    {
+      id: 'google_drive_storage',
+      title: 'Cơ chế lưu trữ Google Drive',
+      desc: 'Quản trị 7 thư mục chuẩn đám mây Google Drive Phường Chánh Hiệp',
+      icon: HardDrive,
+      badge: 'GOOGLE DRIVE',
+      badgeType: 'gray',
+      action: () => onGoToOffice && onGoToOffice('google_drive_storage')
+    },
     {
       id: 'notifications',
       title: 'Trung tâm Thông báo',

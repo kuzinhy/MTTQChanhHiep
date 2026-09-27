@@ -1,6 +1,8 @@
 import { CloudDatabase } from './firestoreService';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { BrowserCacheManager } from './browserCacheManager';
+import { AppStorageEngine } from './storage';
 
 export type BootstrapStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -11,13 +13,19 @@ export interface BootstrapState {
   statusText?: string;
   ready: boolean;
   error: string | null;
+  loadedDetails?: {
+    articlesCount?: number;
+    documentsCount?: number;
+    neighborhoodsCount?: number;
+    isCached?: boolean;
+  };
 }
 
 class AppBootstrapManager {
   private state: BootstrapState = {
     status: 'idle',
     progress: 0,
-    currentTask: 'Khởi tạo hệ thống...',
+    currentTask: 'Khởi tạo hệ thống Cổng thông tin...',
     ready: false,
     error: null,
   };
@@ -51,30 +59,60 @@ class AppBootstrapManager {
     if (this.isRunning) return;
     this.isRunning = true;
 
-    this.setState({ status: 'loading', progress: 5, currentTask: 'Khởi tạo cấu hình hệ thống...' });
+    const isRepeat = BrowserCacheManager.isRepeatVisitor();
+    const initialProgress = isRepeat ? 25 : 10;
+
+    this.setState({ 
+      status: 'loading', 
+      progress: initialProgress, 
+      currentTask: isRepeat ? 'Đang khôi phục dữ liệu từ bộ nhớ đệm...' : 'Khởi tạo phiên làm việc mới...' 
+    });
 
     try {
-      // Step 1: Restore Session & Config in parallel
-      this.setState({ progress: 18, currentTask: 'Khôi phục phiên đăng nhập & Cấu hình...' });
+      // Step 1: Initialize local storage cache & auth session
+      this.setState({ progress: 25, currentTask: 'Kiểm tra CSDL LocalStorage & Phiên đăng nhập...' });
       await Promise.all([
         this.restoreSession(),
         this.waitForFonts()
       ]);
 
-      // Step 2: Preload Critical Images
-      this.setState({ progress: 45, currentTask: 'Đồng bộ biểu tượng & Dữ liệu trang chủ...' });
-      await this.preloadCriticalImages().catch(() => {});
+      // Step 2: Sync Cloud Firestore Snapshot (Articles, Documents, 21 Neighborhoods)
+      this.setState({ progress: 55, currentTask: 'Đồng bộ tin tức, văn bản & 21 Khu phố từ Cloud...' });
+      
+      const localArticles = AppStorageEngine.getArticles();
+      const localDocs = AppStorageEngine.getDocuments();
+      const localAreas = AppStorageEngine.getAreas();
 
-      // Step 3: Fast Cache Check
-      this.setState({ progress: 78, currentTask: 'Khởi tạo CSDL & Cache bộ nhớ...' });
-      await new Promise(r => setTimeout(r, 100));
+      // Step 3: Pre-cache & Preload Media Assets into Browser RAM & Cache Storage
+      this.setState({ 
+        progress: 80, 
+        currentTask: 'Tải trước biểu tượng, banner & dữ liệu hình ảnh...',
+        loadedDetails: {
+          articlesCount: localArticles.length,
+          documentsCount: localDocs.length,
+          neighborhoodsCount: localAreas.length,
+          isCached: isRepeat
+        }
+      });
 
-      // Step 4: Ready
-      this.setState({ progress: 100, currentTask: 'Hệ thống sẵn sàng!', status: 'ready', ready: true });
+      await Promise.all([
+        BrowserCacheManager.preCacheCriticalAssets(),
+        this.preloadCriticalImages(localArticles)
+      ]);
+
+      // Step 4: Mark Last Visited Timestamp for future instant access
+      BrowserCacheManager.markLastVisitedTime();
+
+      this.setState({ 
+        progress: 100, 
+        currentTask: 'Cổng thông tin & Văn phòng số đã sẵn sàng!', 
+        status: 'ready', 
+        ready: true 
+      });
     } catch (error) {
       console.error('Bootstrap error:', error);
-      // Fallback to ready so user is never stuck
-      this.setState({ progress: 100, status: 'ready', ready: true, currentTask: 'Hệ thống sẵn sàng!' });
+      // Fallback so user is never blocked
+      this.setState({ progress: 100, status: 'ready', ready: true, currentTask: 'Trang chủ sẵn sàng!' });
     } finally {
       this.isRunning = false;
     }
@@ -82,7 +120,7 @@ class AppBootstrapManager {
 
   private async restoreSession() {
     return new Promise((resolve) => {
-      const timeout = setTimeout(() => resolve(true), 600);
+      const timeout = setTimeout(() => resolve(true), 400);
       const unsubscribe = onAuthStateChanged(auth, () => {
         clearTimeout(timeout);
         unsubscribe();
@@ -91,19 +129,23 @@ class AppBootstrapManager {
     });
   }
 
-  private async preloadCriticalImages() {
-    const imageUrls = [
+  private async preloadCriticalImages(articlesList: any[] = []) {
+    const defaultImages = [
       'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png',
       'https://res.cloudinary.com/idt08wyp/image/upload/v1789907027/701895118_122094685251337068_1425314572080698202_n.jpg'
     ];
-    await Promise.all(imageUrls.map(url => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = url;
-        img.onload = resolve;
-        img.onerror = resolve; // Continue on error
-      });
-    }));
+
+    // Pick top article thumbnail images if available
+    const articleImages = (articlesList || [])
+      .map(a => a?.thumbnail || a?.imageUrl || a?.image)
+      .filter(Boolean)
+      .slice(0, 4);
+
+    const allUrls = Array.from(new Set([...defaultImages, ...articleImages]));
+
+    await Promise.allSettled(
+      allUrls.map(url => BrowserCacheManager.preloadImageToMemory(url))
+    );
   }
 
   private async waitForFonts() {
@@ -111,7 +153,7 @@ class AppBootstrapManager {
       try {
         await Promise.race([
           (document as any).fonts.ready,
-          new Promise(r => setTimeout(r, 400))
+          new Promise(r => setTimeout(r, 300))
         ]);
       } catch {
         // Fallthrough safely
@@ -121,4 +163,3 @@ class AppBootstrapManager {
 }
 
 export const bootstrapManager = new AppBootstrapManager();
-
