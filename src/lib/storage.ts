@@ -401,7 +401,7 @@ export const AppStorageEngine = {
   },
 
   getDocuments: (): OfficialDocument[] => {
-    const raw = loadInitialData<OfficialDocument[]>(STORAGE_KEYS.DOCUMENTS, []);
+    const raw = loadInitialData<OfficialDocument[]>(STORAGE_KEYS.DOCUMENTS, INITIAL_DOCUMENTS);
     const deletedIds = AppStorageEngine.getDeletedDocIds();
 
     const filtered = (raw || []).filter(d => d && d.id && !deletedIds.has(d.id) && !(d as any).isSample);

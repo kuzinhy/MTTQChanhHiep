@@ -366,25 +366,8 @@ export default function App() {
   });
 
   const [documents, setDocuments] = useState<OfficialDocument[]>(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const currentHostname = window.location.hostname;
-        const lastHostname = localStorage.getItem('mttq_last_hostname_init');
-        const isNewDomain = !lastHostname || lastHostname !== currentHostname;
-        const isPurged = localStorage.getItem('mttq_seed_purged_domain_v2') === 'true';
-
-        if (isNewDomain || !isPurged) {
-          const stored = AppStorageEngine.getDocuments();
-          const cleanDocs = (stored || []).filter(d => !isSeedDocument(d));
-          AppStorageEngine.saveDocuments(cleanDocs);
-          return cleanDocs;
-        }
-      }
-    } catch (e) {
-      console.warn('[Init] Documents domain init check:', e);
-    }
     const loaded = AppStorageEngine.getDocuments();
-    return (loaded || []).filter(d => !isSeedDocument(d));
+    return loaded || [];
   });
 
   const [competitions, setCompetitions] = useState<Competition[]>(() => {

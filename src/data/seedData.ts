@@ -20,7 +20,50 @@ import { OFFICIAL_21_NEIGHBORHOODS } from './neighborhoodsList';
 
 export const INITIAL_ARTICLES: Article[] = [];
 
-export const INITIAL_DOCUMENTS: OfficialDocument[] = [];
+export const INITIAL_DOCUMENTS: OfficialDocument[] = [
+  {
+    id: 'doc-1',
+    codeNumber: '207/QĐ-MTTW-BTT',
+    title: 'Ban hành Quy định về thể loại, thẩm quyền ban hành, thể thức và kỹ thuật trình bày văn bản của MTTQ',
+    docType: 'Quyết định',
+    issuer: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
+    issueDate: '2026-08-31',
+    signer: 'Nguyễn Thị Thu Hà',
+    signerPosition: 'Phó Chủ tịch',
+    field: 'Tổ chức - Tuyên giáo',
+    isPublic: true,
+    summary: 'Quy định thống nhất thể thức văn bản hành chính theo Nghị định 30/2020/NĐ-CP',
+    createdAt: '2026-08-31'
+  },
+  {
+    id: 'doc-2',
+    codeNumber: '1314',
+    title: 'ĐIỀU LỆ MẶT TRẬN TỔ QUỐC VIỆT NAM KHÓA XI, NHIỆM KỲ 2026 - 2031',
+    docType: 'Tài liệu tuyên truyền',
+    issuer: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
+    issueDate: '2026-05-13',
+    signer: 'Đại hội XI',
+    signerPosition: 'Chủ tịch',
+    field: 'MTTQ',
+    isPublic: true,
+    summary: 'Điều lệ mới nhất của MTTQ Việt Nam khóa XI nhiệm kỳ 2026-2031',
+    createdAt: '2026-05-13'
+  },
+  {
+    id: 'doc-3',
+    codeNumber: '01',
+    title: 'Hướng dẫn 60 thực hiện Điều lệ Đoàn TNCS Hồ Chí Minh',
+    docType: 'Tài liệu tuyên truyền',
+    issuer: 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
+    issueDate: '2025-02-28',
+    signer: 'Bùi Quang Huy',
+    signerPosition: 'Chủ tịch',
+    field: 'Tổ chức - Tuyên giáo',
+    isPublic: true,
+    summary: 'Hướng dẫn chi tiết triển khai điều lệ Đoàn TNCS Hồ Chí Minh',
+    createdAt: '2025-02-28'
+  }
+];
 
 export const INITIAL_COMPETITIONS: Competition[] = [];
 
