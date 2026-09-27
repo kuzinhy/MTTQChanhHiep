@@ -62,11 +62,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
     { id: 'about', label: 'Giới thiệu', icon: Info },
+    { id: 'documents', label: 'Văn bản triển khai', icon: FileText, isNew: true },
     { id: 'news', label: 'Tin tức', icon: BookOpen },
     { id: 'map', label: 'Bản đồ số cộng đồng', icon: MapPin },
     { id: 'supervision', label: 'Giám sát – Phản biện', icon: Scale },
     { id: 'initiatives', label: 'An sinh', icon: HeartHandshake },
-    { id: 'documents', label: 'Văn bản triển khai', icon: FileText },
     { id: 'opinion', label: 'Lắng nghe Nhân dân', icon: MessageSquareHeart },
   ];
 
@@ -184,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-7xl mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between h-12">
             <nav className="hidden lg:flex items-center justify-between w-full gap-1 py-1">
-              {navItems.map((item) => {
+              {navItems.map((item: any) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
 
@@ -192,14 +192,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                    className={`flex items-center justify-center gap-1 px-2.5 py-1.5 text-[11px] font-bold rounded-full transition-all cursor-pointer whitespace-nowrap relative ${
                       isActive
                         ? 'bg-[#0068ff] text-white shadow-xs font-black'
                         : 'text-slate-700 hover:bg-blue-50/90 hover:text-[#0068ff] font-bold'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <Icon className={`w-3 h-3 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                     <span className="whitespace-nowrap">{item.label}</span>
+                    {item.isNew && (
+                      <span className="absolute -top-1 -right-0.5 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -238,7 +244,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1">
-                {navItems.map((item) => {
+                {navItems.map((item: any) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
 
@@ -249,14 +255,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                         setActiveTab(item.id);
                         setMobileMenuOpen(false);
                       }}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all ${
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all ${
                         isActive
                           ? 'bg-blue-600 text-white shadow-xs font-black'
                           : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                      <span>{item.label}</span>
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.isNew && (
+                        <span className="bg-red-500 text-[8px] text-white px-1.5 py-0.5 rounded-full font-black animate-pulse">NEW</span>
+                      )}
                     </button>
                   );
                 })}
