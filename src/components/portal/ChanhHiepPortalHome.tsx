@@ -1013,7 +1013,10 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {documents.slice(0, 6).map((doc) => {
+            {documents
+              .filter(d => (d as any).status === 'Published' || !(d as any).status)
+              .slice(0, 6)
+              .map((doc) => {
               const docTypeBadge = doc.docType === 'Quyết định' ? 'bg-indigo-100 text-indigo-900 border-indigo-300' : 'bg-rose-100 text-rose-900 border-rose-300';
               
               return (

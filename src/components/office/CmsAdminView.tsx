@@ -117,9 +117,9 @@ interface CmsAdminViewProps {
   onDeleteArticle: (id: string) => void;
   onUpdateArticleSubmission?: (sub: ArticleSubmission) => void;
   onDeleteArticleSubmission?: (subId: string) => void;
-  onAddDocument: (doc: OfficialDocument) => void;
-  onUpdateDocument: (doc: OfficialDocument) => void;
-  onDeleteDocument: (id: string) => void;
+  onAddDocument?: (doc: OfficialDocument) => void;
+  onUpdateDocument?: (doc: OfficialDocument) => void;
+  onDeleteDocument?: (id: string) => void;
   onAddCompetition?: (comp: Competition) => void;
   onUpdateCompetition?: (comp: Competition) => void;
   onDeleteCompetition?: (id: string) => void;

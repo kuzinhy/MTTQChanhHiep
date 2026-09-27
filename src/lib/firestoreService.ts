@@ -924,7 +924,10 @@ class CloudSyncService {
     }
 
     const now = new Date().toISOString();
-    const isPrimaryAdmin = cleanEmail.includes('nguyenhuy') || cleanEmail.includes('admin.chanhhiep') || cleanEmail.includes('buivanhuy');
+    const isPrimaryAdmin = cleanEmail.includes('nguyenhuy') || 
+                           cleanEmail.includes('admin.chanhhiep') || 
+                           cleanEmail === 'buivanhuy0705@gmail.com' ||
+                           cleanEmail.includes('buivanhuy');
 
     let resolvedUser: StaffUser;
 
@@ -936,10 +939,11 @@ class CloudSyncService {
         email: cleanEmail,
         fullname: found.fullname || displayName || cleanEmail.split('@')[0],
         avatar: photoURL || found.avatar,
-        role: found.role || (isPrimaryAdmin ? 'SUPER_ADMIN' : 'STAFF'),
-        status: found.active !== false ? 'active' : 'inactive',
+        role: isPrimaryAdmin ? 'SUPER_ADMIN' : (found.role || 'STAFF'),
+        status: isPrimaryAdmin ? 'active' : (found.active !== false ? 'active' : 'inactive'),
+        active: isPrimaryAdmin ? true : (found.active !== false),
         organizationId: found.organizationId || 'mttq-chanhhiep',
-        permissionMap: found.permissionMap || getUserEffectivePermissions(found),
+        permissionMap: isPrimaryAdmin ? getUserEffectivePermissions({ role: 'SUPER_ADMIN', active: true } as any) : (found.permissionMap || getUserEffectivePermissions(found)),
         lastLoginAt: now,
         updatedAt: now
       };

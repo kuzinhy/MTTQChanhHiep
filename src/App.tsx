@@ -40,7 +40,8 @@ import { DigitalOfficeHeader } from './components/office/DigitalOfficeHeader';
 import { AiAssistantView } from './components/office/AiAssistantView';
 import { OpinionsAdminView } from './components/office/OpinionsAdminView';
 import { CmsAdminView } from './components/office/CmsAdminView';
-import { DocumentsAdminView } from './components/office/DocumentsAdminView';
+import { DocumentManager } from './components/admin/DocumentManager';
+import { DocumentsPublicView } from './components/portal/DocumentsPublicView';
 import { AnalyticsDashboardView } from './components/office/AnalyticsDashboardView';
 import { AuditLogsView } from './components/office/AuditLogsView';
 import { PersonalNotesView } from './components/office/PersonalNotesView';
@@ -1393,11 +1394,7 @@ export default function App() {
                     />
                   )}
                   {portalTab === 'documents' && (
-                    <DocumentsSection
-                      documents={documents}
-                      onSelectDocument={(doc) => handleSelectDocument(doc)}
-                      isLoading={isDataSyncing && documents.length === 0}
-                    />
+                    <DocumentsPublicView />
                   )}
                   {portalTab === 'supervision' && (
                     <SupervisionSection onSelectDocument={(doc) => handleSelectDocument(doc)} />
@@ -1838,6 +1835,12 @@ export default function App() {
                         onRequestDocApproval={handleTriggerDocApprovalToast}
                         onForceCloudSync={handleForceCloudSync}
                         onShowToast={handleTriggerSystemToast}
+                      />
+                    )}
+
+                    {officeView === 'cms_documents' && (
+                      <DocumentManager 
+                        onShowToast={(type, msg) => handleTriggerSystemToast(type === 'error' ? 'Lỗi' : 'Thông báo', msg)}
                       />
                     )}
 

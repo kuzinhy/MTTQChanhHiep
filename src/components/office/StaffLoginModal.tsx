@@ -129,7 +129,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
     if (!rawInput.includes('@')) {
       if (rawInput.includes('nguyenhuy')) {
         cleanEmail = 'nguyenhuy.thudaumot@gmail.com';
-      } else if (rawInput.includes('buivanhuy') || rawInput.includes('vanhuy')) {
+      } else if (rawInput.includes('buivanhuy0705') || rawInput.includes('buivanhuy') || rawInput.includes('vanhuy')) {
         cleanEmail = 'buivanhuy0705@gmail.com';
       } else {
         const foundStaff = staffUsers.find(

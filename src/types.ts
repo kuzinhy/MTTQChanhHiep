@@ -98,6 +98,26 @@ export type ArticleCategory =
 
 export type ArticleStatus = 'Draft' | 'Pending Review' | 'Approved' | 'Published' | 'Archived';
 
+export interface NewDocument {
+  id: string;
+  codeNumber: string; // Số/Ký hiệu
+  title: string;      // Trích yếu
+  docType: string;    // Loại văn bản: Kế hoạch, Quyết định, Công văn...
+  field: string;      // Lĩnh vực: MTTQ, An sinh, Tổ chức...
+  issuer: string;     // Cơ quan ban hành
+  issueDate: string;  // Ngày ban hành
+  signer: string;     // Người ký
+  signerPosition: string; // Chức vụ người ký
+  summary: string;    // Tóm tắt nội dung
+  isPublic: boolean;  // Trạng thái công khai
+  status: 'Published' | 'Draft' | 'Hidden'; 
+  fileUrl: string;    // URL tệp (Google Drive)
+  fileName: string;   // Tên tệp
+  fileSize: string;   // Kích thước tệp
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CloudinaryImageMeta {
   url: string;
   secureUrl: string;
@@ -176,7 +196,7 @@ export type DocType =
 
 export type DocumentDirection = 'INCOMING' | 'OUTGOING' | 'INTERNAL';
 export type DocumentUrgency = 'NORMAL' | 'URGENT' | 'VERY_URGENT' | 'HOA_TOC';
-export type DocumentStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'ISSUED' | 'PROCESSING' | 'COMPLETED' | 'EXPIRED' | 'ARCHIVED';
+export type DocumentStatus = 'Published' | 'Draft' | 'Hidden' | 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'ISSUED' | 'PROCESSING' | 'COMPLETED' | 'EXPIRED' | 'ARCHIVED';
 export type DocumentEffectiveStatus = 'EFFECTIVE' | 'EXPIRED' | 'REPLACED' | 'AMENDED';
 
 export interface OfficialDocument {
@@ -222,6 +242,8 @@ export interface OfficialDocument {
   downloadCount?: number;
   aiSummary?: string;
   aiActionPoints?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type CompetitionType = 'TRIVIA' | 'WRITING' | 'PHOTO_VIDEO' | 'SURVEY' | 'MIXED';

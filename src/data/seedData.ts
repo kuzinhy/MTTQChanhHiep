@@ -790,7 +790,7 @@ export const INITIAL_STAFF_USERS: StaffUser[] = [
     avatar: 'https://sv2.anhsieuviet.com/2026/09/05/z6603328537006_3f47e44b82f6fd1bef15706923268e61.jpg',
     phone: '0907.123.456',
     bio: 'Phó Chủ tịch Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.',
-    role: 'ADMIN',
+    role: 'SUPER_ADMIN',
     permissions: ['all'],
     active: true,
     userLevel: 'WARD',
