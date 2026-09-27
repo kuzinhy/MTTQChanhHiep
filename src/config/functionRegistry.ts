@@ -27,7 +27,7 @@ export const FUNCTION_REGISTRY: AdminFeature[] = [
   // Group: operations
   { id: 'cms', title: 'Tin tức & Bài viết', description: 'Biên tập, duyệt bài', group: 'operations', icon: Newspaper, path: '/admin/cms', badge: 'TIN BÀI', enabled: true, order: 1 },
   { id: 'cms_initiatives', title: 'Mô hình & Sáng kiến', description: 'Kho sáng kiến tiêu biểu', group: 'operations', icon: Lightbulb, path: '/admin/cms_initiatives', badge: 'MÔ HÌNH', enabled: true, order: 2 },
-  { id: 'cms_documents', title: 'Văn bản & Chỉ đạo', description: 'Lưu trữ chỉ đạo, công văn', group: 'operations', icon: FileText, path: '/admin/cms_documents', badge: 'VĂN BẢN', enabled: true, order: 3 },
+  { id: 'cms_documents', title: 'Văn bản', description: 'Lưu trữ chỉ đạo, công văn', group: 'operations', icon: FileText, path: '/admin/cms_documents', badge: 'VĂN BẢN', enabled: true, order: 3 },
   { id: 'cms_about', title: 'Giới thiệu MTTQ', description: 'Bộ máy tổ chức', group: 'operations', icon: Info, path: '/admin/cms_about', badge: 'GIỚI THIỆU', enabled: true, order: 4 },
   { id: 'opinions', title: 'Xử lý Dân nguyện', description: 'Tiếp nhận phản ánh', group: 'operations', icon: MessageSquare, path: '/admin/opinions', badge: 'DÂN NGUYỆN', enabled: true, order: 5 },
   { id: 'surveys_admin', title: 'Khảo sát & Dư luận', description: 'Thăm dò dư luận xã hội', group: 'operations', icon: BarChart3, path: '/admin/surveys_admin', badge: 'KHẢO SÁT', enabled: true, order: 6 },

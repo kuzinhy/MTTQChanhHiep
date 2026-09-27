@@ -402,26 +402,14 @@ export const AppStorageEngine = {
 
   getDocuments: (): OfficialDocument[] => {
     const raw = loadInitialData<OfficialDocument[]>(STORAGE_KEYS.DOCUMENTS, []);
-    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4', 'doc-mttq-01', 'doc-mttq-02', 'doc-mttq-03', 'doc-mttq-04', 'doc-mttq-05', 'doc-mttq-06', 'doc-mttq-07', 'doc-mttq-08', 'doc-mttq-09']);
     const deletedIds = AppStorageEngine.getDeletedDocIds();
 
-    const filtered = (raw || []).filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id) && !d.id.startsWith('seed-') && !d.id.startsWith('doc-sample'));
+    const filtered = (raw || []).filter(d => d && d.id && !deletedIds.has(d.id) && !(d as any).isSample);
     return sortDocumentsNewestFirst(filtered);
   },
   saveDocuments: (documents: OfficialDocument[]) => {
-    const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4', 'doc-mttq-01', 'doc-mttq-02', 'doc-mttq-03', 'doc-mttq-04', 'doc-mttq-05', 'doc-mttq-06', 'doc-mttq-07', 'doc-mttq-08', 'doc-mttq-09']);
     const deletedIds = AppStorageEngine.getDeletedDocIds();
-    
-    // Check if any existing documents were omitted (deleted)
-    const currentDocs = loadInitialData<OfficialDocument[]>(STORAGE_KEYS.DOCUMENTS, []);
-    const newDocIds = new Set((documents || []).map(d => d?.id).filter(Boolean));
-    (currentDocs || []).forEach(d => {
-      if (d && d.id && !newDocIds.has(d.id)) {
-        AppStorageEngine.recordDeletedDocId(d.id);
-      }
-    });
-
-    const filtered = (documents || []).filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id) && !d.id.startsWith('seed-'));
+    const filtered = (documents || []).filter(d => d && d.id && !deletedIds.has(d.id) && !(d as any).isSample);
     saveStorageData(STORAGE_KEYS.DOCUMENTS, sortDocumentsNewestFirst(filtered));
   },
 

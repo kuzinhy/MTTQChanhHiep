@@ -81,6 +81,7 @@ export const DocumentRowSkeleton: React.FC = () => {
 
 const FIELDS = [
   'ALL',
+  'MTTQ',
   'Tổ chức - Tuyên giáo',
   'Dân chủ - Pháp luật',
   'Phong trào - Thi đua',

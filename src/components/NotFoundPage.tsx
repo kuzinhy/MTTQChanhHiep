@@ -51,7 +51,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
   const quickLinks = [
     { id: 'home', label: 'Trang chủ Cổng TT', desc: 'Trở về trang chính Cổng thông tin Mặt trận', icon: Home, color: 'text-blue-600 bg-blue-50 hover:bg-blue-100' },
     { id: 'news', label: 'Tin tức & Tuyên truyền', desc: 'Xem bài viết, phóng sự, hoạt động các khu phố', icon: BookOpen, color: 'text-amber-600 bg-amber-50 hover:bg-amber-100' },
-    { id: 'documents', label: 'Văn bản & Chỉ đạo', desc: 'Tra cứu kế hoạch, thông tri, nghị quyết', icon: FileText, color: 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100' },
+    { id: 'documents', label: 'Văn bản', desc: 'Tra cứu kế hoạch, thông tri, nghị quyết', icon: FileText, color: 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100' },
     { id: 'supervision', label: 'Giám sát & Phản biện', desc: 'Ban TTND & Giám sát đầu tư cộng đồng', icon: ShieldCheck, color: 'text-purple-600 bg-purple-50 hover:bg-purple-100' },
     { id: 'competitions', label: 'Hội thi Trực tuyến', desc: 'Thi trắc nghiệm, tìm hiểu pháp luật & Nghị quyết', icon: Award, color: 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' },
     { id: 'opinion', label: 'Lắng nghe Nhân dân', desc: 'Gửi kiến nghị dân sinh, phản ánh khu phố', icon: MessageSquareHeart, color: 'text-rose-600 bg-rose-50 hover:bg-rose-100' },

@@ -224,7 +224,7 @@ export const AdminPresenceDrawer: React.FC<AdminPresenceDrawerProps> = ({
 function getRouteLabel(route?: string): string {
   if (!route) return 'Dashboard Quan Trị';
   if (route.includes('news') || route.includes('cms')) return 'Tin tức & Hoạt động';
-  if (route.includes('documents')) return 'Văn bản & Chỉ đạo';
+  if (route.includes('documents')) return 'Văn bản';
   if (route.includes('cultural')) return 'Không gian văn hóa HCM';
   if (route.includes('competitions')) return 'Cuộc thi trực tuyến';
   if (route.includes('media')) return 'Thư viện Đa phương tiện';

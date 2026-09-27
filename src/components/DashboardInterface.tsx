@@ -217,7 +217,7 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
     },
     {
       id: 'cms_documents',
-      title: 'Văn bản & Chỉ đạo',
+      title: 'Văn bản',
       desc: 'Lưu trữ chỉ đạo, công văn và hướng dẫn nghiệp vụ',
       icon: FileText,
       badge: 'VĂN BẢN',

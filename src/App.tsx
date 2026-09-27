@@ -106,8 +106,7 @@ export const VALID_PORTAL_TABS = [
   'surveys',
   'opinion',
   'organizations',
-  'privacy',
-  'new_interface'
+  'privacy'
 ];
 
 export const VALID_OFFICE_VIEWS = [
@@ -332,8 +331,7 @@ export default function App() {
 
   const isSeedDocument = (d: OfficialDocument | null | undefined): boolean => {
     if (!d || !d.id) return true;
-    if (['doc-1', 'doc-2', 'doc-3', 'doc-4', 'doc-mttq-01', 'doc-mttq-02', 'doc-mttq-03', 'doc-mttq-04', 'doc-mttq-05', 'doc-mttq-06', 'doc-mttq-07', 'doc-mttq-08', 'doc-mttq-09'].includes(d.id)) return true;
-    if (d.id.startsWith('seed-') || d.id.startsWith('doc-sample')) return true;
+    if ((d as any).isSample === true) return true;
     return false;
   };
 
@@ -1347,7 +1345,9 @@ export default function App() {
               isStaffLoggedIn={!!currentStaffUser}
               currentUser={currentStaffUser}
               onGoToOffice={() => {
-                handleSelectPortalTab('new_interface');
+                setOfficeView('dashboard');
+                setCurrentSpace('OFFICE');
+                window.location.hash = '#/van-phong-so/dashboard';
               }}
               onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
               onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
@@ -1367,7 +1367,9 @@ export default function App() {
                     handleSelectPortalTab('news');
                   }}
                   onGoToOffice={() => {
-                    handleSelectPortalTab('new_interface');
+                    setOfficeView('dashboard');
+                    setCurrentSpace('OFFICE');
+                    window.location.hash = '#/van-phong-so/dashboard';
                   }}
                 />
               ) : showStaffLoginPage ? (
@@ -1429,8 +1431,10 @@ export default function App() {
                       onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
                       onOpenDirectory={() => setIsDirectoryModalOpen(true)}
                       onGoToOffice={(view) => {
-                        if (view) setOfficeView(view);
-                        handleSelectPortalTab('new_interface');
+                        const targetView = view || 'dashboard';
+                        setOfficeView(targetView);
+                        setCurrentSpace('OFFICE');
+                        window.location.hash = `#/van-phong-so/${targetView}`;
                       }}
                       currentStaffUser={currentStaffUser}
                     />
@@ -1472,23 +1476,6 @@ export default function App() {
                   {portalTab === 'initiatives' && (
                     <InitiativesSection />
                   )}
-                  {portalTab === 'new_interface' && (
-                    <NewInterfacePage 
-                      backgroundImage="https://res.cloudinary.com/idt08wyp/image/upload/v1790008873/4ac22e99-9030-410f-b63f-ec0754836e6a_1.png"
-                      currentStaffUser={currentStaffUser}
-                      articles={articles}
-                      documents={documents}
-                      opinions={opinions}
-                      onNavigatePortalTab={(tab) => handleSelectPortalTab(tab)}
-                      onGoToOffice={(view) => {
-                        if (view) {
-                          setOfficeView(view);
-                          setCurrentSpace('OFFICE');
-                        }
-                      }}
-                      onOpenStaffLogin={() => setShowStaffLoginPage(true)}
-                    />
-                  )}
                   {portalTab === 'surveys' && (
                     <SurveysSection
                       onSurveySubmitted={() => {
@@ -1527,9 +1514,7 @@ export default function App() {
               )}
             </main>
 
-            {portalTab !== 'new_interface' && (
-              <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
-            )}
+            <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
             <AiAssistantWidget />
           </motion.div>
         ) : (
@@ -1554,7 +1539,11 @@ export default function App() {
                 setSearchQuery={setSearchQuery}
                 isStaffLoggedIn={false}
                 currentUser={null}
-                onGoToOffice={() => handleSelectPortalTab('new_interface')}
+                onGoToOffice={() => {
+                  setOfficeView('dashboard');
+                  setCurrentSpace('OFFICE');
+                  window.location.hash = '#/van-phong-so/dashboard';
+                }}
                 onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
               />
               <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex items-center justify-center">

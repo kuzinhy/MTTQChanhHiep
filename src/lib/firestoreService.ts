@@ -174,25 +174,18 @@ class CloudSyncService {
       // Documents Listener
       if (callbacks.onDocumentsUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.DOCUMENTS), (snapshot) => {
-          const demoIds = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
           const deletedIds = AppStorageEngine.getDeletedDocIds();
-
-          // Purge demo documents from Firestore Cloud if present
-          snapshot.docs.forEach(d => {
-            if (demoIds.has(d.id)) {
-              deleteDoc(doc(db, FirestoreCollections.DOCUMENTS, d.id)).catch(console.warn);
-            }
-          });
 
           const remoteDocs: OfficialDocument[] = snapshot.docs
             .map(d => ({ ...(d.data() as OfficialDocument), id: d.id }))
-            .filter(d => d && d.id && !demoIds.has(d.id) && !deletedIds.has(d.id));
+            .filter(d => d && d.id && !deletedIds.has(d.id) && !(d as any).isSample);
 
           const sorted = sortDocumentsNewestFirst(remoteDocs);
           AppStorageEngine.saveDocuments(sorted);
           callbacks.onDocumentsUpdate?.(sorted);
         }, (err) => {
-          console.warn('[Firestore] Documents sync error:', err);
+          console.warn('[Firestore] Documents sync fallback:', err);
+          callbacks.onDocumentsUpdate?.(AppStorageEngine.getDocuments());
         });
         this.syncListeners.push(unsub);
       }

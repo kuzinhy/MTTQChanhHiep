@@ -24,7 +24,8 @@ import {
   FileText,
   Users,
   Compass,
-  Award
+  Award,
+  Download
 } from 'lucide-react';
 import { sortArticlesNewestFirst } from '../../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -534,20 +535,24 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         {/* 6 Metric Cards - Khởi tạo làm mới bắt đầu chu kỳ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           
-          {/* Metric 1: Hoạt động tháng */}
+          {/* Metric 1: Văn bản & Chỉ đạo */}
           <div 
-            onClick={() => onSelectTab('activities')}
+            onClick={() => onSelectTab('documents')}
             className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
           >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-[#0068ff]">0</span>
-                <span className="text-[10px] font-bold text-slate-400">Kỳ mới</span>
+                <span className="text-xl sm:text-2xl font-black text-[#0068ff]">
+                  {documents ? documents.length : 0}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {documents && documents.length > 0 ? `+${documents.length}` : 'Kỳ mới'}
+                </span>
               </div>
-              <p className="text-[11px] text-slate-600 font-medium leading-tight">Hoạt động tháng</p>
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">Văn bản &amp; Chỉ đạo</p>
             </div>
             <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0068ff] flex items-center justify-center shrink-0">
-              <Megaphone className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
             </div>
           </div>
 
@@ -558,13 +563,17 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           >
             <div className="space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-rose-600">0</span>
-                <span className="text-[10px] font-bold text-slate-400">Kỳ mới</span>
+                <span className="text-xl sm:text-2xl font-black text-rose-600">
+                  {articles ? articles.length : 0}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {articles && articles.length > 0 ? `+${articles.length}` : 'Kỳ mới'}
+                </span>
               </div>
               <p className="text-[11px] text-slate-600 font-medium leading-tight">Tin tức mới</p>
             </div>
             <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-              <FileText className="w-4 h-4" />
+              <Megaphone className="w-4 h-4" />
             </div>
           </div>
 
@@ -989,6 +998,94 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
             >
               Thu gọn danh sách
             </button>
+          </div>
+        )}
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4.5. KHO VĂN BẢN & CHÍNH SÁCH MẶT TRẬN                                    */}
+      {/* ========================================================================= */}
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-gradient-to-br from-blue-700 via-indigo-600 to-sky-500 rounded-xs shrink-0" />
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight uppercase">
+              Kho Văn Bản &amp; Chính Sách Mặt Trận
+            </h2>
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black uppercase">
+              {documents.length} văn bản
+            </span>
+          </div>
+
+          <button
+            onClick={() => onSelectTab('documents')}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3.5 py-1.5 rounded-xl transition cursor-pointer"
+          >
+            <span>Xem tất cả Kho văn bản</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Documents Grid Cards */}
+        {documents.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center text-slate-500">
+            <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="font-bold text-sm">Đang đồng bộ Kho văn bản chính thức...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {documents.slice(0, 6).map((doc) => {
+              const docTypeBadge = doc.docType === 'Quyết định' ? 'bg-indigo-100 text-indigo-900 border-indigo-300' : 'bg-rose-100 text-rose-900 border-rose-300';
+              
+              return (
+                <div 
+                  key={doc.id}
+                  className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-400 transition-all p-5 flex flex-col justify-between group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-lg border text-[10px] font-black uppercase ${docTypeBadge}`}>
+                        {doc.docType || 'Văn bản'}
+                      </span>
+                      <span className="font-mono text-[11px] font-bold text-slate-500">
+                        {doc.codeNumber || 'CV-MTTQ'}
+                      </span>
+                    </div>
+
+                    <h3 
+                      onClick={() => onSelectTab('documents')}
+                      className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-3 leading-snug cursor-pointer"
+                      title={doc.title}
+                    >
+                      {doc.title}
+                    </h3>
+
+                    {doc.summary && (
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                        {doc.summary}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <div className="flex items-center gap-1 text-slate-400">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{doc.issueDate ? new Date(doc.issueDate).toLocaleDateString('vi-VN') : '2026'}</span>
+                    </div>
+
+                    <a
+                      href={doc.driveUrl || doc.fileUrl || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-700 font-bold hover:underline"
+                    >
+                      <Download className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Tải về</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
