@@ -66,7 +66,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'map', label: 'Bản đồ số cộng đồng', icon: MapPin },
     { id: 'supervision', label: 'Giám sát – Phản biện', icon: Scale },
     { id: 'initiatives', label: 'An sinh', icon: HeartHandshake },
-    { id: 'documents', label: 'Văn bản', icon: FileText },
     { id: 'opinion', label: 'Lắng nghe Nhân dân', icon: MessageSquareHeart },
   ];
 

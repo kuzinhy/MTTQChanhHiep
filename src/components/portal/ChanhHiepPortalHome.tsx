@@ -535,27 +535,6 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         {/* 6 Metric Cards - Khởi tạo làm mới bắt đầu chu kỳ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           
-          {/* Metric 1: Văn bản & Chỉ đạo */}
-          <div 
-            onClick={() => onSelectTab('documents')}
-            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-300 hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
-          >
-            <div className="space-y-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-[#0068ff]">
-                  {documents ? documents.length : 0}
-                </span>
-                <span className="text-[10px] font-bold text-slate-400">
-                  {documents && documents.length > 0 ? `+${documents.length}` : 'Kỳ mới'}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 font-medium leading-tight">Văn bản &amp; Chỉ đạo</p>
-            </div>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0068ff] flex items-center justify-center shrink-0">
-              <FileText className="w-4 h-4" />
-            </div>
-          </div>
-
           {/* Metric 2: Tin tức mới */}
           <div 
             onClick={() => onSelectTab('news')}

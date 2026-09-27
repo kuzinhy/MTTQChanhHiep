@@ -1184,54 +1184,6 @@ export default function App() {
     await CloudDatabase.deleteArticleSubmission(subId);
   };
 
-  const handleAddDocument = async (doc: OfficialDocument) => {
-    setDocuments(prev => {
-      const next = sortDocumentsNewestFirst([doc, ...prev.filter(d => d.id !== doc.id)]);
-      AppStorageEngine.saveDocuments(next);
-      return next;
-    });
-    setDriveFiles(AppStorageEngine.getDriveFiles());
-    await CloudDatabase.saveDocument(doc);
-
-    const newLog: AuditLog = {
-      id: 'log-' + Date.now(),
-      userId: currentStaffUser?.id || 'staff-1',
-      userName: currentStaffUser?.fullname || 'Cán bộ Văn thư',
-      action: 'BAN HÀNH VĂN BẢN',
-      entity: 'Văn bản Mặt trận',
-      details: `Ban hành văn bản: "${doc.title}" (Số: ${doc.codeNumber})`,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
-    };
-    setAuditLogs(prev => {
-      const next = [newLog, ...prev];
-      AppStorageEngine.saveAuditLogs(next);
-      return next;
-    });
-    CloudDatabase.logAudit(newLog);
-    handleTriggerDocApprovalToast(doc);
-  };
-
-  const handleUpdateDocument = async (updatedDoc: OfficialDocument) => {
-    setDocuments(prev => {
-      const next = sortDocumentsNewestFirst(prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
-      AppStorageEngine.saveDocuments(next);
-      return next;
-    });
-    setDriveFiles(AppStorageEngine.getDriveFiles());
-    await CloudDatabase.saveDocument(updatedDoc);
-    handleTriggerSystemToast('Đã lưu văn bản lên Cloud', `Cập nhật thành công văn bản ${updatedDoc.codeNumber}.`);
-  };
-
-  const handleDeleteDocument = async (docId: string) => {
-    AppStorageEngine.recordDeletedDocId(docId);
-    setDocuments(prev => {
-      const next = prev.filter(d => d.id !== docId);
-      AppStorageEngine.saveDocuments(next);
-      return next;
-    });
-    await CloudDatabase.deleteDocument(docId);
-    handleTriggerSystemToast('Đã xóa văn bản', 'Văn bản đã được xóa khỏi cơ sở dữ liệu.');
-  };
 
   const handleAddCompetition = (comp: Competition) => {
     setCompetitions(prev => {
@@ -1839,9 +1791,6 @@ export default function App() {
                         onDeleteArticle={handleDeleteArticle}
                         onUpdateArticleSubmission={handleUpdateArticleSubmission}
                         onDeleteArticleSubmission={handleDeleteArticleSubmission}
-                        onAddDocument={handleAddDocument}
-                        onUpdateDocument={handleUpdateDocument}
-                        onDeleteDocument={handleDeleteDocument}
                         onAddCompetition={handleAddCompetition}
                         onUpdateCompetition={handleUpdateCompetition}
                         onDeleteCompetition={handleDeleteCompetition}
@@ -1862,9 +1811,6 @@ export default function App() {
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}
-                        onAddDocument={handleAddDocument}
-                        onUpdateDocument={handleUpdateDocument}
-                        onDeleteDocument={handleDeleteDocument}
                         onAddCompetition={handleAddCompetition}
                         onUpdateCompetition={handleUpdateCompetition}
                         onDeleteCompetition={handleDeleteCompetition}
@@ -1885,9 +1831,6 @@ export default function App() {
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}
-                        onAddDocument={handleAddDocument}
-                        onUpdateDocument={handleUpdateDocument}
-                        onDeleteDocument={handleDeleteDocument}
                         onAddCompetition={handleAddCompetition}
                         onUpdateCompetition={handleUpdateCompetition}
                         onDeleteCompetition={handleDeleteCompetition}
@@ -1898,16 +1841,7 @@ export default function App() {
                       />
                     )}
 
-                    {(officeView === 'cms_documents' || officeView === 'documents') && (
-                      <DocumentsAdminView
-                        documents={documents}
-                        onAddDocument={handleAddDocument}
-                        onUpdateDocument={handleUpdateDocument}
-                        onDeleteDocument={handleDeleteDocument}
-                        onRequestDocApproval={handleTriggerDocApprovalToast}
-                        onShowToast={(msg, type) => handleTriggerSystemToast(type === 'error' ? 'Lỗi' : 'Thông báo', msg)}
-                      />
-                    )}
+
 
                     {officeView === 'notes' && (
                       <PersonalNotesView

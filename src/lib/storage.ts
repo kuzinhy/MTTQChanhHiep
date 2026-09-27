@@ -404,12 +404,12 @@ export const AppStorageEngine = {
     const raw = loadInitialData<OfficialDocument[]>(STORAGE_KEYS.DOCUMENTS, INITIAL_DOCUMENTS);
     const deletedIds = AppStorageEngine.getDeletedDocIds();
 
-    const filtered = (raw || []).filter(d => d && d.id && !deletedIds.has(d.id) && !(d as any).isSample);
+    const filtered = (raw || []).filter(d => d && d.id && !deletedIds.has(d.id));
     return sortDocumentsNewestFirst(filtered);
   },
   saveDocuments: (documents: OfficialDocument[]) => {
     const deletedIds = AppStorageEngine.getDeletedDocIds();
-    const filtered = (documents || []).filter(d => d && d.id && !deletedIds.has(d.id) && !(d as any).isSample);
+    const filtered = (documents || []).filter(d => d && d.id && !deletedIds.has(d.id));
     saveStorageData(STORAGE_KEYS.DOCUMENTS, sortDocumentsNewestFirst(filtered));
   },
 
