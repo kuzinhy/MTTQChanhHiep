@@ -845,6 +845,10 @@ export const AppStorageEngine = {
         po.level = 'WARD';
         changed = true;
       }
+      if (po.id === 'org-cong-an' && po.phone !== '02743.882.113') {
+        po.phone = '02743.882.113';
+        changed = true;
+      }
       if (changed) organizationsUpdated++;
       return po;
     });
@@ -1053,6 +1057,9 @@ export const AppStorageEngine = {
           };
           if (canonical && canonical.id === 'org-doan-tn') {
             merged.branchesCount = 21;
+          }
+          if (canonical && canonical.id === 'org-cong-an') {
+            merged.phone = '02743.882.113';
           }
           orgMap.set(o.id, merged);
         }

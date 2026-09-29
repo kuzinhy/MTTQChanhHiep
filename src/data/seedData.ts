@@ -1263,7 +1263,7 @@ export const INITIAL_ORGANIZATIONS: Organization[] = [
     areaName: 'Phường Chánh Hiệp',
     leaderName: 'Trung tá Lê Hoàng Tuấn',
     leaderPosition: 'Trưởng Công an Phường',
-    phone: '0274.3822.113',
+    phone: '02743.882.113',
     email: 'congan.chanhhiep@tphcm.gov.vn',
     address: 'Trụ sở Công an Phường Chánh Hiệp',
     description: 'Lực lượng nòng cốt giữ gìn an ninh chính trị và trật tự an toàn xã hội trên địa bàn.',

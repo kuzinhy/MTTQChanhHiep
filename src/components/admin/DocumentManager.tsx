@@ -70,6 +70,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast })
   }, [documents, searchTerm, activeTab]);
 
   const handleOpenModal = (doc?: NewDocument) => {
+    console.log('[DocumentManager] Opening modal for:', doc ? doc.codeNumber : 'new doc');
     if (doc) {
       setEditingDoc(doc);
       setFormData({ 
@@ -159,6 +160,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast })
   };
 
   const initiateDelete = (id: string) => {
+    console.log('[DocumentManager] Initiating delete for ID:', id);
     setDocToDelete(id);
     setIsConfirmDeleteOpen(true);
   };
@@ -299,19 +301,29 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast })
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 relative z-10">
+                    <div className="flex items-center justify-end gap-2 relative z-20">
                       <button 
                         type="button"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenModal(doc); }}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-90 cursor-pointer pointer-events-auto"
+                        onClick={(e) => { 
+                          console.log('[DocumentManager] Edit button clicked');
+                          e.preventDefault(); 
+                          e.stopPropagation(); 
+                          handleOpenModal(doc); 
+                        }}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-90 cursor-pointer pointer-events-auto relative z-30"
                         title="Chỉnh sửa"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button 
                         type="button"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); initiateDelete(doc.id); }}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all active:scale-90 cursor-pointer pointer-events-auto"
+                        onClick={(e) => { 
+                          console.log('[DocumentManager] Delete button clicked');
+                          e.preventDefault(); 
+                          e.stopPropagation(); 
+                          initiateDelete(doc.id); 
+                        }}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all active:scale-90 cursor-pointer pointer-events-auto relative z-30"
                         title="Xóa"
                       >
                         <Trash2 size={18} />

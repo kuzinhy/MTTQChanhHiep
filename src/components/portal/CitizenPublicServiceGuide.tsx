@@ -1019,11 +1019,11 @@ export const CitizenPublicServiceGuide: React.FC<CitizenPublicServiceGuideProps>
                 <p className="text-xs text-slate-300 mt-0.5">An ninh trật tự, PCCC &amp; trật tự đô thị</p>
               </div>
               <a
-                href="tel:02743822456"
+                href="tel:02743882113"
                 className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span>Gọi ngay: 0274.3822.456</span>
+                <span>Gọi ngay: 02743.882.113</span>
               </a>
             </div>
 

@@ -40,7 +40,7 @@ const EMERGENCY_CONTACTS: ContactItem[] = [
     name: 'Trực ban Công an Phường Chánh Hiệp',
     position: 'Trực ban 24/7',
     unit: 'Công an Phường Chánh Hiệp',
-    phone: '0274.3822.456',
+    phone: '02743.882.113',
     category: 'EMERGENCY',
     badgeColor: 'bg-red-600 text-white'
   },

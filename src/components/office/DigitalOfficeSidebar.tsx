@@ -100,16 +100,15 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   // Defined Sidebar Groups
   const groups: SidebarGroup[] = useMemo(() => [
     {
-      id: 'group_overview',
-      title: 'TỔNG QUAN & ĐIỀU HÀNH',
-      icon: LayoutDashboard,
-      badgeText: 'ĐIỀU HÀNH',
+      id: 'group_ai',
+      title: 'TRUNG TÂM THAM MƯU AI',
+      icon: Sparkles,
+      badgeText: 'SMART',
       accentColor: 'blue',
       items: [
         { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
         { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
         { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
-        { id: 'ai_assistant', label: 'Trợ lý AI Tổng hợp', icon: Sparkles, badge: 'WORKSPACE' },
       ]
     },
     {
@@ -133,8 +132,8 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       items: [
         { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
         { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
-        { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
         { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
+        { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
         { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
         { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
         { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
@@ -168,7 +167,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
 
   // Track expanded groups state
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    group_overview: true,
+    group_ai: true,
     group_neighborhood: true,
     group_cms: true,
     group_admin: true
@@ -192,7 +191,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
 
   const handleExpandAll = () => {
     setExpandedGroups({
-      group_overview: true,
+      group_ai: true,
       group_cms: true,
       group_admin: true
     });
@@ -200,7 +199,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
 
   const handleCollapseAll = () => {
     setExpandedGroups({
-      group_overview: false,
+      group_ai: false,
       group_cms: false,
       group_admin: false
     });
@@ -237,14 +236,14 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       {/* Sidebar Container */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-68 xl:w-72 bg-white text-slate-800 flex flex-col h-screen shrink-0 border-r border-slate-200 select-none shadow-md
+        w-68 xl:w-72 bg-blue-800 text-blue-50 flex flex-col h-screen shrink-0 border-r border-blue-900 select-none shadow-xl
         transition-transform duration-300 ease-in-out
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Brand Header */}
-        <div className="p-3.5 border-b border-blue-500/30 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 text-white shadow-sm shrink-0">
+        <div className="p-3.5 border-b border-amber-300/30 bg-gradient-to-r from-blue-800 via-blue-700 to-blue-900 text-white shadow-sm shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border border-amber-300">
+            <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md border-2 border-amber-400">
               <OptimizedImage
                 src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png"
                 alt="Logo MTTQ"
@@ -256,48 +255,48 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <h2 className="text-xs font-black text-amber-300 tracking-wider uppercase truncate">VĂN PHÒNG SỐ</h2>
-                <span className="text-[8px] bg-white/20 backdrop-blur-xs text-white font-black px-1.5 py-0.2 rounded-full border border-white/30 shrink-0">V2.0</span>
+                <span className="text-[8px] bg-amber-400 text-blue-900 font-black px-1.5 py-0.2 rounded-full border border-amber-200 shrink-0 shadow-xs">V2.0</span>
               </div>
-              <p className="text-[10px] text-blue-100 font-medium truncate mt-0.5">MTTQ Phường Chánh Hiệp</p>
+              <p className="text-[10px] text-blue-50 font-medium truncate mt-0.5">MTTQ Phường Chánh Hiệp</p>
             </div>
           </div>
         </div>
 
         {/* Search Bar & Compact Controls */}
-        <div className="px-3 pt-2.5 pb-1 border-b border-slate-100 bg-slate-50/70 shrink-0 space-y-1.5">
+        <div className="px-3 pt-2.5 pb-1 border-b border-blue-700/50 bg-blue-900/40 shrink-0 space-y-1.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-blue-300 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm nhanh chức năng..."
-              className="w-full pl-8 pr-7 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 text-slate-800 placeholder:text-slate-400 font-medium transition-all"
+              className="w-full pl-8 pr-7 py-1.5 text-xs bg-blue-800/40 border border-blue-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 text-white placeholder:text-blue-300 font-medium transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-blue-300 hover:text-white rounded-full cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
             )}
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold px-0.5">
+          <div className="flex items-center justify-between text-[10px] text-blue-300/80 font-semibold px-0.5">
             <span>{searchQuery ? `Tìm thấy ${filteredGroups.reduce((acc, g) => acc + g.items.length, 0)} mục` : 'Danh mục quản trị'}</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleExpandAll}
-                className="hover:text-blue-600 cursor-pointer transition-colors"
+                className="hover:text-amber-300 cursor-pointer transition-colors"
                 title="Mở rộng tất cả nhóm"
               >
                 Mở tất cả
               </button>
-              <span className="text-slate-300">•</span>
+              <span className="text-blue-700">•</span>
               <button
                 onClick={handleCollapseAll}
-                className="hover:text-blue-600 cursor-pointer transition-colors"
+                className="hover:text-amber-300 cursor-pointer transition-colors"
                 title="Thu gọn tất cả nhóm"
               >
                 Thu gọn
@@ -307,7 +306,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         </div>
 
         {/* Navigation Groups List */}
-        <div className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-2 text-xs scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
+        <div className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-2 text-xs scrollbar-thin scrollbar-thumb-blue-700 hover:scrollbar-thumb-blue-600">
           {filteredGroups.length === 0 ? (
             <div className="text-center py-8 text-slate-400 text-xs">
               <Search className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -334,40 +333,60 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                   key={group.id} 
                   className={`rounded-xl border transition-all ${
                     hasActiveItem 
-                      ? 'border-blue-200 bg-gradient-to-b from-blue-50/30 to-slate-50/50 shadow-2xs' 
-                      : 'border-slate-200/80 bg-slate-50/40 hover:border-slate-300'
+                      ? 'border-blue-500/50 bg-blue-800/40 shadow-inner' 
+                      : 'border-blue-700/40 bg-blue-900/20 hover:border-blue-600'
                   }`}
                 >
                   {/* Group Header Toggle Button */}
-                  <button
-                    onClick={() => toggleGroup(group.id)}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-left rounded-xl transition-colors cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className={`p-1 rounded-md shrink-0 transition-colors ${
-                        hasActiveItem ? 'bg-blue-600 text-white' : 'bg-slate-200/80 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-700'
-                      }`}>
-                        <GroupIcon className="w-3.5 h-3.5" />
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      className="flex-1 flex items-center justify-between px-2.5 py-2 text-left rounded-xl transition-colors cursor-pointer group focus:outline-none"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`p-1 rounded-md shrink-0 transition-colors ${
+                          hasActiveItem ? 'bg-amber-400 text-blue-900 shadow-sm' : 'bg-blue-700/50 text-blue-200 group-hover:bg-blue-600 group-hover:text-white'
+                        }`}>
+                          <GroupIcon className="w-3.5 h-3.5" />
+                        </div>
+                        <span className={`text-[11px] font-black tracking-tight uppercase truncate ${
+                          hasActiveItem ? 'text-amber-300' : 'text-blue-100'
+                        }`}>
+                          {group.title}
+                        </span>
                       </div>
-                      <span className="text-[11px] font-black text-slate-800 tracking-tight uppercase truncate">
-                        {group.title}
-                      </span>
-                    </div>
+                    </button>
+                    
+                    {group.id === 'group_ai' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentView('ai_assistant');
+                        }}
+                        className="mr-2 p-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 text-blue-950 hover:from-amber-300 hover:to-amber-400 transition-all shadow-sm active:scale-90 cursor-pointer"
+                        title="Trợ lý AI Tham mưu"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                      </button>
+                    )}
 
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      className="pr-2 py-2 flex items-center gap-1.5 shrink-0 cursor-pointer"
+                    >
                       <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-full ${
-                        hasActiveItem ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+                        hasActiveItem ? 'bg-amber-400 text-blue-950' : 'bg-blue-800 text-blue-300'
                       }`}>
                         {group.items.length}
                       </span>
                       <motion.div
                         animate={{ rotate: isExpanded ? 180 : 0 }}
-                        transition={{ duration: 0.18 }}
+                        transition={{ duration: 0.12 }}
                       >
-                        <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                        <ChevronDown className="w-3.5 h-3.5 text-blue-400" />
                       </motion.div>
-                    </div>
-                  </button>
+                    </button>
+                  </div>
 
                   {/* Group Submenu Items */}
                   <AnimatePresence initial={false}>
@@ -379,7 +398,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                         transition={{ duration: 0.18, ease: 'easeInOut' }}
                         className="overflow-hidden"
                       >
-                        <div className="px-1 pb-1 pt-0.5 space-y-0.5 border-t border-slate-100">
+                        <div className="px-1 pb-1 pt-0.5 space-y-0.5 border-t border-blue-700/30">
                           {group.items.map((item) => {
                             const ItemIcon = item.icon;
                             const isActive = currentView === item.id || 
@@ -402,27 +421,27 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                                     if (onCloseMobile) onCloseMobile();
                                   }
                                 }}
-                                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left text-xs relative cursor-pointer ${
+                                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left text-xs relative cursor-pointer ${
                                   isActive
-                                    ? 'text-white font-black shadow-xs'
+                                    ? 'text-blue-950 font-black shadow-md'
                                     : isAllowed
-                                      ? 'text-slate-700 hover:bg-white hover:text-blue-700 font-medium'
-                                      : 'text-slate-400 hover:bg-slate-100/50 cursor-not-allowed opacity-60'
+                                      ? 'text-blue-50 hover:bg-white/10 hover:text-amber-300 font-medium'
+                                      : 'text-blue-400/60 hover:bg-white/5 cursor-not-allowed opacity-60'
                                 }`}
                               >
                                 {isActive && (
                                   <motion.div
                                     layoutId="active-sidebar-pill"
-                                    className="absolute inset-0 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-lg shadow-xs border border-blue-400/40"
+                                    className="absolute inset-0 bg-amber-400 rounded-lg shadow-sm border border-amber-300/50"
                                     transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                                   />
                                 )}
 
                                 <div className="flex items-center gap-2 min-w-0 flex-1 relative z-10">
                                   <ItemIcon className={`w-3.5 h-3.5 shrink-0 ${
-                                    isActive ? 'text-white' : isAllowed ? 'text-blue-600' : 'text-slate-400'
+                                    isActive ? 'text-blue-900' : isAllowed ? 'text-amber-400/80' : 'text-blue-500'
                                   }`} />
-                                  <span className={`truncate text-[11px] ${isActive ? 'text-white font-extrabold' : ''}`}>
+                                  <span className={`truncate text-[11px] ${isActive ? 'text-blue-900 font-black' : ''}`}>
                                     {item.label}
                                   </span>
                                 </div>
@@ -432,10 +451,10 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                                   {item.badge && isAllowed && (
                                     <span className={`text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 whitespace-nowrap ${
                                       (item as any).isNewHighlight
-                                        ? 'bg-rose-600 text-white font-black animate-pulse shadow-xs border border-rose-300'
+                                        ? 'bg-rose-600 text-white font-black shadow-xs border border-rose-300'
                                         : isActive 
-                                          ? 'bg-amber-300 text-slate-950 shadow-2xs' 
-                                          : 'bg-slate-100 text-slate-600 border border-slate-200/80'
+                                          ? 'bg-blue-900/20 text-blue-950 font-black border border-blue-900/10' 
+                                          : 'bg-blue-800 text-blue-100 border border-blue-600/50'
                                     }`}>
                                       {item.badge}
                                     </span>

@@ -62,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
     { id: 'about', label: 'Giới thiệu', icon: Info },
-    { id: 'documents', label: 'Văn bản triển khai', icon: FileText, isNew: true },
+    { id: 'documents', label: 'Văn bản triển khai', icon: FileText },
     { id: 'news', label: 'Tin tức', icon: BookOpen },
     { id: 'map', label: 'Bản đồ số cộng đồng', icon: MapPin },
     { id: 'supervision', label: 'Giám sát – Phản biện', icon: Scale },
@@ -200,12 +200,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <Icon className={`w-3 h-3 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                     <span className="whitespace-nowrap">{item.label}</span>
-                    {item.isNew && (
-                      <span className="absolute -top-1 -right-0.5 flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                      </span>
-                    )}
+
                   </button>
                 );
               })}
@@ -265,9 +260,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                         <span>{item.label}</span>
                       </div>
-                      {item.isNew && (
-                        <span className="bg-red-500 text-[8px] text-white px-1.5 py-0.5 rounded-full font-black animate-pulse">NEW</span>
-                      )}
+
                     </button>
                   );
                 })}
