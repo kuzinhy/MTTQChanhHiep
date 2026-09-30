@@ -78,6 +78,10 @@ import { notificationMasterService } from './lib/notificationMasterService';
 import { OptimizedImage } from './components/common/OptimizedImage';
 import { HcmQuoteRotator } from './components/common/HcmQuoteRotator';
 import { NewInterfacePage } from './components/NewInterfacePage';
+import { GlobalSearchModal } from './components/common/GlobalSearchModal';
+import { SystemBackupRestoreModal } from './components/office/SystemBackupRestoreModal';
+import { CitizenWelfareRegistrationModal } from './components/portal/CitizenWelfareRegistrationModal';
+import { SystemHealthAdminView } from './components/office/SystemHealthAdminView';
 
 import { 
   INITIAL_TRIVIA_QUESTIONS, 
@@ -144,7 +148,8 @@ export const VALID_OFFICE_VIEWS = [
   'notifications',
   'email_settings',
   'google_drive_storage',
-  'volunteers_admin'
+  'volunteers_admin',
+  'system_health'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -207,13 +212,27 @@ export default function App() {
   const [showStaffLoginPage, setShowStaffLoginPage] = useState(false);
   const [isMobileOfficeSidebarOpen, setIsMobileOfficeSidebarOpen] = useState(false);
 
-  // New Modal States for Extended Features
   const [isVolunteerModalOpen, setIsVolunteerModalOpen] = useState(false);
   const [isDirectoryModalOpen, setIsDirectoryModalOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [isHcmSpaceModalOpen, setIsHcmSpaceModalOpen] = useState(false);
   const [isWelfareMapOpen, setIsWelfareMapOpen] = useState(false);
+  const [isWelfareRegistrationModalOpen, setIsWelfareRegistrationModalOpen] = useState(false);
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [sharePosterData, setSharePosterData] = useState<{ isOpen: boolean; title: string; url?: string } | null>(null);
+
+  // Global Ctrl+K / Cmd+K shortcut listener for Universal Search
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsGlobalSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const handleSelectPortalTab = (tab: string) => {
     setNotFoundRoute(null);
@@ -565,7 +584,13 @@ export default function App() {
         setOfficeView('ai_monitor');
         return;
       }
-      if (rawHash === '#/admin/ai-unanswered' || rawHash === '#admin/ai-unanswered' || rawHash === '#/admin/ai_unanswered') {
+      if (rawHash === '#/admin/system-health' || rawHash === '#admin/system-health' || rawHash === '#/admin/system_health') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView('system_health');
+        return;
+      }
+      if (rawHash === '#/admin/unanswered' || rawHash === '#/admin/ai-unanswered' || rawHash === '#admin/ai-unanswered' || rawHash === '#/admin/ai_unanswered') {
         setNotFoundRoute(null);
         setCurrentSpace('OFFICE');
         setOfficeView('ai_unanswered');
@@ -1323,6 +1348,7 @@ export default function App() {
               onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
               onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
               onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
+              onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
             />
 
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-10">
@@ -1524,6 +1550,7 @@ export default function App() {
                   window.location.hash = '#/van-phong-so/dashboard';
                 }}
                 onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
+                onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
               />
               <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-10 flex items-center justify-center">
                 <div className="w-full">
@@ -1665,6 +1692,8 @@ export default function App() {
                   onForceCloudSync={handleForceCloudSync}
                   onToggleMobileSidebar={() => setIsMobileOfficeSidebarOpen(true)}
                   onOpenDigitalDirectory={() => setIsDirectoryModalOpen(true)}
+                  onOpenBackupModal={() => setIsBackupModalOpen(true)}
+                  onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
                   onLogout={async () => {
                     try {
                       await signOut(auth);
@@ -2203,6 +2232,8 @@ export default function App() {
 
                     {officeView === 'audit_logs' && <AuditLogsView logs={auditLogs} />}
 
+                    {officeView === 'system_health' && <SystemHealthAdminView />}
+
                     {officeView === 'notifications' && (
                       <NotificationAdminView
                         currentUserId={currentStaffUser?.id || 'admin'}
@@ -2364,6 +2395,54 @@ export default function App() {
       <WelfareCommunityMapModal
         isOpen={isWelfareMapOpen}
         onClose={() => setIsWelfareMapOpen(false)}
+      />
+
+      {/* UNIVERSAL GLOBAL SEARCH MODAL (CTRL+K) */}
+      <GlobalSearchModal
+        isOpen={isGlobalSearchOpen}
+        onClose={() => setIsGlobalSearchOpen(false)}
+        documents={documents}
+        articles={articles}
+        opinions={opinions}
+        onNavigate={(route) => {
+          if (route.startsWith('/van-ban/')) {
+            const docId = route.replace('/van-ban/', '');
+            const doc = documents.find(d => d.id === docId);
+            if (doc) handleSelectDocument(doc);
+            else handleSelectPortalTab('documents');
+          } else if (route.startsWith('/tin-tuc/')) {
+            const artId = route.replace('/tin-tuc/', '');
+            const art = articles.find(a => a.id === artId);
+            if (art) handleSelectArticle(art);
+            else handleSelectPortalTab('news');
+          } else if (route === '/ban-do') {
+            handleSelectPortalTab('map');
+          } else if (route === '/phan-anh') {
+            handleSelectPortalTab('opinions');
+          } else if (route === '/an-sinh') {
+            setIsWelfareRegistrationModalOpen(true);
+          } else if (route === '/tinh-nguyen') {
+            setIsVolunteerModalOpen(true);
+          } else if (route === '/gioi-thieu') {
+            handleSelectPortalTab('about');
+          } else {
+            window.location.hash = `#${route}`;
+          }
+        }}
+      />
+
+      {/* CITIZEN WELFARE REGISTRATION MODAL */}
+      <CitizenWelfareRegistrationModal
+        isOpen={isWelfareRegistrationModalOpen}
+        onClose={() => setIsWelfareRegistrationModalOpen(false)}
+        onSuccess={(title, msg) => handleTriggerSystemToast(title, msg)}
+      />
+
+      {/* 1-CLICK SYSTEM BACKUP & RESTORE MODAL */}
+      <SystemBackupRestoreModal
+        isOpen={isBackupModalOpen}
+        onClose={() => setIsBackupModalOpen(false)}
+        onRefreshAllData={handleRefreshAllData}
       />
 
       {/* SHARE QR POSTER MODAL */}

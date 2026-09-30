@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PublicOpinion, OpinionStatus } from '../../types';
-import { MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, UserCheck, ShieldAlert, FileText, AlertCircle, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { 
+  MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, 
+  UserCheck, ShieldAlert, FileText, AlertCircle, Download, Trash2, 
+  AlertTriangle, Phone, MapPin, Eye, Filter, User, Tag, Calendar,
+  ArrowRight, ShieldCheck, Check
+} from 'lucide-react';
 import { exportPublicOpinionsToCsv } from '../../lib/exportUtils';
+import { ContactService } from '../../lib/ai/contactService';
 
 interface OpinionsAdminViewProps {
   opinions: PublicOpinion[];
@@ -17,18 +23,71 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   onOpenAiSummary
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [filterSla, setFilterSla] = useState<'ALL' | 'OVERDUE' | 'NEAR_DUE' | 'ON_TIME'>('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedOpinion, setSelectedOpinion] = useState<PublicOpinion | null>(null);
   const [opinionToDelete, setOpinionToDelete] = useState<PublicOpinion | null>(null);
   const [responseText, setResponseText] = useState('');
+  const [assignedOfficer, setAssignedOfficer] = useState('Đ/c Nguyễn Huy (Thường trực)');
+  const [isSavedToast, setIsSavedToast] = useState(false);
 
-  const filteredOpinions = opinions.filter(op => filterStatus === 'ALL' || op.status === filterStatus);
+  const cadres = useMemo(() => ContactService.getAllContacts(), []);
+
+  // Calculate SLA status (48-hour default SLA)
+  const calculateSLA = (createdAtStr: string, status: OpinionStatus) => {
+    if (status === 'RESOLVED') {
+      return { status: 'RESOLVED', label: 'Đã hoàn thành', color: 'emerald', hoursLeft: 0 };
+    }
+    const created = new Date(createdAtStr).getTime();
+    if (isNaN(created)) {
+      return { status: 'ON_TIME', label: 'Trong hạn (48h)', color: 'blue', hoursLeft: 36 };
+    }
+    const now = Date.now();
+    const elapsedHours = (now - created) / (1000 * 60 * 60);
+    const hoursLeft = Math.round(48 - elapsedHours);
+
+    if (hoursLeft < 0) {
+      return { status: 'OVERDUE', label: `Quá hạn ${Math.abs(hoursLeft)}h`, color: 'rose', hoursLeft };
+    }
+    if (hoursLeft <= 12) {
+      return { status: 'NEAR_DUE', label: `Sắp hết hạn (${hoursLeft}h)`, color: 'amber', hoursLeft };
+    }
+    return { status: 'ON_TIME', label: `Còn ${hoursLeft}h`, color: 'blue', hoursLeft };
+  };
+
+  const filteredOpinions = useMemo(() => {
+    return opinions.filter(op => {
+      const matchesStatus = filterStatus === 'ALL' || op.status === filterStatus;
+      
+      const q = searchTerm.toLowerCase().trim();
+      const matchesSearch = !q || 
+        op.content.toLowerCase().includes(q) ||
+        (op.authorName && op.authorName.toLowerCase().includes(q)) ||
+        (op.authorPhone && op.authorPhone.includes(q)) ||
+        (op.neighborhood && op.neighborhood.toLowerCase().includes(q)) ||
+        (op.id && op.id.toLowerCase().includes(q));
+
+      const sla = calculateSLA(op.createdAt, op.status);
+      const matchesSla = filterSla === 'ALL' || sla.status === filterSla;
+
+      return matchesStatus && matchesSearch && matchesSla;
+    });
+  }, [opinions, filterStatus, filterSla, searchTerm]);
+
+  const overdueCount = useMemo(() => {
+    return opinions.filter(op => op.status !== 'RESOLVED' && calculateSLA(op.createdAt, op.status).status === 'OVERDUE').length;
+  }, [opinions]);
 
   const handleSaveResponse = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOpinion) return;
     onUpdateOpinionStatus(selectedOpinion.id, 'RESOLVED', responseText);
-    setSelectedOpinion(null);
-    setResponseText('');
+    setIsSavedToast(true);
+    setTimeout(() => {
+      setIsSavedToast(false);
+      setSelectedOpinion(null);
+      setResponseText('');
+    }, 1500);
   };
 
   const handleConfirmDelete = () => {
@@ -42,302 +101,334 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
     setOpinionToDelete(null);
   };
 
-  const getStatusBadge = (s: OpinionStatus) => {
-    switch (s) {
-      case 'RESOLVED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300/80 font-black text-[11px] rounded-lg shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>HOÀN THÀNH</span>
-          </span>
-        );
-      case 'PROCESSING':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-300/80 font-black text-[11px] rounded-lg shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
-            <span>ĐANG XỬ LÝ</span>
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-300/80 font-black text-[11px] rounded-lg shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-            <span>MỚI GỬI</span>
-          </span>
-        );
-    }
-  };
-
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 animate-fadeIn">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-md font-bold text-[10px]">
+              QUẢN LÝ DÂN NGUYỆN (SLA 48H)
+            </span>
+            {overdueCount > 0 && (
+              <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded-md font-extrabold text-[10px] animate-pulse">
+                {overdueCount} Phản ánh quá hạn
+              </span>
+            )}
+          </div>
+          <h1 className="text-xl font-black text-slate-900 flex items-center gap-2 mt-1">
             <MessageSquare className="w-6 h-6 text-blue-600" />
-            <span>HÒM THƯ NẮM BẮT DƯ LUẬN XÃ HỘI</span>
+            <span>Hòm Thư Dân Nguyện & Nắm Bắt Dư Luận 21 Khu Phố</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">Tiếp nhận, xử lý và phản hồi ý kiến phản ánh của nhân dân 21 Khu phố</p>
+          <p className="text-xs text-slate-500 mt-0.5">Tiếp nhận, thẩm tra, phân công và phản hồi kết quả trực tiếp cho nhân dân</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => exportPublicOpinionsToCsv(filteredOpinions)}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all border border-slate-300"
-            title="Xuất file Excel/CSV chuẩn UTF-8"
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition border border-slate-200"
+            title="Xuất file Excel/CSV"
           >
             <Download className="w-4 h-4 text-emerald-600" />
-            <span>Xuất Excel / CSV</span>
+            <span>Xuất Excel</span>
           </button>
 
           <button
             onClick={onOpenAiSummary}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all"
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
-            <span>Tạo Báo cáo AI Dư luận</span>
+            <span>AI Tổng Hợp Dư Luận</span>
           </button>
         </div>
       </div>
 
-      {/* Filter and Stats Bar with Status Summary Badges */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-black text-slate-700 mr-1">Bộ lọc:</span>
-          <button
-            onClick={() => setFilterStatus('ALL')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-              filterStatus === 'ALL'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Tất cả ({opinions.length})
-          </button>
-          <button
-            onClick={() => setFilterStatus('NEW')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterStatus === 'NEW'
-                ? 'bg-rose-600 text-white shadow-xs'
-                : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-            <span>Mới ({opinions.filter(o => o.status === 'NEW' || !o.status).length})</span>
-          </button>
-          <button
-            onClick={() => setFilterStatus('PROCESSING')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterStatus === 'PROCESSING'
-                ? 'bg-amber-600 text-white shadow-xs'
-                : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span>Đang xử lý ({opinions.filter(o => o.status === 'PROCESSING').length})</span>
-          </button>
-          <button
-            onClick={() => setFilterStatus('RESOLVED')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterStatus === 'RESOLVED'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Hoàn thành ({opinions.filter(o => o.status === 'RESOLVED').length})</span>
-          </button>
-        </div>
-
-        <div className="text-slate-500 font-bold self-end lg:self-center">
-          Hiển thị <span className="text-blue-700 font-black">{filteredOpinions.length}</span> phản ánh
-        </div>
-      </div>
-
-      {/* Opinions List Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-        {filteredOpinions.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 space-y-2">
-            <MessageSquare className="w-8 h-8 mx-auto text-slate-300" />
-            <p className="text-xs font-bold">Không có ý kiến nào trong danh mục lọc này.</p>
+      {/* SLA & Status Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Tìm theo Mã phản ánh, Tên người gửi, SĐT hoặc Nội dung..."
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            />
           </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {filteredOpinions.map((op) => (
-              <div 
-                key={op.id} 
-                className={`p-5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs ${
-                  op.status === 'NEW' || !op.status 
-                    ? 'bg-rose-50/20 hover:bg-rose-50/40 border-l-4 border-l-rose-500' 
-                    : op.status === 'PROCESSING' 
-                    ? 'bg-amber-50/20 hover:bg-amber-50/40 border-l-4 border-l-amber-500' 
-                    : 'hover:bg-slate-50 border-l-4 border-l-emerald-500'
+
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
+            {[
+              { id: 'ALL', label: 'Tất cả' },
+              { id: 'NEW', label: 'Mới gửi' },
+              { id: 'PROCESSING', label: 'Đang xử lý' },
+              { id: 'RESOLVED', label: 'Hoàn thành' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setFilterStatus(tab.id)}
+                className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition ${
+                  filterStatus === tab.id
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                <div className="space-y-2 max-w-3xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-extrabold text-blue-900 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
-                      {op.receiptCode || op.id}
-                    </span>
-                    {getStatusBadge(op.status)}
-                    <span className="bg-slate-100 text-slate-700 font-semibold px-2.5 py-0.5 rounded-md text-[10px] border border-slate-200">
-                      {op.topic}
-                    </span>
-                    <span className="text-slate-500 font-semibold">• {op.neighborhood}</span>
-                  </div>
-
-                  <p className="font-bold text-slate-900 leading-relaxed text-sm">{op.content}</p>
-
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-[11px] pt-1">
-                    <span>Người gửi: <strong className="text-slate-800">{op.isAnonymous ? 'Ẩn danh' : op.fullname || 'Người dân'}</strong></span>
-                    {op.phone && <span>SĐT: <strong className="text-slate-800">{op.phone}</strong></span>}
-                    {op.address && <span>Địa chỉ: <strong className="text-slate-800">{op.address}</strong></span>}
-                    <span>Thời gian: {op.createdAt}</span>
-                  </div>
-
-                  {op.adminResponse && (
-                    <div className="mt-2 p-3 bg-emerald-50/90 text-emerald-950 rounded-xl border border-emerald-300 text-xs shadow-2xs">
-                      <div className="flex items-center gap-1.5 font-black text-emerald-900 mb-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Kết quả phản hồi của Ban Thường trực MTTQ:</span>
-                      </div>
-                      <p className="leading-relaxed">{op.adminResponse}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="shrink-0 flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedOpinion(op);
-                      setResponseText(op.adminResponse || '');
-                    }}
-                    className="px-4 py-2 bg-[#0052cc] hover:bg-[#0043aa] text-white font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Xử lý &amp; Phản hồi</span>
-                  </button>
-
-                  {onDeleteOpinion && (
-                    <button
-                      type="button"
-                      onClick={() => setOpinionToDelete(op)}
-                      className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                      title="Xóa phản ánh dư luận này"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                      <span>Xóa</span>
-                    </button>
-                  )}
-                </div>
-              </div>
+                {tab.label}
+              </button>
             ))}
           </div>
-        )}
+
+          {/* SLA Filter */}
+          <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs shrink-0">
+            <span className="text-[11px] font-semibold text-slate-500 px-2">SLA:</span>
+            <button
+              onClick={() => setFilterSla('ALL')}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${filterSla === 'ALL' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'}`}
+            >
+              Tất cả
+            </button>
+            <button
+              onClick={() => setFilterSla('OVERDUE')}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${filterSla === 'OVERDUE' ? 'bg-rose-600 text-white shadow-xs' : 'text-rose-600'}`}
+            >
+              Quá hạn
+            </button>
+            <button
+              onClick={() => setFilterSla('NEAR_DUE')}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${filterSla === 'NEAR_DUE' ? 'bg-amber-500 text-white shadow-xs' : 'text-amber-700'}`}
+            >
+              Sắp hạn
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* RESPONSE MODAL */}
-      {selectedOpinion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl border border-stone-200">
-            <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-              <h3 className="font-bold text-stone-900 text-sm">
-                Cập nhật Kết quả Xử lý: {selectedOpinion.receiptCode}
-              </h3>
-              <button onClick={() => setSelectedOpinion(null)} className="text-stone-400 hover:text-stone-700">
-                ✕
-              </button>
+      {/* Main List & Details Split View */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left: List of Opinions */}
+        <div className="lg:col-span-5 space-y-2.5 max-h-[750px] overflow-y-auto pr-1">
+          {filteredOpinions.length === 0 ? (
+            <div className="p-8 bg-white rounded-2xl border border-slate-200 text-center space-y-2">
+              <MessageSquare className="w-10 h-10 text-slate-300 mx-auto" />
+              <p className="text-sm font-bold text-slate-700">Không tìm thấy phản ánh nào</p>
+              <p className="text-xs text-slate-400">Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm</p>
             </div>
+          ) : (
+            filteredOpinions.map(op => {
+              const sla = calculateSLA(op.createdAt, op.status);
+              const isSelected = selectedOpinion?.id === op.id;
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
-                <p className="font-bold text-stone-800 mb-1">{selectedOpinion.topic} - {selectedOpinion.neighborhood}</p>
-                <p className="text-stone-600">{selectedOpinion.content}</p>
-              </div>
+              return (
+                <div
+                  key={op.id}
+                  onClick={() => {
+                    setSelectedOpinion(op);
+                    setResponseText(op.responseText || '');
+                  }}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
+                    isSelected
+                      ? 'bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-500/20'
+                      : 'bg-white border-slate-200 hover:border-blue-300 shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[11px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                        #{op.id.slice(-6).toUpperCase()}
+                      </span>
+                      <span className="text-xs font-bold text-slate-800">
+                        {op.authorName || 'Người dân ẩn danh'}
+                      </span>
+                    </div>
 
-              <form onSubmit={handleSaveResponse} className="space-y-3">
+                    {/* SLA Badge */}
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      sla.color === 'rose'
+                        ? 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse'
+                        : sla.color === 'amber'
+                        ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                        : sla.color === 'emerald'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {sla.label}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-700 line-clamp-2 leading-relaxed font-medium">
+                    {op.content}
+                  </p>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-100">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      {op.neighborhood || 'Chánh Hiệp'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      {op.createdAt ? op.createdAt.split('T')[0] : 'Vừa xong'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Right: Selected Opinion Detail & Response Form */}
+        <div className="lg:col-span-7">
+          {selectedOpinion ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5 animate-fadeIn">
+              {/* Detail Header */}
+              <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">
-                    Nội dung kết quả xử lý / Phản hồi gửi người dân (*)
-                  </label>
-                  <textarea
-                    rows={4}
-                    placeholder="Nhập nội dung giải quyết của MTTQ và UBND phường..."
-                    value={responseText}
-                    onChange={(e) => setResponseText(e.target.value)}
-                    className="w-full p-3 border border-stone-300 rounded-xl focus:ring-2 focus:ring-red-800 outline-hidden leading-relaxed"
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-black text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg">
+                      MÃ: {selectedOpinion.id}
+                    </span>
+                    <span className="text-xs text-slate-400">•</span>
+                    <span className="text-xs text-slate-500">
+                      Gửi lúc: {selectedOpinion.createdAt || 'Mới đây'}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-black text-slate-900 mt-1 flex items-center gap-2">
+                    <User className="w-4 h-4 text-blue-600" />
+                    {selectedOpinion.authorName || 'Người dân ẩn danh'}
+                  </h3>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  {onDeleteOpinion ? (
-                    <button
-                      type="button"
-                      onClick={() => setOpinionToDelete(selectedOpinion)}
-                      className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                      <span>Xóa phản ánh này</span>
-                    </button>
-                  ) : <div />}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onUpdateOpinionStatus(selectedOpinion.id, 'PROCESSING')}
+                    className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold rounded-xl border border-amber-200 transition"
+                  >
+                    Tiếp nhận xử lý
+                  </button>
+                  <button
+                    onClick={() => setOpinionToDelete(selectedOpinion)}
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    title="Xóa phản ánh"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedOpinion(null)}
-                      className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded-xl"
+              {/* Citizen Contact Meta */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl text-xs border border-slate-100">
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Số điện thoại:</span>
+                  <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
+                    <Phone className="w-3 h-3 text-blue-600" />
+                    {selectedOpinion.authorPhone || 'Không cung cấp'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Địa bàn / Khu phố:</span>
+                  <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-3 h-3 text-rose-500" />
+                    {selectedOpinion.neighborhood || 'Toàn phường'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Trạng thái xử lý:</span>
+                  <span className="font-bold text-blue-700 flex items-center gap-1 mt-0.5">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    {selectedOpinion.status === 'RESOLVED' ? 'Đã phản hồi' : 'Đang xử lý'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Content Box */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-slate-700">Nội dung phản ánh của nhân dân:</span>
+                <div className="p-4 bg-slate-50/90 rounded-xl border border-slate-200 text-slate-800 text-xs leading-relaxed font-medium whitespace-pre-wrap">
+                  {selectedOpinion.content}
+                </div>
+              </div>
+
+              {/* Response Form */}
+              <form onSubmit={handleSaveResponse} className="space-y-3 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    Phản hồi chính thức của Ban Thường trực MTTQ / UBND:
+                  </label>
+                  <span className="text-[10px] text-slate-400">Hiển thị cho công dân tra cứu</span>
+                </div>
+
+                <textarea
+                  rows={4}
+                  value={responseText}
+                  onChange={(e) => setResponseText(e.target.value)}
+                  placeholder="Nhập nội dung giải trình, tiến độ xử lý hoặc kết quả giải quyết kiến nghị của bà con..."
+                  className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  required
+                />
+
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-slate-500">Cán bộ phụ trách:</span>
+                    <select
+                      value={assignedOfficer}
+                      onChange={(e) => setAssignedOfficer(e.target.value)}
+                      className="bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-2 py-1 font-bold text-xs focus:outline-none"
                     >
-                      Đóng
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs"
-                    >
-                      Lưu kết quả &amp; Đóng hồ sơ
-                    </button>
+                      {cadres.map(c => (
+                        <option key={c.id} value={`${c.name} (${c.title})`}>{c.name} - {c.title}</option>
+                      ))}
+                    </select>
                   </div>
+
+                  <button
+                    type="submit"
+                    className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                  >
+                    {isSavedToast ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                    <span>{isSavedToast ? 'Đã lưu phản hồi!' : 'Lưu & Trả lời Công dân'}</span>
+                  </button>
                 </div>
               </form>
             </div>
-          </div>
+          ) : (
+            <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h4 className="font-bold text-slate-800 text-sm">Chọn một phản ánh để xem chi tiết</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Nhấp vào danh sách phản ánh bên trái để xem nội dung đầy đủ, đối chiếu thông tin người gửi và soạn câu trả lời chính thức.
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* Delete Confirmation Modal */}
       {opinionToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-rose-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
             <div className="flex items-center gap-3 text-rose-600">
-              <AlertTriangle className="w-6 h-6 shrink-0" />
-              <h3 className="font-extrabold text-stone-900 text-base">Xác nhận xóa phản ánh</h3>
+              <AlertTriangle className="w-6 h-6" />
+              <h4 className="font-bold text-base text-slate-900">Xác nhận xóa phản ánh?</h4>
             </div>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Bạn có chắc chắn muốn xóa phản ánh mã số <strong className="text-rose-700">{opinionToDelete.receiptCode || opinionToDelete.id}</strong> không?
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Bạn có chắc chắn muốn xóa phản ánh mã <strong className="text-slate-900">#{opinionToDelete.id.slice(-6).toUpperCase()}</strong> của công dân <strong className="text-slate-900">{opinionToDelete.authorName || 'Ẩn danh'}</strong> không? Thao tác này không thể hoàn tác.
             </p>
-            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs text-stone-700 italic">
-              "{opinionToDelete.topic} - {opinionToDelete.content.substring(0, 80)}{opinionToDelete.content.length > 80 ? '...' : ''}"
-            </div>
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] text-rose-800 font-semibold">
-              ⚠️ Lưu ý: Thao tác này sẽ xóa vĩnh viễn dữ liệu phản ánh khỏi hệ thống và không thể phục hồi.
-            </div>
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+            <div className="flex justify-end gap-2 pt-2">
               <button
-                type="button"
                 onClick={() => setOpinionToDelete(null)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold rounded-xl text-xs cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
               >
                 Hủy bỏ
               </button>
               <button
-                type="button"
                 onClick={handleConfirmDelete}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl shadow-xs text-xs cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
               >
-                <Trash2 className="w-4 h-4" />
-                <span>Xác nhận Xóa</span>
+                Xóa vĩnh viễn
               </button>
             </div>
           </div>
@@ -346,4 +437,3 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
     </div>
   );
 };
-

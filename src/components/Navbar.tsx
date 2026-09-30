@@ -40,6 +40,7 @@ interface NavbarProps {
   onOpenDigitalDirectory?: () => void;
   onOpenVolunteerModal?: () => void;
   onOpenHcmSpaceModal?: () => void;
+  onOpenGlobalSearch?: () => void;
   currentUser?: any;
 }
 
@@ -55,6 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenDigitalDirectory,
   onOpenVolunteerModal,
   onOpenHcmSpaceModal,
+  onOpenGlobalSearch,
   currentUser
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -104,22 +106,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: Search Capsule Bar */}
-          <div className="hidden md:flex items-center bg-white rounded-full pl-4 pr-1.5 py-1 shadow-sm max-w-sm w-full mx-2 border border-blue-200/60">
-            <input
-              type="text"
-              placeholder="Tìm kiếm tin tức, văn bản, thủ tục..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs text-slate-800 placeholder-slate-400 bg-transparent outline-none font-medium"
-            />
-            <button 
-              type="button"
-              className="w-7 h-7 rounded-full bg-[#0068ff] hover:bg-blue-700 text-white flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
-              title="Tìm kiếm"
-            >
-              <Search className="w-3.5 h-3.5 text-white" />
-            </button>
+          {/* Center: Search Capsule Bar (Universal Search) */}
+          <div 
+            onClick={onOpenGlobalSearch}
+            className="hidden md:flex items-center justify-between bg-white/95 hover:bg-white rounded-full pl-3.5 pr-1.5 py-1 shadow-sm max-w-sm w-full mx-2 border border-blue-200/60 cursor-pointer transition group"
+          >
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Search className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span className="text-xs text-slate-500 font-medium truncate">
+                Tìm kiếm nhanh toàn hệ thống...
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <kbd className="hidden lg:inline-block text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-mono border border-slate-200">
+                Ctrl K
+              </kbd>
+              <div className="w-6 h-6 rounded-full bg-[#0068ff] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
+                <Search className="w-3 h-3 text-white" />
+              </div>
+            </div>
           </div>
 
           {/* Right Actions: Notifications, Văn phòng số, Staff Profile, Red Banner */}

@@ -383,13 +383,21 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
       </div>
 
       {/* 3. Top-Right Actions: Center Ward & Open Full Map */}
-      <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5">
+        <button
+          onClick={handleLocateMe}
+          className="px-3 py-1.5 rounded-xl bg-white/95 hover:bg-white text-slate-800 text-xs font-black shadow-md border border-slate-200 flex items-center gap-1.5 transition cursor-pointer backdrop-blur-md"
+          title="Định vị & Tìm điểm gần bạn nhất"
+        >
+          <Navigation className={`w-3.5 h-3.5 ${isLocating ? 'text-blue-600 animate-spin' : 'text-blue-600'}`} />
+          <span className="hidden xs:inline">Gần tôi nhất</span>
+        </button>
+
         <button
           onClick={handleCenterWard}
           className="px-3 py-1.5 rounded-xl bg-white/95 hover:bg-white text-slate-800 text-xs font-black shadow-md border border-slate-200 flex items-center gap-1.5 transition cursor-pointer backdrop-blur-md"
           title="Căn giữa Phường Chánh Hiệp"
         >
-          <Navigation className="w-3.5 h-3.5 text-blue-600" />
+          <Compass className="w-3.5 h-3.5 text-blue-600" />
           <span className="hidden sm:inline">Chánh Hiệp</span>
         </button>
 
@@ -437,7 +445,7 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
       <div className="absolute bottom-2 left-3 z-30 pointer-events-none">
         <div className="bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-md text-[9px] font-bold text-slate-600 border border-slate-200/80 shadow-2xs flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span>Bản đồ Google Maps • Chánh Hiệp GIS</span>
+          <span>Bản đồ Google Maps • Chánh Hiệp GIS (Thuật toán Haversine)</span>
         </div>
       </div>
     </div>

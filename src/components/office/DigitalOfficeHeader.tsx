@@ -24,7 +24,8 @@ import {
   Menu,
   BellRing,
   Check,
-  Phone
+  Phone,
+  Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getRoleBadgeStyle, getRoleLabel } from '../../lib/rbac';
@@ -55,6 +56,8 @@ interface DigitalOfficeHeaderProps {
   onForceCloudSync?: () => void;
   onToggleMobileSidebar?: () => void;
   onOpenDigitalDirectory?: () => void;
+  onOpenBackupModal?: () => void;
+  onOpenGlobalSearch?: () => void;
 }
 
 export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
@@ -392,20 +395,23 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
                   </button>
 
                   <button
-                    onClick={() => handleUserMenuAction('audit_logs')}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg font-bold transition-colors cursor-pointer text-left group"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      if (onOpenBackupModal) onOpenBackupModal();
+                    }}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg font-bold transition-colors cursor-pointer text-left group"
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <div className="p-1 rounded bg-indigo-100 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
-                        <ShieldAlert className="w-3 h-3" />
+                      <div className="p-1 rounded bg-amber-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-colors shrink-0">
+                        <Database className="w-3 h-3" />
                       </div>
                       <div className="truncate">
-                        <div className="text-[11px] font-black text-slate-800 group-hover:text-indigo-700 truncate">Nhật ký Hệ thống (Audit Logs)</div>
-                        <div className="text-[9px] text-slate-400 font-normal truncate">Lịch sử thao tác &amp; an toàn dữ liệu</div>
+                        <div className="text-[11px] font-black text-slate-800 group-hover:text-amber-700 truncate">Sao lưu &amp; Khôi phục Dữ liệu</div>
+                        <div className="text-[9px] text-slate-400 font-normal truncate">Xuất JSON 1-Click snapshot</div>
                       </div>
                     </div>
-                    <span className="text-[8px] bg-slate-100 text-slate-700 font-black px-1 py-0.2 rounded shrink-0 ml-1">
-                      LOGS
+                    <span className="text-[8px] bg-amber-100 text-amber-900 font-black px-1 py-0.2 rounded shrink-0 ml-1">
+                      BACKUP
                     </span>
                   </button>
                 </div>
