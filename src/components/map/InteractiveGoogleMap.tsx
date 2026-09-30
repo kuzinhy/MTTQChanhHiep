@@ -190,59 +190,10 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     tileLayerRef.current = newTile;
   }, [mapStyle]);
 
-  // 3. Render 21 Neighborhood Polygons & Boundary Centroids
+  // 3. Render 21 Neighborhood Polygons & Boundary Centroids (Disabled per user request to remove 21 KP clusters)
   useEffect(() => {
-    if (!neighborhoodLayerGroupRef.current || !mapInstanceRef.current) return;
-
+    if (!neighborhoodLayerGroupRef.current) return;
     neighborhoodLayerGroupRef.current.clearLayers();
-
-    if (!layerConfig.show_neighborhood_boundaries) return;
-
-    neighborhoods.forEach((nh) => {
-      const isSelected = activeNeighborhood?.id === nh.id;
-
-      // Create boundary circle/polygon representation
-      const circle = L.circle([nh.center_lat, nh.center_lng], {
-        radius: 360,
-        color: isSelected ? '#EF4444' : '#3B82F6',
-        weight: isSelected ? 3 : 1.5,
-        fillColor: isSelected ? '#DC2626' : '#2563EB',
-        fillOpacity: isSelected ? 0.25 : 0.08,
-        dashArray: isSelected ? undefined : '5, 5'
-      });
-
-      // Label Icon
-      const labelIcon = L.divIcon({
-        className: 'nh-label-marker',
-        html: `
-          <div class="px-2 py-0.5 rounded-full text-[10px] font-black shadow-md border flex items-center gap-1 cursor-pointer transition-transform hover:scale-110 ${
-            isSelected
-              ? 'bg-red-600 text-white border-amber-300 ring-2 ring-red-400/40'
-              : 'bg-white/95 text-slate-800 border-slate-300 hover:bg-blue-50 hover:text-blue-700'
-          }">
-            <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-amber-300 animate-ping' : 'bg-blue-600'}"></span>
-            <span>${nh.code}</span>
-          </div>
-        `,
-        iconSize: [60, 24],
-        iconAnchor: [30, 12]
-      });
-
-      const labelMarker = L.marker([nh.center_lat, nh.center_lng], { icon: labelIcon });
-
-      labelMarker.on('click', () => {
-        onSelectNeighborhood(nh);
-        mapInstanceRef.current?.flyTo([nh.center_lat, nh.center_lng], 16, { duration: 0.8 });
-      });
-
-      circle.on('click', () => {
-        onSelectNeighborhood(nh);
-        mapInstanceRef.current?.flyTo([nh.center_lat, nh.center_lng], 16, { duration: 0.8 });
-      });
-
-      neighborhoodLayerGroupRef.current?.addLayer(circle);
-      neighborhoodLayerGroupRef.current?.addLayer(labelMarker);
-    });
   }, [neighborhoods, activeNeighborhood, layerConfig.show_neighborhood_boundaries]);
 
   // 4. Render Location Markers with Custom SVG Icons & Interactive Popups
@@ -324,6 +275,24 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         }
       };
 
+      const getDisplayLabel = (location: MapLocation, zoom: number) => {
+        if (zoom < 14) return null; // Low zoom: icon only
+        if (zoom < 16) {
+          // Medium zoom: natural short name (e.g. "Chánh Mỹ 1", remove "Văn phòng khu phố ")
+          if (location.category_code === 'CONG_DONG' && location.short_label) {
+            return location.short_label;
+          }
+          if (location.category_code === 'CONG_DONG') {
+            return location.name.replace(/^Văn phòng khu phố\s*/i, '').replace(/^Văn phòng Ban điều hành Khu phố\s*/i, '');
+          }
+          return location.name;
+        }
+        // High zoom: full name
+        return location.full_label || location.name;
+      };
+
+      const displayLabel = getDisplayLabel(loc, mapZoom);
+
       const customIcon = L.divIcon({
         className: 'custom-google-pin',
         html: `
@@ -351,14 +320,16 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
               ></div>
             </div>
 
-            <!-- Crisp Location Label (Google Style) -->
-            <div class="mt-0.5 px-2 py-0.5 rounded-full text-[8.5px] font-bold max-w-[125px] truncate shadow-sm text-center border transition-all ${
-              isSelected
-                ? 'bg-slate-900 text-white border-slate-700 ring-1 ring-blue-400'
-                : 'bg-white/95 text-slate-800 border-slate-300 backdrop-blur-sm group-hover:bg-slate-900 group-hover:text-white'
-            }">
-              ${escapeHtml(loc.name)}
-            </div>
+            <!-- Zoom-Responsive Crisp Location Label -->
+            ${displayLabel ? `
+              <div class="mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold max-w-[130px] truncate shadow-sm text-center border transition-all ${
+                isSelected
+                  ? 'bg-slate-900 text-white border-slate-700 ring-1 ring-blue-400'
+                  : 'bg-white/95 text-slate-800 border-slate-300 backdrop-blur-sm group-hover:bg-slate-900 group-hover:text-white'
+              }">
+                ${escapeHtml(displayLabel)}
+              </div>
+            ` : ''}
           </div>
         `,
         iconSize: [44, 58],
@@ -369,11 +340,11 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       const marker = L.marker([lat, lng], { icon: customIcon });
 
       // Build Rich Interactive InfoWindow Popup
-      const directionsUrl = generateGoogleMapsDirectionsUrl(lat, lng);
+      const directionsUrl = loc.directions_url || generateGoogleMapsDirectionsUrl(lat, lng);
       const phoneNum = loc.phone?.trim();
       const openingHoursStr = loc.opening_hours?.trim() || '07:30 - 11:30 | 13:30 - 17:00 (Thứ 2 - Thứ 6)';
-      const safeCategoryName = escapeHtml(cat?.name?.split('&')[0]?.trim() || 'Cơ sở');
-      const safeNeighborhoodName = loc.neighborhood_name ? escapeHtml(loc.neighborhood_name) : '';
+      const safeCategoryName = loc.category_code === 'CONG_DONG' ? 'Văn phòng khu phố' : escapeHtml(cat?.name?.split('&')[0]?.trim() || 'Cơ sở');
+      const safeGroup = loc.group_name || loc.neighborhood_name || '';
       const safeName = escapeHtml(loc.name);
       const safeAddress = escapeHtml(loc.address);
       const safeHours = escapeHtml(openingHoursStr);
@@ -389,7 +360,7 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
               <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">
                 ${safeCategoryName}
               </span>
-              ${safeNeighborhoodName ? `<span class="text-[9px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 border border-slate-200">${safeNeighborhoodName}</span>` : ''}
+              ${safeGroup ? `<span class="text-[9px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 border border-slate-200">Nhóm: ${escapeHtml(safeGroup)}</span>` : ''}
             </div>
             ${loc.is_featured ? '<span class="text-[9px] font-black bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-200">★ Trọng điểm</span>' : ''}
           </div>

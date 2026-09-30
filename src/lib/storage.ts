@@ -599,15 +599,20 @@ export const AppStorageEngine = {
       saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, INITIAL_MAP_LOCATIONS);
       return INITIAL_MAP_LOCATIONS;
     }
-    // Automatically merge any missing official locations by ID
-    const storedIds = new Set(stored.map(l => l.id));
+    // Update official LOC-001 through LOC-021 and merge missing official locations
+    const officialMap = new Map(INITIAL_MAP_LOCATIONS.map(l => [l.id, l]));
+    const updated = stored.map(loc => {
+      if (loc.id >= 'LOC-001' && loc.id <= 'LOC-021') {
+        const official = officialMap.get(loc.id);
+        if (official) return { ...loc, ...official };
+      }
+      return loc;
+    });
+    const storedIds = new Set(updated.map(l => l.id));
     const missingOfficial = INITIAL_MAP_LOCATIONS.filter(l => !storedIds.has(l.id));
-    if (missingOfficial.length > 0) {
-      const merged = [...stored, ...missingOfficial];
-      saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, merged);
-      return merged;
-    }
-    return stored;
+    const merged = [...updated, ...missingOfficial];
+    saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, merged);
+    return merged;
   },
   saveMapLocations: (locations: MapLocation[]) => {
     saveStorageData(STORAGE_KEYS.MAP_LOCATIONS, locations || []);

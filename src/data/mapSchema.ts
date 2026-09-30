@@ -134,6 +134,11 @@ export interface MapLocation {
   created_at?: string;
   updated_at?: string;
 
+  // Zoom-responsive label & group fields for 21 neighborhood offices
+  short_label?: string;
+  full_label?: string;
+  group_name?: string;
+
   // Metadata tính toán động tại client
   distance_in_meters?: number;     // Khoảng cách tính theo Haversine từ vị trí GPS người dùng
 }

@@ -154,7 +154,7 @@ export const DigitalCommunityMap: React.FC<DigitalCommunityMapProps> = ({
 
   // Layer Visibility
   const [layerConfig, setLayerConfig] = useState<MapLayerConfig>({
-    show_neighborhood_boundaries: true,
+    show_neighborhood_boundaries: false,
     show_administrative_offices: true,
     show_mttq_organizations: true,
     show_medical_facilities: true,
