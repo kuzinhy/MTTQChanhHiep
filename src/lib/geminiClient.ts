@@ -19,7 +19,8 @@ export interface SearchTraceLog {
 export async function queryGeminiWithFallback(
   query: string,
   documentsContext: string,
-  knowledgeNotesContext: string
+  knowledgeNotesContext: string,
+  messages?: Array<{ sender: 'user' | 'ai'; text: string }>
 ): Promise<{ text: string; logs: SearchTraceLog[] }> {
   const traces: SearchTraceLog[] = [];
   const startTime = Date.now();
@@ -27,26 +28,6 @@ export async function queryGeminiWithFallback(
 
   console.log(`%c[GEMINI SDK INTEGRATION] Starting process for query: "${query}"`, 'color: #3b82f6; font-weight: bold;');
   console.log(`[GEMINI SDK INTEGRATION] Client Network State: ${networkOnline ? 'ONLINE' : 'OFFLINE'}`);
-
-  const prompt = `Bạn là một Cán bộ Nhà nước chuyên nghiệp, có chuyên môn nghiệp vụ cao thuộc Ủy ban Mặt trận Tổ quốc Việt Nam Phường Chánh Hiệp, TP. Hồ Chí Minh. 
-Người dân hoặc cán bộ địa phương gửi câu hỏi đến bạn. Vai trò của bạn là trả lời mọi câu hỏi một cách thông minh, đúng trọng tâm và thể hiện đúng phong thái của một cán bộ nhà nước hiểu biết, lịch thiệp, tận tụy và chuyên nghiệp.
-
-Lưu ý bảo mật đặc biệt quan trọng: TUYỆT ĐỐI KHÔNG CUNG CẤP, KHÔNG CHIA SẺ, KHÔNG ĐƯA BẤT KỲ ĐƯỜNG LINK LIÊN KẾT GOOGLE DRIVE NÀO TRONG PHẢN HỒI CHO NGƯỜI DÙNG. 
-
---- KHO VĂN BẢN ĐÃ ĐỒNG BỘ (OFFICIAL DOCUMENTS) ---
-${documentsContext || 'Không có dữ liệu văn bản chỉ đạo nào được nạp.'}
- 
---- SỔ TAY KIẾN THỨC VÀ CÂU HỎI THƯỜNG GẶP (CURATED KNOWLEDGE NOTES) ---
-${knowledgeNotesContext || 'Không có sổ tay kiến thức bổ sung.'}
- 
---- CÂU HỎI CỦA NGƯỜI DÙNG / CÁN BỘ ---
-"${query}"
- 
-Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đúng trọng tâm:
-1. ĐÓNG VAI CÁN BỘ NHÀ NƯỚC CHUYÊN NGHIỆP: Hãy sử dụng trí tuệ, tư duy sắc bén và kiến thức luật pháp, chính trị, nghiệp vụ hành chính công, chính sách đại đoàn kết dân tộc của bạn để giải thích và trả lời bất kỳ câu hỏi nào của người dân một cách rõ ràng và thấu đáo nhất.
-2. KHÔNG CHỈ HẠN CHẾ TRONG KHO DỮ LIỆU: Ưu tiên tham chiếu các tài liệu trong "KHO VĂN BẢN ĐÃ ĐỒNG BỘ" và "SỔ TAY KIẾN THỨC" nếu có thông tin khớp trực tiếp. Đối với các câu hỏi chung, câu hỏi nghiệp vụ, chính sách nhà nước, đời sống hay câu hỏi mang tính giao tiếp thông thường, TUYỆT ĐỐI KHÔNG trả lời theo kiểu máy móc "Không tìm thấy thông tin trong kho dữ liệu". Hãy dùng "bộ não" chuyên nghiệp, kiến thức hành chính và nghiệp vụ của một cán bộ để hỗ trợ trả lời trọn vẹn, chính xác nhất.
-3. ĐÚNG TRỌNG TÂM, THÔNG MINH, SÚC TÍCH: Đi thẳng vào câu trả lời, trình bày khoa học, ngắn gọn, dễ hiểu. KHÔNG chào hỏi rườm rà sáo rỗng. KHÔNG tự động thêm các gợi ý liên kết khác hay hướng dẫn liên hệ phụ (như "gửi Ý kiến Dân sinh", gọi điện, v.v.) trừ khi người dùng chủ động hỏi về chúng.
-4. GHI RÕ NGUỒN TRÍCH DẪN: Nếu sử dụng văn bản pháp lý cụ thể từ kho tài liệu, hãy chỉ rõ số hiệu văn bản/điều khoản. Tuyệt đối không cung cấp link Google Drive.`;
 
   // 1. TRY SERVER PROXY / REWRITE FIRST
   try {
@@ -63,6 +44,7 @@ Quy tắc trả lời bắt buộc để đảm bảo sự thông minh và đún
         query: query.trim(),
         documentsContext,
         knowledgeNotesContext,
+        messages: messages || [],
       }),
     });
 

@@ -137,6 +137,6 @@ Tôi hỗ trợ tra cứu:
 Hãy nhập nội dung hoặc câu hỏi bạn cần tra cứu cụ thể.`;
   }
 
-  return `Hiện tại hệ thống chưa tìm thấy thông tin cụ thể hoặc văn bản khớp với câu hỏi: "${query}" trong Kho dữ liệu đã duyệt của Mặt trận Tổ quốc Phường Chánh Hiệp.`;
+  return `Cảm ơn bạn đã câu hỏi: "${query}". Trợ lý AI đang tra cứu trên hệ thống dữ liệu văn bản hành chính của Phường Chánh Hiệp và các nguồn internet ngoài. Vui lòng kết nối Internet ổn định hoặc đặt lại câu hỏi rõ hơn để hệ thống hỗ trợ tra cứu đầy đủ nhất.`;
 }
 

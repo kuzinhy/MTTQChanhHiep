@@ -26,6 +26,11 @@ import {
   HardDrive,
   MapPin,
   HeartHandshake,
+  Brain,
+  Activity,
+  Database,
+  HelpCircle,
+  Bot,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -107,6 +112,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       accentColor: 'blue',
       items: [
         { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
+        { id: 'ai_settings', label: 'Cài đặt trợ lý', icon: Bot, badge: 'CÀI ĐẶT' },
         { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
         { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
       ]

@@ -11,13 +11,11 @@ import { ChanhHiepPortalHome } from './components/portal/ChanhHiepPortalHome';
 import { HeroCarousel } from './components/HeroCarousel';
 import { NewsSection } from './components/NewsSection';
 import { DocumentsSection } from './components/DocumentsSection';
-import { CompetitionsSection } from './components/CompetitionsSection';
+import { AIChatWidget } from './components/ai/AIChatWidget';
 import { OpinionFormSection } from './components/OpinionFormSection';
 import { ArticleDetailPage } from './components/ArticleDetailPage';
-import { DocumentDetailPage } from './components/DocumentDetailPage';
 import { CompetitionDetailPage } from './components/CompetitionDetailPage';
 import { StaffLoginPage } from './components/StaffLoginPage';
-import { AiAssistantWidget } from './components/AiAssistantWidget';
 import { SupervisionSection } from './components/SupervisionSection';
 import { MemberOrganizationsSection } from './components/MemberOrganizationsSection';
 import { SurveysSection } from './components/SurveysSection';
@@ -37,7 +35,11 @@ import { DigitalOfficeSidebar } from './components/office/DigitalOfficeSidebar';
 import { AdminDashboard } from './components/office/youth_union/admin/AdminDashboard';
 import { WorkspaceShell } from './components/office/youth_union/workspace/WorkspaceShell';
 import { DigitalOfficeHeader } from './components/office/DigitalOfficeHeader';
-import { AiAssistantView } from './components/office/AiAssistantView';
+import { AiAssistantSettingsAdminView } from './components/office/AiAssistantSettingsAdminView';
+import { AiDataCenterAdminView } from './components/office/AiDataCenterAdminView';
+import { AiKnowledgeAdminView } from './components/office/AiKnowledgeAdminView';
+import { AiMonitorAdminView } from './components/office/AiMonitorAdminView';
+import { AiUnansweredAdminView } from './components/office/AiUnansweredAdminView';
 import { OpinionsAdminView } from './components/office/OpinionsAdminView';
 import { CmsAdminView } from './components/office/CmsAdminView';
 import { DocumentManager } from './components/admin/DocumentManager';
@@ -535,6 +537,38 @@ export default function App() {
         setNotFoundRoute(null);
         setCurrentSpace('OFFICE');
         setOfficeView(prev => prev || 'dashboard');
+        return;
+      }
+
+      // Admin AI routes: #/admin/ai-settings, #/admin/ai-data, #/admin/ai-knowledge, #/admin/ai-monitor
+      if (rawHash === '#/admin/ai-settings' || rawHash === '#admin/ai-settings' || rawHash === '#/admin/ai_settings') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView('ai_settings');
+        return;
+      }
+      if (rawHash === '#/admin/ai-data' || rawHash === '#admin/ai-data' || rawHash === '#/admin/ai_data') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView('ai_data');
+        return;
+      }
+      if (rawHash === '#/admin/ai-knowledge' || rawHash === '#admin/ai-knowledge' || rawHash === '#/admin/ai_brain') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView('ai_brain');
+        return;
+      }
+      if (rawHash === '#/admin/ai-monitor' || rawHash === '#admin/ai-monitor' || rawHash === '#/admin/ai_monitor') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView('ai_monitor');
+        return;
+      }
+      if (rawHash === '#/admin/ai-unanswered' || rawHash === '#admin/ai-unanswered' || rawHash === '#/admin/ai_unanswered') {
+        setNotFoundRoute(null);
+        setCurrentSpace('OFFICE');
+        setOfficeView('ai_unanswered');
         return;
       }
 
@@ -1447,7 +1481,20 @@ export default function App() {
             </main>
 
             <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
-            <AiAssistantWidget />
+            <AIChatWidget 
+              documents={documents}
+              articles={articles}
+              opinions={opinions}
+              neighborhoodNames={OFFICIAL_NEIGHBORHOOD_NAMES}
+              onNavigateRoute={(route) => {
+                if (route.includes('phan-anh')) handleSelectPortalTab('opinion');
+                else if (route.includes('van-ban')) handleSelectPortalTab('documents');
+                else if (route.includes('ban-do')) handleSelectPortalTab('map');
+                else if (route.includes('an-sinh')) handleSelectPortalTab('welfare');
+                else if (route.includes('tin-tuc')) handleSelectPortalTab('news');
+                else handleSelectPortalTab('home');
+              }} 
+            />
           </motion.div>
         ) : (
           /* DIGITAL OFFICE SPACE */
@@ -1667,6 +1714,24 @@ export default function App() {
                         opinions={opinions || []}
                         onNavigateToOpinions={() => setOfficeView('opinions')}
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
+                      />
+                    )}
+
+                    {(officeView === 'ai_settings' || officeView === 'ai_data' || officeView === 'ai_brain' || officeView === 'ai_unanswered' || officeView === 'ai_monitor') && (
+                      <AiAssistantSettingsAdminView 
+                        documents={documents}
+                        articles={articles}
+                        opinions={opinions}
+                        neighborhoodNames={OFFICIAL_NEIGHBORHOOD_NAMES}
+                        initialTab={
+                          officeView === 'ai_data'
+                            ? 'data'
+                            : officeView === 'ai_unanswered'
+                            ? 'unanswered'
+                            : officeView === 'ai_monitor'
+                            ? 'monitor'
+                            : 'knowledge'
+                        }
                       />
                     )}
 

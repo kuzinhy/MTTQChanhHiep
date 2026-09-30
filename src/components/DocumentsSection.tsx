@@ -17,8 +17,11 @@ import {
   Sparkles,
   Flame,
   Clock,
-  HardDrive
+  HardDrive,
+  Workflow,
+  FolderOpen
 } from 'lucide-react';
+import { AdministrativeProceduresTab } from './portal/AdministrativeProceduresTab';
 
 interface DocumentsSectionProps {
   documents: OfficialDocument[];
@@ -134,6 +137,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
   onSelectDocument,
   isLoading = false
 }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'documents' | 'procedures'>('documents');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const [selectedField, setSelectedField] = useState<string>('ALL');
@@ -212,30 +216,62 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
 
   return (
     <section className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white/95 backdrop-blur-md p-6 rounded-3xl text-slate-900 shadow-sm border border-blue-200">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl shadow-md font-black">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                KHO VĂN BẢN &amp; CHÍNH SÁCH MẶT TRẬN
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                Cổng tra cứu công khai văn bản chỉ đạo, nghị quyết, kế hoạch công tác và tài liệu chính sách an sinh xã hội
-              </p>
-            </div>
-          </div>
+      {/* Subtab Switcher */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/90 w-fit max-w-full overflow-x-auto shadow-2xs">
+        <button
+          onClick={() => setActiveSubTab('documents')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            activeSubTab === 'documents'
+              ? 'bg-white text-blue-800 shadow-sm border border-slate-200/80 font-black'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <FileText className="w-4 h-4 text-blue-600" />
+          <span>Kho Văn bản &amp; Chính sách</span>
+        </button>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="px-3 py-1.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-2xs">
-              <Layers className="w-3.5 h-3.5 text-blue-600" />
-              Công khai: {filteredDocs.length} văn bản
-            </span>
-          </div>
-        </div>
+        <button
+          onClick={() => setActiveSubTab('procedures')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            activeSubTab === 'procedures'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-sm font-black'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <Workflow className="w-4 h-4 text-amber-300" />
+          <span>Sơ đồ Quy trình Thủ tục Hành chính</span>
+          <span className="px-1.5 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-md ml-1">Trực quan</span>
+        </button>
+      </div>
+
+      {activeSubTab === 'procedures' ? (
+        <AdministrativeProceduresTab />
+      ) : (
+        <>
+          {/* Header Banner */}
+          <div className="bg-white/95 backdrop-blur-md p-6 rounded-3xl text-slate-900 shadow-sm border border-blue-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl shadow-md font-black">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    KHO VĂN BẢN &amp; CHÍNH SÁCH MẶT TRẬN
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                    Cổng tra cứu công khai văn bản chỉ đạo, nghị quyết, kế hoạch công tác và tài liệu chính sách an sinh xã hội
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="px-3 py-1.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-2xs">
+                  <Layers className="w-3.5 h-3.5 text-blue-600" />
+                  Công khai: {filteredDocs.length} văn bản
+                </span>
+              </div>
+            </div>
 
         {/* Filter Toolbar */}
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -493,6 +529,8 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
           </table>
         </div>
       </div>
+      </>
+      )}
     </section>
   );
 };
