@@ -135,23 +135,10 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
         const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'máy chủ web';
         setUnauthorizedDomain(currentHost);
       } else if (err.code === 'auth/internal-error' || err.code === 'auth/popup-blocked' || err.message?.includes('internal-error')) {
-        setErrorMsg('Khung xem trước / iFrame đang hạn chế Popup Google (auth/internal-error). Bạn có thể bấm nút "Đăng nhập nhanh Cán bộ Quản trị" bên dưới để vào hệ thống ngay!');
+        setErrorMsg('Khung trình duyệt đang hạn chế Popup Google. Vui lòng đăng nhập bằng Tên đăng nhập / Email & Mật khẩu bên dưới.');
       } else if (err.code !== 'auth/popup-closed-by-user') {
-        setErrorMsg('Đăng nhập Google không thành công: ' + (err.message || 'Lỗi mạng hoặc phân quyền. Bạn có thể sử dụng nút Đăng nhập nhanh bên dưới.'));
+        setErrorMsg('Đăng nhập Google không thành công: ' + (err.message || 'Vui lòng thử lại hoặc sử dụng Tên đăng nhập & Mật khẩu bên dưới.'));
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDirectAdminLogin = async () => {
-    setErrorMsg('');
-    setIsLoading(true);
-    try {
-      await processAuthenticatedUser('nguyenhuy.thudaumot@gmail.com', 'Nguyễn Huy (Cán bộ Quản trị)', null);
-    } catch (err: any) {
-      console.error('Direct admin login error:', err);
-      setErrorMsg('Đăng nhập trực tiếp thất bại: ' + err.message);
     } finally {
       setIsLoading(false);
     }
@@ -303,17 +290,6 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
                 </svg>
               )}
               <span>Đăng nhập an toàn bằng Google</span>
-            </button>
-
-            {/* Direct Admin Login Button (Bypasses Popup Restrictions inside Preview iFrame) */}
-            <button
-              type="button"
-              onClick={handleDirectAdminLogin}
-              disabled={isLoading}
-              className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-900 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
-            >
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>ĐĂNG NHẬP NHANH CÁN BỘ QUẢN TRỊ (PREVIEW / SANDBOX)</span>
             </button>
 
             <div className="relative text-center text-slate-400 text-[11px] my-1">
