@@ -31,6 +31,7 @@ import { sortArticlesNewestFirst } from '../../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { Article, OfficialDocument, PublicOpinion, CloudinaryImageMeta, StaffUser } from '../../types';
 import { AppStorageEngine } from '../../lib/storage';
+import { isSocialWelfareModuleEnabled } from '../../lib/moduleSettings';
 import { MapLocation } from '../../data/mapSchema';
 import { DigitalCommunityMap } from '../map/DigitalCommunityMap';
 import { CitizenPublicServiceGuide } from './CitizenPublicServiceGuide';
@@ -126,12 +127,26 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   const [newsSearchTerm, setNewsSearchTerm] = useState<string>('');
   const [visibleNewsCount, setVisibleNewsCount] = useState<number>(6);
 
+  // Module toggle flag: Cổng An sinh Số & Đại đoàn kết (locked/hidden by default)
+  const [isWelfareEnabled, setIsWelfareEnabled] = useState<boolean>(() => isSocialWelfareModuleEnabled());
+
+  React.useEffect(() => {
+    const handleModuleSync = () => {
+      setIsWelfareEnabled(isSocialWelfareModuleEnabled());
+    };
+    window.addEventListener('app_module_settings_updated', handleModuleSync);
+    return () => {
+      window.removeEventListener('app_module_settings_updated', handleModuleSync);
+    };
+  }, []);
+
   // Citizen Hub Modals State (Trụ cột 1)
   const [isOpinionTrackerOpen, setIsOpinionTrackerOpen] = useState(false);
   const [isWelfareHubOpen, setIsWelfareHubOpen] = useState(false);
   const [welfareHubDefaultTab, setWelfareHubDefaultTab] = useState<'sos_aid' | 'donation' | 'solidarity_handbook'>('sos_aid');
 
   const openWelfareModal = (tab: 'sos_aid' | 'donation' | 'solidarity_handbook') => {
+    if (!isWelfareEnabled) return;
     setWelfareHubDefaultTab(tab);
     setIsWelfareHubOpen(true);
   };
@@ -657,7 +672,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         </div>
 
         {/* 4 Primary Interactive Citizen Service Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className={`grid gap-3.5 ${isWelfareEnabled ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
           
           {/* Card 1: Tra cứu Dân nguyện Realtime - Tech Blue / Cyan */}
           <div
@@ -690,98 +705,103 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
             </div>
           </div>
 
-          {/* Card 2: SOS Cứu trợ khẩn cấp - Bright Crimson */}
-          <div
-            onClick={() => openWelfareModal('sos_aid')}
-            className="group bg-gradient-to-br from-rose-500 via-red-500 to-amber-600 text-white p-5 rounded-3xl border border-rose-300/40 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden"
-          >
-            <div className="space-y-3 relative z-10">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/40 group-hover:scale-105 transition-transform">
-                  <HeartHandshake className="w-5 h-5 text-white" />
+          {/* Cards 2, 3, 4: CỔNG AN SINH SỐ & ĐẠI ĐOÀN KẾT (Conditionally rendered when unlocked in Admin) */}
+          {isWelfareEnabled && (
+            <>
+              {/* Card 2: SOS Cứu trợ khẩn cấp - Bright Crimson */}
+              <div
+                onClick={() => openWelfareModal('sos_aid')}
+                className="group bg-gradient-to-br from-rose-500 via-red-500 to-amber-600 text-white p-5 rounded-3xl border border-rose-300/40 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="space-y-3 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/40 group-hover:scale-105 transition-transform">
+                      <HeartHandshake className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 tracking-wider shadow-xs">
+                      SOS 24/7
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white group-hover:text-amber-100 transition-colors tracking-tight">
+                      Cứu Trợ An Sinh Khẩn Cấp
+                    </h3>
+                    <p className="text-xs text-rose-100 leading-relaxed font-medium mt-1">
+                      Gửi yêu cầu trợ cấp gạo, viện phí, học bổng hoặc sửa chữa nhà Đại đoàn kết 21 khu phố.
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 tracking-wider shadow-xs">
-                  SOS 24/7
-                </span>
+                <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between text-xs font-black text-white relative z-10">
+                  <span>Gửi yêu cầu trợ giúp</span>
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-rose-600 transition-colors">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-black text-white group-hover:text-amber-100 transition-colors tracking-tight">
-                  Cứu Trợ An Sinh Khẩn Cấp
-                </h3>
-                <p className="text-xs text-rose-100 leading-relaxed font-medium mt-1">
-                  Gửi yêu cầu trợ cấp gạo, viện phí, học bổng hoặc sửa chữa nhà Đại đoàn kết 21 khu phố.
-                </p>
-              </div>
-            </div>
-            <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between text-xs font-black text-white relative z-10">
-              <span>Gửi yêu cầu trợ giúp</span>
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-rose-600 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-          </div>
 
-          {/* Card 3: Ủng hộ Quỹ & Tấm Lòng Vàng - Golden Amber */}
-          <div
-            onClick={() => openWelfareModal('donation')}
-            className="group bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 text-white p-5 rounded-3xl border border-amber-300/40 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden"
-          >
-            <div className="space-y-3 relative z-10">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/40 group-hover:scale-105 transition-transform">
-                  <Award className="w-5 h-5 text-white" />
+              {/* Card 3: Ủng hộ Quỹ & Tấm Lòng Vàng - Golden Amber */}
+              <div
+                onClick={() => openWelfareModal('donation')}
+                className="group bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 text-white p-5 rounded-3xl border border-amber-300/40 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="space-y-3 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/40 group-hover:scale-105 transition-transform">
+                      <Award className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 tracking-wider shadow-xs">
+                      VIETQR
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white group-hover:text-yellow-100 transition-colors tracking-tight">
+                      Ủng Hộ Quỹ &amp; Tấm Lòng Vàng
+                    </h3>
+                    <p className="text-xs text-amber-100 leading-relaxed font-medium mt-1">
+                      Chuyển khoản VietQR tự động và nhận ngay Giấy chứng nhận Tấm Lòng Vàng Số có mộc MTTQ.
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 tracking-wider shadow-xs">
-                  VIETQR
-                </span>
+                <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between text-xs font-black text-white relative z-10">
+                  <span>Đóng góp &amp; Nhận chứng nhận</span>
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-amber-600 transition-colors">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-black text-white group-hover:text-yellow-100 transition-colors tracking-tight">
-                  Ủng Hộ Quỹ &amp; Tấm Lòng Vàng
-                </h3>
-                <p className="text-xs text-amber-100 leading-relaxed font-medium mt-1">
-                  Chuyển khoản VietQR tự động và nhận ngay Giấy chứng nhận Tấm Lòng Vàng Số có mộc MTTQ.
-                </p>
-              </div>
-            </div>
-            <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between text-xs font-black text-white relative z-10">
-              <span>Đóng góp &amp; Nhận chứng nhận</span>
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-amber-600 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-          </div>
 
-          {/* Card 4: Sổ tay Gia đình Đại đoàn kết - Cyber Emerald */}
-          <div
-            onClick={() => openWelfareModal('solidarity_handbook')}
-            className="group bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 text-white p-5 rounded-3xl border border-emerald-300/40 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden"
-          >
-            <div className="space-y-3 relative z-10">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/40 group-hover:scale-105 transition-transform">
-                  <ShieldCheck className="w-5 h-5 text-white" />
+              {/* Card 4: Sổ tay Gia đình Đại đoàn kết - Cyber Emerald */}
+              <div
+                onClick={() => openWelfareModal('solidarity_handbook')}
+                className="group bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 text-white p-5 rounded-3xl border border-emerald-300/40 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden"
+              >
+                <div className="space-y-3 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/40 group-hover:scale-105 transition-transform">
+                      <ShieldCheck className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 tracking-wider shadow-xs">
+                      10 TIÊU CHÍ
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white group-hover:text-emerald-100 transition-colors tracking-tight">
+                      Gia Đình Đại Đoàn Kết
+                    </h3>
+                    <p className="text-xs text-emerald-100 leading-relaxed font-medium mt-1">
+                      Bảng tự đánh giá 10 tiêu chí văn hóa trực tuyến /100 điểm gửi Ban CTMT 21 Khu phố.
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-black bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/40 tracking-wider shadow-xs">
-                  10 TIÊU CHÍ
-                </span>
+                <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between text-xs font-black text-white relative z-10">
+                  <span>Tự chấm điểm online</span>
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-emerald-600 transition-colors">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-black text-white group-hover:text-emerald-100 transition-colors tracking-tight">
-                  Gia Đình Đại Đoàn Kết
-                </h3>
-                <p className="text-xs text-emerald-100 leading-relaxed font-medium mt-1">
-                  Bảng tự đánh giá 10 tiêu chí văn hóa trực tuyến /100 điểm gửi Ban CTMT 21 Khu phố.
-                </p>
-              </div>
-            </div>
-            <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between text-xs font-black text-white relative z-10">
-              <span>Tự chấm điểm online</span>
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-emerald-600 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-          </div>
+            </>
+          )}
 
         </div>
       </section>

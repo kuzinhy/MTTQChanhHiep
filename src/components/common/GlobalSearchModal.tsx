@@ -69,19 +69,21 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     // 1. Documents & Procedures
     if (activeCategory === 'ALL' || activeCategory === 'DOCS') {
       documents.forEach(doc => {
+        const codeNum = doc.codeNumber || (doc as any).documentNumber || '';
+        const fieldName = doc.field || (doc as any).category || 'Mặt trận';
         if (
           doc.title.toLowerCase().includes(q) ||
-          doc.documentNumber.toLowerCase().includes(q) ||
+          codeNum.toLowerCase().includes(q) ||
           (doc.summary && doc.summary.toLowerCase().includes(q))
         ) {
           results.push({
             id: 'doc-' + doc.id,
             title: doc.title,
-            subtitle: `Số hiệu: ${doc.documentNumber} • Lĩnh vực: ${doc.category || 'Mặt trận'}`,
+            subtitle: `Số hiệu: ${codeNum} • Lĩnh vực: ${fieldName}`,
             category: 'DOCS',
             categoryLabel: 'Văn bản & Thủ tục',
             route: `/van-ban/${doc.id}`,
-            badge: doc.category,
+            badge: fieldName,
             icon: FileText
           });
         }
@@ -91,6 +93,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     // 2. Articles & News
     if (activeCategory === 'ALL' || activeCategory === 'NEWS') {
       articles.forEach(art => {
+        const authorName = art.authorName || (art as any).author || 'Ban Biên tập';
         if (
           art.title.toLowerCase().includes(q) ||
           (art.summary && art.summary.toLowerCase().includes(q))
@@ -98,7 +101,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           results.push({
             id: 'art-' + art.id,
             title: art.title,
-            subtitle: `Ngày đăng: ${art.publishedAt || 'Mới nhất'} • Tác giả: ${art.author || 'Ban Biên tập'}`,
+            subtitle: `Ngày đăng: ${art.publishedAt || art.publishDate || 'Mới nhất'} • Tác giả: ${authorName}`,
             category: 'NEWS',
             categoryLabel: 'Tin tức & Hoạt động',
             route: `/tin-tuc/${art.id}`,

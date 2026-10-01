@@ -28,6 +28,8 @@ import { PWAInstallButton } from './PWAInstallButton';
 import { OptimizedImage } from './common/OptimizedImage';
 import { CitizenAccessibilityToolbar } from './common/CitizenAccessibilityToolbar';
 
+import { isSocialWelfareModuleEnabled } from '../lib/moduleSettings';
+
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -60,6 +62,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentUser
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isWelfareEnabled, setIsWelfareEnabled] = useState<boolean>(() => isSocialWelfareModuleEnabled());
+
+  React.useEffect(() => {
+    const handleModuleSync = () => {
+      setIsWelfareEnabled(isSocialWelfareModuleEnabled());
+    };
+    window.addEventListener('app_module_settings_updated', handleModuleSync);
+    return () => {
+      window.removeEventListener('app_module_settings_updated', handleModuleSync);
+    };
+  }, []);
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
@@ -68,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'news', label: 'Tin tức', icon: BookOpen },
     { id: 'map', label: 'Bản đồ số cộng đồng', icon: MapPin },
     { id: 'supervision', label: 'Giám sát – Phản biện', icon: Scale },
-    { id: 'initiatives', label: 'An sinh', icon: HeartHandshake },
+    ...(isWelfareEnabled ? [{ id: 'initiatives', label: 'An sinh', icon: HeartHandshake }] : []),
     { id: 'opinion', label: 'Lắng nghe Nhân dân', icon: MessageSquareHeart },
   ];
 

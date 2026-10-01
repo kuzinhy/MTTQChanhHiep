@@ -98,24 +98,113 @@ export type ArticleCategory =
 
 export type ArticleStatus = 'Draft' | 'Pending Review' | 'Approved' | 'Published' | 'Archived';
 
+export interface DocumentTask {
+  id: string;
+  taskTitle: string;
+  taskDescription?: string;
+  leadUnit: string;
+  coordinatingUnits: string[];
+  assignee?: string;
+  deadline?: string;
+  priority: 'Bình thường' | 'Khẩn' | 'Thượng khẩn' | 'Hỏa tốc';
+  sourceText?: string;
+  confidence: number;
+  createdTaskId?: string;
+  isTaskCreated?: boolean;
+}
+
+export interface DocumentAuditLog {
+  id: string;
+  action: string;
+  userId?: string;
+  userName: string;
+  timestamp: string;
+  oldValue?: string;
+  newValue?: string;
+  details?: string;
+}
+
+export interface ExtractedConfidenceMap {
+  documentType?: number;
+  documentNumber?: number;
+  documentSymbol?: number;
+  documentNumberFull?: number;
+  issuingAgency?: number;
+  issueDate?: number;
+  signedBy?: number;
+  signerPosition?: number;
+  summary?: number;
+  field?: number;
+  priority?: number;
+  deadline?: number;
+  leadUnit?: number;
+  coordinatingUnits?: number;
+  keywords?: number;
+  tasks?: number;
+  [key: string]: number | undefined;
+}
+
 export interface NewDocument {
   id: string;
   codeNumber: string; // Số/Ký hiệu
   title: string;      // Trích yếu
   docType: string;    // Loại văn bản: Kế hoạch, Quyết định, Công văn...
-  field: string;      // Lĩnh vực: MTTQ, An sinh, Tổ chức...
+  documentType?: string; // Mã ngắn (CV, KH, BC, QD...)
+  documentNumber?: string;
+  documentSymbol?: string;
+  documentNumberFull?: string;
+  field: string;      // Lĩnh vực
   issuer: string;     // Cơ quan ban hành
+  issuingAgency?: string;
+  issuingUnit?: string;
   issueDate: string;  // Ngày ban hành
+  effectiveDate?: string;
+  deadline?: string;  // Thời hạn
   signer: string;     // Người ký
-  signerPosition: string; // Chức vụ người ký
-  summary: string;    // Tóm tắt nội dung
+  signedBy?: string;
+  signerPosition: string; // Chức vụ
+  summary: string;    // Trích yếu
+  documentSummary?: string; // Tóm tắt
+  contentText?: string; // Plain text
   isPublic: boolean;  // Trạng thái công khai
-  status: 'Published' | 'Draft' | 'Hidden'; 
+  status: 'Published' | 'Draft' | 'Hidden' | 'CONFIRMED' | 'PARSING' | 'ARCHIVED';
+  processingStatus?: 'UPLOADED' | 'PARSING' | 'OCR_PROCESSING' | 'EXTRACTING' | 'EXTRACTED' | 'WAITING_REVIEW' | 'CONFIRMED' | 'UPLOADING_DRIVE' | 'INDEXING' | 'COMPLETED' | 'ERROR';
+
+  priority?: 'Bình thường' | 'Khẩn' | 'Thượng khẩn' | 'Hỏa tốc';
+  confidentialLevel?: 'Thường' | 'Mật' | 'Tối mật' | 'Tuyệt mật';
+
+  leadUnit?: string;
+  coordinatingUnits?: string[];
+  relatedDocuments?: string[];
+
+  originalFilename?: string;
+  standardizedFilename?: string;
+  fileHash?: string;
+
   fileUrl: string;    // URL tệp (Google Drive)
   fileName: string;   // Tên tệp
   fileSize: string;   // Kích thước tệp
+  mimeType?: string;
+
+  driveFileId?: string;
+  driveFolderId?: string;
+  driveUrl?: string;
+
+  keywords?: string[];
+  tasks?: DocumentTask[];
+  auditLogs?: DocumentAuditLog[];
+
+  aiExtracted?: boolean;
+  aiConfidence?: ExtractedConfidenceMap;
+  aiExtractedAt?: string;
+
+  uploadedBy?: string;
+  uploadedAt?: string;
+  createdBy?: string;
   createdAt: string;
+  updatedBy?: string;
   updatedAt: string;
+  isArchived?: boolean;
 }
 
 export interface CloudinaryImageMeta {

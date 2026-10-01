@@ -383,6 +383,7 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
       </div>
 
       {/* 3. Top-Right Actions: Center Ward & Open Full Map */}
+      <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5">
         <button
           onClick={handleLocateMe}
           className="px-3 py-1.5 rounded-xl bg-white/95 hover:bg-white text-slate-800 text-xs font-black shadow-md border border-slate-200 flex items-center gap-1.5 transition cursor-pointer backdrop-blur-md"

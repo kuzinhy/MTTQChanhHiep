@@ -92,12 +92,11 @@ export async function queryGeminiWithFallback(
   if (clientApiKey && clientApiKey.trim() !== '') {
     const sdkStart = Date.now();
     try {
-      console.log('[GEMINI SDK INTEGRATION] [Step 2] Found client-side API key. Initializing GoogleGenAI client-side SDK...');
       const ai = new GoogleGenAI({ apiKey: clientApiKey });
-
+      const promptText = `Bạn là Trợ lý AI Phường Chánh Hiệp. Trả lời câu hỏi: ${query}\n\nTài liệu tham khảo:\n${documentsContext}\n${knowledgeNotesContext}`;
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
+        model: 'gemini-2.5-flash',
+        contents: promptText,
       });
 
       const sdkDuration = Date.now() - sdkStart;

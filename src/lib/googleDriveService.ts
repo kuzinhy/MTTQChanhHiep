@@ -6,9 +6,9 @@ import { getApiUrl } from './api';
 export const googleDriveProvider = new GoogleAuthProvider();
 googleDriveProvider.addScope('https://www.googleapis.com/auth/drive.file');
 
-// Target root folder ID on Google Drive (DuAn > ChanhHiep)
-export const DEFAULT_DRIVE_FOLDER_ID = '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL';
-export const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}?hl=vi`;
+// Target root folder ID on Google Drive (Official Documents Folder)
+export const DEFAULT_DRIVE_FOLDER_ID = '1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_';
+export const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}`;
 
 export interface DriveFolderItem {
   id: string;

@@ -14,8 +14,11 @@ export type AIIntent =
   | 'MAP_QUERY'
   | 'WEBSITE_DATA'
   | 'DRIVE_SEARCH'
+  | 'GOOGLE_DRIVE_SEARCH'
   | 'REALTIME_DATA'
   | 'NEWS_QUERY'
+  | 'NEWS_LOCAL'
+  | 'NEWS_EXTERNAL'
   | 'WEB_RESEARCH'
   | 'FOLLOW_UP'
   | 'CORRECTION'
@@ -150,13 +153,17 @@ export interface DriveFolderConfig {
 
 export interface UnansweredQuery {
   id: string;
-  question: string;
+  question?: string;
+  query?: string;
   intent: AIIntent;
   sessionId?: string;
   context?: string;
-  sourcesSearched: string[];
-  createdAt: string;
-  status: 'PENDING' | 'RESOLVED' | 'FAQ_CREATED';
+  sourcesSearched?: string[];
+  searchedSources?: string[];
+  createdAt?: string;
+  timestamp?: string;
+  status?: 'PENDING' | 'RESOLVED' | 'FAQ_CREATED';
+  resolved?: boolean;
   resolvedAnswer?: string;
   assignedContactId?: string;
 }

@@ -2,14 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { 
   Activity, Server, Database, Brain, MapPin, HardDrive, 
   Wifi, ShieldCheck, CheckCircle2, AlertCircle, RefreshCw, 
-  Clock, Zap, Sparkles, Globe, Cpu, ArrowUpRight
+  Clock, Zap, Sparkles, Globe, Cpu, ArrowUpRight, Lock, Unlock, 
+  HeartHandshake, EyeOff, Eye, Check, AlertTriangle
 } from 'lucide-react';
 import { getApiUrl } from '../../lib/api';
+import { isSocialWelfareModuleEnabled, setSocialWelfareModuleEnabled } from '../../lib/moduleSettings';
 
-export const SystemHealthAdminView: React.FC = () => {
+export const SystemHealthAdminView: React.FC<{
+  onTriggerToast?: (title: string, message: string) => void;
+}> = ({ onTriggerToast }) => {
   const [isChecking, setIsChecking] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string>(() => new Date().toLocaleTimeString('vi-VN'));
   const [latencyMs, setLatencyMs] = useState<number>(42);
+
+  // Module Toggle State: Cổng An sinh Số (Locked/Hidden by default)
+  const [isWelfareEnabled, setIsWelfareEnabled] = useState<boolean>(() => isSocialWelfareModuleEnabled());
+
+  useEffect(() => {
+    const handleModuleSync = () => {
+      setIsWelfareEnabled(isSocialWelfareModuleEnabled());
+    };
+    window.addEventListener('app_module_settings_updated', handleModuleSync);
+    return () => {
+      window.removeEventListener('app_module_settings_updated', handleModuleSync);
+    };
+  }, []);
+
+  const handleToggleWelfareModule = () => {
+    const nextState = !isWelfareEnabled;
+    setSocialWelfareModuleEnabled(nextState);
+    setIsWelfareEnabled(nextState);
+
+    if (onTriggerToast) {
+      if (nextState) {
+        onTriggerToast('Đã Bật Cổng An sinh Số', 'Phân hệ An sinh & Đại đoàn kết đã hiển thị công khai trên trang chủ.');
+      } else {
+        onTriggerToast('Đã Tạm Khóa Cổng An sinh Số', 'Phân hệ An sinh & Đại đoàn kết đã tạm ẩn khỏi trang chủ công khai.');
+      }
+    }
+  };
 
   const [services, setServices] = useState([
     {
@@ -38,7 +69,7 @@ export const SystemHealthAdminView: React.FC = () => {
       category: 'STORAGE',
       status: 'HEALTHY',
       uptime: '99.9%',
-      details: 'Thư mục 1TNEc-8JYkF17R44igkinTIZAmFEjSmOL kết nối ổn định',
+      details: 'Thư mục 1Ny3GyEL7Zj4TEoycX9S50jJWQkfAi0TH kết nối ổn định',
       icon: HardDrive,
       color: 'emerald'
     },
@@ -95,10 +126,10 @@ export const SystemHealthAdminView: React.FC = () => {
           </div>
           <h1 className="text-2xl font-black text-white flex items-center gap-2.5">
             <Activity className="w-7 h-7 text-emerald-400" />
-            Giám Sát Sức Khỏe & An Toàn Hệ Thống
+            Giám Sát Sức Khỏe &amp; Khóa/Bật Phân Hệ Hệ Thống
           </h1>
           <p className="text-slate-300 text-xs max-w-xl">
-            Kiểm tra trạng thái thời gian thực của Cơ sở dữ liệu, Bộ máy AI, Google Drive, Bản đồ số và Cổng dịch vụ trực tuyến.
+            Kiểm tra trạng thái thời gian thực của Cơ sở dữ liệu, Trợ lý AI, Google Drive, Bản đồ số và Quản lý Bật/Tắt các phân hệ công khai.
           </p>
         </div>
 
@@ -110,6 +141,74 @@ export const SystemHealthAdminView: React.FC = () => {
           <RefreshCw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
           <span>{isChecking ? 'Đang kiểm tra...' : 'Kiểm tra Sức khỏe ngay'}</span>
         </button>
+      </div>
+
+      {/* ADMIN CONTROL PANEL: MODULE FEATURE FLAGS TOGGLE */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-amber-100 text-amber-800 rounded-xl">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+                Quản Lý Khóa / Bật Các Phân Hệ Công Khai Trên Trang Chủ
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">
+                Cán bộ quản trị có thể bật hoặc tạm khóa tính năng hiển thị công khai trên Cổng thông tin
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Flag Row: CỔNG AN SINH SỐ & ĐẠI ĐOÀN KẾT */}
+        <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5 min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                <HeartHandshake className="w-4 h-4 text-rose-600" />
+                CỔNG AN SINH SỐ &amp; ĐẠI ĐOÀN KẾT
+              </span>
+
+              {isWelfareEnabled ? (
+                <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                  <Eye className="w-3 h-3 text-emerald-600" />
+                  ĐANG BẬT - HIỂN THỊ CÔNG KHAI
+                </span>
+              ) : (
+                <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 animate-pulse">
+                  <EyeOff className="w-3 h-3 text-rose-600" />
+                  🔒 ĐÃ TẠM KHÓA - ẨN TRÊN TRANG CHỦ
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Các tính năng gồm: <i>Cứu trợ An sinh SOS 24/7, Ủng hộ Quỹ VietQR &amp; Tấm lòng vàng số, Sổ tay Gia đình Đại đoàn kết 10 tiêu chí</i>.
+            </p>
+          </div>
+
+          <button
+            onClick={handleToggleWelfareModule}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 ${
+              isWelfareEnabled 
+                ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500/20'
+            }`}
+          >
+            {isWelfareEnabled ? (
+              <>
+                <Lock className="w-4 h-4" />
+                <span>TẠM KHÓA PHÂN HỆ AN SINH</span>
+              </>
+            ) : (
+              <>
+                <Unlock className="w-4 h-4" />
+                <span>MỞ KHÓA &amp; BẬT LẠI CÔNG KHAI</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Metrics Row */}
@@ -138,7 +237,7 @@ export const SystemHealthAdminView: React.FC = () => {
             <Database className="w-5 h-5 text-blue-500" />
             <span>5 Lớp nguồn</span>
           </div>
-          <span className="text-[10px] text-blue-600 font-bold">Đã đồng bộ Drive & GIS</span>
+          <span className="text-[10px] text-blue-600 font-bold">Đã đồng bộ Drive &amp; GIS</span>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">

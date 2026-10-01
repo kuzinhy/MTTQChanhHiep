@@ -378,7 +378,7 @@ export const AiAssistantSettingsAdminView: React.FC<Props> = ({
       {/* Render Active Sub-Tab View */}
       <div className="animate-fadeIn">
         {activeTab === 'knowledge' && (
-          <AiKnowledgeAdminView documents={documents} />
+          <AiKnowledgeAdminView />
         )}
 
         {activeTab === 'data' && (

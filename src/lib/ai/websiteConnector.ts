@@ -33,7 +33,7 @@ export class WebsiteConnector {
             id: `doc-${doc.id}`,
             title: `${doc.codeNumber}: ${doc.title}`,
             type: 'DOCUMENT',
-            content: `Văn bản số ${doc.codeNumber}, ban hành ngày ${doc.issueDate}. Người ký: ${doc.signer} (${doc.signerPosition || 'Lãnh đạo'}). Lĩnh vực: ${doc.field}. Trích yếu: ${doc.summary || doc.abstract || doc.title}`,
+            content: `Văn bản số ${doc.codeNumber}, ban hành ngày ${doc.issueDate}. Người ký: ${doc.signer} (${doc.signerPosition || 'Lãnh đạo'}). Lĩnh vực: ${doc.field}. Trích yếu: ${doc.summary || doc.title}`,
             sourceName: 'Kho Văn bản & Chính sách Phường Chánh Hiệp',
             sourceUrl: '/van-ban',
             official: true,
@@ -87,7 +87,7 @@ export class WebsiteConnector {
           sourceUrl: `/tin-tuc/${art.id}`,
           official: true,
           updatedAt: art.publishDate || art.createdAt || new Date().toISOString(),
-          metadata: { category: art.category, author: art.author }
+          metadata: { category: art.category, author: art.authorName || 'Ban Biên tập' }
         });
       });
     }
@@ -170,9 +170,9 @@ export class WebsiteConnector {
       params.opinions.forEach((op) => {
         items.push({
           id: `op-${op.id}`,
-          title: `Ý kiến phản ánh: ${op.title}`,
+          title: `Ý kiến phản ánh: ${op.topic || 'Dân sinh'}`,
           type: 'OPINION',
-          content: `Ý kiến của người dân ngày ${op.createdAt}. Chủ đề: ${op.title}. Nội dung: ${op.content}. Trạng thái xử lý: ${op.status}`,
+          content: `Ý kiến của người dân ngày ${op.createdAt}. Chủ đề: ${op.topic || 'Dân sinh'}. Nội dung: ${op.content}. Trạng thái xử lý: ${op.status}`,
           sourceName: 'Hệ thống Lắng nghe Dân sinh Chánh Hiệp',
           sourceUrl: '/phan-anh',
           official: false,

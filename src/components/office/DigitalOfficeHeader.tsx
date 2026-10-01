@@ -78,7 +78,9 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = ({
   onTriggerSimulatedDocApproval,
   onForceCloudSync,
   onToggleMobileSidebar,
-  onOpenDigitalDirectory
+  onOpenDigitalDirectory,
+  onOpenBackupModal,
+  onOpenGlobalSearch
 }) => {
   const [presenceDrawerOpen, setPresenceDrawerOpen] = useState(false);
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);

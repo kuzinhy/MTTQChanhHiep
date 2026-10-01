@@ -60,10 +60,12 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
       const matchesStatus = filterStatus === 'ALL' || op.status === filterStatus;
       
       const q = searchTerm.toLowerCase().trim();
+      const author = op.fullname || (op as any).authorName || '';
+      const phoneNum = op.phone || (op as any).authorPhone || '';
       const matchesSearch = !q || 
         op.content.toLowerCase().includes(q) ||
-        (op.authorName && op.authorName.toLowerCase().includes(q)) ||
-        (op.authorPhone && op.authorPhone.includes(q)) ||
+        author.toLowerCase().includes(q) ||
+        phoneNum.includes(q) ||
         (op.neighborhood && op.neighborhood.toLowerCase().includes(q)) ||
         (op.id && op.id.toLowerCase().includes(q));
 
@@ -225,7 +227,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                   key={op.id}
                   onClick={() => {
                     setSelectedOpinion(op);
-                    setResponseText(op.responseText || '');
+                    setResponseText(op.adminResponse || (op as any).responseText || '');
                   }}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
                     isSelected
@@ -239,7 +241,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                         #{op.id.slice(-6).toUpperCase()}
                       </span>
                       <span className="text-xs font-bold text-slate-800">
-                        {op.authorName || 'Người dân ẩn danh'}
+                        {op.fullname || (op as any).authorName || 'Người dân ẩn danh'}
                       </span>
                     </div>
 
@@ -295,7 +297,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                   </div>
                   <h3 className="text-base font-black text-slate-900 mt-1 flex items-center gap-2">
                     <User className="w-4 h-4 text-blue-600" />
-                    {selectedOpinion.authorName || 'Người dân ẩn danh'}
+                    {selectedOpinion.fullname || (selectedOpinion as any).authorName || 'Người dân ẩn danh'}
                   </h3>
                 </div>
 
@@ -322,7 +324,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                   <span className="text-slate-400 block text-[10px]">Số điện thoại:</span>
                   <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
                     <Phone className="w-3 h-3 text-blue-600" />
-                    {selectedOpinion.authorPhone || 'Không cung cấp'}
+                    {selectedOpinion.phone || (selectedOpinion as any).authorPhone || 'Không cung cấp'}
                   </span>
                 </div>
                 <div>
@@ -415,7 +417,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
               <h4 className="font-bold text-base text-slate-900">Xác nhận xóa phản ánh?</h4>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Bạn có chắc chắn muốn xóa phản ánh mã <strong className="text-slate-900">#{opinionToDelete.id.slice(-6).toUpperCase()}</strong> của công dân <strong className="text-slate-900">{opinionToDelete.authorName || 'Ẩn danh'}</strong> không? Thao tác này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa phản ánh mã <strong className="text-slate-900">#{opinionToDelete.id.slice(-6).toUpperCase()}</strong> của công dân <strong className="text-slate-900">{opinionToDelete.fullname || (opinionToDelete as any).authorName || 'Ẩn danh'}</strong> không? Thao tác này không thể hoàn tác.
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <button

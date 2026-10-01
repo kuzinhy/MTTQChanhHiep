@@ -51,6 +51,7 @@ import { AiSocialOpinionReporterToolView } from './tools/AiSocialOpinionReporter
 import { AiVisualInfographicToolView } from './tools/AiVisualInfographicToolView';
 
 interface AiWorkspaceDashboardProps {
+  currentStaffUser?: any;
   onBackToOffice?: () => void;
 }
 

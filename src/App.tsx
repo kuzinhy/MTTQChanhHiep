@@ -22,6 +22,9 @@ import { SurveysSection } from './components/SurveysSection';
 import { AboutSection } from './components/AboutSection';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { InitiativesSection } from './components/InitiativesSection';
+import { DocumentDetailPage } from './components/DocumentDetailPage';
+import { CompetitionsSection } from './components/CompetitionsSection';
+import { AiWorkspaceDashboard as AiAssistantView } from './components/office/ai/AiWorkspaceDashboard';
 import { DigitalCommunityMap } from './components/map/DigitalCommunityMap';
 import { DigitalMapSection } from './components/map/DigitalMapSection';
 import { VolunteerRegistrationModal } from './components/VolunteerRegistrationModal';
@@ -119,12 +122,17 @@ export const VALID_PORTAL_TABS = [
 export const VALID_OFFICE_VIEWS = [
   'dashboard',
   'profile',
+  'ai_settings',
+  'ai_data',
+  'ai_brain',
+  'ai_unanswered',
+  'ai_monitor',
+  'ai_assistant',
+  'youth_union_admin',
+  'youth_union_workspace',
   'neighborhood_management',
   'neighborhood_map',
   'neighborhood_emulation',
-  'youth_union_admin',
-  'youth_union_workspace',
-  'ai_assistant',
   'administrative_report_exporter',
   'document_ai_plan_generator',
   'cms',
@@ -142,7 +150,11 @@ export const VALID_OFFICE_VIEWS = [
   'cultural_space',
   'templates',
   'notes',
+  'calendar',
+  'tasks',
+  'drive',
   'users',
+  'staff_users',
   'analytics',
   'audit_logs',
   'notifications',
@@ -1581,25 +1593,8 @@ export default function App() {
               className="h-screen w-screen overflow-hidden bg-slate-950"
             >
               <AiAssistantView
-                documentsContext={documents.map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`).join('\n')}
-                opinionsContext={opinions}
-                aiChats={aiChats}
-                knowledgeNotes={knowledgeNotes}
                 currentStaffUser={currentStaffUser}
                 onBackToOffice={() => setOfficeView('dashboard')}
-                onSaveAiChat={async (chat) => {
-                  setAiChats(prev => [chat, ...prev]);
-                  CloudDatabase.saveAiChat(chat);
-                }}
-                onSaveKnowledgeNote={async (note) => {
-                  setKnowledgeNotes(prev => [note, ...prev]);
-                  CloudDatabase.saveKnowledgeNote(note);
-                }}
-                onDeleteKnowledgeNote={async (id) => {
-                  setKnowledgeNotes(prev => prev.filter(n => n.id !== id));
-                  CloudDatabase.deleteKnowledgeNote(id);
-                }}
-                onShowToast={handleTriggerSystemToast}
               />
             </motion.div>
           ) : (
@@ -1819,24 +1814,7 @@ export default function App() {
 
                     {officeView === 'ai_assistant' && (
                       <AiAssistantView
-                        documentsContext={documents.map(d => `${d.codeNumber}: ${d.title} [Người ký: ${d.signer || 'Không rõ'}, Lĩnh vực: ${d.field || 'Không rõ'}]`).join('\n')}
-                        opinionsContext={opinions}
-                        aiChats={aiChats}
-                        knowledgeNotes={knowledgeNotes}
                         currentStaffUser={currentStaffUser}
-                        onSaveAiChat={async (chat) => {
-                          setAiChats(prev => [chat, ...prev]);
-                          CloudDatabase.saveAiChat(chat);
-                        }}
-                        onSaveKnowledgeNote={async (note) => {
-                          setKnowledgeNotes(prev => [note, ...prev]);
-                          CloudDatabase.saveKnowledgeNote(note);
-                        }}
-                        onDeleteKnowledgeNote={async (id) => {
-                          setKnowledgeNotes(prev => prev.filter(n => n.id !== id));
-                          CloudDatabase.deleteKnowledgeNote(id);
-                        }}
-                        onShowToast={handleTriggerSystemToast}
                       />
                     )}
 
@@ -2246,7 +2224,11 @@ export default function App() {
                     )}
 
                     {officeView === 'google_drive_storage' && (
-                      <GoogleDriveAdminView />
+                      <GoogleDriveAdminView onShowToast={(title, msg) => handleTriggerSystemToast(title, msg)} />
+                    )}
+
+                    {officeView === 'system_health' && (
+                      <SystemHealthAdminView onTriggerToast={(title, msg) => handleTriggerSystemToast(title, msg)} />
                     )}
 
                     {officeView === 'volunteers_admin' && (
