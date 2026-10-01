@@ -9,12 +9,12 @@ interface AISuggestionChipsProps {
 export const AISuggestionChips: React.FC<AISuggestionChipsProps> = ({ 
   onSelectChip,
   chips = [
+    '🏛️ Quy trình Bộ phận Một cửa',
+    '📩 Gửi câu hỏi cho Cán bộ Phường',
     'Gửi phản ánh',
     'Tra cứu văn bản',
-    'Điểm an sinh',
-    'Bản đồ khu phố',
-    'Tin mới',
-    'Sơ đồ thủ tục'
+    'Bản đồ 21 khu phố',
+    'Tin mới Phường'
   ]
 }) => {
   return (

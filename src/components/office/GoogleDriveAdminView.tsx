@@ -216,6 +216,70 @@ export const GoogleDriveAdminView: React.FC<{
     }
   };
 
+  // Sync All Pending Handler: Iterates through files with pending/error/un-published status and attempts automated re-sync
+  const [isSyncingPending, setIsSyncingPending] = useState<boolean>(false);
+  const [syncPendingProgress, setSyncPendingProgress] = useState<{ current: number; total: number } | null>(null);
+
+  const handleSyncAllPendingFiles = async () => {
+    const pendingFiles = scannedFiles.filter(f => !publishedFileIds.includes(f.id));
+    if (pendingFiles.length === 0) {
+      onShowToast?.('Đồng bộ dữ liệu', 'Tất cả tệp tin đã ở trạng thái Đồng bộ Live chuẩn xác!');
+      return;
+    }
+
+    setIsSyncingPending(true);
+    setSyncPendingProgress({ current: 0, total: pendingFiles.length });
+
+    let successCount = 0;
+    try {
+      // 1. Refresh folder metadata
+      await handleConnectGoogleDrive();
+
+      // 2. Iterate through each pending file
+      for (let i = 0; i < pendingFiles.length; i++) {
+        const file = pendingFiles[i];
+        setSyncPendingProgress({ current: i + 1, total: pendingFiles.length });
+
+        try {
+          const scriptUrl = getAppsScriptUrl();
+          if (scriptUrl) {
+            const appsScriptRes = await fetch(`${scriptUrl}?folderId=${savedFolderId}&fileId=${file.id}`);
+            if (appsScriptRes.ok) {
+              const scriptData = await appsScriptRes.json();
+              if (scriptData.status === 'success' && scriptData.files) {
+                const matched = scriptData.files.find((f: any) => f.id === file.id || f.name === file.name);
+                if (matched) {
+                  setScannedFiles(prev => prev.map(item => item.id === file.id ? {
+                    ...item,
+                    name: matched.name,
+                    size: matched.size || item.size,
+                    modifiedTime: matched.modifiedTime || item.modifiedTime,
+                    webViewLink: matched.webViewLink || item.webViewLink
+                  } : item));
+                }
+              }
+            }
+          }
+          successCount++;
+        } catch (singleErr) {
+          console.warn(`[Sync Pending Warning for ${file.id}]:`, singleErr);
+        }
+        await new Promise(r => setTimeout(r, 180));
+      }
+
+      onShowToast?.(
+        'Đồng bộ hoàn tất!',
+        `Đã tự động kiểm tra và đồng bộ lại ${successCount}/${pendingFiles.length} bản ghi đang chờ kết nối từ Google Drive!`
+      );
+    } catch (err: any) {
+      console.error('[Sync Pending Error]:', err);
+      onShowToast?.('Lỗi đồng bộ', 'Không thể hoàn tất tự động đồng bộ bản ghi chờ: ' + err.message);
+    } finally {
+      setIsSyncingPending(false);
+      setSyncPendingProgress(null);
+    }
+  };
+
   const handleImportFilesFromExplorer = async (files: DriveExplorerFile[]) => {
     for (const f of files) {
       await documentService.addDocument({
@@ -582,9 +646,24 @@ export const GoogleDriveAdminView: React.FC<{
 
           {/* BULK ACTIONS */}
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Sync All Pending Button */}
+            <button
+              onClick={handleSyncAllPendingFiles}
+              disabled={isSyncingPending || isResyncingAll}
+              className="px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-2xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-2xs"
+              title="Tự động lặp qua tất cả các bản ghi đang chờ hoặc chưa xuất bản để kiểm tra & khôi phục kết nối Google Drive"
+            >
+              <RefreshCw className={`w-4 h-4 text-amber-600 ${isSyncingPending ? 'animate-spin' : ''}`} />
+              <span>
+                {isSyncingPending && syncPendingProgress
+                  ? `Đang xử lý ${syncPendingProgress.current}/${syncPendingProgress.total}...`
+                  : `Đồng bộ bản ghi chờ (${scannedFiles.filter(f => !publishedFileIds.includes(f.id)).length})`}
+              </span>
+            </button>
+
             <button
               onClick={handleResyncAllFiles}
-              disabled={isResyncingAll}
+              disabled={isResyncingAll || isSyncingPending}
               className="px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-2xl text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               title="Quét lại toàn bộ thư mục Google Drive để cập nhật danh sách tên tệp mới nhất"
             >

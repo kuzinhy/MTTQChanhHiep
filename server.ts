@@ -828,6 +828,40 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
     }
   }
 
+  // API Route: Forward Unanswered Question to Admin
+  app.post('/api/ai/unanswered', async (req: Request, res: Response) => {
+    try {
+      const { question, context, citizenName, citizenPhone, citizenEmail, intent } = req.body;
+      if (!question || !question.trim()) {
+        return res.status(400).json({ error: 'Nội dung câu hỏi không được để trống.' });
+      }
+
+      const newEntry = {
+        id: 'unans-' + Date.now(),
+        question: question.trim(),
+        intent: intent || 'PUBLIC_SERVICE',
+        context: context || 'Người dân yêu cầu Cán bộ Phường giải đáp trực tiếp',
+        citizenName: citizenName || 'Người dân 21 Khu phố',
+        citizenPhone: citizenPhone || '',
+        citizenEmail: citizenEmail || '',
+        sourcesSearched: ['WEBSITE', 'DRIVE', 'AI_BRAIN'],
+        createdAt: new Date().toLocaleString('vi-VN'),
+        status: 'PENDING'
+      };
+
+      console.log(`[API Unanswered] Recorded new question for Admin: "${newEntry.question}" (${citizenPhone || 'Không có SĐT'})`);
+
+      return res.json({
+        status: 'success',
+        message: 'Đã gửi câu hỏi về trang Quản trị Admin Phường Chánh Hiệp. Cán bộ sẽ liên hệ hỗ trợ bạn trong thời gian sớm nhất!',
+        data: newEntry
+      });
+    } catch (err: any) {
+      console.error('[API Unanswered Error]:', err);
+      res.status(500).json({ error: 'Lỗi ghi nhận câu hỏi: ' + err.message });
+    }
+  });
+
   // AI Route aliases for chat
   app.post('/api/ai/chat', async (req: Request, res: Response) => {
     // Delegate to knowledge-search handler
@@ -1101,8 +1135,19 @@ ${opinionsContext || 'Không có'}
 6. Đồng chí Nguyễn Huy: Cán bộ Thường trực Mặt trận, phụ trách công nghệ số và tiếp nhận phản ánh dân sinh.
 Địa chỉ cơ quan: Số 1240 Đại Lộ Bình Dương, KP Định Hòa 5, Phường Chánh Hiệp. Hotline: 0989614614.
 
+--- 🏛️ SƠ ĐỒ HƯỚNG DẪN BỘ PHẬN MỘT CỬA UBND PHƯỜNG CHÁNH HIỆP ---
+1. Địa chỉ Trụ sở: Số 1240 Đại Lộ Bình Dương, KP Định Hòa 5, Phường Chánh Hiệp, TP. Thủ Dầu Một.
+2. Giờ làm việc: Sáng 07h30 - 11h30 | Chiều 13h00 - 17h00 (Từ Thứ 2 đến Thứ 6 hàng tuần).
+3. Bố trí Quầy tiếp nhận (5 Cửa làm việc):
+   • Cửa 1 - Chứng thực & Căn cước VNeID: Cấp bản sao từ sổ gốc, chứng thực chữ ký, chứng thực hợp đồng/giao dịch.
+   • Cửa 2 - Hộ tịch: Đăng ký khai sinh, kết hôn, khai tử, xác nhận tình trạng hôn nhân, trích lục hộ tịch.
+   • Cửa 3 - Đất đai & Địa chính - Xây dựng: Xác nhận hiện trạng sử dụng đất, đăng ký biến động, cấp phép xây dựng.
+   • Cửa 4 - Lao động - TB&XH & An sinh: Hồ sơ trợ cấp người có công, bảo trợ xã hội, BHYT hộ gia đình, hỗ trợ khó khăn.
+   • Cửa 5 - Tiếp nhận Dân nguyện & Mặt trận: Tiếp nhận phản ánh, kiến nghị dân sinh 21 Khu phố & Hướng dẫn nộp hồ sơ Dịch vụ công trực tuyến.
+
 --- 📞 DANH BẠ TIỆN ÍCH DÂN SINH & ĐƯỜNG DÂY NÓNG KHẨN CẤP ---
 • Tiếp nhận Dân nguyện & Mặt trận 24/7: **0989614614**
+• Bộ phận Một cửa UBND Phường: **0274.3822.456**
 • Công an Phường Chánh Hiệp (An ninh, PCCC, VNeID): **0274.3822.456** (hoặc 113)
 • Trạm Y tế Phường Chánh Hiệp (Khám chữa bệnh, tiêm chủng ngày 10 & 25): **0274.3833.115** (hoặc 115)
 • Điện lực Thủ Dầu Một (Sự cố mất điện, an toàn điện): **19001006** - **19009000**

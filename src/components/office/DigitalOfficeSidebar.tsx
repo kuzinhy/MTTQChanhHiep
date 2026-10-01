@@ -31,6 +31,7 @@ import {
   Database,
   HelpCircle,
   Bot,
+  Eye,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -195,17 +196,41 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
   };
 
+  // Admin Menu Default 4 Items Limit State
+  const INITIAL_CORE_ITEMS_LIMIT = 4;
+  const [showAllMenuItems, setShowAllMenuItems] = useState<boolean>(() => {
+    return localStorage.getItem('chanh_hiep_admin_menu_show_all') === 'true';
+  });
+  const [expandedGroupItems, setExpandedGroupItems] = useState<Record<string, boolean>>({});
+
+  const handleToggleShowAllMenuItems = () => {
+    const nextState = !showAllMenuItems;
+    setShowAllMenuItems(nextState);
+    localStorage.setItem('chanh_hiep_admin_menu_show_all', String(nextState));
+  };
+
+  const toggleGroupShowMore = (groupId: string) => {
+    setExpandedGroupItems(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
+
   const handleExpandAll = () => {
+    setShowAllMenuItems(true);
+    localStorage.setItem('chanh_hiep_admin_menu_show_all', 'true');
     setExpandedGroups({
       group_ai: true,
+      group_neighborhood: true,
       group_cms: true,
       group_admin: true
     });
   };
 
   const handleCollapseAll = () => {
+    setShowAllMenuItems(false);
+    localStorage.setItem('chanh_hiep_admin_menu_show_all', 'false');
+    setExpandedGroupItems({});
     setExpandedGroups({
       group_ai: false,
+      group_neighborhood: false,
       group_cms: false,
       group_admin: false
     });
@@ -289,23 +314,32 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
             )}
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-blue-300/80 font-semibold px-0.5">
-            <span>{searchQuery ? `Tìm thấy ${filteredGroups.reduce((acc, g) => acc + g.items.length, 0)} mục` : 'Danh mục quản trị'}</span>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between text-[10px] text-blue-300/80 font-semibold px-0.5 pt-0.5">
+            <button
+              type="button"
+              onClick={handleToggleShowAllMenuItems}
+              className="px-2 py-0.5 rounded-md bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-blue-950 font-black text-[9.5px] transition-all flex items-center gap-1 cursor-pointer border border-amber-300/30 shadow-2xs"
+              title="Cấu hình hiển thị: 4 mục ban đầu hoặc hiện tất cả"
+            >
+              <Eye className="w-3 h-3 shrink-0" />
+              <span>{showAllMenuItems ? 'Hiện 4 mục chính' : 'Hiện tất cả'}</span>
+            </button>
+
+            <div className="flex items-center gap-1.5 text-[10px]">
               <button
                 onClick={handleExpandAll}
                 className="hover:text-amber-300 cursor-pointer transition-colors"
-                title="Mở rộng tất cả nhóm"
+                title="Mở tất cả chức năng"
               >
-                Mở tất cả
+                Hiện hết
               </button>
               <span className="text-blue-700">•</span>
               <button
                 onClick={handleCollapseAll}
                 className="hover:text-amber-300 cursor-pointer transition-colors"
-                title="Thu gọn tất cả nhóm"
+                title="Hiện 4 mục ban đầu"
               >
-                Thu gọn
+                Ẩn bớt
               </button>
             </div>
           </div>
@@ -405,70 +439,105 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
                         className="overflow-hidden"
                       >
                         <div className="px-1 pb-1 pt-0.5 space-y-0.5 border-t border-blue-700/30">
-                          {group.items.map((item) => {
-                            const ItemIcon = item.icon;
-                            const isActive = currentView === item.id || 
-                              (item.id === 'cms' && currentView === 'cms_articles');
-                            const isAllowed = canAccessView(userRole, item.id);
+                          {(() => {
+                            const isCustomExpandedGroup = expandedGroupItems[group.id];
+                            const activeIndex = group.items.findIndex(i => i.id === currentView || (i.id === 'cms' && currentView === 'cms_articles'));
+                            const isSelectedHidden = activeIndex >= INITIAL_CORE_ITEMS_LIMIT;
+                            const shouldShowAllForGroup = searchQuery !== '' || showAllMenuItems || isCustomExpandedGroup || isSelectedHidden;
+
+                            const itemsToDisplay = shouldShowAllForGroup ? group.items : group.items.slice(0, INITIAL_CORE_ITEMS_LIMIT);
+                            const hiddenCount = group.items.length - INITIAL_CORE_ITEMS_LIMIT;
 
                             return (
-                              <motion.button
-                                key={item.id}
-                                whileHover={{ x: isAllowed ? 2 : 0 }}
-                                whileTap={{ scale: isAllowed ? 0.98 : 1 }}
-                                onClick={() => {
-                                  if (item.id === 'home') {
-                                    if (onGoToPortal) onGoToPortal();
-                                    if (onCloseMobile) onCloseMobile();
-                                    return;
-                                  }
-                                  if (isAllowed) {
-                                    setCurrentView(item.id);
-                                    if (onCloseMobile) onCloseMobile();
-                                  }
-                                }}
-                                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left text-xs relative cursor-pointer ${
-                                  isActive
-                                    ? 'text-blue-950 font-black shadow-md'
-                                    : isAllowed
-                                      ? 'text-blue-50 hover:bg-white/10 hover:text-amber-300 font-medium'
-                                      : 'text-blue-400/60 hover:bg-white/5 cursor-not-allowed opacity-60'
-                                }`}
-                              >
-                                {isActive && (
-                                  <motion.div
-                                    layoutId="active-sidebar-pill"
-                                    className="absolute inset-0 bg-amber-400 rounded-lg shadow-sm border border-amber-300/50"
-                                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                                  />
+                              <>
+                                {itemsToDisplay.map((item) => {
+                                  const ItemIcon = item.icon;
+                                  const isActive = currentView === item.id || 
+                                    (item.id === 'cms' && currentView === 'cms_articles');
+                                  const isAllowed = canAccessView(userRole, item.id);
+
+                                  return (
+                                    <motion.button
+                                      key={item.id}
+                                      whileHover={{ x: isAllowed ? 2 : 0 }}
+                                      whileTap={{ scale: isAllowed ? 0.98 : 1 }}
+                                      onClick={() => {
+                                        if (item.id === 'home') {
+                                          if (onGoToPortal) onGoToPortal();
+                                          if (onCloseMobile) onCloseMobile();
+                                          return;
+                                        }
+                                        if (isAllowed) {
+                                          setCurrentView(item.id);
+                                          if (onCloseMobile) onCloseMobile();
+                                        }
+                                      }}
+                                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left text-xs relative cursor-pointer ${
+                                        isActive
+                                          ? 'text-blue-950 font-black shadow-md'
+                                          : isAllowed
+                                            ? 'text-blue-50 hover:bg-white/10 hover:text-amber-300 font-medium'
+                                            : 'text-blue-400/60 hover:bg-white/5 cursor-not-allowed opacity-60'
+                                      }`}
+                                    >
+                                      {isActive && (
+                                        <motion.div
+                                          layoutId="active-sidebar-pill"
+                                          className="absolute inset-0 bg-amber-400 rounded-lg shadow-sm border border-amber-300/50"
+                                          transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                                        />
+                                      )}
+
+                                      <div className="flex items-center gap-2 min-w-0 flex-1 relative z-10">
+                                        <ItemIcon className={`w-3.5 h-3.5 shrink-0 ${
+                                          isActive ? 'text-blue-900' : isAllowed ? 'text-amber-400/80' : 'text-blue-500'
+                                        }`} />
+                                        <span className={`truncate text-[11px] ${isActive ? 'text-blue-900 font-black' : ''}`}>
+                                          {item.label}
+                                        </span>
+                                      </div>
+
+                                      <div className="flex items-center gap-1 shrink-0 relative z-10">
+                                        {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
+                                        {item.badge && isAllowed && (
+                                          <span className={`text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 whitespace-nowrap ${
+                                            (item as any).isNewHighlight
+                                              ? 'bg-rose-600 text-white font-black shadow-xs border border-rose-300'
+                                              : isActive 
+                                                ? 'bg-blue-900/20 text-blue-950 font-black border border-blue-900/10' 
+                                                : 'bg-blue-800 text-blue-100 border border-blue-600/50'
+                                          }`}>
+                                            {item.badge}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </motion.button>
+                                  );
+                                })}
+
+                                {hiddenCount > 0 && !shouldShowAllForGroup && (
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleGroupShowMore(group.id)}
+                                    className="w-full mt-1 px-2 py-1 bg-blue-900/60 hover:bg-amber-400 hover:text-blue-950 text-amber-300 font-extrabold text-[10px] rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer border border-blue-700/50 shadow-2xs"
+                                  >
+                                    <ChevronDown className="w-3 h-3 text-amber-400" />
+                                    <span>Xem thêm {hiddenCount} nội dung...</span>
+                                  </button>
                                 )}
 
-                                <div className="flex items-center gap-2 min-w-0 flex-1 relative z-10">
-                                  <ItemIcon className={`w-3.5 h-3.5 shrink-0 ${
-                                    isActive ? 'text-blue-900' : isAllowed ? 'text-amber-400/80' : 'text-blue-500'
-                                  }`} />
-                                  <span className={`truncate text-[11px] ${isActive ? 'text-blue-900 font-black' : ''}`}>
-                                    {item.label}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center gap-1 shrink-0 relative z-10">
-                                  {!isAllowed && <Lock className="w-3 h-3 text-slate-400" />}
-                                  {item.badge && isAllowed && (
-                                    <span className={`text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 whitespace-nowrap ${
-                                      (item as any).isNewHighlight
-                                        ? 'bg-rose-600 text-white font-black shadow-xs border border-rose-300'
-                                        : isActive 
-                                          ? 'bg-blue-900/20 text-blue-950 font-black border border-blue-900/10' 
-                                          : 'bg-blue-800 text-blue-100 border border-blue-600/50'
-                                    }`}>
-                                      {item.badge}
-                                    </span>
-                                  )}
-                                </div>
-                              </motion.button>
+                                {hiddenCount > 0 && isCustomExpandedGroup && !showAllMenuItems && !searchQuery && (
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleGroupShowMore(group.id)}
+                                    className="w-full mt-1 px-2 py-1 bg-blue-900/60 hover:bg-blue-800 text-blue-200 hover:text-white font-bold text-[10px] rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer border border-blue-700/50"
+                                  >
+                                    <span>▲ Thu gọn 4 nội dung ban đầu</span>
+                                  </button>
+                                )}
+                              </>
                             );
-                          })}
+                          })()}
                         </div>
                       </motion.div>
                     )}
