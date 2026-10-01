@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PublicOpinion, OpinionStatus } from '../../types';
 import { 
   MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, 
   UserCheck, ShieldAlert, FileText, AlertCircle, Download, Trash2, 
   AlertTriangle, Phone, MapPin, Eye, Filter, User, Tag, Calendar,
-  ArrowRight, ShieldCheck, Check
+  ArrowRight, ShieldCheck, Check, X
 } from 'lucide-react';
 import { exportPublicOpinionsToCsv } from '../../lib/exportUtils';
 import { ContactService } from '../../lib/ai/contactService';
@@ -30,6 +30,56 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   const [responseText, setResponseText] = useState('');
   const [assignedOfficer, setAssignedOfficer] = useState('Đ/c Nguyễn Huy (Thường trực)');
   const [isSavedToast, setIsSavedToast] = useState(false);
+
+  // Automated Toast Notification State for Immediate Admin Visual Feedback
+  const [toastNotification, setToastNotification] = useState<{
+    id: string;
+    title: string;
+    message: string;
+    type: 'success' | 'info' | 'error';
+    statusTag?: string;
+  } | null>(null);
+
+  const showToast = (title: string, message: string, type: 'success' | 'info' | 'error' = 'success', statusTag?: string) => {
+    setToastNotification({ id: 'toast-' + Date.now(), title, message, type, statusTag });
+  };
+
+  useEffect(() => {
+    if (toastNotification) {
+      const timer = setTimeout(() => {
+        setToastNotification(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastNotification]);
+
+  // Automated Status Update Wrapper with Immediate Toast Feedback
+  const handleStatusUpdate = (id: string, newStatus: OpinionStatus, response?: string) => {
+    onUpdateOpinionStatus(id, newStatus, response);
+
+    const statusMap: Record<OpinionStatus, string> = {
+      NEW: 'Mới tiếp nhận',
+      PROCESSING: 'Đang xử lý',
+      FORWARDED: 'Đã chuyển đơn vị xử lý',
+      RESOLVED: 'Hoàn thành / Đã phản hồi',
+      CLOSED: 'Đã đóng / Kết thúc'
+    };
+
+    const targetOp = opinions.find(o => o.id === id);
+    const citizenName = targetOp?.fullname || (targetOp as any)?.authorName || 'Công dân';
+    const statusLabel = statusMap[newStatus] || newStatus;
+
+    showToast(
+      'Cập nhật trạng thái thành công!',
+      `Phản ánh #${id.slice(-6).toUpperCase()} (${citizenName}) đã chuyển sang trạng thái: "${statusLabel}".`,
+      'success',
+      statusLabel
+    );
+
+    if (selectedOpinion && selectedOpinion.id === id) {
+      setSelectedOpinion(prev => prev ? { ...prev, status: newStatus, adminResponse: response || prev.adminResponse } : null);
+    }
+  };
 
   const cadres = useMemo(() => ContactService.getAllContacts(), []);
 
@@ -83,7 +133,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   const handleSaveResponse = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOpinion) return;
-    onUpdateOpinionStatus(selectedOpinion.id, 'RESOLVED', responseText);
+    handleStatusUpdate(selectedOpinion.id, 'RESOLVED', responseText);
     setIsSavedToast(true);
     setTimeout(() => {
       setIsSavedToast(false);
@@ -96,6 +146,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
     if (!opinionToDelete) return;
     if (onDeleteOpinion) {
       onDeleteOpinion(opinionToDelete.id);
+      showToast('Đã xóa phản ánh', `Đã xóa bản ghi phản ánh #${opinionToDelete.id.slice(-6).toUpperCase()} khỏi hệ thống!`, 'info');
     }
     if (selectedOpinion?.id === opinionToDelete.id) {
       setSelectedOpinion(null);
@@ -104,7 +155,47 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   };
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 animate-fadeIn">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 animate-fadeIn relative">
+      
+      {/* AUTOMATED TOAST NOTIFICATION CARD */}
+      {toastNotification && (
+        <div className="fixed top-5 right-5 z-50 max-w-md w-full animate-in slide-in-from-top-5 duration-300">
+          <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700/80 flex items-start gap-3 relative overflow-hidden">
+            {/* Accent bar */}
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+              toastNotification.type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'
+            }`} />
+            
+            <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+              toastNotification.type === 'error' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'
+            }`}>
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+
+            <div className="flex-1 min-w-0 pr-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-extrabold text-xs text-white">{toastNotification.title}</h4>
+                {toastNotification.statusTag && (
+                  <span className="px-2 py-0.2 bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded text-[9.5px] font-black uppercase">
+                    {toastNotification.statusTag}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-300 leading-snug mt-1 font-medium">
+                {toastNotification.message}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setToastNotification(null)}
+              className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Header Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
@@ -301,16 +392,42 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                   </h3>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => onUpdateOpinionStatus(selectedOpinion.id, 'PROCESSING')}
-                    className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold rounded-xl border border-amber-200 transition"
-                  >
-                    Tiếp nhận xử lý
-                  </button>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {selectedOpinion.status !== 'PROCESSING' && (
+                    <button
+                      onClick={() => handleStatusUpdate(selectedOpinion.id, 'PROCESSING')}
+                      className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold rounded-xl border border-amber-200 transition cursor-pointer active:scale-95"
+                    >
+                      Chuyển Đang xử lý
+                    </button>
+                  )}
+                  {selectedOpinion.status !== 'FORWARDED' && (
+                    <button
+                      onClick={() => handleStatusUpdate(selectedOpinion.id, 'FORWARDED')}
+                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 text-xs font-bold rounded-xl border border-blue-200 transition cursor-pointer active:scale-95"
+                    >
+                      Chuyển Đơn vị xử lý
+                    </button>
+                  )}
+                  {selectedOpinion.status !== 'RESOLVED' && (
+                    <button
+                      onClick={() => handleStatusUpdate(selectedOpinion.id, 'RESOLVED')}
+                      className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-bold rounded-xl border border-emerald-200 transition cursor-pointer active:scale-95"
+                    >
+                      Đánh dấu Hoàn thành
+                    </button>
+                  )}
+                  {selectedOpinion.status !== 'CLOSED' && (
+                    <button
+                      onClick={() => handleStatusUpdate(selectedOpinion.id, 'CLOSED')}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition cursor-pointer active:scale-95"
+                    >
+                      Đóng đơn
+                    </button>
+                  )}
                   <button
                     onClick={() => setOpinionToDelete(selectedOpinion)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                     title="Xóa phản ánh"
                   >
                     <Trash2 className="w-4 h-4" />

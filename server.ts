@@ -1160,15 +1160,33 @@ ${webSearchContext}
 --- CÂU HỎI / PHẢN HỒI HIỆN TẠI CỦA NGƯỜI DÙNG ---
 "${rawQuery}"
 
+BẮT BUỘC: NẾU CÂU HỎI LIÊN QUAN ĐẾN THỦ TỤC HÀNH CHÍNH (như: kết hôn, xác nhận tình trạng hôn nhân, khai sinh, khai tử, chứng thực, đất đai, cấp đổi số nhà, bảo trợ xã hội, BHYT, hỗ trợ an sinh...), BẠN PHẢI TRẢ VỀ ĐỐI TƯỢNG "procedureDossier" CHỨA CHECKLIST CHI TIẾT CÁC GIẤY TỜ CẦN CHUẨN BỊ VÀ QUY TRÌNH TỪNG BƯỚC THỰC HIỆN!
+
 Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đối tượng JSON hợp lệ (không kèm markdown \`\`\`json) theo cấu trúc:
 {
   "intent": "${intent}",
   "chainOfThought": {
-    "searchKnowledge": "Tóm tắt bước 1: Đã rà quét văn bản/bộ não/thư mục Drive/dữ liệu 21 khu phố nào liên quan...",
+    "searchKnowledge": "Tóm tắt bước 1: Đã rà quét văn bản/bộ nào/thư mục Drive/dữ liệu 21 khu phố nào liên quan...",
     "synthesizeContext": "Tóm tắt bước 2: Trích xuất các căn cứ chính thức, điều khoản, số điện thoại hoặc dữ liệu xác minh...",
     "draftResponse": "Tóm tắt bước 3: Biên soạn phản hồi theo định dạng 3 bước hoàn chỉnh phục vụ người dân..."
   },
   "answer": "Câu trả lời trực tiếp chính thức, rõ ràng, có cấu trúc từng dòng/bước, được trình bày khoa học và ân cần.",
+  "procedureDossier": {
+    "title": "Tên thủ tục hành chính cụ thể",
+    "counterWindow": "Cửa 2 - Hộ tịch (Bộ phận Một cửa UBND Phường Chánh Hiệp)",
+    "processingTime": "Trong ngày làm việc (khi hồ sơ hợp lệ)",
+    "fee": "15.000 VNĐ/bản (Miễn phí đối với đối tượng bảo trợ)",
+    "requiredDocuments": [
+      { "id": "doc1", "label": "Tờ khai theo mẫu quy định", "isMandatory": true },
+      { "id": "doc2", "label": "Bản sao CCCD/VNeID mức 2 của người làm thủ tục", "isMandatory": true },
+      { "id": "doc3", "label": "Giấy tờ kèm theo (nếu thuộc trường hợp đặc biệt)", "isMandatory": false }
+    ],
+    "steps": [
+      { "step": 1, "title": "Chuẩn bị hồ sơ", "detail": "Điền tờ khai và chuẩn bị các giấy tờ trong Checklist ở trên." },
+      { "step": 2, "title": "Nộp hồ sơ", "detail": "Nộp tại Cửa 2 - Bộ phận Một cửa Phường Chánh Hiệp hoặc nộp online qua Cổng Dịch vụ công." },
+      { "step": 3, "title": "Nhận kết quả", "detail": "Nhận kết quả cùng ngày hoặc theo giấy hẹn." }
+    ]
+  },
   "sources": [
     { "title": "Tên nguồn (Bộ não AI / Thư mục Drive 1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_ / Cổng TTĐT Phường Chánh Hiệp / ...)", "url": "https://..." }
   ],
@@ -1203,6 +1221,49 @@ Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đ
         finalResult += `\n\n*Gợi ý:* ` + parsed.followUps.join(' | ');
       }
 
+      // Check if procedure dossier is needed for fallback procedures
+      let procedureDossier = parsed.procedureDossier || null;
+
+      if (!procedureDossier && (lowerQuery.includes('kết hôn') || lowerQuery.includes('hôn nhân') || lowerQuery.includes('độc thân'))) {
+        if (lowerQuery.includes('đăng ký kết hôn')) {
+          procedureDossier = {
+            title: 'Thủ tục Đăng ký kết hôn',
+            counterWindow: 'Cửa 2 - Hộ tịch & Trích lục (Bộ phận Một cửa UBND Phường)',
+            processingTime: 'Ngay trong ngày tiếp nhận hồ sơ hợp lệ',
+            fee: 'Miễn phí lầu đầu (hoặc 30.000 VNĐ/trường hợp có yếu tố nước ngoài)',
+            requiredDocuments: [
+              { id: 'doc1', label: 'Tờ khai đăng ký kết hôn (theo mẫu, cả hai nam nữ cùng ký)', isMandatory: true },
+              { id: 'doc2', label: 'Bản chính CCCD/VNeID mức 2 của hai bên nam nữ', isMandatory: true },
+              { id: 'doc3', label: 'Giấy xác nhận tình trạng hôn nhân (nếu cư trú ngoài Phường Chánh Hiệp)', isMandatory: true },
+              { id: 'doc4', label: 'Trích lục Bản án/Quyết định ly hôn (nếu đã từng ly hôn)', isMandatory: false }
+            ],
+            steps: [
+              { step: 1, title: 'Chuẩn bị hồ sơ', detail: 'Điền tờ khai đăng ký kết hôn và mang theo CCCD/VNeID của hai bên.' },
+              { step: 2, title: 'Nộp hồ sơ trực tiếp', detail: 'Cả hai bạn cùng có mặt tại Cửa 2 - Bộ phận Một cửa Phường Chánh Hiệp.' },
+              { step: 3, title: 'Ký Sổ đăng ký & Nhận Giấy kết hôn', detail: 'Ký tên vào Sổ hộ tịch và nhận Giấy chứng nhận kết hôn chính thức.' }
+            ]
+          };
+        } else {
+          procedureDossier = {
+            title: 'Thủ tục Cấp Giấy xác nhận tình trạng hôn nhân',
+            counterWindow: 'Cửa 2 - Hộ tịch & Trích lục (Bộ phận Một cửa UBND Phường)',
+            processingTime: 'Trong ngày làm việc (khi hồ sơ hợp lệ)',
+            fee: '15.000 VNĐ/bản (Miễn phí với đối tượng bảo trợ)',
+            requiredDocuments: [
+              { id: 'doc1', label: 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân (theo mẫu)', isMandatory: true },
+              { id: 'doc2', label: 'Bản chính CCCD/VNeID mức 2 của người yêu cầu', isMandatory: true },
+              { id: 'doc3', label: 'Trích lục Bản án/Quyết định ly hôn có hiệu lực (nếu đã ly hôn)', isMandatory: false },
+              { id: 'doc4', label: 'Giấy báo tử của vợ/chồng (nếu vợ/chồng trước đã mất)', isMandatory: false }
+            ],
+            steps: [
+              { step: 1, title: 'Chuẩn bị hồ sơ', detail: 'Điền tờ khai và kiểm tra các giấy tờ trong Checklist ở trên.' },
+              { step: 2, title: 'Nộp hồ sơ', detail: 'Nộp trực tiếp tại Cửa 2 - Bộ phận Một cửa Phường Chánh Hiệp hoặc nộp online qua Cổng Dịch vụ công.' },
+              { step: 3, title: 'Nhận kết quả', detail: 'Nhận Giấy xác nhận tình trạng hôn nhân cùng ngày hoặc theo giấy hẹn.' }
+            ]
+          };
+        }
+      }
+
       res.json({ 
         answer: filteredAnswer,
         result: finalResult, 
@@ -1211,12 +1272,13 @@ Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đ
           synthesizeContext: 'Đã tổng hợp căn cứ pháp lý và dữ liệu chính thức',
           draftResponse: 'Đã hoàn thiện văn bản trả lời chuẩn mực'
         },
+        procedureDossier,
         sources: parsed.sources || [],
         actions: parsed.actions || [],
         confidence: parsed.confidence || 0.95,
         intent: parsed.intent || intent,
         followUps: parsed.followUps || [],
-        structuredData: parsed 
+        structuredData: { ...parsed, procedureDossier } 
       });
     } catch (error: any) {
       console.warn('Error in /api/ai/knowledge-search, handling gracefully:', error.message || error);

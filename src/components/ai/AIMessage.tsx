@@ -3,6 +3,7 @@ import { Bot, User, ThumbsUp, ThumbsDown, Copy, Check, MessageSquareWarning, Vol
 import { AISourceCard } from './AISourceCard';
 import { AIActionButton } from './AIActionButton';
 import { AISource, AIAction } from '../../lib/ai/types';
+import { DossierChecklistCard, ProcedureDossierData } from './DossierChecklistCard';
 
 export interface ChainOfThoughtStep {
   searchKnowledge?: string;
@@ -18,6 +19,7 @@ export interface ChatMessageItem {
   sources?: AISource[];
   actions?: AIAction[];
   chainOfThought?: ChainOfThoughtStep;
+  procedureDossier?: ProcedureDossierData;
   feedback?: 'like' | 'dislike';
   feedbackReason?: string;
 }
@@ -131,6 +133,11 @@ export const AIMessage: React.FC<AIMessageProps> = ({ message, onActionClick, on
                 </div>
               )}
             </div>
+          )}
+
+          {/* 1-DOOR PROCEDURE DOSSIER CHECKLIST CARD */}
+          {!isUser && message.procedureDossier && (
+            <DossierChecklistCard dossier={message.procedureDossier} />
           )}
 
           <p className="whitespace-pre-wrap leading-relaxed">{message.text}</p>

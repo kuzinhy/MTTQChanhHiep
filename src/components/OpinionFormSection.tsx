@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PublicOpinion, OpinionTopic } from '../types';
-import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle, Copy } from 'lucide-react';
+import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle, Copy, ArrowLeft, ArrowRight, CheckCircle2, Layers, Sparkles } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
 import { VoiceInputControl } from '../speech/VoiceInputControl';
 
@@ -10,6 +10,7 @@ interface OpinionFormSectionProps {
 }
 
 export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions, onSubmitOpinion }) => {
+  const [currentStep, setCurrentStep] = useState<number>(1);
   const [topic, setTopic] = useState<OpinionTopic>('Vấn đề dân sinh');
   const [content, setContent] = useState('');
   const [neighborhood, setNeighborhood] = useState(OFFICIAL_NEIGHBORHOOD_NAMES[0]);
@@ -97,12 +98,33 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
 
     onSubmitOpinion(newOpinion);
     setSubmittedCode(code);
+    setCurrentStep(1);
     setContent('');
     setFullname('');
     setPhone('');
     setAddress('');
     setEmail('');
     setIsSubmitting(false);
+  };
+
+  const handleNextStep = () => {
+    setFormError(null);
+    if (currentStep === 1) {
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      if (!content.trim()) {
+        setFormError('Vui lòng nhập nội dung phản ánh hoặc đề xuất cụ thể trước khi tiếp tục!');
+        return;
+      }
+      setCurrentStep(3);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setFormError(null);
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+    }
   };
 
   const handleLookup = (e: React.FormEvent) => {
@@ -170,156 +192,303 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              
+              {/* MULTI-STEP PROGRESS INDICATOR */}
+              <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-slate-50 p-4 rounded-2xl border border-blue-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-2xs">
+                      {currentStep}
+                    </span>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-blue-950 uppercase tracking-tight">
+                        Tiến trình điền phản ánh: Bước {currentStep}/3
+                      </h4>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        {currentStep === 1 && 'Còn 2 bước nữa để hoàn tất!'}
+                        {currentStep === 2 && 'Còn 1 bước nữa (Thông tin người gửi & Xác nhận)'}
+                        {currentStep === 3 && 'Bước cuối cùng - Kiểm tra & Gửi phản ánh chính thức!'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-blue-600 text-white text-[11px] font-black shadow-2xs">
+                    {Math.round((currentStep / 3) * 100)}% HOÀN THÀNH
+                  </span>
+                </div>
+
+                {/* Animated Progress Bar */}
+                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 transition-all duration-300 shadow-2xs"
+                    style={{ width: `${(currentStep / 3) * 100}%` }}
+                  />
+                </div>
+
+                {/* Interactive Step Navigation Pills */}
+                <div className="grid grid-cols-3 gap-1.5 pt-1 text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className={`p-2 rounded-xl border text-center transition cursor-pointer ${
+                      currentStep === 1 
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs font-extrabold' 
+                        : currentStep > 1 
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-800' 
+                          : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="block truncate">1. Lĩnh vực &amp; Địa bàn</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currentStep > 1) setCurrentStep(2);
+                    }}
+                    disabled={currentStep < 2 && !content.trim()}
+                    className={`p-2 rounded-xl border text-center transition cursor-pointer ${
+                      currentStep === 2 
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs font-extrabold' 
+                        : currentStep > 2 
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-800' 
+                          : 'bg-white border-slate-200 text-slate-500 disabled:opacity-50'
+                    }`}
+                  >
+                    <span className="block truncate">2. Nội dung phản ánh</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (content.trim()) setCurrentStep(3);
+                    }}
+                    disabled={!content.trim()}
+                    className={`p-2 rounded-xl border text-center transition cursor-pointer ${
+                      currentStep === 3 
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs font-extrabold' 
+                        : 'bg-white border-slate-200 text-slate-500 disabled:opacity-50'
+                    }`}
+                  >
+                    <span className="block truncate">3. Người gửi &amp; Gửi</span>
+                  </button>
+                </div>
+              </div>
+
               {formError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs font-semibold">
-                  <AlertCircle className="w-4 h-4 shrink-0 animate-pulse" />
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs font-semibold animate-in fade-in duration-200">
+                  <AlertCircle className="w-4 h-4 shrink-0 animate-pulse text-red-600" />
                   <span>{formError}</span>
                 </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Lĩnh vực phản ánh (*)
-                  </label>
-                  <select
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value as OpinionTopic)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
-                  >
-                    {topics.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
+
+              {/* STEP 1: LĨNH VỰC & KHU PHỐ */}
+              {currentStep === 1 && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-xs text-blue-900 font-medium">
+                    📍 <strong>Bước 1:</strong> Chọn Lĩnh vực thuộc thẩm quyền giải quyết và Khu phố phát sinh sự việc tại Phường Chánh Hiệp.
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Lĩnh vực phản ánh (*)
+                      </label>
+                      <select
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value as OpinionTopic)}
+                        className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-medium"
+                      >
+                        {topics.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Khu phố phát sinh sự việc (*)
+                      </label>
+                      <select
+                        value={neighborhood}
+                        onChange={(e) => setNeighborhood(e.target.value)}
+                        className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-medium"
+                      >
+                        {neighborhoods.map((kp) => (
+                          <option key={kp} value={kp}>{kp}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      <span>Tiếp tục: Nhập nội dung</span>
+                      <ArrowRight className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Khu phố phát sinh sự việc (*)
-                  </label>
-                  <select
-                    value={neighborhood}
-                    onChange={(e) => setNeighborhood(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
-                  >
-                    {neighborhoods.map((kp) => (
-                      <option key={kp} value={kp}>{kp}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Nội dung phản ánh / Đề xuất cụ thể (*)
-                </label>
-                <textarea
-                  rows={5}
-                  placeholder="Mô tả chi tiết địa điểm, thời gian, sự việc... Hoặc bấm nút 'Nói ý kiến' bên dưới để đọc trực tiếp"
-                  value={content}
-                  onChange={(e) => {
-                    setContent(e.target.value);
-                    if (formError) setFormError(null);
-                  }}
-                  className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden leading-relaxed"
-                />
-                
-                {/* Voice Input Module for Citizen Opinions */}
-                <VoiceInputControl
-                  value={content}
-                  onChange={(val) => {
-                    setContent(val);
-                    if (formError) setFormError(null);
-                  }}
-                  maxLength={2000}
-                />
-              </div>
-
-              {/* Contact Information Section - Mandatory */}
-              <div className="space-y-3 pt-2 border-t border-slate-200">
-                <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200/80 flex items-start gap-2.5">
-                  <Lock className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-blue-900 leading-relaxed font-medium">
-                    <strong>Yêu cầu thông tin chính xác:</strong> Bắt buộc cung cấp Họ tên, Số điện thoại và Địa chỉ để Mặt trận Tổ quốc xác minh, liên hệ và trả lời kết quả chính thức. Thông tin cá nhân của bạn được bảo mật tuyệt đối.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Họ và tên người phản ánh <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Nguyễn Văn A"
-                      value={fullname}
-                      onChange={(e) => {
-                        setFullname(e.target.value);
-                        if (formError) setFormError(null);
-                      }}
-                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
-                    />
+              {/* STEP 2: NỘI DUNG PHẢN ÁNH & NÓI Ý KIẾN */}
+              {currentStep === 2 && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-xs text-blue-900 font-medium">
+                    ✍️ <strong>Bước 2:</strong> Nhập mô tả chi tiết nội dung sự việc, thời gian, địa điểm hoặc bấm nút <i>"Nói ý kiến"</i> để thu âm bằng giọng nói.
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Số điện thoại liên hệ <span className="text-red-500">*</span>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">
+                      Nội dung phản ánh / Đề xuất cụ thể (*)
                     </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="0908xxxxxx"
-                      value={phone}
+                    <textarea
+                      rows={5}
+                      placeholder="Mô tả chi tiết địa điểm, thời gian, sự việc... Hoặc bấm nút 'Nói ý kiến' bên dưới để đọc trực tiếp"
+                      value={content}
                       onChange={(e) => {
-                        setPhone(e.target.value);
+                        setContent(e.target.value);
                         if (formError) setFormError(null);
                       }}
-                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
+                      className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden leading-relaxed font-medium"
                     />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Địa chỉ cư trú / Nơi phát sinh sự việc <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Số nhà, đường, khu phố... (ví dụ: 123 Lê Chí Dân, KP 1)"
-                      value={address}
-                      onChange={(e) => {
-                        setAddress(e.target.value);
+                    
+                    {/* Voice Input Module for Citizen Opinions */}
+                    <VoiceInputControl
+                      value={content}
+                      onChange={(val) => {
+                        setContent(val);
                         if (formError) setFormError(null);
                       }}
-                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
+                      maxLength={2000}
                     />
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Email (nếu có)
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="email@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden"
-                    />
+                  <div className="pt-2 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={handlePrevStep}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4 text-slate-600" />
+                      <span>Quay lại Bước 1</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      <span>Tiếp tục: Thông tin người gửi</span>
+                      <ArrowRight className="w-4 h-4 text-white" />
+                    </button>
                   </div>
                 </div>
-              </div>
+              )}
 
-              <button
-                type="submit"
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-              >
-                <Send className="w-4 h-4 text-white" />
-                <span>Gửi Ý Kiến Phản Ánh</span>
-              </button>
+              {/* STEP 3: THÔNG TIN NGƯỜI GỬI & XÁC NHẬN GỬI */}
+              {currentStep === 3 && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200/80 flex items-start gap-2.5">
+                    <Lock className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-blue-900 leading-relaxed font-medium">
+                      <strong>Yêu cầu thông tin chính xác:</strong> Bắt buộc cung cấp Họ tên, Số điện thoại và Địa chỉ để Mặt trận Tổ quốc xác minh, liên hệ và trả lời kết quả chính thức. Thông tin cá nhân của bạn được bảo mật tuyệt đối.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Họ và tên người phản ánh <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Nguyễn Văn A"
+                        value={fullname}
+                        onChange={(e) => {
+                          setFullname(e.target.value);
+                          if (formError) setFormError(null);
+                        }}
+                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Số điện thoại liên hệ <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="0908xxxxxx"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value);
+                          if (formError) setFormError(null);
+                        }}
+                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Địa chỉ cư trú / Nơi phát sinh sự việc <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Số nhà, đường, khu phố... (ví dụ: 123 Lê Chí Dân, KP 1)"
+                        value={address}
+                        onChange={(e) => {
+                          setAddress(e.target.value);
+                          if (formError) setFormError(null);
+                        }}
+                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Email (nếu có)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="email@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={handlePrevStep}
+                      className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4 text-slate-600" />
+                      <span>Quay lại Bước 2</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4 text-white" />
+                      <span>GỬI PHẢN ÁNH CHÍNH THỨC</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
             </form>
           )}
         </div>
