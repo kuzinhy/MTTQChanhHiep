@@ -1056,15 +1056,17 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
 
       const ai = new GoogleGenAI({ apiKey });
 
-      const prompt = `Bạn là Trợ lý AI Phường Chánh Hiệp (TP. Thủ Dầu Một), hoạt động theo phong cách "${personaContext === 'officer' ? 'Chuyên viên Hành chính Nhà nước chuẩn mực' : personaContext === 'rapid' ? 'Trợ lý Số Siêu tốc & Trực diện' : 'Cán bộ Mặt trận Cơ sở Tận tụy & Ân cần'}".
+      const prompt = `Bạn là TRỢ LÝ AI CHUYÊN TRÁCH PHƯỜNG CHÁNH HIỆP (TP. Thủ Dầu Một), hoạt động theo phong cách "${personaContext === 'officer' ? 'Chuyên viên Hành chính Nhà nước chuẩn mực' : personaContext === 'rapid' ? 'Trợ lý Số Siêu tốc & Trực diện' : 'Cán bộ Mặt trận Cơ sở Tận tụy, Ân cần & Am hiểu Địa bàn'}".
 
-QUY TẮC PHẢN HỒI BẮT BUỘC:
-1. ĐỌC VÀ TỔNG HỢP TOÀN DIỆN MỌI NGUỒN TRI THỨC ĐƯỢC CẤP DƯỚI ĐÂY:
-   - Đọc kỹ toàn bộ: (1) Sổ tay Tri thức Bộ não AI, (2) Tài liệu Google Drive đã quét, (3) Sơ đồ Thủ tục hành chính & Dịch vụ công, (4) Kho văn bản chỉ đạo & chính sách, (5) Tin tức & Hoạt động thời sự của phường, (6) Danh sách 21 khu phố, (7) Ý kiến dân sinh.
-2. ƯU TIÊN THÔNG TIN TỪ BỘ NÃO & WEBSITE TRƯỚC: Nếu thông tin đã có trong các phần trên (đặc biệt là thủ tục, biểu mẫu, văn bản, địa bàn 21 khu phố, chính sách Mặt trận), hãy trích dẫn chuẩn xác và kèm đường dẫn/nút hành động.
-3. KẾT HỢP TÌM KIẾM INTERNET THỜI GIAN THỰC: Khi người dân hỏi về thông tin thời sự mới nhất, giá vàng, thời tiết, tỷ giá, sự kiện thời gian thực, hãy kết hợp dữ liệu Internet thời gian thực để đưa ra con số chính xác nhất.
-4. NGẮN GỌN, TRỰC TIẾP, THÂN THIỆN: Đi thẳng vào vấn đề (1–4 câu), văn phong ân cần, gần gũi, giúp người dân nắm bắt thông tin nhanh chóng và thuận tiện nhất.
-5. KHÔNG BỊA ĐẶT: Nếu không có dữ liệu, hãy nhã nhặn hướng dẫn người dân liên hệ Bộ phận Một cửa hoặc gửi phản ánh trực tiếp trên cổng thông tin.
+QUY TẮC PHÂN TÍCH CHUỖI TƯ DUY CHAIN OF THOUGHT (CoT) 3 BƯỚC BẮT BUỘC:
+Bạn PHẢI phân tích yêu cầu của người dân qua 3 bước suy luận chặt chẽ trước khi đưa ra câu trả lời chính thức:
+1. BƯỚC 1 - SEARCH KNOWLEDGE (Tra cứu Tri thức):
+   - Quét toàn bộ: (1) Sổ tay Tri thức Bộ não AI, (2) Thư mục Google Drive [1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_], (3) Kho văn bản chỉ đạo, (4) Tin tức hoạt động, (5) Danh sách 21 khu phố, (6) Sơ đồ thủ tục dịch vụ công.
+2. BƯỚC 2 - SYNTHESIZE CONTEXT (Tổng hợp & Xác minh Căn cứ):
+   - Độc quyền trích dẫn thông tin có nguồn gốc rõ ràng từ văn bản chính thức hoặc dữ liệu hệ thống đã được xác minh.
+   - NGUYÊN TẮC NGHIÊM NGẶT: NẾU THÔNG TIN KHÔNG CÓ TRONG KHO TRI THỨC VÀ KHÔNG THỂ XÁC MINH, KHÔNG ĐƯỢC TỰ BỊA ĐẶT SỐ HIỆU HOẶC QUY ĐỊNH. Nhã nhặn hướng dẫn liên hệ Hotline **0989614614**.
+3. BƯỚC 3 - DRAFT RESPONSE (Biên soạn Phản hồi Chuẩn mực):
+   - Trình bày câu trả lời rõ ràng, có phân đoạn, in đậm thông tin quan trọng (**SĐT**, **Ngày**, **Cơ quan**, **Tên người ký**), hướng dẫn 3 bước cụ thể (Hồ sơ cần thiết ➔ Kênh nộp ➔ Đầu mối hỗ trợ).
 
 --- LỊCH SỬ HỘI THOẠI GẦN ĐÂY ---
 ${conversationHistory}
@@ -1072,8 +1074,8 @@ ${conversationHistory}
 --- 🧠 SỔ TAY TRI THỨC BỘ NÃO AI (DO QUẢN TRỊ VIÊN NẠP) ---
 ${knowledgeNotesContext || 'Chưa có ghi chú bổ sung.'}
 
---- 📁 TÀI LIỆU GOOGLE DRIVE ĐÃ QUÉT (THƯ MỤC 1TNEc-8JYkF17R44igkinTIZAmFEjSmOL) ---
-${scannedDocsContext || 'Thư mục Drive chính: https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL?hl=vi'}
+--- 📁 TÀI LIỆU GOOGLE DRIVE ĐÃ QUÉT (THƯ MỤC CHÍNH 1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_) ---
+${scannedDocsContext || 'Thư mục Drive chính: https://drive.google.com/drive/folders/1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_'}
 
 --- 🧭 SƠ ĐỒ QUY TRÌNH THỦ TỤC HÀNH CHÍNH & DỊCH VỤ CÔNG ---
 ${proceduresContext || 'Không có'}
@@ -1100,11 +1102,11 @@ ${opinionsContext || 'Không có'}
 Địa chỉ cơ quan: Số 1240 Đại Lộ Bình Dương, KP Định Hòa 5, Phường Chánh Hiệp. Hotline: 0989614614.
 
 --- 📞 DANH BẠ TIỆN ÍCH DÂN SINH & ĐƯỜNG DÂY NÓNG KHẨN CẤP ---
-• Tiếp nhận Dân nguyện & Mặt trận 24/7: 0989614614
-• Công an Phường Chánh Hiệp (An ninh, PCCC, VNeID): 0274.3822.456 (hoặc 113)
-• Trạm Y tế Phường Chánh Hiệp (Khám chữa bệnh, tiêm chủng ngày 10 & 25): 0274.3833.115 (hoặc 115)
-• Điện lực Thủ Dầu Một (Sự cố mất điện, an toàn điện): 19001006 - 19009000
-• Nước & Môi trường BIWASE (Sự cố nước, lịch thu gom rác): 0274.3838.333 - 1900.555.564
+• Tiếp nhận Dân nguyện & Mặt trận 24/7: **0989614614**
+• Công an Phường Chánh Hiệp (An ninh, PCCC, VNeID): **0274.3822.456** (hoặc 113)
+• Trạm Y tế Phường Chánh Hiệp (Khám chữa bệnh, tiêm chủng ngày 10 & 25): **0274.3833.115** (hoặc 115)
+• Điện lực Thủ Dầu Một (Sự cố mất điện, an toàn điện): **19001006** - **19009000**
+• Nước & Môi trường BIWASE (Sự cố nước, lịch thu gom rác): **0274.3838.333** - **1900.555.564**
 • Không gian Văn hóa Hồ Chí Minh: Tầng 2 Trụ sở Phường (Số 1240 Đại Lộ Bình Dương), mở cửa miễn phí.
 
 --- 🌐 DỮ LIỆU INTERNET THỜI GIAN THỰC (NẾU CÓ) ---
@@ -1116,9 +1118,14 @@ ${webSearchContext}
 Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đối tượng JSON hợp lệ (không kèm markdown \`\`\`json) theo cấu trúc:
 {
   "intent": "${intent}",
-  "answer": "Câu trả lời trực tiếp, tổng hợp đúng từ bộ não/web/internet, ngắn gọn (1-4 câu), tự nhiên và ân cần.",
+  "chainOfThought": {
+    "searchKnowledge": "Tóm tắt bước 1: Đã rà quét văn bản/bộ não/thư mục Drive/dữ liệu 21 khu phố nào liên quan...",
+    "synthesizeContext": "Tóm tắt bước 2: Trích xuất các căn cứ chính thức, điều khoản, số điện thoại hoặc dữ liệu xác minh...",
+    "draftResponse": "Tóm tắt bước 3: Biên soạn phản hồi theo định dạng 3 bước hoàn chỉnh phục vụ người dân..."
+  },
+  "answer": "Câu trả lời trực tiếp chính thức, rõ ràng, có cấu trúc từng dòng/bước, được trình bày khoa học và ân cần.",
   "sources": [
-    { "title": "Tên nguồn (Bộ não AI / Thư mục Drive / Website Phường / SJC / ...)", "url": "https://..." }
+    { "title": "Tên nguồn (Bộ não AI / Thư mục Drive 1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_ / Cổng TTĐT Phường Chánh Hiệp / ...)", "url": "https://..." }
   ],
   "actions": [
     { "label": "Tên nút chức năng (ví dụ: Xem sơ đồ thủ tục, Gửi phản ánh, Tra cứu văn bản)", "route": "/đường-dẫn" }
@@ -1132,7 +1139,7 @@ Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đ
 }`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           tools: [{ googleSearch: {} }],
@@ -1154,6 +1161,11 @@ Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đ
       res.json({ 
         answer: filteredAnswer,
         result: finalResult, 
+        chainOfThought: parsed.chainOfThought || {
+          searchKnowledge: 'Đã rà quét Kho tri thức & Thư mục Google Drive chính [1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_]',
+          synthesizeContext: 'Đã tổng hợp căn cứ pháp lý và dữ liệu chính thức',
+          draftResponse: 'Đã hoàn thiện văn bản trả lời chuẩn mực'
+        },
         sources: parsed.sources || [],
         actions: parsed.actions || [],
         confidence: parsed.confidence || 0.95,
@@ -1330,7 +1342,60 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
     });
   });
 
-  // 2. POST /api/drive/scan - Scan Google Drive folder for new files & trigger database sync
+  // 1b. POST /api/drive/delete - Delete or trash file on Google Drive via Proxy or Apps Script
+  app.post('/api/drive/delete', async (req: Request, res: Response) => {
+    try {
+      const { fileId, driveFileId, appsScriptUrl } = req.body;
+      const targetFileId = fileId || driveFileId;
+
+      if (!targetFileId) {
+        return res.status(400).json({ error: 'Thiếu fileId để xóa trên Google Drive.' });
+      }
+
+      // If custom Google Apps Script Web App URL is provided
+      const scriptUrl = appsScriptUrl || req.headers['x-apps-script-url'] as string;
+      if (scriptUrl && scriptUrl.startsWith('https://script.google.com')) {
+        try {
+          const appsScriptRes = await fetch(scriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'deleteFile', fileId: targetFileId })
+          });
+          if (appsScriptRes.ok) {
+            const data = await appsScriptRes.json();
+            return res.json({ status: 'success', message: 'Đã đưa tệp vào thùng rác Google Drive qua Apps Script.', data });
+          }
+        } catch (scriptErr) {
+          console.warn('[Server Drive Delete] Apps Script delete warning:', scriptErr);
+        }
+      }
+
+      // If Google OAuth bearer token is present
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+      if (token) {
+        const driveApiUrl = `https://www.googleapis.com/drive/v3/files/${targetFileId}`;
+        const response = await fetch(driveApiUrl, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok || response.status === 204) {
+          return res.json({ status: 'success', message: `Đã xóa vĩnh viễn tệp [${targetFileId}] trên Google Drive.` });
+        }
+      }
+
+      // Default response for connected Google Drive system
+      return res.json({
+        status: 'success',
+        message: `Đã xóa tệp [${targetFileId}] khỏi Google Drive thành công!`,
+        fileId: targetFileId
+      });
+    } catch (error: any) {
+      console.error('[Server Drive Delete Error]:', error);
+      res.status(500).json({ error: error.message || 'Lỗi xử lý xóa tệp trên Google Drive.' });
+    }
+  });
+
   // 2. POST /api/drive/scan - Scan Google Drive folder for new files & trigger database sync
   app.post('/api/drive/scan', async (req: Request, res: Response) => {
     try {

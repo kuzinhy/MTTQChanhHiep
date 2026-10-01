@@ -244,6 +244,36 @@ export async function uploadFileViaServerProxy(
 }
 
 /**
+ * Deletes a file both from Google Drive via Server Proxy or Apps Script
+ */
+export async function deleteFileFromGoogleDrive(fileIdOrUrl: string): Promise<boolean> {
+  if (!fileIdOrUrl) return false;
+  const fileId = extractGoogleDriveFileId(fileIdOrUrl) || fileIdOrUrl;
+  
+  try {
+    const scriptUrl = getAppsScriptUrl();
+    const response = await fetch(getApiUrl('/api/drive/delete'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileId: fileId,
+        driveFileId: fileId,
+        appsScriptUrl: scriptUrl || undefined
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.status === 'success';
+    }
+    return false;
+  } catch (err) {
+    console.error('[deleteFileFromGoogleDrive] Error deleting file:', err);
+    return false;
+  }
+}
+
+/**
  * Uploads a file directly to Google Drive via Server Proxy / Apps Script (Zero popup) or Google Drive v3 REST API
  */
 export async function uploadFileToGoogleDrive(

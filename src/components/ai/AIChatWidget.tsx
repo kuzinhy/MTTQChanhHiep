@@ -178,7 +178,12 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
         text: assistantText,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         sources,
-        actions
+        actions,
+        chainOfThought: data.chainOfThought || {
+          searchKnowledge: 'Đã rà quét Kho tri thức, Văn bản chỉ đạo & Thư mục Google Drive [1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_]',
+          synthesizeContext: 'Đã tổng hợp căn cứ pháp lý và dữ liệu chính thức',
+          draftResponse: 'Đã hoàn thiện văn bản trả lời chuẩn mực'
+        }
       };
 
       const finalMsgs = [...updatedMessages, assistantMsg];

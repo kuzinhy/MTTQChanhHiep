@@ -12,7 +12,7 @@ import { ChanhHiepDriveFolderBar } from '../office/ChanhHiepDriveFolderBar';
 import { GoogleDriveExplorer, DriveExplorerFile } from '../office/GoogleDriveExplorer';
 import { NewDocument, DocumentTask, DocumentAuditLog, ExtractedConfidenceMap } from '../../types';
 import { documentService } from '../../services/documentService';
-import { uploadFileViaServerProxy, extractGoogleDriveFileId } from '../../lib/googleDriveService';
+import { uploadFileViaServerProxy, extractGoogleDriveFileId, deleteFileFromGoogleDrive } from '../../lib/googleDriveService';
 import { parseAndExtractDocument, SmartParseResult } from '../../services/smartDocumentIngestion';
 import { generateStandardizedFilename, DOCUMENT_TYPE_CODES } from '../../services/filenameService';
 import { checkForDuplicateDocument, calculateFileHash, DuplicateCheckResult } from '../../services/duplicateDetectionService';
@@ -394,21 +394,21 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
         codeNumber: formData.codeNumber || formData.documentNumberFull || '',
         title: formData.title || '',
         docType: formData.docType || 'Công văn',
-        documentType: formData.docType,
-        documentNumber: formData.documentNumber,
-        documentSymbol: formData.documentSymbol,
-        documentNumberFull: formData.codeNumber,
+        documentType: formData.docType || 'Công văn',
+        documentNumber: formData.documentNumber || '',
+        documentSymbol: formData.documentSymbol || '',
+        documentNumberFull: formData.codeNumber || '',
         field: formData.field || 'Công tác Mặt trận',
         issuer: formData.issuer || 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
-        issuingAgency: formData.issuer,
+        issuingAgency: formData.issuer || 'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
         issueDate: formData.issueDate || new Date().toISOString().substring(0, 10),
-        effectiveDate: formData.effectiveDate,
-        deadline: formData.deadline,
+        effectiveDate: formData.effectiveDate || formData.issueDate || new Date().toISOString().substring(0, 10),
+        deadline: formData.deadline || '',
         signer: formData.signer || 'Trần Văn Nam',
         signerPosition: formData.signerPosition || 'Chủ tịch',
         summary: formData.summary || formData.title || '',
-        documentSummary: formData.documentSummary || formData.summary,
-        contentText: parsedText || formData.contentText,
+        documentSummary: formData.documentSummary || formData.summary || formData.title || '',
+        contentText: parsedText || formData.contentText || '',
         isPublic: formData.isPublic ?? true,
         status: formData.status || 'Published',
         processingStatus: 'CONFIRMED',
@@ -417,19 +417,19 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
         leadUnit: formData.leadUnit || 'Ban Thường trực MTTQ',
         coordinatingUnits: formData.coordinatingUnits || [],
         keywords: formData.keywords || [],
-        originalFilename: currentFile?.name || formData.originalFilename,
-        standardizedFilename: proposedFilename || formData.standardizedFilename,
-        fileHash: fileHash || formData.fileHash,
-        fileUrl: finalDriveUrl,
+        originalFilename: currentFile?.name || formData.originalFilename || '',
+        standardizedFilename: proposedFilename || formData.standardizedFilename || '',
+        fileHash: fileHash || formData.fileHash || '',
+        fileUrl: finalDriveUrl || '',
         fileName: proposedFilename || formData.fileName || currentFile?.name || 'VanBan.pdf',
         fileSize: formData.fileSize || (currentFile ? (currentFile.size / 1024).toFixed(1) + ' KB' : '1.2 MB'),
-        driveFileId: finalDriveFileId,
+        driveFileId: finalDriveFileId || '',
         driveFolderId: OFFICIAL_DOCUMENTS_DRIVE_FOLDER_ID,
-        driveUrl: finalDriveUrl,
-        tasks: approvedTasks,
+        driveUrl: finalDriveUrl || '',
+        tasks: approvedTasks || [],
         auditLogs: [initialLog, ...existingAuditLogs],
         aiExtracted: true,
-        aiConfidence: confidenceMap,
+        aiConfidence: confidenceMap || {},
         aiExtractedAt: new Date().toISOString(),
         uploadedBy: currentUser?.fullname || 'Cán bộ Quản trị',
         uploadedAt: new Date().toISOString()
@@ -479,26 +479,78 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
     }
   };
 
-  // Delete & Soft Delete Handlers
-  const handleInitiateDelete = (id: string) => {
-    setDocToDelete(id);
+  // Delete Handlers: Web Only vs Dual Delete (Web & Google Drive) vs Soft Archive
+  const [deletingDocTarget, setDeletingDocTarget] = useState<NewDocument | null>(null);
+  const [isDeletingLoading, setIsDeletingLoading] = useState<boolean>(false);
+
+  const handleInitiateDelete = (docOrId: string | NewDocument) => {
+    if (typeof docOrId === 'string') {
+      const found = documents.find(d => d.id === docOrId);
+      if (found) setDeletingDocTarget(found);
+    } else {
+      setDeletingDocTarget(docOrId);
+    }
     setIsConfirmDeleteOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!docToDelete) return;
+  // Action 1: Permanent Dual Delete (Delete from Website AND Google Drive)
+  const handleDeleteBothWebAndDrive = async () => {
+    if (!deletingDocTarget) return;
+    setIsDeletingLoading(true);
     try {
-      // Soft delete for safety
-      await documentService.updateDocument(docToDelete, {
+      // 1. Delete physical file on Google Drive
+      const fileTarget = deletingDocTarget.driveFileId || deletingDocTarget.fileUrl;
+      if (fileTarget) {
+        await deleteFileFromGoogleDrive(fileTarget);
+      }
+      // 2. Delete document record from Firestore
+      await documentService.deleteDocument(deletingDocTarget.id);
+
+      onShowToast?.('success', `Đã xóa vĩnh viễn văn bản "${deletingDocTarget.title}" trên cả Website và Google Drive!`);
+      setIsConfirmDeleteOpen(false);
+      setDeletingDocTarget(null);
+      loadDocuments();
+    } catch (err: any) {
+      onShowToast?.('error', 'Lỗi khi xóa văn bản: ' + err.message);
+    } finally {
+      setIsDeletingLoading(false);
+    }
+  };
+
+  // Action 2: Delete from Website only (Keep file on Google Drive)
+  const handleDeleteWebOnly = async () => {
+    if (!deletingDocTarget) return;
+    setIsDeletingLoading(true);
+    try {
+      await documentService.deleteDocument(deletingDocTarget.id);
+      onShowToast?.('success', `Đã xóa văn bản khỏi Website (Tệp gốc vẫn lưu trên Google Drive).`);
+      setIsConfirmDeleteOpen(false);
+      setDeletingDocTarget(null);
+      loadDocuments();
+    } catch (err: any) {
+      onShowToast?.('error', 'Lỗi khi xóa văn bản: ' + err.message);
+    } finally {
+      setIsDeletingLoading(false);
+    }
+  };
+
+  // Action 3: Soft Delete (Move to Archive tab)
+  const handleSoftArchive = async () => {
+    if (!deletingDocTarget) return;
+    setIsDeletingLoading(true);
+    try {
+      await documentService.updateDocument(deletingDocTarget.id, {
         isArchived: true,
         status: 'ARCHIVED'
       });
-      onShowToast?.('success', 'Đã lưu trữ văn bản vào kho Lưu trữ.');
+      onShowToast?.('success', 'Đã chuyển văn bản vào kho Lưu trữ an toàn.');
       setIsConfirmDeleteOpen(false);
-      setDocToDelete(null);
+      setDeletingDocTarget(null);
       loadDocuments();
     } catch (err: any) {
       onShowToast?.('error', 'Lỗi khi lưu trữ văn bản: ' + err.message);
+    } finally {
+      setIsDeletingLoading(false);
     }
   };
 
@@ -1631,29 +1683,101 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
         </div>
       )}
 
-      {/* CONFIRM SOFT DELETE MODAL */}
-      {isConfirmDeleteOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-slate-200">
-            <div className="flex items-center gap-3 text-rose-600">
-              <AlertTriangle className="w-6 h-6" />
-              <h4 className="font-bold text-slate-900 text-base">Xác nhận lưu trữ văn bản?</h4>
-            </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Văn bản sẽ được chuyển vào kho Lưu trữ an toàn (<code className="bg-slate-100 text-rose-800 px-1 py-0.5 rounded">isArchived = true</code>) thay vì xóa cứng khỏi cơ sở dữ liệu.
-            </p>
-            <div className="flex justify-end gap-2 pt-2">
+      {/* TRIPLE DELETE & ARCHIVE MODAL */}
+      {isConfirmDeleteOpen && deletingDocTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3 text-rose-600">
+                <div className="p-2.5 bg-rose-100 rounded-2xl">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 text-base">Tùy Chọn Xóa Văn Bản</h4>
+                  <p className="text-xs text-slate-500 font-medium">Mã: {deletingDocTarget.codeNumber}</p>
+                </div>
+              </div>
               <button
+                onClick={() => setIsConfirmDeleteOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
+              <strong className="text-slate-900 block truncate font-black">{deletingDocTarget.title}</strong>
+              <span className="text-slate-500 block text-[11px]">Thư mục Drive: {deletingDocTarget.field || '1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_'}</span>
+            </div>
+
+            <p className="text-xs font-bold text-slate-700">Vui lòng chọn hình thức xử lý văn bản này:</p>
+
+            <div className="space-y-2.5">
+              {/* Option 1: Both Web and Drive */}
+              <button
+                type="button"
+                onClick={handleDeleteBothWebAndDrive}
+                disabled={isDeletingLoading}
+                className="w-full p-3.5 bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-800 text-white rounded-2xl text-left transition shadow-md group cursor-pointer disabled:opacity-50"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Trash className="w-5 h-5 text-rose-200 shrink-0" />
+                    <div>
+                      <div className="font-black text-xs group-hover:underline">🔥 XÓA HOÀN TOÀN (CẢ WEBSITE VÀ GOOGLE DRIVE)</div>
+                      <div className="text-[10.5px] text-rose-100/90 font-medium mt-0.5">Xóa bản ghi khỏi cơ sở dữ liệu VÀ đưa tệp vật lý vào thùng rác Google Drive.</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-rose-200 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* Option 2: Web Only */}
+              <button
+                type="button"
+                onClick={handleDeleteWebOnly}
+                disabled={isDeletingLoading}
+                className="w-full p-3.5 bg-amber-50 hover:bg-amber-100/80 border border-amber-300 text-amber-950 rounded-2xl text-left transition shadow-2xs group cursor-pointer disabled:opacity-50"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="w-5 h-5 text-amber-600 shrink-0" />
+                    <div>
+                      <div className="font-black text-xs text-amber-900">🌐 CHỈ XÓA TRÊN WEBSITE (GIỮ FILE TẠI GOOGLE DRIVE)</div>
+                      <div className="text-[10.5px] text-amber-800 font-medium mt-0.5">Gỡ văn bản khỏi hiển thị trên Web, tệp gốc trên Google Drive vẫn được giữ nguyên.</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-amber-600 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* Option 3: Soft Archive */}
+              <button
+                type="button"
+                onClick={handleSoftArchive}
+                disabled={isDeletingLoading}
+                className="w-full p-3.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 rounded-2xl text-left transition group cursor-pointer disabled:opacity-50"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Archive className="w-5 h-5 text-slate-600 shrink-0" />
+                    <div>
+                      <div className="font-black text-xs">📦 CHUYỂN VÀO MỤC LƯU TRỮ (SOFT DELETE)</div>
+                      <div className="text-[10.5px] text-slate-500 font-medium mt-0.5">Tạm ẩn khỏi trang công khai và chuyển sang tab "Lưu trữ" để tra cứu sau.</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+            </div>
+
+            <div className="flex justify-end border-t border-slate-100 pt-3">
+              <button
+                type="button"
                 onClick={() => setIsConfirmDeleteOpen(false)}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
               >
-                Hủy bỏ
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
-              >
-                Chuyển vào Lưu trữ
+                Đóng / Hủy
               </button>
             </div>
           </div>

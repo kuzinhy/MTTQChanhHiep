@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { Bot, User, ThumbsUp, ThumbsDown, Copy, Check, MessageSquareWarning, Volume2, VolumeX } from 'lucide-react';
+import { Bot, User, ThumbsUp, ThumbsDown, Copy, Check, MessageSquareWarning, Volume2, VolumeX, Sparkles, ChevronDown, Search, Layers, FileText } from 'lucide-react';
 import { AISourceCard } from './AISourceCard';
 import { AIActionButton } from './AIActionButton';
 import { AISource, AIAction } from '../../lib/ai/types';
+
+export interface ChainOfThoughtStep {
+  searchKnowledge?: string;
+  synthesizeContext?: string;
+  draftResponse?: string;
+}
 
 export interface ChatMessageItem {
   id: string;
@@ -11,6 +17,7 @@ export interface ChatMessageItem {
   timestamp: string;
   sources?: AISource[];
   actions?: AIAction[];
+  chainOfThought?: ChainOfThoughtStep;
   feedback?: 'like' | 'dislike';
   feedbackReason?: string;
 }
@@ -27,6 +34,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({ message, onActionClick, on
   const [showDislikeModal, setShowDislikeModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showCot, setShowCot] = useState(false);
 
   const handleCopy = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -80,6 +88,51 @@ export const AIMessage: React.FC<AIMessageProps> = ({ message, onActionClick, on
               : 'bg-white border border-slate-200/90 text-slate-900 rounded-tl-xs shadow-2xs hover:border-blue-200'
           }`}
         >
+          {/* CHAIN OF THOUGHT (CoT) REASONING BLOCK */}
+          {!isUser && message.chainOfThought && (
+            <div className="mb-2.5 rounded-xl border border-blue-200/80 bg-blue-50/60 p-2 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setShowCot(!showCot)}
+                className="flex w-full items-center justify-between font-bold text-blue-900 cursor-pointer hover:text-blue-700"
+              >
+                <span className="flex items-center gap-1.5 text-[11px] text-blue-900 font-extrabold">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                  Tiến trình Tư duy Chain of Thought (3 Bước)
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-blue-600 transition-transform ${showCot ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCot && (
+                <div className="mt-2 space-y-2 border-t border-blue-200/60 pt-2 text-slate-700 font-normal">
+                  <div className="flex items-start gap-1.5">
+                    <Search className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-blue-950 font-bold block text-[11px]">1. 🔍 Search Knowledge (Tra cứu Tri thức):</strong>
+                      <p className="text-slate-600 text-[10.5px] leading-snug mt-0.5">{message.chainOfThought.searchKnowledge}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-indigo-950 font-bold block text-[11px]">2. 🧩 Synthesize Context (Tổng hợp & Xác minh Căn cứ):</strong>
+                      <p className="text-slate-600 text-[10.5px] leading-snug mt-0.5">{message.chainOfThought.synthesizeContext}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-emerald-950 font-bold block text-[11px]">3. ✍️ Draft Response (Biên soạn Phản hồi):</strong>
+                      <p className="text-slate-600 text-[10.5px] leading-snug mt-0.5">{message.chainOfThought.draftResponse}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <p className="whitespace-pre-wrap leading-relaxed">{message.text}</p>
 
           {!isUser && (
