@@ -72,7 +72,7 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
     try {
       const updated = volunteers.map(v => v.id === id ? { ...v, status: newStatus } : v);
       setVolunteers(updated);
-      localStorage.setItem('mttq_chanhhiep_volunteers_v1', JSON.stringify(updated));
+      AppStorageEngine.saveVolunteers(updated);
       window.dispatchEvent(new Event('storage'));
       
       const statusText = newStatus === 'APPROVED' ? 'Đã phê duyệt' : newStatus === 'CONTACTED' ? 'Đã liên hệ' : 'Chờ xử lý';
@@ -82,17 +82,28 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
     }
   };
 
-  const handleDeleteSingle = (id: string, name: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa hồ sơ Tình nguyện viên ${name}?`)) return;
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (!deleteConfirm) return;
+    const { id, name } = deleteConfirm;
     try {
-      const updated = volunteers.filter(v => v.id !== id);
+      const list = AppStorageEngine.getVolunteers() || [];
+      const updated = list.filter((v: any) => v.id !== id);
+      
+      AppStorageEngine.saveVolunteers(updated);
       setVolunteers(updated);
-      localStorage.setItem('mttq_chanhhiep_volunteers_v1', JSON.stringify(updated));
+      
       window.dispatchEvent(new Event('storage'));
       onTriggerToast('Đã xóa', `Đã xóa hồ sơ ${name}.`);
     } catch (e) {
       onTriggerToast('Lỗi', 'Không thể xóa hồ sơ.');
     }
+    setDeleteConfirm(null);
+  };
+
+  const handleDeleteSingle = (id: string, name: string) => {
+    setDeleteConfirm({ id, name });
   };
 
   const handleResendEmail = async (vol: VolunteerRegistration) => {
@@ -399,8 +410,8 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
                     </td>
 
                     {/* Actions */}
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="p-4 text-right relative z-50">
+                      <div className="flex items-center justify-end gap-1.5 pointer-events-auto">
                         {vol.status !== 'APPROVED' && (
                           <button
                             onClick={() => handleUpdateStatus(vol.id, 'APPROVED')}
@@ -432,7 +443,7 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
                         )}
 
                         <button
-                          onClick={() => handleDeleteSingle(vol.id, vol.fullName)}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteSingle(vol.id, vol.fullName); }}
                           title="Xóa hồ sơ"
                           className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold transition cursor-pointer"
                         >
@@ -447,6 +458,20 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
           </table>
         </div>
       </div>
+
+      {/* Custom Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full space-y-4">
+            <h3 className="font-bold text-lg">Xác nhận xóa</h3>
+            <p className="text-sm text-slate-600">Bạn có chắc chắn muốn xóa hồ sơ Tình nguyện viên <span className="font-bold">{deleteConfirm.name}</span>?</p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl">Hủy</button>
+              <button onClick={handleConfirmDelete} className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl">Xóa hồ sơ</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

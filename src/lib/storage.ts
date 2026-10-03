@@ -1532,6 +1532,9 @@ export const AppStorageEngine = {
     const updated = [vol, ...current.filter(v => v.id !== vol.id)];
     saveStorageData(STORAGE_KEYS.VOLUNTEERS, updated);
   },
+  saveVolunteers: (vols: any[]) => {
+    saveStorageData(STORAGE_KEYS.VOLUNTEERS, vols);
+  },
 
   getLastBackupTime: (): string => {
     try {
