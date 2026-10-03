@@ -27,6 +27,7 @@ import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
 import { OptimizedImage } from './common/OptimizedImage';
 import { CitizenAccessibilityToolbar } from './common/CitizenAccessibilityToolbar';
+import { canAccessView } from '../lib/rbac';
 
 import { isSocialWelfareModuleEnabled } from '../lib/moduleSettings';
 
@@ -157,7 +158,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Văn phòng số Pill Button */}
             <button
-              onClick={onGoToOffice}
+              onClick={() => {
+                if (canAccessView(currentUser, 'dashboard')) {
+                  onGoToOffice();
+                } else {
+                  alert('Bạn không có quyền truy cập Văn phòng số.');
+                }
+              }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0043aa] text-white font-bold text-xs rounded-full border border-blue-300/40 shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
             >
               <FileText className="w-3.5 h-3.5" />

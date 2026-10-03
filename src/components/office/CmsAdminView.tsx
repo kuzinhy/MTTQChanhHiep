@@ -41,8 +41,10 @@ import {
   OpinionStatus,
   DocType,
   CloudinaryImageMeta,
-  ArticleSubmission
+  ArticleSubmission,
+  StaffUser
 } from '../../types';
+import { canAccessView } from '../../lib/rbac';
 import {
   sortArticlesNewestFirst,
   sortDocumentsNewestFirst,
@@ -113,6 +115,7 @@ interface CmsAdminViewProps {
   competitions?: Competition[];
   opinions?: PublicOpinion[];
   initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'SUBMISSIONS';
+  currentUser?: StaffUser;
   onAddArticle: (art: Article) => void;
   onUpdateArticle: (art: Article) => void;
   onDeleteArticle: (id: string) => void;
@@ -213,8 +216,25 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onUpdateOpinionStatus,
   onRequestDocApproval,
   onForceCloudSync,
-  onShowToast
+  onShowToast,
+  currentUser
 }) => {
+  const isLeader = currentUser && (currentUser.role === 'LEADER' || currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN');
+
+  const handleRequestApproval = (art: Article) => {
+    onUpdateArticle({ ...art, status: 'Pending Review' });
+    onShowToast?.('Đã gửi phê duyệt', `Bài viết "${art.title}" đã được gửi chờ Lãnh đạo phê duyệt.`);
+  };
+
+  const handleApproveArticle = (art: Article) => {
+    onUpdateArticle({ ...art, status: 'Approved' });
+    onShowToast?.('Đã phê duyệt', `Bài viết "${art.title}" đã được phê duyệt.`);
+  };
+
+  const handleRejectArticle = (art: Article) => {
+    onUpdateArticle({ ...art, status: 'Draft' });
+    onShowToast?.('Đã từ chối', `Bài viết "${art.title}" đã được chuyển về bản nháp.`);
+  };
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'SUBMISSIONS' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'CULTURAL_MEDIA'>(
     (initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT' ? 'ABOUT' : (initialTab as any) || 'ARTICLES'
   );
@@ -1591,18 +1611,27 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
 
                         {/* Status Toggle Badge */}
                         <td className="px-4 py-3.5">
-                          <button
-                            onClick={() => handleToggleArticleStatus(art)}
-                            title={art.status === 'Published' || art.status === 'Approved' ? "Bấm để Ẩn bài viết khỏi trang chủ" : "Bấm để Hiển thị bài viết lên trang chủ"}
-                            className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition-all cursor-pointer flex items-center gap-1 ${
-                              art.status === 'Published' || art.status === 'Approved'
-                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300'
-                                : 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
-                            }`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${art.status === 'Published' || art.status === 'Approved' ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600'}`} />
-                            <span>{art.status === 'Published' || art.status === 'Approved' ? 'Đang hiện' : 'Đã ẩn'}</span>
-                          </button>
+                          <div className="flex flex-col gap-1">
+                            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black text-center ${
+                              art.status === 'Published' ? 'bg-emerald-100 text-emerald-800' :
+                              art.status === 'Approved' ? 'bg-blue-100 text-blue-800' :
+                              art.status === 'Pending Review' ? 'bg-amber-100 text-amber-800' :
+                              'bg-slate-100 text-slate-600'
+                            }`}>
+                              {art.status === 'Published' ? 'Đã xuất bản' : art.status === 'Approved' ? 'Đã phê duyệt' : art.status === 'Pending Review' ? 'Chờ duyệt' : 'Bản nháp'}
+                            </span>
+                            
+                            {art.status === 'Draft' && (
+                              <button onClick={() => handleRequestApproval(art)} className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200">Gửi duyệt</button>
+                            )}
+
+                            {art.status === 'Pending Review' && isLeader && (
+                              <div className="flex gap-1">
+                                <button onClick={() => handleApproveArticle(art)} className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Phê duyệt</button>
+                                <button onClick={() => handleRejectArticle(art)} className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded border border-red-200">Từ chối</button>
+                              </div>
+                            )}
+                          </div>
                         </td>
 
                         {/* Action Buttons: Hide/Show, Preview, Edit, Duplicate, Delete */}

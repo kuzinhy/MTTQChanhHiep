@@ -92,6 +92,7 @@ import { GlobalSearchModal } from './components/common/GlobalSearchModal';
 import { SystemBackupRestoreModal } from './components/office/SystemBackupRestoreModal';
 import { CitizenWelfareRegistrationModal } from './components/portal/CitizenWelfareRegistrationModal';
 import { SystemHealthAdminView } from './components/office/SystemHealthAdminView';
+import { canAccessView } from './lib/rbac';
 
 import { 
   INITIAL_TRIVIA_QUESTIONS, 
@@ -105,7 +106,7 @@ import { CloudDatabase } from './lib/firestoreService';
 import { NotificationService } from './services/notificationService';
 import { canCreatePost, canEditPost, canDeletePost, canPublishPost, mapPermissionError, getUserEffectivePermissions } from './services/permissionService';
 import { VisitorTrackerEngine } from './lib/visitorTracker';
-import { canAccessView } from './lib/rbac';
+
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
 import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle, Landmark, Star, Move, Newspaper, Lightbulb, Info, BarChart3, Award, Users, Building2, Layers, Bell, Settings, PieChart, FolderTree, ShieldAlert } from 'lucide-react';
@@ -1609,10 +1610,14 @@ export default function App() {
                   <StaffLoginPage
                     staffUsers={staffUsers}
                     onLoginSuccess={(user) => {
-                      setCurrentStaffUser(user);
-                      AppStorageEngine.saveCurrentUser(user);
-                      setIsLocked(false);
-                      setCurrentSpace('OFFICE');
+                      if (canAccessView(user, 'dashboard')) {
+                        setCurrentStaffUser(user);
+                        AppStorageEngine.saveCurrentUser(user);
+                        setIsLocked(false);
+                        setCurrentSpace('OFFICE');
+                      } else {
+                        alert('Bạn không có quyền truy cập Văn phòng số.');
+                      }
                     }}
                     onBack={() => setCurrentSpace('PORTAL')}
                   />
@@ -1910,6 +1915,7 @@ export default function App() {
                         onRequestDocApproval={handleTriggerDocApprovalToast}
                         onForceCloudSync={handleForceCloudSync}
                         onShowToast={handleTriggerSystemToast}
+                        currentUser={currentStaffUser || undefined}
                       />
                     )}
 
@@ -1930,6 +1936,7 @@ export default function App() {
                         onRequestDocApproval={handleTriggerDocApprovalToast}
                         onForceCloudSync={handleForceCloudSync}
                         onShowToast={handleTriggerSystemToast}
+                        currentUser={currentStaffUser || undefined}
                       />
                     )}
 
@@ -1943,6 +1950,7 @@ export default function App() {
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}
+                        currentUser={currentStaffUser || undefined}
                         onAddCompetition={handleAddCompetition}
                         onUpdateCompetition={handleUpdateCompetition}
                         onDeleteCompetition={handleDeleteCompetition}

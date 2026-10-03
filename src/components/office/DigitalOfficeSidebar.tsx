@@ -50,6 +50,7 @@ interface SidebarItem {
   icon: LucideIcon;
   badge?: string;
   badgeStyle?: string;
+  isNewHighlight?: boolean;
 }
 
 interface SidebarGroup {
@@ -108,78 +109,86 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   }, []);
 
   // Defined Sidebar Groups
-  const groups: SidebarGroup[] = useMemo(() => [
-    {
-      id: 'group_ai',
-      title: 'TRUNG TÂM THAM MƯU AI',
-      icon: Sparkles,
-      badgeText: 'SMART',
-      accentColor: 'blue',
-      items: [
-        { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
-        { id: 'ai_settings', label: 'Cài đặt trợ lý', icon: Bot, badge: 'CÀI ĐẶT' },
-        { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
-        { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
-      ]
-    },
-    {
-      id: 'group_neighborhood',
-      title: 'QUẢN LÝ 21 KHU PHỐ',
-      icon: Building2,
-      badgeText: '21 KP',
-      accentColor: 'amber',
-      items: [
-        { id: 'neighborhood_management', label: 'Quản lý Khu phố Số', icon: Building2, badge: 'ĐỊA BÀN' },
-        { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: MapPin, badge: 'GIS' },
-        { id: 'neighborhood_emulation', label: 'Thi đua 21 Khu phố', icon: Award, badge: 'THI ĐUA' },
-      ]
-    },
-    {
-      id: 'group_cms',
-      title: 'NGHIỆP VỤ & CỔNG TT',
-      icon: Layers,
-      badgeText: 'MTTQ',
-      accentColor: 'blue',
-      items: [
-        { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
-        { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
-        { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
-        { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
-        { id: 'procedures', label: 'Quy trình Thủ tục (Builder)', icon: ClipboardList, badge: 'MỘT CỬA' },
-        { id: 'bottleneck_analytics', label: 'Điểm nghẽn & Báo cáo CCHC', icon: BarChart3, badge: 'AI CCHC' },
-        { id: 'analytics_charts', label: 'Biểu đồ Lưu lượng & Tiến độ', icon: TrendingUp, badge: 'RECHARTS' },
-        { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
-        { id: 'duplicate_opinions', label: 'Gom cụm Dân nguyện', icon: GitMerge, badge: 'CLUSTERING' },
-        { id: 'geo_broadcast', label: 'Phát Cảnh báo 21 Khu phố', icon: Radio, badge: 'PHÁT SÓNG' },
-        { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
-        { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
-        { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
-        { 
-          id: 'volunteers_admin', 
-          label: 'Quản lý Tình nguyện viên', 
-          icon: HeartHandshake, 
-          badge: unviewedVolunteersCount > 0 ? `+${unviewedVolunteersCount} MỚI` : 'TÌNH NGUYỆN',
-          isNewHighlight: unviewedVolunteersCount > 0 
-        },
-        { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
-      ]
-    },
-    {
-      id: 'group_admin',
-      title: 'QUẢN TRỊ HỆ THỐNG',
-      icon: Settings,
-      badgeText: 'HỆ THỐNG',
-      accentColor: 'emerald',
-      items: [
-        { id: 'google_drive_storage', label: 'Cơ chế lưu trữ Google Drive', icon: HardDrive, badge: 'DRIVE' },
-        { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
-        { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
-        { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },
-        { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
-        { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },
-      ]
-    }
-  ], []);
+  const groups: SidebarGroup[] = useMemo(() => {
+    const rawGroups: SidebarGroup[] = [
+      {
+        id: 'group_ai',
+        title: 'TRUNG TÂM THAM MƯU AI',
+        icon: Sparkles,
+        badgeText: 'SMART',
+        accentColor: 'blue',
+        items: [
+          { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
+          { id: 'ai_settings', label: 'Cài đặt trợ lý', icon: Bot, badge: 'CÀI ĐẶT' },
+          { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
+          { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
+        ]
+      },
+      {
+        id: 'group_neighborhood',
+        title: 'QUẢN LÝ 21 KHU PHỐ',
+        icon: Building2,
+        badgeText: '21 KP',
+        accentColor: 'amber',
+        items: [
+          { id: 'neighborhood_management', label: 'Quản lý Khu phố Số', icon: Building2, badge: 'ĐỊA BÀN' },
+          { id: 'neighborhood_map', label: 'Bản đồ 21 Khu phố', icon: MapPin, badge: 'GIS' },
+          { id: 'neighborhood_emulation', label: 'Thi đua 21 Khu phố', icon: Award, badge: 'THI ĐUA' },
+        ]
+      },
+      {
+        id: 'group_cms',
+        title: 'NGHIỆP VỤ & CỔNG TT',
+        icon: Layers,
+        badgeText: 'MTTQ',
+        accentColor: 'blue',
+        items: [
+          { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
+          { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
+          { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
+          { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
+          { id: 'procedures', label: 'Quy trình Thủ tục (Builder)', icon: ClipboardList, badge: 'MỘT CỬA' },
+          { id: 'bottleneck_analytics', label: 'Điểm nghẽn & Báo cáo CCHC', icon: BarChart3, badge: 'AI CCHC' },
+          { id: 'analytics_charts', label: 'Biểu đồ Lưu lượng & Tiến độ', icon: TrendingUp, badge: 'RECHARTS' },
+          { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
+          { id: 'duplicate_opinions', label: 'Gom cụm Dân nguyện', icon: GitMerge, badge: 'CLUSTERING' },
+          { id: 'geo_broadcast', label: 'Phát Cảnh báo 21 Khu phố', icon: Radio, badge: 'PHÁT SÓNG' },
+          { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
+          { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
+          { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
+          { 
+            id: 'volunteers_admin', 
+            label: 'Quản lý Tình nguyện viên', 
+            icon: HeartHandshake, 
+            badge: unviewedVolunteersCount > 0 ? `+${unviewedVolunteersCount} MỚI` : 'TÌNH NGUYỆN',
+            isNewHighlight: unviewedVolunteersCount > 0 
+          },
+          { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
+        ]
+      },
+      {
+        id: 'group_admin',
+        title: 'QUẢN TRỊ HỆ THỐNG',
+        icon: Settings,
+        badgeText: 'HỆ THỐNG',
+        accentColor: 'emerald',
+        items: [
+          { id: 'google_drive_storage', label: 'Cơ chế lưu trữ Google Drive', icon: HardDrive, badge: 'DRIVE' },
+          { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
+          { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
+          { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },
+          { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
+          { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },
+        ]
+      }
+    ];
+
+    return rawGroups.map(group => ({
+      ...group,
+      items: group.items.filter(item => canAccessView(userRole, item.id))
+    })).filter(group => group.items.length > 0);
+  }, [userRole, unviewedVolunteersCount]);
+
 
   // Track expanded groups state
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
