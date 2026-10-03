@@ -29,6 +29,7 @@
     "motion": "^12.23.24",
     "multer": "^2.3.0",
     "nodemailer": "^10.0.10",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "recharts": "^3.10.1",

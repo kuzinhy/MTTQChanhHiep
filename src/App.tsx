@@ -93,6 +93,7 @@ import { SystemBackupRestoreModal } from './components/office/SystemBackupRestor
 import { CitizenWelfareRegistrationModal } from './components/portal/CitizenWelfareRegistrationModal';
 import { SystemHealthAdminView } from './components/office/SystemHealthAdminView';
 import { canAccessView } from './lib/rbac';
+import { PublicVolunteerRegistrationPage } from './components/portal/PublicVolunteerRegistrationPage';
 
 import { 
   INITIAL_TRIVIA_QUESTIONS, 
@@ -125,7 +126,8 @@ export const VALID_PORTAL_TABS = [
   'opinion',
   'organizations',
   'privacy',
-  'hcm_space'
+  'hcm_space',
+  'volunteers'
 ];
 
 export const VALID_OFFICE_VIEWS = [
@@ -197,7 +199,8 @@ export const PORTAL_HASH_TO_TAB: Record<string, string> = {
   '/giao-dien-moi': 'new_interface',
   '/khong-gian-van-hoa-ho-chi-minh': 'hcm_space',
   '/khong-gian-ho-chi-minh': 'hcm_space',
-  '/kgvh-ho-chi-minh': 'hcm_space'
+  '/kgvh-ho-chi-minh': 'hcm_space',
+  '/dang-ky-tinh-nguyen': 'volunteers'
 };
 
 export const TAB_TO_HASH: Record<string, string> = {
@@ -214,7 +217,8 @@ export const TAB_TO_HASH: Record<string, string> = {
   organizations: '#/to-chuc-thanh-vien',
   privacy: '#/chinh-sach-bao-mat',
   new_interface: '#/giao-dien-moi',
-  hcm_space: '#/khong-gian-van-hoa-ho-chi-minh'
+  hcm_space: '#/khong-gian-van-hoa-ho-chi-minh',
+  volunteers: '#/dang-ky-tinh-nguyen'
 };
 
 export default function App() {
@@ -1537,6 +1541,9 @@ export default function App() {
                   )}
                   {portalTab === 'privacy' && (
                     <PrivacyPolicyPage onBack={() => handleSelectPortalTab('home')} />
+                  )}
+                  {portalTab === 'volunteers' && (
+                    <PublicVolunteerRegistrationPage />
                   )}
 
                   {/* Fallback 404 for unknown portal tabs */}

@@ -18,8 +18,10 @@ import {
   Phone,
   Check,
   Building2,
-  ExternalLink
+  ExternalLink,
+  Share2
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { VolunteerRegistration } from '../../types';
 import { AppStorageEngine } from '../../lib/storage';
 import { NotificationService } from '../../services/notificationService';
@@ -36,6 +38,7 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
   const [selectedTeam, setSelectedTeam] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     loadVolunteers();
@@ -199,6 +202,13 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
             >
               <Download className="w-4 h-4" />
               <span>Xuất Danh Sách Excel</span>
+            </button>
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="px-4 py-2.5 rounded-2xl bg-white text-blue-900 text-xs font-bold shadow-lg hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Chia sẻ QR</span>
             </button>
           </div>
         </div>
@@ -469,6 +479,28 @@ export const VolunteersAdminView: React.FC<VolunteersAdminViewProps> = ({ onTrig
               <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl">Hủy</button>
               <button onClick={handleConfirmDelete} className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl">Xóa hồ sơ</button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Share QR Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="bg-white rounded-2xl p-6 shadow-xl max-w-xs w-full space-y-4 text-center">
+            <h3 className="font-black text-lg text-slate-900">Chia sẻ Link Đăng ký</h3>
+            <div className="bg-white p-2 border border-slate-200 rounded-xl inline-block">
+              <QRCodeSVG value={`${window.location.origin}${window.location.pathname}#/dang-ky-tinh-nguyen`} size={200} />
+            </div>
+            <p className="text-[11px] text-slate-500 break-all">{window.location.origin}{window.location.pathname}#/dang-ky-tinh-nguyen</p>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#/dang-ky-tinh-nguyen`);
+                onTriggerToast('Đã copy', 'Đã sao chép link vào bộ nhớ tạm');
+              }}
+              className="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition"
+            >
+              Copy Link
+            </button>
+            <button onClick={() => setShowShareModal(false)} className="w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-900">Đóng</button>
           </div>
         </div>
       )}
