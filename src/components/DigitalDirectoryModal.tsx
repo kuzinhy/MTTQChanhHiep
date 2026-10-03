@@ -102,9 +102,10 @@ const STATIC_DIRECTORY_DATA: ContactItem[] = [
 interface DigitalDirectoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  currentUser?: any;
 }
 
-export const DigitalDirectoryModal: React.FC<DigitalDirectoryModalProps> = ({ isOpen, onClose }) => {
+export const DigitalDirectoryModal: React.FC<DigitalDirectoryModalProps> = ({ isOpen, onClose, currentUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState<'ALL' | 'EMERGENCY' | 'BOARD' | 'NEIGHBORHOOD' | 'ORGANIZATION'>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -134,7 +135,18 @@ export const DigitalDirectoryModal: React.FC<DigitalDirectoryModalProps> = ({ is
     }
   };
 
+  const isBuiVanHuy = (currentUser?.fullname || '').toLowerCase().includes('bùi văn huy') || 
+                      (currentUser?.email || '').toLowerCase().includes('buivanhuy0705@gmail.com');
+
   const filtered = directoryData.filter((item) => {
+    // Privacy Rule: Only Bùi Văn Huy can see Nguyễn Minh Huy's contact info
+    const isTargetNguyenMinhHuy = (item.name || '').toLowerCase().includes('nguyễn') && 
+                                  (item.name || '').toLowerCase().includes('huy') && 
+                                  ((item.name || '').toLowerCase().includes('minh') || (item.email || '').toLowerCase().includes('nguyenhuy.thudaumot@gmail.com'));
+    if (isTargetNguyenMinhHuy && !isBuiVanHuy) {
+      return false;
+    }
+
     const matchesTab = selectedTab === 'ALL' || item.category === selectedTab;
     const q = searchTerm.toLowerCase().trim();
     const matchesSearch =

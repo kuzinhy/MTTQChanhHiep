@@ -6,6 +6,8 @@ export type NotificationPermissionStatus = 'default' | 'granted' | 'denied' | 'u
 class BrowserNotificationManager {
   private isSupported: boolean;
 
+  private sentHistory: Map<string, number> = new Map();
+
   constructor() {
     this.isSupported = typeof window !== 'undefined' && 'Notification' in window;
   }
@@ -38,7 +40,7 @@ class BrowserNotificationManager {
     }
   }
 
-  // Send a system native desktop notification
+  // Send a system native desktop notification (strictly 1 notification per unique content)
   public sendNotification(options: {
     title: string;
     body: string;
@@ -48,23 +50,49 @@ class BrowserNotificationManager {
     onClick?: () => void;
   }): Notification | null {
     if (!this.isSupported) {
-      console.warn('[BrowserNotification] Notification not supported.');
       return null;
     }
 
     if (Notification.permission !== 'granted') {
-      console.info('[BrowserNotification] Notification permission is not granted. Status:', Notification.permission);
       return null;
+    }
+
+    // 1. Strict Content Signature & Debounce Check
+    const cleanTitle = (options.title || '').trim();
+    const cleanBody = (options.body || '').trim();
+    const signature = `${cleanTitle}:::${cleanBody}`.toLowerCase();
+    const now = Date.now();
+
+    const lastSentTime = this.sentHistory.get(signature);
+    if (lastSentTime && (now - lastSentTime) < 30000) {
+      // Discard duplicate notification within 30 seconds
+      return null;
+    }
+    this.sentHistory.set(signature, now);
+
+    // Prune entries older than 1 minute
+    for (const [sig, t] of this.sentHistory.entries()) {
+      if (now - t > 60000) {
+        this.sentHistory.delete(sig);
+      }
     }
 
     try {
       const defaultIcon = 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png';
       
+      // Calculate stable tag based on content signature so OS also coalesces
+      let hash = 0;
+      for (let i = 0; i < signature.length; i++) {
+        hash = ((hash << 5) - hash) + signature.charCodeAt(i);
+        hash |= 0;
+      }
+      const stableTag = options.tag || `mttq_notif_${Math.abs(hash)}`;
+
       const notification = new Notification(options.title, {
         body: options.body,
         icon: options.icon || defaultIcon,
         badge: defaultIcon,
-        tag: options.tag || `mttq-chanhhiep-${Date.now()}`,
+        tag: stableTag,
         requireInteraction: false, // Disappears automatically after system timeout
         silent: false,
         data: options.data

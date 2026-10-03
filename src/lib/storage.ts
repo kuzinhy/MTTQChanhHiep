@@ -363,6 +363,110 @@ export function saveStorageData<T>(key: string, data: T, syncOffline = false): v
   }
 }
 
+// ==========================================
+// CANONICAL CADRE / STAFF USER DEDUPLICATION & PRIVACY ENGINE
+// ==========================================
+
+export const isUserNguyenMinhHuy = (u?: StaffUser | null): boolean => {
+  if (!u) return false;
+  const email = (u.email || '').toLowerCase().trim();
+  const name = (u.fullname || '').toLowerCase().trim();
+  if (email === 'nguyenhuy.thudaumot@gmail.com' || email.includes('nguyenhuy.thudaumot')) return true;
+  if (name.includes('nguyễn') && (name.includes('minh huy') || name.includes('huy'))) return true;
+  return false;
+};
+
+export const isViewerBuiVanHuy = (viewer?: StaffUser | null): boolean => {
+  if (!viewer) return false;
+  const email = (viewer.email || '').toLowerCase().trim();
+  const name = (viewer.fullname || '').toLowerCase().trim();
+  if (email === 'buivanhuy0705@gmail.com' || email.includes('buivanhuy')) return true;
+  if (name.includes('bùi') && name.includes('huy')) return true;
+  return false;
+};
+
+export const canViewStaffUserInfo = (targetUser?: StaffUser | null, currentViewer?: StaffUser | null): boolean => {
+  if (!targetUser) return false;
+  // If target is NOT Nguyễn Minh Huy, anyone with access can view
+  if (!isUserNguyenMinhHuy(targetUser)) return true;
+
+  // Target IS Nguyễn Minh Huy:
+  // 1. Only Bùi Văn Huy can view
+  if (isViewerBuiVanHuy(currentViewer)) return true;
+
+  // 2. Nguyễn Minh Huy himself can view his own account
+  if (currentViewer && (currentViewer.id === targetUser.id || (currentViewer.email && currentViewer.email.toLowerCase() === targetUser.email.toLowerCase()))) {
+    return true;
+  }
+
+  // Everyone else: HIDE!
+  return false;
+};
+
+export const deduplicateStaffUsers = (users: StaffUser[]): StaffUser[] => {
+  if (!Array.isArray(users)) return [];
+
+  // 1. Remove accounts without valid email or empty email
+  const withValidEmail = users.filter(u => {
+    if (!u || !u.id) return false;
+    const em = (u.email || '').trim().toLowerCase();
+    return em.length > 3 && em.includes('@');
+  });
+
+  // 2. Group by email (01 email = exactly 01 user account)
+  const map = new Map<string, StaffUser>();
+  const roleWeights: Record<string, number> = {
+    'SUPER_ADMIN': 100,
+    'MTTQ_ADMIN': 90,
+    'ADMIN': 80,
+    'MANAGER': 70,
+    'LEADER': 60,
+    'EDITOR': 50,
+    'STAFF': 40,
+    'NEIGHBORHOOD_LEADER': 30
+  };
+
+  withValidEmail.forEach(u => {
+    const emailKey = u.email.trim().toLowerCase();
+    if (!map.has(emailKey)) {
+      map.set(emailKey, u);
+    } else {
+      const existing = map.get(emailKey)!;
+      const existingWeight = roleWeights[existing.role] || 0;
+      const currentWeight = roleWeights[u.role] || 0;
+
+      const isCanonicalId = u.id === 'staff-1' || u.id === 'staff-2' || u.id.startsWith('staff-kp-');
+      const existingIsCanonical = existing.id === 'staff-1' || existing.id === 'staff-2' || existing.id.startsWith('staff-kp-');
+
+      // Keep higher role or canonical ID, and merge profile attributes to keep the most complete data
+      if (currentWeight > existingWeight || (isCanonicalId && !existingIsCanonical)) {
+        map.set(emailKey, {
+          ...existing,
+          ...u,
+          avatar: u.avatar || existing.avatar,
+          fullname: u.fullname || existing.fullname,
+          phone: u.phone || existing.phone,
+          department: u.department || existing.department,
+          position: u.position || existing.position,
+          role: currentWeight >= existingWeight ? u.role : existing.role,
+          active: u.active !== false && existing.active !== false
+        });
+      } else {
+        // Keep existing but merge missing fields from u
+        map.set(emailKey, {
+          ...u,
+          ...existing,
+          avatar: existing.avatar || u.avatar,
+          phone: existing.phone || u.phone,
+          bio: existing.bio || u.bio
+        });
+      }
+    }
+  });
+
+  return Array.from(map.values());
+};
+
 export const AppStorageEngine = {
   KEYS: STORAGE_KEYS,
 
@@ -536,11 +640,17 @@ export const AppStorageEngine = {
 
   getStaffUsers: (): StaffUser[] => {
     const raw = loadInitialData(STORAGE_KEYS.STAFF_USERS, INITIAL_STAFF_USERS);
-    return (raw || []).filter(u => u && u.id);
+    const deduped = deduplicateStaffUsers(raw);
+    if (deduped.length !== (raw || []).length) {
+      try {
+        saveStorageData(STORAGE_KEYS.STAFF_USERS, deduped);
+      } catch {}
+    }
+    return deduped;
   },
   saveStaffUsers: (users: StaffUser[]) => {
-    const filtered = (users || []).filter(u => u && u.id);
-    saveStorageData(STORAGE_KEYS.STAFF_USERS, filtered);
+    const deduped = deduplicateStaffUsers(users);
+    saveStorageData(STORAGE_KEYS.STAFF_USERS, deduped);
   },
 
   getAuditLogs: (): AuditLog[] => {

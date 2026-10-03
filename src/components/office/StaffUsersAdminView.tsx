@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { StaffUser, UserRole, UserPermissions } from '../../types';
 import { getOfficialCadreAvatarSvg } from '../../utils/officialImages';
 import { 
@@ -38,7 +38,8 @@ import {
   Layers,
   Database,
   RefreshCw,
-  Info
+  Info,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -55,6 +56,7 @@ import {
 import { auth } from '../../lib/firebase';
 import { CloudDatabase } from '../../lib/firestoreService';
 import { sendPasswordResetEmail } from 'firebase/auth';
+import { AppStorageEngine, deduplicateStaffUsers, canViewStaffUserInfo, isUserNguyenMinhHuy, isViewerBuiVanHuy } from '../../lib/storage';
 
 interface StaffUsersAdminViewProps {
   staffUsers: StaffUser[];
@@ -232,34 +234,45 @@ export const StaffUsersAdminView: React.FC<StaffUsersAdminViewProps> = ({
     img.src = unavatarUrl;
   };
 
-  // KPIs
-  const totalCount = staffUsers.length;
-  const activeCount = staffUsers.filter(u => u.active !== false && u.status !== 'inactive').length;
+  // 1. Canonical Deduplication: 01 Email = 01 Account, delete/purge empty email accounts
+  const cleanStaffUsers = useMemo(() => deduplicateStaffUsers(staffUsers), [staffUsers]);
+
+  // 2. Strict Privacy Filter: Only Bùi Văn Huy can see Nguyễn Minh Huy's account. Other users have it hidden!
+  const visibleStaffUsers = useMemo(() => {
+    return cleanStaffUsers.filter(u => canViewStaffUserInfo(u, currentStaffUser));
+  }, [cleanStaffUsers, currentStaffUser]);
+
+  // KPIs calculated on strictly visible unique staff users
+  const totalCount = visibleStaffUsers.length;
+  const activeCount = visibleStaffUsers.filter(u => u.active !== false && u.status !== 'inactive').length;
   const lockedCount = totalCount - activeCount;
-  const adminCount = staffUsers.filter(u => ['SUPER_ADMIN', 'MTTQ_ADMIN', 'ADMIN', 'MANAGER', 'LEADER'].includes(u.role)).length;
+  const adminCount = visibleStaffUsers.filter(u => ['SUPER_ADMIN', 'MTTQ_ADMIN', 'ADMIN', 'MANAGER', 'LEADER'].includes(u.role)).length;
 
   // Filtered Users
-  const filteredUsers = staffUsers.filter(u => {
-    if (search) {
-      const q = search.toLowerCase();
-      const matchName = (u.fullname || '').toLowerCase().includes(q);
-      const matchEmail = (u.email || '').toLowerCase().includes(q);
-      const matchPos = (u.position || '').toLowerCase().includes(q);
-      const matchDept = (u.department || '').toLowerCase().includes(q);
-      const matchPhone = (u.phone || '').includes(q);
-      const matchId = (u.id || '').toLowerCase().includes(q);
-      if (!matchName && !matchEmail && !matchPos && !matchDept && !matchPhone && !matchId) {
+  const filteredUsers = useMemo(() => {
+    return visibleStaffUsers.filter(u => {
+      if (search) {
+        const q = search.toLowerCase();
+        const matchName = (u.fullname || '').toLowerCase().includes(q);
+        const matchEmail = (u.email || '').toLowerCase().includes(q);
+        const matchPos = (u.position || '').toLowerCase().includes(q);
+        const matchDept = (u.department || '').toLowerCase().includes(q);
+        const matchPhone = (u.phone || '').includes(q);
+        const matchId = (u.id || '').toLowerCase().includes(q);
+        if (!matchName && !matchEmail && !matchPos && !matchDept && !matchPhone && !matchId) {
+          return false;
+        }
+      }
+      if (roleFilter !== 'ALL' && u.role !== roleFilter) {
         return false;
       }
-    }
-    if (roleFilter !== 'ALL' && u.role !== roleFilter) {
-      return false;
-    }
-    const isActive = u.active !== false && u.status !== 'inactive';
-    if (statusFilter === 'ACTIVE' && !isActive) return false;
-    if (statusFilter === 'INACTIVE' && isActive) return false;
-    return true;
-  });
+      const isActive = u.active !== false && u.status !== 'inactive';
+      if (statusFilter === 'ACTIVE' && !isActive) return false;
+      if (statusFilter === 'INACTIVE' && isActive) return false;
+
+      return true;
+    });
+  }, [visibleStaffUsers, search, roleFilter, statusFilter]);
 
   // Open Add Modal
   const handleOpenAdd = () => {
@@ -283,6 +296,10 @@ export const StaffUsersAdminView: React.FC<StaffUsersAdminViewProps> = ({
 
   // Open Edit Modal
   const handleOpenEdit = (u: StaffUser) => {
+    if (!canViewStaffUserInfo(u, currentStaffUser)) {
+      alert('Bạn không có quyền xem hoặc chỉnh sửa thông tin tài khoản này.');
+      return;
+    }
     const modCheck = canModifyUser(currentStaffUser, u);
     if (!modCheck.allowed) {
       alert(modCheck.reason || 'Bạn không có quyền chỉnh sửa tài khoản này.');
@@ -570,6 +587,20 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
     setDeletingUser(null);
   };
 
+  const [cleanupNotice, setCleanupNotice] = useState<string | null>(null);
+
+  // Manual cleanup: Deduplicate by email and remove accounts with no email
+  const handleCleanDuplicates = () => {
+    const deduped = deduplicateStaffUsers(staffUsers);
+    const removedCount = staffUsers.length - deduped.length;
+    AppStorageEngine.saveStaffUsers(deduped);
+    deduped.forEach(u => {
+      CloudDatabase.saveStaffUser(u);
+    });
+    setCleanupNotice(`ĐÃ HOÀN TẤT DỌN DẸP! Đã gom các tài khoản cùng 01 email và loại bỏ ${removedCount > 0 ? removedCount : 0} tài khoản trùng lặp/thiếu email. Hiện có ${deduped.length} cán bộ hợp lệ.`);
+    setTimeout(() => setCleanupNotice(null), 6000);
+  };
+
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header Banner */}
@@ -589,14 +620,23 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
                 </span>
               </div>
               <p className="text-xs text-blue-100 mt-1 font-medium">
-                Cơ chế phân quyền theo vai trò và UID độc lập, hỗ trợ không giới hạn Admin và phân quyền bài viết, văn bản chi tiết.
+                Cơ chế phân quyền theo vai trò và UID độc lập, chuẩn hóa 01 Email = 01 Tài khoản cán bộ, bảo vệ quyền riêng tư tuyệt đối.
               </p>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={handleCleanDuplicates}
+            className="px-3.5 py-2.5 bg-white/20 hover:bg-white/30 text-white font-extrabold text-xs rounded-2xl border border-white/30 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer backdrop-blur-md"
+            title="Gom các tài khoản cùng email và loại bỏ tài khoản không có email"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>Gộp 1 Email / Cán bộ</span>
+          </button>
+
           {currentStaffUser && (
             <button
               onClick={() => handleOpenDiagnostics(currentStaffUser)}
@@ -604,7 +644,7 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
               title="Kiểm tra trạng thái quyền của tài khoản bạn"
             >
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              <span>Kiểm Tra Quyền Của Bạn</span>
+              <span>Kiểm Tra Quyền</span>
             </button>
           )}
 
@@ -617,6 +657,22 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
           </button>
         </div>
       </div>
+
+      {/* Cleanup notification banner */}
+      {cleanupNotice && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-2xl flex items-center gap-3 text-xs font-bold shadow-sm"
+        >
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span className="flex-1">{cleanupNotice}</span>
+          <button onClick={() => setCleanupNotice(null)} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </motion.div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

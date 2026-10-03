@@ -76,6 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
+    { id: 'hcm_space', label: 'Không gian Văn hóa Hồ Chí Minh', icon: Landmark },
     { id: 'about', label: 'Giới thiệu', icon: Info },
     { id: 'documents', label: 'Văn bản triển khai', icon: FileText },
     { id: 'news', label: 'Tin tức', icon: BookOpen },
@@ -209,7 +210,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => {
+                      if (item.id === 'hcm_space' && onOpenHcmSpaceModal) {
+                        onOpenHcmSpaceModal();
+                      } else {
+                        setActiveTab(item.id);
+                      }
+                    }}
                     className={`flex items-center justify-center gap-1 px-2.5 py-1.5 text-[11px] font-bold rounded-full transition-all cursor-pointer whitespace-nowrap relative ${
                       isActive
                         ? 'bg-[#0068ff] text-white shadow-xs font-black'
@@ -265,7 +272,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <button
                       key={item.id}
                       onClick={() => {
-                        setActiveTab(item.id);
+                        if (item.id === 'hcm_space' && onOpenHcmSpaceModal) {
+                          onOpenHcmSpaceModal();
+                        } else {
+                          setActiveTab(item.id);
+                        }
                         setMobileMenuOpen(false);
                       }}
                       className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all ${

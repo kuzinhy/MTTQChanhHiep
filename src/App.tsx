@@ -100,7 +100,7 @@ import {
 
 import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization, FeedbackItem, ArticleSubmission } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
-import { AppStorageEngine } from './lib/storage';
+import { AppStorageEngine, deduplicateStaffUsers } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
 import { NotificationService } from './services/notificationService';
 import { canCreatePost, canEditPost, canDeletePost, canPublishPost, mapPermissionError, getUserEffectivePermissions } from './services/permissionService';
@@ -123,7 +123,8 @@ export const VALID_PORTAL_TABS = [
   'surveys',
   'opinion',
   'organizations',
-  'privacy'
+  'privacy',
+  'hcm_space'
 ];
 
 export const VALID_OFFICE_VIEWS = [
@@ -194,6 +195,7 @@ export const PORTAL_HASH_TO_TAB: Record<string, string> = {
   '/privacy': 'privacy',
   '/giao-dien-moi': 'new_interface',
   '/khong-gian-van-hoa-ho-chi-minh': 'hcm_space',
+  '/khong-gian-ho-chi-minh': 'hcm_space',
   '/kgvh-ho-chi-minh': 'hcm_space'
 };
 
@@ -210,7 +212,8 @@ export const TAB_TO_HASH: Record<string, string> = {
   opinion: '#/y-kien-dan-nguyen',
   organizations: '#/to-chuc-thanh-vien',
   privacy: '#/chinh-sach-bao-mat',
-  new_interface: '#/giao-dien-moi'
+  new_interface: '#/giao-dien-moi',
+  hcm_space: '#/khong-gian-van-hoa-ho-chi-minh'
 };
 
 export default function App() {
@@ -261,6 +264,18 @@ export default function App() {
 
   const handleSelectPortalTab = (tab: string) => {
     setNotFoundRoute(null);
+    if (tab === 'hcm_space') {
+      setIsHcmSpaceModalOpen(true);
+      setPortalTab('home');
+      setSelectedArticle(null);
+      setSelectedDocument(null);
+      setSelectedCompetition(null);
+      setShowStaffLoginPage(false);
+      if (window.location.hash !== '#/khong-gian-van-hoa-ho-chi-minh') {
+        window.location.hash = '#/khong-gian-van-hoa-ho-chi-minh';
+      }
+      return;
+    }
     setPortalTab(tab);
     setSelectedArticle(null);
     setSelectedDocument(null);
@@ -531,11 +546,12 @@ export default function App() {
         setCompetitions(cleanComps);
       },
       onStaffUsersUpdate: (users) => {
-        setStaffUsers(users);
+        const cleanUsers = deduplicateStaffUsers(users);
+        setStaffUsers(cleanUsers);
         // If current staff user is logged in, sync their state from cloud updates
         const currentSaved = AppStorageEngine.getCurrentUser();
         if (currentSaved) {
-          const matched = users.find(u => u.id === currentSaved.id || u.email.toLowerCase() === currentSaved.email.toLowerCase());
+          const matched = cleanUsers.find(u => u.id === currentSaved.id || (u.email && currentSaved.email && u.email.toLowerCase() === currentSaved.email.toLowerCase()));
           if (matched) {
             setCurrentStaffUser(matched);
             AppStorageEngine.saveCurrentUser(matched);
@@ -695,14 +711,15 @@ export default function App() {
         return;
       }
 
-      // 6. Staff Login route: #/dang-nhap or #/dang-nhap-can-bo
-      if (rawHash === '#/khong-gian-van-hoa-ho-chi-minh' || rawHash === '#/kgvh-ho-chi-minh') {
+      if (rawHash === '#/khong-gian-van-hoa-ho-chi-minh' || rawHash === '#/kgvh-ho-chi-minh' || rawHash === '#/khong-gian-ho-chi-minh') {
         setNotFoundRoute(null);
         setCurrentSpace('PORTAL');
+        setPortalTab('home');
         setIsHcmSpaceModalOpen(true);
         setSelectedArticle(null);
         setSelectedDocument(null);
         setSelectedCompetition(null);
+        setShowStaffLoginPage(false);
         return;
       }
 
@@ -853,16 +870,22 @@ export default function App() {
   };
 
   const handleTriggerSystemToast = (title: string, message: string) => {
-    playNotificationSound();
     setToasts(prev => {
-      // Prevent duplicate notifications with the same message or related content within active toasts
+      const cleanTitle = (title || '').replace(/📢|\[.*?\]/g, '').trim();
+      const cleanMsg = (message || '').trim();
+
       const isDuplicate = prev.some(t => {
-        if (t.title === title && t.message === message) return true;
-        if (t.message && message && (t.message.includes(message) || message.includes(t.message))) return true;
+        const tTitle = (t.title || '').replace(/📢|\[.*?\]/g, '').trim();
+        const tMsg = (t.message || '').trim();
+        if (tTitle === cleanTitle && tMsg === cleanMsg) return true;
+        if (tMsg && cleanMsg && (tMsg.includes(cleanMsg) || cleanMsg.includes(tMsg))) return true;
+        if (tTitle && cleanTitle && (tTitle.includes(cleanTitle) || cleanTitle.includes(tTitle))) return true;
         return false;
       });
+
       if (isDuplicate) return prev;
 
+      playNotificationSound();
       const newToast: ToastMessage = {
         id: 'toast-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
         type: 'SYSTEM',
@@ -870,7 +893,7 @@ export default function App() {
         message,
         timestamp: 'Vừa xong'
       };
-      return [newToast, ...prev].slice(0, 4);
+      return [newToast, ...prev].slice(0, 3);
     });
   };
 
@@ -1441,7 +1464,7 @@ export default function App() {
                 />
               ) : (
                 <>
-                  {portalTab === 'home' && (
+                  {(portalTab === 'home' || portalTab === 'hcm_space') && (
                     <ChanhHiepPortalHome
                       articles={articles}
                       documents={documents}
@@ -1532,7 +1555,10 @@ export default function App() {
               )}
             </main>
 
-            <Footer onSelectTab={(tab) => handleSelectPortalTab(tab)} />
+            <Footer 
+              onSelectTab={(tab) => handleSelectPortalTab(tab)} 
+              onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
+            />
             <AIChatWidget 
               documents={documents}
               articles={articles}
@@ -1592,10 +1618,13 @@ export default function App() {
                   />
                 </div>
               </div>
-              <Footer onSelectTab={(tab) => {
-                setCurrentSpace('PORTAL');
-                handleSelectPortalTab(tab);
-              }} />
+              <Footer 
+                onSelectTab={(tab) => {
+                  setCurrentSpace('PORTAL');
+                  handleSelectPortalTab(tab);
+                }} 
+                onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
+              />
             </motion.div>
           ) : officeView === 'ai_assistant' ? (
             <motion.div
@@ -2376,6 +2405,7 @@ export default function App() {
       <DigitalDirectoryModal
         isOpen={isDirectoryModalOpen}
         onClose={() => setIsDirectoryModalOpen(false)}
+        currentUser={currentStaffUser}
       />
 
       <NotificationCenterModal

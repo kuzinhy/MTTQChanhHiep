@@ -12,7 +12,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { AppStorageEngine } from './storage';
+import { AppStorageEngine, deduplicateStaffUsers } from './storage';
 import {
   INITIAL_ARTICLES,
   INITIAL_DOCUMENTS,
@@ -332,16 +332,50 @@ class CloudSyncService {
         this.syncListeners.push(unsub);
       }
 
-      // Staff Users Listener
+      // Staff Users Listener (1 email = 1 account, remove empty emails, deduplicate)
       if (callbacks.onStaffUsersUpdate) {
         const unsub = onSnapshot(collection(db, FirestoreCollections.STAFF_USERS), (snapshot) => {
           try {
-            const remoteStaff: StaffUser[] = snapshot.docs
+            const rawStaff: StaffUser[] = snapshot.docs
               .map(d => ({ ...(d.data() as StaffUser), id: d.id }))
               .filter(u => u && u.id);
 
-            AppStorageEngine.saveStaffUsers(remoteStaff);
-            callbacks.onStaffUsersUpdate?.(remoteStaff);
+            // Clean up invalid docs without email directly in Firestore in background
+            const redundantDocIds: string[] = [];
+            const seenEmails = new Map<string, string>(); // email -> canonical docId
+
+            snapshot.docs.forEach(d => {
+              const u = d.data() as StaffUser;
+              const email = (u?.email || '').trim().toLowerCase();
+              if (!email || !email.includes('@')) {
+                redundantDocIds.push(d.id);
+              } else if (seenEmails.has(email)) {
+                // Secondary duplicate document in Firestore
+                const canonicalId = seenEmails.get(email)!;
+                // If this doc is a canonical named ID (like staff-1, staff-2), keep it and delete the other
+                if (d.id === 'staff-1' || d.id === 'staff-2' || d.id.startsWith('staff-kp-')) {
+                  redundantDocIds.push(canonicalId);
+                  seenEmails.set(email, d.id);
+                } else {
+                  redundantDocIds.push(d.id);
+                }
+              } else {
+                seenEmails.set(email, d.id);
+              }
+            });
+
+            // Async background purge of invalid / duplicate Firestore docs
+            if (redundantDocIds.length > 0) {
+              setTimeout(() => {
+                redundantDocIds.forEach(id => {
+                  deleteDoc(doc(db, FirestoreCollections.STAFF_USERS, id)).catch(() => {});
+                });
+              }, 500);
+            }
+
+            const deduped = deduplicateStaffUsers(rawStaff);
+            AppStorageEngine.saveStaffUsers(deduped);
+            callbacks.onStaffUsersUpdate?.(deduped);
           } catch (syncErr) {
             console.error('[Firestore] Error in staff users sync:', syncErr);
             const fallbackStaff = AppStorageEngine.getStaffUsers();

@@ -30,12 +30,17 @@ export const RealtimeNotificationPopupModal: React.FC<RealtimeNotificationPopupM
   onNavigateRoute
 }) => {
   const [activePopupItem, setActivePopupItem] = useState<NotificationItem | null>(null);
+  const inMemoryShownRef = useRef<Set<string>>(new Set());
   const [shownPopupIds, setShownPopupIds] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem(SHOWN_POPUPS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return new Set(parsed);
+        if (Array.isArray(parsed)) {
+          const initialSet = new Set<string>(parsed);
+          parsed.forEach(id => inMemoryShownRef.current.add(id));
+          return initialSet;
+        }
       }
     } catch (e) {
       console.warn('[PopupModal] Error loading shown popup IDs:', e);
@@ -85,30 +90,30 @@ export const RealtimeNotificationPopupModal: React.FC<RealtimeNotificationPopupM
     }
   };
 
-  // Helper to trigger popup for a notification if not previously shown
+  // Helper to trigger popup for a notification if not previously shown (strictly 1 time)
   const triggerPopupForNotification = (item: NotificationItem) => {
     if (!item || !item.id) return;
 
     // Filter sent/active status
     if (item.status && item.status !== 'SENT' && item.status !== 'SENDING') return;
 
-    // Check if shown
-    setShownPopupIds(prev => {
-      if (prev.has(item.id)) return prev;
+    // Synchronous immediate deduplication prevents parallel double execution
+    if (inMemoryShownRef.current.has(item.id)) return;
+    inMemoryShownRef.current.add(item.id);
 
-      // New notification detected!
+    setShownPopupIds(prev => {
       const updated = new Set(prev).add(item.id);
       try {
         localStorage.setItem(SHOWN_POPUPS_STORAGE_KEY, JSON.stringify(Array.from(updated)));
       } catch (e) {
         console.warn('Failed saving shown popup IDs:', e);
       }
-
-      // Show popup & play sound chime
-      setActivePopupItem(item);
-      playAlertChime();
       return updated;
     });
+
+    // Show popup & play sound chime exactly once
+    setActivePopupItem(item);
+    playAlertChime();
   };
 
   useEffect(() => {

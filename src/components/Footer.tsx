@@ -20,7 +20,8 @@ import { VisitorStatsModal } from './VisitorStatsModal';
 
 export const Footer: React.FC<{
   onSelectTab?: (tab: string) => void;
-}> = ({ onSelectTab }) => {
+  onOpenHcmSpaceModal?: () => void;
+}> = ({ onSelectTab, onOpenHcmSpaceModal }) => {
   const [onlineCount, setOnlineCount] = useState<number>(() => VisitorTrackerEngine.getOnlineCount());
   const [stats, setStats] = useState<VisitorStats>(() => VisitorTrackerEngine.getStats());
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -110,7 +111,19 @@ export const Footer: React.FC<{
                   className="text-slate-300 hover:text-amber-300 transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                  Trang chủ & Cổng thông tin Mặt trận
+                  Trang chủ &amp; Cổng thông tin Mặt trận
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => {
+                    if (onOpenHcmSpaceModal) onOpenHcmSpaceModal();
+                    else handleNav('hcm_space');
+                  }} 
+                  className="text-amber-300 hover:text-amber-200 font-black transition-colors flex items-center gap-1.5 cursor-pointer text-left"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  🌸 Không gian Văn hóa Hồ Chí Minh
                 </button>
               </li>
               <li>
