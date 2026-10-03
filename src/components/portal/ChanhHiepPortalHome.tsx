@@ -40,6 +40,10 @@ import { CitizenWelfareHubModal } from './CitizenWelfareHubModal';
 import { ARTICLE_BANNERS, getBannerForCategory } from '../../utils/officialImages';
 import { handleOptimizedImageError } from '../../lib/imageOptimization';
 import { ProcedureGuideCard } from '../procedure/ProcedureGuideCard';
+import { OneStopQueueEstimatorWidget } from './OneStopQueueEstimatorWidget';
+import { LifeEventBundlesWidget } from './LifeEventBundlesWidget';
+import { CivicFeeCalculatorModal } from './CivicFeeCalculatorModal';
+import { IndoorWayfindingModal } from './IndoorWayfindingModal';
 
 const getImageUrl = (image?: string | CloudinaryImageMeta, category?: string): string => {
   const fallback = category ? getBannerForCategory(category) : ARTICLE_BANNERS.default;
@@ -143,9 +147,10 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
     };
   }, []);
 
-  // Citizen Hub Modals State (Trụ cột 1)
   const [isOpinionTrackerOpen, setIsOpinionTrackerOpen] = useState(false);
   const [isWelfareHubOpen, setIsWelfareHubOpen] = useState(false);
+  const [isFeeCalculatorOpen, setIsFeeCalculatorOpen] = useState(false);
+  const [isIndoorWayfindingOpen, setIsIndoorWayfindingOpen] = useState(false);
   const [welfareHubDefaultTab, setWelfareHubDefaultTab] = useState<'sos_aid' | 'donation' | 'solidarity_handbook'>('sos_aid');
 
   const openWelfareModal = (tab: 'sos_aid' | 'donation' | 'solidarity_handbook') => {
@@ -657,11 +662,10 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 3.2. VISUAL ONE-STOP PROCEDURE GUIDE CARD (BÊN DƯỚI MẶT TRẬN SỐ HÔM NAY) */}
-      {/* ========================================================================= */}
-      <section>
+      <section className="space-y-4">
         <ProcedureGuideCard onOpen={onOpenProcedureModal} />
+        <OneStopQueueEstimatorWidget onOpenWayfinding={() => setIsIndoorWayfindingOpen(true)} />
+        <LifeEventBundlesWidget onOpenProcedureModal={onOpenProcedureModal} />
       </section>
 
       {/* ========================================================================= */}
@@ -1049,6 +1053,16 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         isOpen={isWelfareHubOpen}
         onClose={() => setIsWelfareHubOpen(false)}
         defaultTab={welfareHubDefaultTab}
+      />
+
+      <CivicFeeCalculatorModal
+        isOpen={isFeeCalculatorOpen}
+        onClose={() => setIsFeeCalculatorOpen(false)}
+      />
+
+      <IndoorWayfindingModal
+        isOpen={isIndoorWayfindingOpen}
+        onClose={() => setIsIndoorWayfindingOpen(false)}
       />
 
     </div>

@@ -114,6 +114,7 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
   const currentStep: ProcedureStep | undefined = activeProcedure?.steps[activeStepIndex];
   const totalSteps = activeProcedure?.steps.length || 0;
   const progressPercent = totalSteps > 0 ? Math.round(((activeStepIndex + 1) / totalSteps) * 100) : 0;
+  const isLastStep = activeStepIndex === totalSteps - 1;
 
   const docs = activeProcedure?.documents || [];
   const checkedDocsCount = docs.filter(d => checklistChecked[d.id]).length;
@@ -277,10 +278,10 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
 
             </div>
           ) : (
-            /* ================= VIEW 2: STEP SIMULATION (WHITE THEME & NO CLIPPING) ================= */
+            /* ================= VIEW 2: STEP SIMULATION WITH COLOR-CODED STATUS BADGES ================= */
             <div className="space-y-2.5 sm:space-y-3">
               
-              {/* 1. TOP STEPPER NODES ROW */}
+              {/* 1. TOP STEPPER NODES ROW WITH COLOR-CODED STATUS BADGES */}
               <div className="bg-slate-50/90 rounded-xl border border-slate-200 p-2 sm:p-2.5 shadow-xs space-y-1.5">
                 <div className="flex items-center justify-between text-[11px] font-mono">
                   <span className="text-slate-600 font-bold">
@@ -297,8 +298,8 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
                   />
                 </div>
 
-                {/* Step Node Buttons */}
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 pt-0.5">
+                {/* Step Node Buttons with Status Badges */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 pt-0.5">
                   {activeProcedure.steps.map((step, idx) => {
                     const isActive = activeStepIndex === idx;
                     const isPassed = activeStepIndex > idx;
@@ -308,20 +309,37 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
                         key={step.id}
                         type="button"
                         onClick={() => { setIsPlaying(false); setActiveStepIndex(idx); }}
-                        className={`p-1.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between space-y-0.5 ${
+                        className={`p-1.5 sm:p-2 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
                           isActive
                             ? 'bg-blue-600 text-white border-blue-600 font-black shadow-sm scale-[1.01]'
                             : isPassed
-                              ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                              ? 'bg-emerald-50/80 border-emerald-300 text-emerald-900'
                               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className={`text-[9px] font-mono font-bold ${isActive ? 'text-white' : isPassed ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-[9px] font-mono font-bold ${isActive ? 'text-blue-100' : isPassed ? 'text-emerald-700' : 'text-slate-500'}`}>
                             BƯỚC 0{idx + 1}
                           </span>
-                          {isPassed && <Check className="w-2.5 h-2.5 text-emerald-600 stroke-[3]" />}
+
+                          {/* COLOR-CODED STATUS BADGE */}
+                          {isPassed ? (
+                            <span className="px-1.5 py-0.2 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-[8px] flex items-center gap-0.5 shrink-0 shadow-2xs">
+                              <Check className="w-2 h-2 stroke-[3]" />
+                              <span>Hoàn thành</span>
+                            </span>
+                          ) : isActive ? (
+                            <span className="px-1.5 py-0.2 rounded-md bg-amber-300 text-slate-950 font-black text-[8px] flex items-center gap-1 shrink-0 shadow-2xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
+                              <span>Đang xử lý</span>
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-500 border border-slate-200 font-medium text-[8px] shrink-0">
+                              Chờ duyệt
+                            </span>
+                          )}
                         </div>
+
                         <span className="text-[11px] font-bold truncate leading-tight block">
                           {step.title}
                         </span>
@@ -335,8 +353,8 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
               {currentStep && (
                 <div className="bg-slate-50/70 rounded-2xl border border-slate-200 p-3 sm:p-3.5 space-y-2.5">
                   
-                  {/* Step Header */}
-                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                  {/* Step Header with Prominent Status Pill */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="px-2 py-0.5 rounded bg-blue-600 text-white font-mono font-black text-[11px] shrink-0 shadow-xs">
                         0{activeStepIndex + 1}
@@ -346,9 +364,24 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
                       </h3>
                     </div>
 
-                    <div className="text-[10px] text-slate-600 font-medium shrink-0 flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
-                      <Clock className="w-3 h-3 text-blue-600" />
-                      <span>{activeProcedure.processingTime}</span>
+                    <div className="flex items-center gap-2">
+                      {/* Prominent Stage State Badge */}
+                      {isLastStep ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold flex items-center gap-1 shadow-2xs">
+                          <Check className="w-3 h-3 text-emerald-600" />
+                          <span>Giai đoạn: Hoàn tất thủ tục</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold flex items-center gap-1 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                          <span>Giai đoạn: Đang xử lý</span>
+                        </span>
+                      )}
+
+                      <div className="text-[10px] text-slate-600 font-medium shrink-0 flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                        <Clock className="w-3 h-3 text-blue-600" />
+                        <span>{activeProcedure.processingTime}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -457,7 +490,7 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
                 </div>
               )}
 
-              {/* 3. NAVIGATION CONTROLS BAR (ALWAYS VISIBLE & PERFECTLY PINNED) */}
+              {/* 3. NAVIGATION CONTROLS BAR */}
               <div className="bg-slate-50/90 rounded-xl border border-slate-200 p-2 sm:p-2.5 shadow-xs flex items-center justify-between gap-2">
                 <button
                   type="button"

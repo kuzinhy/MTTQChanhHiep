@@ -9,6 +9,7 @@ import {
   Sparkles, 
   FileCheck, 
   BarChart3, 
+  TrendingUp,
   Users, 
   Building2, 
   Lock, 
@@ -33,6 +34,8 @@ import {
   ClipboardList,
   Bot,
   Eye,
+  Radio,
+  GitMerge,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -143,7 +146,11 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
         { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
         { id: 'procedures', label: 'Quy trình Thủ tục (Builder)', icon: ClipboardList, badge: 'MỘT CỬA' },
+        { id: 'bottleneck_analytics', label: 'Điểm nghẽn & Báo cáo CCHC', icon: BarChart3, badge: 'AI CCHC' },
+        { id: 'analytics_charts', label: 'Biểu đồ Lưu lượng & Tiến độ', icon: TrendingUp, badge: 'RECHARTS' },
         { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
+        { id: 'duplicate_opinions', label: 'Gom cụm Dân nguyện', icon: GitMerge, badge: 'CLUSTERING' },
+        { id: 'geo_broadcast', label: 'Phát Cảnh báo 21 Khu phố', icon: Radio, badge: 'PHÁT SÓNG' },
         { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
         { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
         { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },

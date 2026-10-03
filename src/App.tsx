@@ -71,6 +71,10 @@ import { EmailSettingsView } from './components/office/EmailSettingsView';
 import { GoogleDriveAdminView } from './components/office/GoogleDriveAdminView';
 import { VolunteersAdminView } from './components/office/VolunteersAdminView';
 import { ProcedureWorkflowBuilderAdminView as ProceduresAdminView } from './components/office/ProcedureWorkflowBuilderAdminView';
+import { ProcedureBottleneckAnalyticsAdminView } from './components/office/ProcedureBottleneckAnalyticsAdminView';
+import { CivicAnalyticsChartsAdminView } from './components/office/CivicAnalyticsChartsAdminView';
+import { DuplicateOpinionsClusteringAdminView } from './components/office/DuplicateOpinionsClusteringAdminView';
+import { GeoBroadcastAdminView } from './components/office/GeoBroadcastAdminView';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
@@ -161,7 +165,11 @@ export const VALID_OFFICE_VIEWS = [
   'audit_logs',
   'notifications',
   'email_settings',
-  'google_drive_storage',
+  'procedures',
+  'bottleneck_analytics',
+  'analytics_charts',
+  'duplicate_opinions',
+  'geo_broadcast',
   'volunteers_admin',
   'system_health'
 ];
@@ -206,7 +214,7 @@ export const TAB_TO_HASH: Record<string, string> = {
 
 export default function App() {
   // App Initial Loading State
-  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [isAppLoading, setIsAppLoading] = useState(false);
 
 
   // Navigation & Space State
@@ -1923,6 +1931,22 @@ export default function App() {
 
                     {officeView === 'procedures' && (
                       <ProceduresAdminView onTriggerToast={handleTriggerSystemToast} />
+                    )}
+
+                    {officeView === 'bottleneck_analytics' && (
+                      <ProcedureBottleneckAnalyticsAdminView onTriggerToast={handleTriggerSystemToast} />
+                    )}
+
+                    {officeView === 'analytics_charts' && (
+                      <CivicAnalyticsChartsAdminView onTriggerToast={handleTriggerSystemToast} />
+                    )}
+
+                    {officeView === 'duplicate_opinions' && (
+                      <DuplicateOpinionsClusteringAdminView onTriggerToast={handleTriggerSystemToast} />
+                    )}
+
+                    {officeView === 'geo_broadcast' && (
+                      <GeoBroadcastAdminView onTriggerToast={handleTriggerSystemToast} />
                     )}
 
 
