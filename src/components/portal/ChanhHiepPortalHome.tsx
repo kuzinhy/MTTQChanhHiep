@@ -39,6 +39,7 @@ import { CitizenOpinionTrackerModal } from './CitizenOpinionTrackerModal';
 import { CitizenWelfareHubModal } from './CitizenWelfareHubModal';
 import { ARTICLE_BANNERS, getBannerForCategory } from '../../utils/officialImages';
 import { handleOptimizedImageError } from '../../lib/imageOptimization';
+import { ProcedureGuideCard } from '../procedure/ProcedureGuideCard';
 
 const getImageUrl = (image?: string | CloudinaryImageMeta, category?: string): string => {
   const fallback = category ? getBannerForCategory(category) : ARTICLE_BANNERS.default;
@@ -59,6 +60,7 @@ interface ChanhHiepPortalHomeProps {
   onOpenHcmSpaceModal: () => void;
   onOpenVolunteerModal: () => void;
   onOpenDirectory?: () => void;
+  onOpenProcedureModal: () => void;
   onGoToOffice: (view?: any) => void;
   currentStaffUser?: StaffUser | null;
 }
@@ -72,6 +74,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   onOpenHcmSpaceModal,
   onOpenVolunteerModal,
   onOpenDirectory,
+  onOpenProcedureModal,
   onGoToOffice,
   currentStaffUser
 }) => {
@@ -652,6 +655,13 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
 
         </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 3.2. VISUAL ONE-STOP PROCEDURE GUIDE CARD (BÊN DƯỚI MẶT TRẬN SỐ HÔM NAY) */}
+      {/* ========================================================================= */}
+      <section>
+        <ProcedureGuideCard onOpen={onOpenProcedureModal} />
       </section>
 
       {/* ========================================================================= */}

@@ -31,6 +31,7 @@ import { VolunteerRegistrationModal } from './components/VolunteerRegistrationMo
 import { DigitalDirectoryModal } from './components/DigitalDirectoryModal';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { HoChiMinhCulturalSpaceModal } from './components/cultural/HoChiMinhCulturalSpaceModal';
+import { ProcedureControlCenterModal as ProcedureGuideModal } from './components/procedure/ProcedureControlCenterModal';
 import { NotFoundPage } from './components/NotFoundPage';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from './data/neighborhoodsList';
 
@@ -69,6 +70,7 @@ import { NotificationAdminView } from './components/office/NotificationAdminView
 import { EmailSettingsView } from './components/office/EmailSettingsView';
 import { GoogleDriveAdminView } from './components/office/GoogleDriveAdminView';
 import { VolunteersAdminView } from './components/office/VolunteersAdminView';
+import { ProcedureWorkflowBuilderAdminView as ProceduresAdminView } from './components/office/ProcedureWorkflowBuilderAdminView';
 import { UserProfileView } from './components/office/UserProfileView';
 import { StaffLoginModal } from './components/office/StaffLoginModal';
 import { SessionLockScreen } from './components/office/SessionLockScreen';
@@ -228,6 +230,8 @@ export default function App() {
   const [isDirectoryModalOpen, setIsDirectoryModalOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [isHcmSpaceModalOpen, setIsHcmSpaceModalOpen] = useState(false);
+  const [isProcedureModalOpen, setIsProcedureModalOpen] = useState(false);
+  const [selectedProcedureId, setSelectedProcedureId] = useState<string | undefined>(undefined);
   const [isWelfareMapOpen, setIsWelfareMapOpen] = useState(false);
   const [isWelfareRegistrationModalOpen, setIsWelfareRegistrationModalOpen] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
@@ -1438,6 +1442,7 @@ export default function App() {
                       onOpenHcmSpaceModal={() => setIsHcmSpaceModalOpen(true)}
                       onOpenVolunteerModal={() => setIsVolunteerModalOpen(true)}
                       onOpenDirectory={() => setIsDirectoryModalOpen(true)}
+                      onOpenProcedureModal={() => { setSelectedProcedureId(undefined); setIsProcedureModalOpen(true); }}
                       onGoToOffice={(view) => {
                         const targetView = view || 'dashboard';
                         setOfficeView(targetView);
@@ -1914,6 +1919,10 @@ export default function App() {
                       <DocumentManager 
                         onShowToast={(type, msg) => handleTriggerSystemToast(type === 'error' ? 'Lỗi' : 'Thông báo', msg)}
                       />
+                    )}
+
+                    {officeView === 'procedures' && (
+                      <ProceduresAdminView onTriggerToast={handleTriggerSystemToast} />
                     )}
 
 
@@ -2436,6 +2445,16 @@ export default function App() {
           shareUrl={sharePosterData.url}
         />
       )}
+
+      {/* VISUAL ONE-STOP PROCEDURE GUIDE MODAL */}
+      <ProcedureGuideModal
+        isOpen={isProcedureModalOpen}
+        onClose={() => setIsProcedureModalOpen(false)}
+        initialProcedureId={selectedProcedureId}
+        onAskAi={(question) => {
+          // Trigger AI Assistant
+        }}
+      />
     </div>
   );
 }

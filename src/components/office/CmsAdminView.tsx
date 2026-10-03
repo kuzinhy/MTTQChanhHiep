@@ -60,6 +60,7 @@ import {
   Trash2, 
   Check, 
   Eye, 
+  EyeOff,
   Search, 
   Filter, 
   X, 
@@ -965,6 +966,25 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setIsDocModalOpen(true);
   };
 
+  // Quick Toggle Hide / Show Document (Ẩn / Hiện văn bản)
+  const handleToggleHideDocument = (doc: OfficialDocument) => {
+    const nextIsPublic = doc.isPublic === false ? true : false;
+    const nextStatus = nextIsPublic ? 'Published' : 'Hidden';
+    const updated: OfficialDocument = {
+      ...doc,
+      isPublic: nextIsPublic,
+      status: nextStatus as any
+    };
+    if (onUpdateDocument) {
+      onUpdateDocument(updated);
+    }
+    showSuccessBanner(
+      nextIsPublic 
+        ? `Đã hiển thị công khai văn bản số hiệu "${doc.codeNumber}" trên Cổng thông tin!`
+        : `Đã ẩn văn bản số hiệu "${doc.codeNumber}" khỏi trang công khai thành công!`
+    );
+  };
+
   // Handle Document File Upload & Auto AI Metadata Extraction
   const handleDocFileUpload = (e: React.ChangeEvent<HTMLInputElement> | { target: { files: FileList | File[] } }) => {
     const file = e.target.files?.[0];
@@ -1815,6 +1835,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                         <td className="px-4 py-3.5 font-bold text-slate-900 max-w-md">
                           <p className="line-clamp-2">{doc.title}</p>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {doc.isPublic === false && (
+                              <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-black uppercase border border-amber-300">
+                                🔒 Đang ẩn
+                              </span>
+                            )}
                             {doc.fileName && (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
                                 <FileCheck className="w-3 h-3 text-blue-600" />
@@ -1837,6 +1862,17 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleToggleHideDocument(doc)}
+                              className={`p-2 rounded-xl transition-all cursor-pointer ${
+                                doc.isPublic === false 
+                                  ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' 
+                                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                              }`}
+                              title={doc.isPublic === false ? 'Bấm để Hiện văn bản' : 'Bấm để Ẩn văn bản'}
+                            >
+                              {doc.isPublic === false ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
                             <button
                               onClick={() => setPreviewDoc(doc)}
                               className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer"
@@ -2840,9 +2876,14 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Toggle: Công khai trên Cổng TTĐT */}
+                    {/* Toggle: Công khai / Ẩn văn bản */}
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-800">Công khai trên Cổng thông tin</span>
+                      <div>
+                        <span className="text-xs font-bold text-slate-800 block">Trạng thái hiển thị văn bản</span>
+                        <span className="text-[10.5px] text-slate-500">
+                          {docIsPublic ? '🟢 Đang công khai trên Cổng TTĐT' : '🔒 Đang ẩn (Chỉ lưu trữ nội bộ)'}
+                        </span>
+                      </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"

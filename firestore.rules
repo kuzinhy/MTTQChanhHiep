@@ -280,6 +280,24 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // 11. Visual One-Stop Procedures Collections
+    match /procedures/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /procedureSteps/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /procedureDocuments/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+    match /procedureForms/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+    }
+
     // Default catch-all
     match /{document=**} {
       allow read, write: if false;

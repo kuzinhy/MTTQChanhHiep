@@ -1,0 +1,37 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "procedures",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "procedureSteps",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "procedureId", "order": "ASCENDING" },
+        { "fieldPath": "stepNumber", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "procedureDocuments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "procedureId", "order": "ASCENDING" },
+        { "fieldPath": "required", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "procedureForms",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "procedureId", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

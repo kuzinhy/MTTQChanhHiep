@@ -372,6 +372,77 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["targetId", "readNotificationIds", "updatedAt"]
+    },
+    "procedures": {
+      "title": "Administrative Procedures",
+      "description": "Visual One-Stop procedures directory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "authority": { "type": "string" },
+        "locationId": { "type": "string" },
+        "counter": { "type": "string" },
+        "onlineAvailable": { "type": "boolean" },
+        "onlineUrl": { "type": "string" },
+        "processingTime": { "type": "string" },
+        "fee": { "type": "string" },
+        "officialSourceUrl": { "type": "string" },
+        "sourceUpdatedAt": { "type": "string" },
+        "active": { "type": "boolean" },
+        "sortOrder": { "type": "number" },
+        "version": { "type": "string" }
+      },
+      "required": ["id", "code", "name", "category"]
+    },
+    "procedureSteps": {
+      "title": "Procedure Steps",
+      "description": "Interactive steps for each administrative procedure",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "procedureId": { "type": "string" },
+        "stepNumber": { "type": "number" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "instruction": { "type": "string" },
+        "location": { "type": "string" },
+        "counter": { "type": "string" },
+        "officerUnit": { "type": "string" }
+      },
+      "required": ["id", "procedureId", "stepNumber", "title"]
+    },
+    "procedureDocuments": {
+      "title": "Procedure Required Documents",
+      "description": "Checklist requirements for administrative procedures",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "procedureId": { "type": "string" },
+        "name": { "type": "string" },
+        "required": { "type": "boolean" },
+        "quantity": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "procedureId", "name"]
+    },
+    "procedureForms": {
+      "title": "Procedure Forms",
+      "description": "Downloadable forms and templates for procedures",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "procedureId": { "type": "string" },
+        "name": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "onlineUrl": { "type": "string" },
+        "version": { "type": "string" }
+      },
+      "required": ["id", "procedureId", "name"]
     }
   },
   "firestore": {
@@ -398,6 +469,22 @@
     "system_settings/email_notifications": {
       "schema": "email_settings",
       "description": "Global email config"
+    },
+    "procedures/{id}": {
+      "schema": "procedures",
+      "description": "Administrative procedures catalog"
+    },
+    "procedureSteps/{id}": {
+      "schema": "procedureSteps",
+      "description": "Interactive procedure steps"
+    },
+    "procedureDocuments/{id}": {
+      "schema": "procedureDocuments",
+      "description": "Procedure required documents"
+    },
+    "procedureForms/{id}": {
+      "schema": "procedureForms",
+      "description": "Procedure downloadable forms"
     }
   }
 }

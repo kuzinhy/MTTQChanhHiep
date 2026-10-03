@@ -30,6 +30,7 @@ import {
   Activity,
   Database,
   HelpCircle,
+  ClipboardList,
   Bot,
   Eye,
   LucideIcon 
@@ -141,6 +142,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
         { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
         { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
+        { id: 'procedures', label: 'Quy trình Thủ tục (Builder)', icon: ClipboardList, badge: 'MỘT CỬA' },
         { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
         { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
         { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },

@@ -478,6 +478,32 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                   <span className="text-[10px] text-slate-400">Hiển thị cho công dân tra cứu</span>
                 </div>
 
+                {/* AI Quick Reply Template Buttons (New Useful Utility) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-slate-600 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      Mẫu phản hồi chuẩn mực nhanh:
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: '✅ Đã tiếp nhận & chuyển UBND giải quyết', text: 'Ủy ban MTTQ phường đã tiếp nhận phản ánh của bà con và chuyển sang UBND Phường Chánh Hiệp chỉ đạo bộ phận chuyên môn kiểm tra, giải quyết theo đúng thẩm quyền.' },
+                      { label: '🏆 Đã xác minh & xử lý dứt điểm', text: 'Ban Thường trực MTTQ phường đã phối hợp với các ban ngành kiểm tra thực tế, sự việc phản ánh đã được giải quyết dứt điểm đảm bảo quyền lợi cho Nhân dân.' },
+                      { label: '📋 Hướng dẫn thủ tục / Cơ quan chuyên trách', text: 'Cảm ơn ý kiến đóng góp của công dân. Nội dung này thuộc thẩm quyền giải quyết của bộ phận Một cửa UBND Phường. Kính mời công dân đến trực tiếp Trụ sở Phường để được hướng dẫn chi tiết.' }
+                    ].map((tpl, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setResponseText(tpl.text)}
+                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-bold rounded-lg border border-blue-200 transition cursor-pointer active:scale-95"
+                      >
+                        {tpl.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <textarea
                   rows={4}
                   value={responseText}
