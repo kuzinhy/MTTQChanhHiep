@@ -21,7 +21,7 @@ export class SourceValidator {
         url.includes('chanhhiep') ||
         url.includes('binhduong.gov.vn') ||
         url.includes('sjc.com.vn') ||
-        url.includes('drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL')
+        url.includes('drive.google.com/drive/folders/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G')
       );
 
       validated.push({

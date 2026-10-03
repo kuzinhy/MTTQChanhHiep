@@ -18,8 +18,41 @@ import { generateStandardizedFilename, DOCUMENT_TYPE_CODES } from '../../service
 import { checkForDuplicateDocument, calculateFileHash, DuplicateCheckResult } from '../../services/duplicateDetectionService';
 import { AppStorageEngine } from '../../lib/storage';
 
-// TARGET GOOGLE DRIVE FOLDER FOR OFFICIAL DOCUMENTS
 export const OFFICIAL_DOCUMENTS_DRIVE_FOLDER_ID = '1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_';
+
+export const SOCIO_POLITICAL_ORGANIZATIONS = [
+  'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
+  'Đoàn TNCS Hồ Chí Minh phường Chánh Hiệp',
+  'Hội Liên hiệp Phụ nữ phường Chánh Hiệp',
+  'Hội Cựu chiến binh phường Chánh Hiệp',
+  'Công đoàn Cơ sở phường Chánh Hiệp',
+  'Hội Nông dân phường Chánh Hiệp',
+  'Hội Người cao tuổi phường Chánh Hiệp',
+  'Đảng ủy phường Chánh Hiệp',
+  'HĐND - UBND phường Chánh Hiệp',
+  'Ban Chỉ huy Quân sự phường Chánh Hiệp',
+  'Công an phường Chánh Hiệp',
+  'Ban Công tác Mặt trận 21 Khu phố',
+  'Cơ quan / Tổ chức khác'
+];
+
+export const DOCUMENT_FIELDS = [
+  'Công tác Mặt trận',
+  'Đoàn thanh niên',
+  'Phụ nữ',
+  'Cựu chiến binh',
+  'Chữ thập đỏ',
+  'Công đoàn',
+  'Nông dân',
+  'Người cao tuổi',
+  'An sinh xã hội',
+  'Tuyên truyền - Tuyên giáo',
+  'Dân vận',
+  'Giám sát - Phản biện',
+  'Thi đua - Khen thưởng',
+  'Dân chủ - Pháp luật',
+  'Chuyển đổi số'
+];
 
 interface DocumentManagerProps {
   onShowToast?: (type: 'success' | 'error' | 'info', message: string) => void;
@@ -34,9 +67,11 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
   // Filter States
   const [activeStatusTab, setActiveTab] = useState<'ALL' | 'Published' | 'Draft' | 'Hidden' | 'ARCHIVED'>('ALL');
   const [selectedDocTypeFilter, setSelectedDocTypeFilter] = useState<string>('ALL');
+  const [selectedAgencyFilter, setSelectedAgencyFilter] = useState<string>('ALL');
   const [selectedFieldFilter, setSelectedFieldFilter] = useState<string>('ALL');
   const [selectedYearFilter, setSelectedYearFilter] = useState<string>('ALL');
   const [hasTasksFilter, setHasTasksFilter] = useState<boolean | null>(null);
+  const [isCustomAgency, setIsCustomAgency] = useState<boolean>(false);
 
   // Modal & Processing States
   const [isSmartModalOpen, setIsSmartModalOpen] = useState(false);
@@ -163,13 +198,14 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
         : (doc.status === activeStatusTab && !doc.isArchived);
 
       const matchesType = selectedDocTypeFilter === 'ALL' || doc.docType === selectedDocTypeFilter;
+      const matchesAgency = selectedAgencyFilter === 'ALL' || doc.issuer === selectedAgencyFilter || doc.issuingAgency === selectedAgencyFilter || (doc.issuer || '').includes(selectedAgencyFilter);
       const matchesField = selectedFieldFilter === 'ALL' || doc.field === selectedFieldFilter;
       const matchesYear = selectedYearFilter === 'ALL' || (doc.issueDate && doc.issueDate.startsWith(selectedYearFilter));
       const matchesTasks = hasTasksFilter === null || (hasTasksFilter ? (doc.tasks && doc.tasks.length > 0) : (!doc.tasks || doc.tasks.length === 0));
 
-      return matchesSearch && matchesStatus && matchesType && matchesField && matchesYear && matchesTasks;
+      return matchesSearch && matchesStatus && matchesType && matchesAgency && matchesField && matchesYear && matchesTasks;
     });
-  }, [documents, searchTerm, activeStatusTab, selectedDocTypeFilter, selectedFieldFilter, selectedYearFilter, hasTasksFilter]);
+  }, [documents, searchTerm, activeStatusTab, selectedDocTypeFilter, selectedAgencyFilter, selectedFieldFilter, selectedYearFilter, hasTasksFilter]);
 
   // Open Smart Ingestion Modal
   const handleOpenSmartModal = (doc?: NewDocument) => {
@@ -917,7 +953,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
         </div>
 
         {/* SECONDARY FILTERS */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 border-t border-slate-100 text-xs">
           <div>
             <label className="text-slate-400 block text-[10px] font-bold mb-1">Loại văn bản:</label>
             <select
@@ -933,6 +969,20 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
           </div>
 
           <div>
+            <label className="text-slate-400 block text-[10px] font-bold mb-1">Cơ quan ban hành:</label>
+            <select
+              value={selectedAgencyFilter}
+              onChange={(e) => setSelectedAgencyFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 font-bold text-slate-800"
+            >
+              <option value="ALL">Tất cả cơ quan</option>
+              {SOCIO_POLITICAL_ORGANIZATIONS.slice(0, -1).map(org => (
+                <option key={org} value={org}>{org}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <label className="text-slate-400 block text-[10px] font-bold mb-1">Lĩnh vực:</label>
             <select
               value={selectedFieldFilter}
@@ -940,12 +990,9 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 font-bold text-slate-800"
             >
               <option value="ALL">Tất cả lĩnh vực</option>
-              <option value="Công tác Mặt trận">Công tác Mặt trận</option>
-              <option value="An sinh xã hội">An sinh xã hội</option>
-              <option value="Tuyên truyền">Tuyên truyền</option>
-              <option value="Dân vận">Dân vận</option>
-              <option value="Giám sát - Phản biện">Giám sát - Phản biện</option>
-              <option value="Chuyển đổi số">Chuyển đổi số</option>
+              {DOCUMENT_FIELDS.map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
             </select>
           </div>
 
@@ -1339,15 +1386,43 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="font-bold text-slate-700">Cơ quan ban hành:</label>
+                        <label className="font-bold text-slate-700">Cơ quan / Tổ chức ban hành:</label>
                         {renderConfidenceBadge(confidenceMap.issuingAgency)}
                       </div>
-                      <input
-                        type="text"
-                        value={formData.issuer}
-                        onChange={(e) => setFormData(prev => ({ ...prev, issuer: e.target.value }))}
+                      <select
+                        value={
+                          SOCIO_POLITICAL_ORGANIZATIONS.slice(0, -1).includes(formData.issuer || '')
+                            ? formData.issuer
+                            : 'Cơ quan / Tổ chức khác'
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val !== 'Cơ quan / Tổ chức khác') {
+                            setFormData(prev => ({ ...prev, issuer: val, issuingAgency: val }));
+                            setIsCustomAgency(false);
+                          } else {
+                            setIsCustomAgency(true);
+                            setFormData(prev => ({ ...prev, issuer: '', issuingAgency: '' }));
+                          }
+                        }}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
-                      />
+                      >
+                        {SOCIO_POLITICAL_ORGANIZATIONS.map((agency) => (
+                          <option key={agency} value={agency}>
+                            {agency}
+                          </option>
+                        ))}
+                      </select>
+
+                      {(isCustomAgency || (formData.issuer && !SOCIO_POLITICAL_ORGANIZATIONS.slice(0, -1).includes(formData.issuer))) && (
+                        <input
+                          type="text"
+                          value={formData.issuer || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, issuer: e.target.value, issuingAgency: e.target.value }))}
+                          placeholder="Nhập tên cơ quan / tổ chức ban hành khác..."
+                          className="w-full p-2.5 mt-2 bg-white border border-blue-300 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      )}
                     </div>
 
                     <div>
@@ -1390,12 +1465,9 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
                         onChange={(e) => setFormData(prev => ({ ...prev, field: e.target.value }))}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
                       >
-                        <option value="Công tác Mặt trận">Công tác Mặt trận</option>
-                        <option value="An sinh xã hội">An sinh xã hội</option>
-                        <option value="Tuyên truyền">Tuyên truyền</option>
-                        <option value="Dân vận">Dân vận</option>
-                        <option value="Giám sát - Phản biện">Giám sát - Phản biện</option>
-                        <option value="Chuyển đổi số">Chuyển đổi số</option>
+                        {DOCUMENT_FIELDS.map(f => (
+                          <option key={f} value={f}>{f}</option>
+                        ))}
                       </select>
                     </div>
 

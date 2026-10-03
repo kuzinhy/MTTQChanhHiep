@@ -1,4 +1,4 @@
-import { AIIntent, AISourceMode } from './types';
+import { AIIntent, AISourceMode, AIAction } from './types';
 
 export interface SourceRoutingPlan {
   primaryLayer: 'WEBSITE' | 'KNOWLEDGE_BASE' | 'GOOGLE_DRIVE' | 'INTERNET' | 'GENERAL_AI' | 'DIRECT_AI';
@@ -7,7 +7,7 @@ export interface SourceRoutingPlan {
   enableDrive: boolean;
   enableKnowledgeBase: boolean;
   sourceMode: AISourceMode;
-  targetActions: Array<{ type: string; label: string; route: string }>;
+  targetActions: AIAction[];
 }
 
 export class SourceRouter {
@@ -51,8 +51,8 @@ export class SourceRouter {
           enableKnowledgeBase: true,
           sourceMode: userConfigMode,
           targetActions: [
-            { type: 'OPEN_ROUTE', label: 'Xem văn bản', route: '/van-ban' },
-            { type: 'OPEN_ROUTE', label: 'Xem sơ đồ thủ tục', route: '/van-ban' }
+            { type: 'OPEN_ROUTE' as const, label: 'Xem văn bản', route: '/van-ban' },
+            { type: 'OPEN_ROUTE' as const, label: 'Xem sơ đồ thủ tục', route: '/van-ban' }
           ]
         };
 
@@ -65,8 +65,8 @@ export class SourceRouter {
           enableKnowledgeBase: true,
           sourceMode: 'LOCAL_FIRST',
           targetActions: [
-            { type: 'OPEN_ROUTE', label: 'Mở Bản đồ số', route: '/ban-do' },
-            { type: 'OPEN_ROUTE', label: 'Xem 21 khu phố', route: '/ban-do' }
+            { type: 'OPEN_ROUTE' as const, label: 'Mở Bản đồ số', route: '/ban-do' },
+            { type: 'OPEN_ROUTE' as const, label: 'Xem 21 khu phố', route: '/ban-do' }
           ]
         };
 
@@ -79,7 +79,7 @@ export class SourceRouter {
           enableKnowledgeBase: true,
           sourceMode: 'LOCAL_FIRST',
           targetActions: [
-            { type: 'OPEN_ROUTE', label: 'Gửi phản ánh trực tuyến', route: '/phan-anh' }
+            { type: 'OPEN_ROUTE' as const, label: 'Gửi phản ánh trực tuyến', route: '/phan-anh' }
           ]
         };
 
@@ -92,8 +92,8 @@ export class SourceRouter {
           enableKnowledgeBase: true,
           sourceMode: 'LOCAL_FIRST',
           targetActions: [
-            { type: 'OPEN_ROUTE', label: 'Điểm an sinh', route: '/an-sinh' },
-            { type: 'OPEN_ROUTE', label: 'Sơ đồ bảo trợ xã hội', route: '/van-ban' }
+            { type: 'OPEN_ROUTE' as const, label: 'Điểm an sinh', route: '/an-sinh' },
+            { type: 'OPEN_ROUTE' as const, label: 'Sơ đồ bảo trợ xã hội', route: '/van-ban' }
           ]
         };
 
@@ -106,7 +106,7 @@ export class SourceRouter {
           enableKnowledgeBase: true,
           sourceMode: 'LOCAL_FIRST',
           targetActions: [
-            { type: 'OPEN_ROUTE', label: 'Đăng ký tình nguyện', route: '/tinh-nguyen' }
+            { type: 'OPEN_ROUTE' as const, label: 'Đăng ký tình nguyện', route: '/tinh-nguyen' }
           ]
         };
 
@@ -119,7 +119,7 @@ export class SourceRouter {
           enableKnowledgeBase: true,
           sourceMode: 'LOCAL_FIRST',
           targetActions: [
-            { type: 'OPEN_ROUTE', label: 'Xem tin tức mới', route: '/tin-tuc' }
+            { type: 'OPEN_ROUTE' as const, label: 'Xem tin tức mới', route: '/tin-tuc' }
           ]
         };
 
@@ -132,7 +132,7 @@ export class SourceRouter {
           enableKnowledgeBase: true,
           sourceMode: 'LOCAL_FIRST',
           targetActions: [
-            { type: 'OPEN_EXTERNAL', label: 'Mở Thư mục Drive', route: 'https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL' }
+            { type: 'OPEN_EXTERNAL' as const, label: 'Mở Thư mục Drive Bộ não AI', route: 'https://drive.google.com/drive/folders/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G?hl=vi' }
           ]
         };
 

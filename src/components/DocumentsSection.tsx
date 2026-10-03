@@ -84,11 +84,18 @@ export const DocumentRowSkeleton: React.FC = () => {
 
 const FIELDS = [
   'ALL',
-  'MTTQ',
+  'Công tác Mặt trận',
+  'Đoàn thanh niên',
+  'Phụ nữ',
+  'Cựu chiến binh',
+  'Chữ thập đỏ',
+  'Công đoàn',
+  'Nông dân',
+  'Người cao tuổi',
+  'An sinh xã hội',
   'Tổ chức - Tuyên giáo',
   'Dân chủ - Pháp luật',
   'Phong trào - Thi đua',
-  'An sinh xã hội',
   'Dân tộc - Tôn giáo',
   'Xây dựng chính quyền'
 ];
@@ -140,8 +147,25 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'documents' | 'procedures'>('documents');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
+  const [selectedAgency, setSelectedAgency] = useState<string>('ALL');
   const [selectedField, setSelectedField] = useState<string>('ALL');
   const [selectedYear, setSelectedYear] = useState<string>('ALL');
+
+  const issuingAgencies = [
+    'ALL',
+    'Ủy ban MTTQ Việt Nam phường Chánh Hiệp',
+    'Đoàn TNCS Hồ Chí Minh phường Chánh Hiệp',
+    'Hội Liên hiệp Phụ nữ phường Chánh Hiệp',
+    'Hội Cựu chiến binh phường Chánh Hiệp',
+    'Công đoàn Cơ sở phường Chánh Hiệp',
+    'Hội Nông dân phường Chánh Hiệp',
+    'Hội Người cao tuổi phường Chánh Hiệp',
+    'Đảng ủy phường Chánh Hiệp',
+    'HĐND - UBND phường Chánh Hiệp',
+    'Ban Chỉ huy Quân sự phường Chánh Hiệp',
+    'Công an phường Chánh Hiệp',
+    'Ban Công tác Mặt trận 21 Khu phố'
+  ];
 
   const docTypes: string[] = [
     'ALL',
@@ -199,12 +223,13 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         (doc.tags && doc.tags.some(t => t.toLowerCase().includes(q)));
 
       const matchesType = selectedType === 'ALL' || doc.docType === selectedType;
+      const matchesAgency = selectedAgency === 'ALL' || doc.issuer === selectedAgency || doc.issuingAgency === selectedAgency || (doc.issuer || '').includes(selectedAgency);
       const matchesField = selectedField === 'ALL' || doc.field === selectedField;
       const matchesYear = selectedYear === 'ALL' || (doc.issueDate && doc.issueDate.startsWith(selectedYear));
 
-      return matchesSearch && matchesType && matchesField && matchesYear;
+      return matchesSearch && matchesType && matchesAgency && matchesField && matchesYear;
     });
-  }, [sortedAllDocs, searchTerm, selectedType, selectedField, selectedYear]);
+  }, [sortedAllDocs, searchTerm, selectedType, selectedAgency, selectedField, selectedYear]);
 
   const handleDownload = (doc: OfficialDocument) => {
     const targetUrl = doc.driveUrl || doc.fileUrl;
@@ -274,7 +299,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
             </div>
 
         {/* Filter Toolbar */}
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
           {/* Search box */}
           <div className="relative lg:col-span-1">
             <input
@@ -330,6 +355,22 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
                 <option value="Chính sách">Chính sách</option>
                 <option value="Tài liệu tuyên truyền">Tài liệu tuyên truyền</option>
               </optgroup>
+            </select>
+          </div>
+
+          {/* Agency / Organization Dropdown */}
+          <div>
+            <select
+              value={selectedAgency}
+              onChange={(e) => setSelectedAgency(e.target.value)}
+              className="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-semibold cursor-pointer"
+            >
+              <option value="ALL">Tất cả cơ quan / tổ chức</option>
+              {issuingAgencies.slice(1).map(org => (
+                <option key={org} value={org}>
+                  {org}
+                </option>
+              ))}
             </select>
           </div>
 

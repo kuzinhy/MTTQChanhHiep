@@ -17,13 +17,13 @@ export interface DriveIndexedFile {
 
 export const DEFAULT_DRIVE_FOLDER_CONFIG: DriveFolderConfig = {
   id: 'cfg-default-folder',
-  folderId: '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL',
-  folderUrl: 'https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL',
-  name: 'Kho Biểu mẫu & Văn bản Chỉ đạo MTTQ Phường Chánh Hiệp',
+  folderId: '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G',
+  folderUrl: 'https://drive.google.com/drive/folders/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G?hl=vi',
+  name: 'Bộ não Tri thức & Văn bản Google Drive Phường Chánh Hiệp',
   authorizedBy: 'UBND & MTTQ Phường Chánh Hiệp',
   autoSync: true,
   lastSyncAt: new Date().toISOString(),
-  fileCount: 12,
+  fileCount: 25,
   status: 'ACTIVE'
 };
 

@@ -33,7 +33,7 @@ export class IntentRouter {
         confidence: 1.0,
         extractedEntities: {},
         directResponse: {
-          answer: 'Trợ lý AI Phường Chánh Hiệp xin chào bạn 👋 Bạn cần tôi hỗ trợ gì?',
+          answer: 'Cán bộ Số hỗ trợ người dân Phường Chánh Hiệp xin kính chào bác/anh/chị! 👋 Tôi có thể hỗ trợ bác/anh/chị tư vấn thủ tục hành chính, tra cứu văn bản hay hướng dẫn dịch vụ công nào hôm nay?',
           actions: [
             { type: 'OPEN_ROUTE', label: 'Gửi phản ánh', route: '/phan-anh' },
             { type: 'OPEN_ROUTE', label: 'Tra cứu văn bản', route: '/van-ban' },
@@ -51,7 +51,7 @@ export class IntentRouter {
         confidence: 1.0,
         extractedEntities: {},
         directResponse: {
-          answer: 'Rất vui được hỗ trợ bạn 😊 Khi cần thêm thông tin, bạn cứ nhắn tôi nhé!',
+          answer: 'Rất vui được hỗ trợ bác/anh/chị 😊 Khi cần thêm thông tin, bác/anh/chị cứ nhắn tôi nhé!',
           actions: []
         }
       };
@@ -64,7 +64,7 @@ export class IntentRouter {
         confidence: 1.0,
         extractedEntities: {},
         directResponse: {
-          answer: 'Chào bạn! Chúc bạn một ngày làm việc hiệu quả và nhiều niềm vui 👋',
+          answer: 'Trân trọng kính chào bác/anh/chị! Chúc bác/anh/chị và gia đình nhiều sức khỏe, niềm vui 👋',
           actions: []
         }
       };
@@ -77,7 +77,7 @@ export class IntentRouter {
         confidence: 0.98,
         extractedEntities: {},
         directResponse: {
-          answer: 'Tôi là Trợ lý AI Phường Chánh Hiệp, có thể hỗ trợ bạn tra cứu văn bản, thủ tục hành chính, gửi phản ánh – kiến nghị, an sinh xã hội, bản đồ 21 khu phố, tin tức thời sự và thông tin cán bộ trực tuyến.',
+          answer: 'Tôi là Cán bộ Số hỗ trợ người dân Phường Chánh Hiệp. Tôi có thể hỗ trợ tư vấn thủ tục hành chính, tra cứu văn bản, hướng dẫn dịch vụ công, tiếp nhận phản ánh dân sinh 21 khu phố, tra cứu bản đồ địa bàn và thông tin liên hệ cán bộ.',
           actions: [
             { type: 'OPEN_ROUTE', label: 'Tra cứu văn bản', route: '/van-ban' },
             { type: 'OPEN_ROUTE', label: 'Sơ đồ thủ tục', route: '/van-ban' },

@@ -29,8 +29,29 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputQuery, setInputQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('Đang tra cứu...');
+  const [loadingText, setLoadingText] = useState('Đang hiểu yêu cầu...');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLoadingText('Đang hiểu yêu cầu...');
+      return;
+    }
+    const SAFE_STATUSES = [
+      'Đang hiểu yêu cầu...',
+      'Đang tra cứu dữ liệu Phường Chánh Hiệp...',
+      'Đang kiểm tra văn bản liên quan...',
+      'Đang đối chiếu nguồn...',
+      'Đang tổng hợp câu trả lời...'
+    ];
+    let idx = 0;
+    setLoadingText(SAFE_STATUSES[0]);
+    const timer = setInterval(() => {
+      idx = (idx + 1) % SAFE_STATUSES.length;
+      setLoadingText(SAFE_STATUSES[idx]);
+    }, 1100);
+    return () => clearInterval(timer);
+  }, [isLoading]);
 
   // Forward Question to Admin State
   const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
@@ -102,7 +123,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
       {
         id: 'welcome',
         sender: 'assistant',
-        text: 'Trợ lý AI Phường Chánh Hiệp xin chào bạn 👋 Bạn cần tôi hỗ trợ gì?',
+        text: 'Cán bộ Số hỗ trợ người dân Phường Chánh Hiệp xin kính chào bác/anh/chị! 👋 Tôi có thể hỗ trợ bác/anh/chị tư vấn thủ tục hành chính, tra cứu văn bản hay hướng dẫn dịch vụ nào hôm nay?',
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         actions: [
           { type: 'OPEN_ROUTE', label: 'Gửi phản ánh', route: '/phan-anh' },
@@ -231,12 +252,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
         text: assistantText,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         sources,
-        actions,
-        chainOfThought: data.chainOfThought || {
-          searchKnowledge: 'Đã rà quét Kho tri thức, Văn bản chỉ đạo & Thư mục Google Drive [1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_]',
-          synthesizeContext: 'Đã tổng hợp căn cứ pháp lý và dữ liệu chính thức',
-          draftResponse: 'Đã hoàn thiện văn bản trả lời chuẩn mực'
-        }
+        actions
       };
 
       const finalMsgs = [...updatedMessages, assistantMsg];
@@ -268,7 +284,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
     const welcomeMsg: ChatMessageItem = {
       id: 'welcome-' + Date.now(),
       sender: 'assistant',
-      text: 'Trợ lý AI Phường Chánh Hiệp xin chào bạn 👋 Bạn cần tôi hỗ trợ gì?',
+      text: 'Cán bộ Số hỗ trợ người dân Phường Chánh Hiệp xin kính chào bác/anh/chị! 👋 Tôi có thể hỗ trợ bác/anh/chị tư vấn thủ tục hành chính, tra cứu văn bản hay hướng dẫn dịch vụ nào hôm nay?',
       timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       actions: [
         { type: 'OPEN_ROUTE', label: 'Gửi phản ánh', route: '/phan-anh' },
@@ -310,10 +326,10 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
           </div>
           <div className="text-left pr-1">
             <div className="font-black text-xs text-white leading-tight flex items-center gap-1.5">
-              <span>Trợ lý AI Phường Chánh Hiệp</span>
+              <span>CÁN BỘ SỐ HỖ TRỢ NGƯỜI DÂN</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             </div>
-            <div className="text-[10px] text-blue-100 font-medium leading-tight">Hỏi đáp • Tra cứu • Hỗ trợ người dân</div>
+            <div className="text-[10px] text-blue-100 font-medium leading-tight">Dịch vụ công • Tra cứu • Dân nguyện 21 Khu phố</div>
           </div>
           <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
         </button>
@@ -336,11 +352,11 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
               </div>
               <div>
                 <h3 className="font-black text-xs text-white flex items-center gap-1.5">
-                  <span>Trợ lý AI Phường Chánh Hiệp</span>
-                  <span className="px-1.5 py-0.2 bg-emerald-500 text-white text-[9px] font-bold rounded-md">Online</span>
+                  <span>CÁN BỘ SỐ HỖ TRỢ NGƯỜI DÂN</span>
+                  <span className="px-1.5 py-0.2 bg-emerald-500 text-white text-[9px] font-bold rounded-md">Phường Chánh Hiệp</span>
                 </h3>
                 <p className="text-[10px] text-indigo-200 font-medium">
-                  Hỏi đáp • Tra cứu • Hỗ trợ người dân
+                  Tận tụy • Tra cứu • Hướng dẫn dịch vụ công
                 </p>
               </div>
             </div>
@@ -433,7 +449,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({
           >
             <input
               type="text"
-              placeholder="Hỏi Trợ lý AI Phường Chánh Hiệp..."
+              placeholder="Hỏi Cán bộ Số Phường Chánh Hiệp..."
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               className="flex-1 text-xs px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl outline-hidden focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium"

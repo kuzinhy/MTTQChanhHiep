@@ -94,13 +94,27 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
     return sortArticlesNewestFirst(filtered);
   }, [articles]);
 
-  // Featured hero article index
+  // Featured hero article selection: Ưu tiên tối đa các bài viết ĐÃ GHIM (gắn sao, isFeatured = true)
   const [heroIndex, setHeroIndex] = useState(0);
-  const featuredArticles = safeArticles.slice(0, 4);
-  const currentHero = featuredArticles[heroIndex] || safeArticles[0];
+  const pinnedArticles = useMemo(() => {
+    return safeArticles.filter(a => a && a.isFeatured === true);
+  }, [safeArticles]);
 
-  // Right sidebar 3 articles
-  const sideArticles = safeArticles.slice(1, 4);
+  const featuredArticles = useMemo(() => {
+    if (pinnedArticles.length > 0) {
+      return pinnedArticles;
+    }
+    // Nếu chưa ghim bài nào, hiển thị tối đa 4 bài mới nhất làm fallback
+    return safeArticles.slice(0, 4);
+  }, [pinnedArticles, safeArticles]);
+
+  const currentHero = featuredArticles[heroIndex] || featuredArticles[0] || safeArticles[0];
+
+  // Right sidebar 3 articles: Các bài viết còn lại (không trùng bài Hero chính)
+  const sideArticles = useMemo(() => {
+    const heroId = currentHero?.id;
+    return safeArticles.filter(a => a && a.id !== heroId).slice(0, 3);
+  }, [safeArticles, currentHero]);
 
   // Map state
   const [locations, setLocations] = useState<MapLocation[]>(() => AppStorageEngine.getMapLocations());

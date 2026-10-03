@@ -203,7 +203,6 @@ export interface NewDocument {
   createdBy?: string;
   createdAt: string;
   updatedBy?: string;
-  updatedAt: string;
   isArchived?: boolean;
 }
 
@@ -294,6 +293,7 @@ export interface OfficialDocument {
   title: string;
   docType: DocType;
   issuer: string;
+  issuingAgency?: string;
   issueDate: string;
   effectiveDate?: string;
   signer: string;

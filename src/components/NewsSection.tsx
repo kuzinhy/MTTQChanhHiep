@@ -321,6 +321,11 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
   isLoading = false
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [visibleCount, setVisibleCount] = useState<number>(6);
+
+  React.useEffect(() => {
+    setVisibleCount(6);
+  }, [selectedCategory, searchQuery]);
 
   const categories: { id: string; label: string }[] = [
     { id: 'ALL', label: 'Tất cả tin bài' },
@@ -683,14 +688,40 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
           <p className="text-xs text-slate-500 mt-1">Vui lòng thử chọn chuyên mục khác hoặc từ khóa tìm kiếm.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredArticles.map((article) => (
-            <ArticleCard
-              key={article.id}
-              article={article}
-              onSelectArticle={onSelectArticle}
-            />
-          ))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredArticles.slice(0, visibleCount).map((article) => (
+              <ArticleCard
+                key={article.id}
+                article={article}
+                onSelectArticle={onSelectArticle}
+              />
+            ))}
+          </div>
+
+          {/* Load More Controls for Mobile & Desktop */}
+          {filteredArticles.length > visibleCount && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={() => setVisibleCount(prev => prev + 6)}
+                className="px-6 py-3 rounded-2xl bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 text-slate-800 hover:text-blue-700 text-xs sm:text-sm font-extrabold shadow-xs hover:shadow-md transition-all inline-flex items-center gap-2 cursor-pointer group"
+              >
+                <span>Xem thêm {filteredArticles.length - visibleCount} bài viết khác</span>
+                <ChevronRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          )}
+
+          {visibleCount > 6 && filteredArticles.length <= visibleCount && (
+            <div className="flex justify-center pt-1">
+              <button
+                onClick={() => setVisibleCount(6)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+              >
+                <span>Thu gọn danh sách</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

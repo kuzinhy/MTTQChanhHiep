@@ -48,6 +48,7 @@ import { OpinionsAdminView } from './components/office/OpinionsAdminView';
 import { CmsAdminView } from './components/office/CmsAdminView';
 import { DocumentManager } from './components/admin/DocumentManager';
 import { DocumentsPublicView } from './components/portal/DocumentsPublicView';
+import { RealtimeNotificationPopupModal } from './components/common/RealtimeNotificationPopupModal';
 import { AnalyticsDashboardView } from './components/office/AnalyticsDashboardView';
 import { AuditLogsView } from './components/office/AuditLogsView';
 import { PersonalNotesView } from './components/office/PersonalNotesView';
@@ -2477,6 +2478,22 @@ export default function App() {
         initialProcedureId={selectedProcedureId}
         onAskAi={(question) => {
           // Trigger AI Assistant
+        }}
+      />
+
+      {/* REALTIME BROADCAST NOTIFICATION POPUP MODAL FOR ALL ACTIVE VISITORS (PORTAL ONLY) */}
+      <RealtimeNotificationPopupModal
+        currentSpace={currentSpace}
+        userId={currentStaffUser?.id}
+        userRoles={currentStaffUser?.role ? [currentStaffUser.role] : undefined}
+        onNavigateRoute={(route) => {
+          if (route === '/tin-tuc') handleSelectPortalTab('news');
+          else if (route === '/van-ban') handleSelectPortalTab('documents');
+          else if (route === '/ban-do') handleSelectPortalTab('map');
+          else if (route === '/phan-anh') handleSelectPortalTab('opinions');
+          else if (route === '/an-sinh') setIsWelfareRegistrationModalOpen(true);
+          else if (route === '/tinh-nguyen') setIsVolunteerModalOpen(true);
+          else handleSelectPortalTab('home');
         }}
       />
     </div>

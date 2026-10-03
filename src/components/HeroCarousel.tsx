@@ -27,8 +27,13 @@ function formatTitleCase(title: string): string {
 export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSelectArticle, onUpdateArticle }) => {
   const featured = useMemo(() => {
     const safeArticles = Array.isArray(articles) ? articles : [];
-    const pub = safeArticles.filter(a => a && (a.isFeatured || a.status === 'Published'));
-    return sortArticlesNewestFirst(pub);
+    const published = safeArticles.filter(a => a && (a.status === 'Published' || a.status === 'Approved' || !a.status));
+    const pinned = published.filter(a => a.isFeatured === true);
+
+    // Nếu có bài ghim (gắn sao), CHỈ hiển thị danh sách bài ghim ở khu vực trung tâm
+    // Nếu chưa ghim bài nào, hiển thị 4 bài mới nhất làm fallback
+    const selected = pinned.length > 0 ? pinned : published.slice(0, 4);
+    return sortArticlesNewestFirst(selected);
   }, [articles]);
 
   const [currentIndex, setCurrentIndex] = useState(0);

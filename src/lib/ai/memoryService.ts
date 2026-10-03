@@ -85,6 +85,19 @@ export class MemoryService {
     return session;
   }
 
+  public static getSessionContext(session: SessionMemory) {
+    return {
+      currentTopic: session.currentTopic,
+      currentIntent: session.currentIntent,
+      currentEntities: session.currentEntities,
+      lastAnswer: session.lastAnswer,
+      lastSources: session.lastSources,
+      lastAction: session.lastAction,
+      lastRealtimeData: session.lastRealtimeData,
+      messageCount: session.messages.length
+    };
+  }
+
   public static clearSession(): SessionMemory {
     const newSession: SessionMemory = {
       sessionId: 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),

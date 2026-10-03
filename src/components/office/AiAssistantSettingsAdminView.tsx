@@ -7,19 +7,21 @@ import {
   Sliders, Globe, Zap, Clock, Eye, ToggleLeft, ToggleRight,
   TrendingUp, Download, Check, CornerDownRight, ArrowRight
 } from 'lucide-react';
+import { HardDrive } from 'lucide-react';
 import { OfficialDocument, Article, PublicOpinion } from '../../types';
 import { getApiUrl } from '../../lib/api';
 import { AiDataCenterAdminView } from './AiDataCenterAdminView';
 import { AiKnowledgeAdminView } from './AiKnowledgeAdminView';
 import { AiUnansweredAdminView } from './AiUnansweredAdminView';
 import { AiMonitorAdminView } from './AiMonitorAdminView';
+import { GoogleDriveAdminView } from './GoogleDriveAdminView';
 
 interface Props {
   documents?: OfficialDocument[];
   articles?: Article[];
   opinions?: PublicOpinion[];
   neighborhoodNames?: string[];
-  initialTab?: 'data' | 'knowledge' | 'unanswered' | 'monitor';
+  initialTab?: 'brain' | 'data' | 'knowledge' | 'unanswered' | 'monitor';
 }
 
 export const AiAssistantSettingsAdminView: React.FC<Props> = ({
@@ -27,9 +29,9 @@ export const AiAssistantSettingsAdminView: React.FC<Props> = ({
   articles = [],
   opinions = [],
   neighborhoodNames = [],
-  initialTab = 'knowledge'
+  initialTab = 'brain'
 }) => {
-  const [activeTab, setActiveTab] = useState<'data' | 'knowledge' | 'unanswered' | 'monitor'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'brain' | 'data' | 'knowledge' | 'unanswered' | 'monitor'>(initialTab);
   const [persona, setPersona] = useState<string>(() => localStorage.getItem('chanh_hiep_ai_persona') || 'cadre');
   const [internetMode, setInternetMode] = useState<string>(() => localStorage.getItem('chanh_hiep_ai_internet_mode') || 'AUTO');
   const [sourcePriority, setSourcePriority] = useState<string>(() => localStorage.getItem('chanh_hiep_ai_source_priority') || 'LOCAL_FIRST');
@@ -164,8 +166,23 @@ export const AiAssistantSettingsAdminView: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* 4 Main Tabs Navigation */}
+        {/* 5 Main Tabs Navigation */}
         <div className="mt-8 flex flex-wrap gap-2 border-t border-blue-700/50 pt-4">
+          <button
+            onClick={() => setActiveTab('brain')}
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all shadow-sm ${
+              activeTab === 'brain'
+                ? 'bg-white text-blue-900 shadow-md scale-105'
+                : 'bg-blue-800/40 text-blue-100 hover:bg-blue-800/80 hover:text-white'
+            }`}
+          >
+            <HardDrive className={`w-4 h-4 ${activeTab === 'brain' ? 'text-blue-600' : 'text-blue-300'}`} />
+            <span>Kết Nối Bộ Não Drive &amp; Script</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-900 font-extrabold">
+              1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G
+            </span>
+          </button>
+
           <button
             onClick={() => setActiveTab('knowledge')}
             className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all shadow-sm ${
@@ -377,6 +394,10 @@ export const AiAssistantSettingsAdminView: React.FC<Props> = ({
 
       {/* Render Active Sub-Tab View */}
       <div className="animate-fadeIn">
+        {activeTab === 'brain' && (
+          <GoogleDriveAdminView />
+        )}
+
         {activeTab === 'knowledge' && (
           <AiKnowledgeAdminView />
         )}
