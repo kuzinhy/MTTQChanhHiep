@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   HeartHandshake, User, Phone, MapPin, Sparkles, Check, X, ShieldCheck, Send, 
   Award, QrCode, Copy, CheckCircle2, Server, CloudUpload, ArrowRight, Download,
-  Sun, Cloud, Zap, Building2, Sparkle, Mail
+  Sun, Cloud, Zap, Building2, Sparkle, Mail, ExternalLink, Share2, AlertCircle, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { QRCodeSVG } from 'qrcode.react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
 import { AppStorageEngine } from '../lib/storage';
 import { adminCollaborationService } from '../lib/adminCollaborationService';
@@ -15,6 +16,7 @@ interface VolunteerRegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (title: string, message: string) => void;
+  isInline?: boolean;
 }
 
 type AnimState = 'FORM' | 'FOLDING' | 'FLYING' | 'DELIVERED' | 'CERTIFICATE';
@@ -22,7 +24,8 @@ type AnimState = 'FORM' | 'FOLDING' | 'FLYING' | 'DELIVERED' | 'CERTIFICATE';
 export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  isInline = false
 }) => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -31,10 +34,26 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
   const [selectedTeams, setSelectedTeams] = useState<string[]>(['An sinh & Cứu trợ']);
   const [note, setNote] = useState('');
   
+  const [registrationUrl, setRegistrationUrl] = useState<string>('');
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [showQrExpanded, setShowQrExpanded] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
+
   const [animState, setAnimState] = useState<AnimState>('FORM');
   const [flightProgress, setFlightProgress] = useState(0);
   const [createdReg, setCreatedReg] = useState<VolunteerRegistration | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Initialize registration URL pointing directly to PublicVolunteerRegistrationPage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      const cleanUrl = `${origin}${pathname}#/dang-ky-tinh-nguyen`;
+      setRegistrationUrl(cleanUrl);
+    }
+  }, []);
 
   // Reset state when opened
   useEffect(() => {
@@ -42,10 +61,86 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
       setAnimState('FORM');
       setFlightProgress(0);
       setCopiedCode(false);
+      setFormError(null);
+      setDownloadNotice(null);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleCopyLink = async () => {
+    if (!registrationUrl) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(registrationUrl);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = registrationUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      // copy fallback
+    }
+  };
+
+  const handleDownloadQrSvg = () => {
+    try {
+      const svg = document.getElementById('modal-volunteer-qr-svg');
+      if (!svg) return;
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = svgUrl;
+      downloadLink.download = 'QR_Dang_Ky_TNV_MTTQ_Chanh_Hiep.svg';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(svgUrl);
+    } catch (err) {
+      console.error('Error downloading QR svg:', err);
+    }
+  };
+
+  const handleDownloadCard = () => {
+    if (!createdReg) return;
+    try {
+      const cardInfo = `
+===================================================
+ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG CHÁNH HIỆP
+THẺ XÁC NHẬN ĐĂNG KÝ TÌNH NGUYỆN VIÊN SỐ
+===================================================
+Mã số định danh: ${createdReg.code}
+Họ và tên: ${createdReg.fullName}
+Số điện thoại: ${createdReg.phone}
+Email: ${createdReg.email || 'Chưa cung cấp'}
+Địa bàn tác nghiệp: ${createdReg.neighborhood}
+Đội hình tham gia: ${createdReg.teams.join(', ')}
+Thời gian đăng ký: ${createdReg.submittedAt}
+Trạng thái: Đã ghi nhận hệ thống MTTQ Phường Chánh Hiệp
+Cổng đăng ký công khai: ${registrationUrl}
+===================================================
+`.trim();
+      const blob = new Blob([cardInfo], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `The_TNV_${createdReg.code}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setDownloadNotice('Đã lưu thông tin Thẻ Tình nguyện viên vào thiết bị!');
+      setTimeout(() => setDownloadNotice(null), 3500);
+    } catch {
+      setDownloadNotice('Đã ghi nhận thông tin thẻ!');
+    }
+  };
 
   const volunteerTeams = [
     { id: 'An sinh & Cứu trợ', desc: 'Hỗ trợ trao quà, hỗ trợ hộ khó khăn, cứu trợ đột xuất' },
@@ -118,14 +213,15 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !phone.trim()) {
-      alert('Vui lòng điền đầy đủ Họ và tên cùng Số điện thoại liên hệ');
+      setFormError('Vui lòng điền đầy đủ Họ và tên cùng Số điện thoại liên hệ');
       return;
     }
 
     if (selectedTeams.length === 0) {
-      alert('Vui lòng chọn ít nhất 01 Lĩnh vực / Đội hình tham gia');
+      setFormError('Vui lòng chọn ít nhất 01 Lĩnh vực / Đội hình tham gia');
       return;
     }
+    setFormError(null);
 
     // Generate Volunteer Code
     const randomNum = Math.floor(100 + Math.random() * 900);
@@ -205,7 +301,7 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-3 sm:p-4 overflow-hidden">
+    <div className={isInline ? "w-full text-slate-900" : "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-3 sm:p-4 overflow-hidden"}>
       
       {/* --------------------------------------------------------------------- */}
       {/* 1. FORM STATE & FOLDING STAGE */}
@@ -214,7 +310,7 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
         {(animState === 'FORM' || animState === 'FOLDING') && (
           <motion.div
             key="modal-form-container"
-            initial={{ scale: 0.92, opacity: 0, y: 15 }}
+            initial={isInline ? { opacity: 0, y: 10 } : { scale: 0.92, opacity: 0, y: 15 }}
             animate={
               animState === 'FOLDING' 
                 ? {
@@ -232,18 +328,23 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
                 : { duration: 0.3 }
             }
             style={{ perspective: 1000 }}
-            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh] my-auto text-slate-900"
+            className={isInline
+              ? "relative w-full bg-white rounded-3xl shadow-xl border border-slate-200/90 overflow-hidden flex flex-col text-slate-900"
+              : "relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh] my-auto text-slate-900"
+            }
           >
             {/* Bright Luminous Header */}
             <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white px-4 py-3.5 sm:px-5 sm:py-4 relative shrink-0">
-              <button
-                type="button"
-                onClick={onClose}
-                className="absolute top-3.5 right-3.5 p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white transition cursor-pointer"
-                title="Đóng"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {!isInline && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="absolute top-3.5 right-3.5 p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white transition cursor-pointer"
+                  title="Đóng"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               
               <div className="flex items-center gap-3 pr-8">
                 <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-amber-300 shrink-0 shadow-xs">
@@ -268,6 +369,112 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
               <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+                {/* Form Error Banner (Replaces alert) */}
+                {formError && (
+                  <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center justify-between gap-2 shadow-2xs">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormError(null)}
+                      className="p-1 rounded-lg text-rose-500 hover:bg-rose-100 transition cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* QR Code & Nút 'Sao chép đường dẫn' vào giao diện Đăng ký tình nguyện viên */}
+                <div className="bg-gradient-to-br from-blue-50/90 via-indigo-50/70 to-sky-50/80 border border-blue-200/90 rounded-2xl p-3.5 shadow-2xs space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <QrCode className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-black text-blue-950 flex items-center gap-1.5">
+                          <span>Mã QR &amp; Link Đăng Ký Tình Nguyện Viên</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 bg-blue-100 text-blue-700 rounded-md">Chia sẻ</span>
+                        </div>
+                        <p className="text-[10px] text-blue-700 font-medium">Gửi bạn bè, chia sẻ mạng xã hội hoặc quét mã trên điện thoại</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowQrExpanded(!showQrExpanded)}
+                      className="px-2.5 py-1 text-[11px] font-bold rounded-xl bg-white hover:bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs transition flex items-center gap-1 cursor-pointer shrink-0"
+                    >
+                      <QrCode className="w-3.5 h-3.5 text-blue-600" />
+                      <span>{showQrExpanded ? 'Thu gọn QR' : 'Hiện mã QR'}</span>
+                    </button>
+                  </div>
+
+                  {/* Chi tiết hiển thị QR Code */}
+                  {showQrExpanded && (
+                    <div className="bg-white/95 rounded-xl p-3 border border-blue-100/90 shadow-2xs flex flex-col sm:flex-row items-center gap-3.5 text-slate-800">
+                      <div className="p-2 bg-white rounded-xl border border-slate-200 shadow-2xs shrink-0 flex flex-col items-center">
+                        <QRCodeSVG
+                          id="modal-volunteer-qr-svg"
+                          value={registrationUrl || `${window.location.origin}${window.location.pathname}#/dang-ky-tinh-nguyen`}
+                          size={105}
+                          level="M"
+                          includeMargin={true}
+                        />
+                        <span className="text-[9px] font-bold text-slate-500 mt-1">Quét bằng Camera / Zalo</span>
+                      </div>
+                      <div className="flex-1 text-center sm:text-left space-y-2 min-w-0 w-full">
+                        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                          Mã QR liên kết tự động tới trang Đăng ký Tình nguyện viên trực tuyến của Phường Chánh Hiệp. Quét để điền trên điện thoại hoặc tải ảnh QR để in poster / gửi nhóm chat.
+                        </p>
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5">
+                          <button
+                            type="button"
+                            onClick={handleDownloadQrSvg}
+                            className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-bold rounded-lg border border-blue-200 flex items-center gap-1 transition cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Tải mã QR (SVG)</span>
+                          </button>
+                          <a
+                            href="#/dang-ky-tinh-nguyen"
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold rounded-lg border border-slate-200 flex items-center gap-1 transition"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 text-slate-600" />
+                            <span>Mở trang riêng &amp; In Poster A4</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nút 'Sao chép đường dẫn' */}
+                  <div className="flex items-center gap-1.5 bg-white border border-blue-200 rounded-xl p-1 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100 transition">
+                    <div className="pl-2 pr-1 text-slate-400">
+                      <Share2 className="w-3.5 h-3.5 text-blue-600" />
+                    </div>
+                    <input
+                      type="text"
+                      readOnly
+                      value={registrationUrl}
+                      className="w-full bg-transparent text-[11px] font-mono text-slate-700 outline-none select-all truncate font-semibold"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-black flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer ${
+                        copiedLink 
+                          ? 'bg-emerald-600 text-white' 
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
+                    >
+                      {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedLink ? 'Đã sao chép' : 'Sao chép đường dẫn'}</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Row 1: Name & Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -627,7 +834,10 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.85, opacity: 0 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-gradient-to-b from-white via-amber-50/50 to-red-50/20 border-2 border-amber-400/90 rounded-3xl p-5 sm:p-6 shadow-2xl text-slate-900 space-y-4 my-auto overflow-hidden"
+            className={isInline
+              ? "relative w-full bg-gradient-to-b from-white via-amber-50/50 to-red-50/20 border-2 border-amber-400/90 rounded-3xl p-5 sm:p-6 shadow-xl text-slate-900 space-y-4 my-auto overflow-hidden"
+              : "relative w-full max-w-lg bg-gradient-to-b from-white via-amber-50/50 to-red-50/20 border-2 border-amber-400/90 rounded-3xl p-5 sm:p-6 shadow-2xl text-slate-900 space-y-4 my-auto overflow-hidden"
+            }
           >
             {/* Background Luminous Lighting */}
             <div className="absolute top-0 right-0 w-48 h-48 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
@@ -719,13 +929,49 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
               </div>
             </div>
 
+            {/* Thông báo tải thẻ thành công */}
+            {downloadNotice && (
+              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{downloadNotice}</span>
+              </div>
+            )}
+
+            {/* Lan tỏa link & mã QR sau khi đăng ký thành công */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/90 rounded-2xl p-3 space-y-2 text-center relative z-10">
+              <div className="text-xs font-black text-blue-950 flex items-center justify-center gap-1.5">
+                <Share2 className="w-4 h-4 text-blue-600" />
+                <span>Mời bạn bè &amp; Người thân cùng tham gia Đội tình nguyện</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium">
+                Gửi liên kết hoặc mã QR đăng ký nhanh cho bạn bè trên địa bàn 21 Khu phố:
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-2xs ${
+                    copiedLink ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLink ? 'Đã sao chép link' : 'Sao chép đường dẫn'}</span>
+                </button>
+                <a
+                  href="#/dang-ky-tinh-nguyen"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 shadow-2xs flex items-center gap-1.5 transition"
+                >
+                  <QrCode className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Xem mã QR &amp; Poster</span>
+                </a>
+              </div>
+            </div>
+
             {/* Action Buttons */}
             <div className="flex items-center justify-between gap-3 pt-1 relative z-10">
               <button
                 type="button"
-                onClick={() => {
-                  alert(`Đã lưu Thẻ Tình Nguyện Viên mã số ${createdReg.code} vào thiết bị của bạn.`);
-                }}
+                onClick={handleDownloadCard}
                 className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <Download className="w-4 h-4 text-amber-600" />
@@ -734,10 +980,21 @@ export const VolunteerRegistrationModal: React.FC<VolunteerRegistrationModalProp
 
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  if (isInline) {
+                    setAnimState('FORM');
+                    setFullName('');
+                    setPhone('');
+                    setEmail('');
+                    setNote('');
+                    setCreatedReg(null);
+                  } else {
+                    onClose();
+                  }
+                }}
                 className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white font-black text-xs rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <span>Hoàn Tất & Đóng</span>
+                <span>{isInline ? 'Đăng Ký Người Khác' : 'Hoàn Tất & Đóng'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

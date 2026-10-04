@@ -1931,7 +1931,10 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
   // Vite development middleware or production static server
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        hmr: false,
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -1943,8 +1946,16 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server đang chạy tại http://0.0.0.0:${PORT}`);
+  });
+
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`[Server] Cổng ${PORT} đang được sử dụng hoặc đang khởi động lại...`);
+    } else {
+      console.error('[Server Error]:', err);
+    }
   });
 }
 

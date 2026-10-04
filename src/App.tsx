@@ -1298,6 +1298,33 @@ export default function App() {
   };
 
 
+  const handleAddDocument = (newDoc: OfficialDocument) => {
+    setDocuments(prev => {
+      const next = [newDoc, ...prev];
+      AppStorageEngine.saveDocuments(next);
+      return next;
+    });
+    CloudDatabase.saveDocument(newDoc);
+  };
+
+  const handleUpdateDocument = (updatedDoc: OfficialDocument) => {
+    setDocuments(prev => {
+      const next = prev.map(d => d.id === updatedDoc.id ? updatedDoc : d);
+      AppStorageEngine.saveDocuments(next);
+      return next;
+    });
+    CloudDatabase.saveDocument(updatedDoc);
+  };
+
+  const handleDeleteDocument = (id: string) => {
+    setDocuments(prev => {
+      const next = prev.filter(d => d.id !== id);
+      AppStorageEngine.saveDocuments(next);
+      return next;
+    });
+    CloudDatabase.deleteDocument(id);
+  };
+
   const handleAddCompetition = (comp: Competition) => {
     setCompetitions(prev => {
       const next = sortCompetitionsNewestFirst([comp, ...prev]);
@@ -1913,6 +1940,36 @@ export default function App() {
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}
+                        onAddDocument={handleAddDocument}
+                        onUpdateDocument={handleUpdateDocument}
+                        onDeleteDocument={handleDeleteDocument}
+                        onUpdateArticleSubmission={handleUpdateArticleSubmission}
+                        onDeleteArticleSubmission={handleDeleteArticleSubmission}
+                        onAddCompetition={handleAddCompetition}
+                        onUpdateCompetition={handleUpdateCompetition}
+                        onDeleteCompetition={handleDeleteCompetition}
+                        onUpdateOpinionStatus={handleUpdateOpinionStatus}
+                        onRequestDocApproval={handleTriggerDocApprovalToast}
+                        onForceCloudSync={handleForceCloudSync}
+                        onShowToast={handleTriggerSystemToast}
+                        currentUser={currentStaffUser || undefined}
+                      />
+                    )}
+
+                    {officeView === 'cms_approval' && (
+                      <CmsAdminView
+                        articles={articles}
+                        articleSubmissions={articleSubmissions}
+                        documents={documents}
+                        competitions={competitions}
+                        opinions={opinions}
+                        initialTab="APPROVAL"
+                        onAddArticle={handleAddArticle}
+                        onUpdateArticle={handleUpdateArticle}
+                        onDeleteArticle={handleDeleteArticle}
+                        onAddDocument={handleAddDocument}
+                        onUpdateDocument={handleUpdateDocument}
+                        onDeleteDocument={handleDeleteDocument}
                         onUpdateArticleSubmission={handleUpdateArticleSubmission}
                         onDeleteArticleSubmission={handleDeleteArticleSubmission}
                         onAddCompetition={handleAddCompetition}
@@ -1936,6 +1993,9 @@ export default function App() {
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}
+                        onAddDocument={handleAddDocument}
+                        onUpdateDocument={handleUpdateDocument}
+                        onDeleteDocument={handleDeleteDocument}
                         onAddCompetition={handleAddCompetition}
                         onUpdateCompetition={handleUpdateCompetition}
                         onDeleteCompetition={handleDeleteCompetition}
@@ -1957,6 +2017,9 @@ export default function App() {
                         onAddArticle={handleAddArticle}
                         onUpdateArticle={handleUpdateArticle}
                         onDeleteArticle={handleDeleteArticle}
+                        onAddDocument={handleAddDocument}
+                        onUpdateDocument={handleUpdateDocument}
+                        onDeleteDocument={handleDeleteDocument}
                         currentUser={currentStaffUser || undefined}
                         onAddCompetition={handleAddCompetition}
                         onUpdateCompetition={handleUpdateCompetition}
@@ -1970,6 +2033,7 @@ export default function App() {
 
                     {officeView === 'cms_documents' && (
                       <DocumentManager 
+                        currentUser={currentStaffUser || undefined}
                         onShowToast={(type, msg) => handleTriggerSystemToast(type === 'error' ? 'Lỗi' : 'Thông báo', msg)}
                       />
                     )}

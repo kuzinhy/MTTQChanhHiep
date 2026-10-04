@@ -167,7 +167,7 @@ export interface NewDocument {
   documentSummary?: string; // Tóm tắt
   contentText?: string; // Plain text
   isPublic: boolean;  // Trạng thái công khai
-  status: 'Published' | 'Draft' | 'Hidden' | 'CONFIRMED' | 'PARSING' | 'ARCHIVED';
+  status: 'Published' | 'Draft' | 'Hidden' | 'Pending Review' | 'Approved' | 'CONFIRMED' | 'PARSING' | 'ARCHIVED';
   processingStatus?: 'UPLOADED' | 'PARSING' | 'OCR_PROCESSING' | 'EXTRACTING' | 'EXTRACTED' | 'WAITING_REVIEW' | 'CONFIRMED' | 'UPLOADING_DRIVE' | 'INDEXING' | 'COMPLETED' | 'ERROR';
 
   priority?: 'Bình thường' | 'Khẩn' | 'Thượng khẩn' | 'Hỏa tốc';
@@ -284,7 +284,7 @@ export type DocType =
 
 export type DocumentDirection = 'INCOMING' | 'OUTGOING' | 'INTERNAL';
 export type DocumentUrgency = 'NORMAL' | 'URGENT' | 'VERY_URGENT' | 'HOA_TOC';
-export type DocumentStatus = 'Published' | 'Draft' | 'Hidden' | 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'ISSUED' | 'PROCESSING' | 'COMPLETED' | 'EXPIRED' | 'ARCHIVED';
+export type DocumentStatus = 'Published' | 'Draft' | 'Hidden' | 'Pending Review' | 'Approved' | 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'ISSUED' | 'PROCESSING' | 'COMPLETED' | 'EXPIRED' | 'ARCHIVED';
 export type DocumentEffectiveStatus = 'EFFECTIVE' | 'EXPIRED' | 'REPLACED' | 'AMENDED';
 
 export interface OfficialDocument {

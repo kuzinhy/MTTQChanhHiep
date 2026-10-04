@@ -44,6 +44,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   templates: 'STAFF',
   cms: 'CONTRIBUTOR',
   cms_articles: 'CONTRIBUTOR',
+  cms_approval: 'CONTRIBUTOR',
   cms_initiatives: 'CONTRIBUTOR',
   cms_about: 'STAFF',
   cms_documents: 'STAFF',
@@ -101,6 +102,12 @@ export function canAccessView(user: StaffUser | UserRole | undefined, viewId: st
   const minRole = VIEW_ROLE_REQUIREMENTS[viewId] || 'STAFF';
   return hasMinRole(user, minRole);
 }
+export function isLeadershipRole(user: StaffUser | UserRole | undefined): boolean {
+  if (!user) return false;
+  const role = typeof user === 'object' ? user.role : user;
+  return role === 'LEADER' || role === 'ADMIN' || role === 'MTTQ_ADMIN' || role === 'SUPER_ADMIN';
+}
+
 
 export function getRoleLabel(role: UserRole): string {
   switch (role) {

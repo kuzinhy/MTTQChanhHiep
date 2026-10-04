@@ -38,13 +38,14 @@ import {
   PublicOpinion, 
   ArticleCategory, 
   ArticleStatus, 
+  DocumentStatus,
   OpinionStatus,
   DocType,
   CloudinaryImageMeta,
   ArticleSubmission,
   StaffUser
 } from '../../types';
-import { canAccessView } from '../../lib/rbac';
+import { canAccessView, isLeadershipRole } from '../../lib/rbac';
 import {
   sortArticlesNewestFirst,
   sortDocumentsNewestFirst,
@@ -104,7 +105,11 @@ import {
   Paperclip,
   Loader2,
   Link2,
-  Clipboard
+  Clipboard,
+  Send,
+  CheckSquare,
+  BarChart3,
+  XCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -114,7 +119,7 @@ interface CmsAdminViewProps {
   documents: OfficialDocument[];
   competitions?: Competition[];
   opinions?: PublicOpinion[];
-  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'SUBMISSIONS';
+  initialTab?: 'ARTICLES' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'SUBMISSIONS' | 'APPROVAL';
   currentUser?: StaffUser;
   onAddArticle: (art: Article) => void;
   onUpdateArticle: (art: Article) => void;
@@ -219,7 +224,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   onShowToast,
   currentUser
 }) => {
-  const isLeader = currentUser && (currentUser.role === 'LEADER' || currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN');
+  const isLeader = isLeadershipRole(currentUser);
 
   const handleRequestApproval = (art: Article) => {
     onUpdateArticle({ ...art, status: 'Pending Review' });
@@ -227,16 +232,66 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   };
 
   const handleApproveArticle = (art: Article) => {
+    if (!isLeader) return;
     onUpdateArticle({ ...art, status: 'Approved' });
     onShowToast?.('Đã phê duyệt', `Bài viết "${art.title}" đã được phê duyệt.`);
   };
 
   const handleRejectArticle = (art: Article) => {
+    if (!isLeader) return;
     onUpdateArticle({ ...art, status: 'Draft' });
     onShowToast?.('Đã từ chối', `Bài viết "${art.title}" đã được chuyển về bản nháp.`);
   };
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'SUBMISSIONS' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'CULTURAL_MEDIA'>(
-    (initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT' ? 'ABOUT' : (initialTab as any) || 'ARTICLES'
+
+  const handleApproveDocument = (doc: OfficialDocument) => {
+    if (!isLeader) {
+      onShowToast?.('Không có quyền', 'Chỉ có Lãnh đạo mới có quyền phê duyệt văn bản.');
+      return;
+    }
+    const updated: OfficialDocument = {
+      ...doc,
+      status: 'Published',
+      isPublic: true
+    };
+    if (onUpdateDocument) {
+      onUpdateDocument(updated);
+    }
+    onShowToast?.('Đã phê duyệt văn bản', `Văn bản "${doc.codeNumber}" đã được phê duyệt và ban hành.`);
+  };
+
+  const handleRejectDocument = (doc: OfficialDocument) => {
+    if (!isLeader) {
+      onShowToast?.('Không có quyền', 'Chỉ có Lãnh đạo mới có quyền từ chối phê duyệt văn bản.');
+      return;
+    }
+    const updated: OfficialDocument = {
+      ...doc,
+      status: 'Draft',
+      isPublic: false
+    };
+    if (onUpdateDocument) {
+      onUpdateDocument(updated);
+    }
+    onShowToast?.('Đã từ chối văn bản', `Văn bản "${doc.codeNumber}" đã được chuyển về bản nháp.`);
+  };
+
+  const handleRequestDocApproval = (doc: OfficialDocument) => {
+    const updated: OfficialDocument = {
+      ...doc,
+      status: 'Pending Review'
+    };
+    if (onUpdateDocument) {
+      onUpdateDocument(updated);
+    }
+    onShowToast?.('Đã gửi trình duyệt', `Văn bản "${doc.codeNumber}" đã được chuyển sang trạng thái Chờ duyệt.`);
+  };
+
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ARTICLES' | 'SUBMISSIONS' | 'DOCUMENTS' | 'COMPETITIONS' | 'OPINIONS' | 'INITIATIVES' | 'ABOUT' | 'MEDIA' | 'CULTURAL_MEDIA' | 'APPROVAL'>(
+    (initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT' 
+      ? 'ABOUT' 
+      : (initialTab as string) === 'cms_approval' || (initialTab as string) === 'APPROVAL'
+      ? 'APPROVAL'
+      : (initialTab as any) || 'ARTICLES'
   );
 
   // Content Image Inserter Modal
@@ -245,6 +300,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   React.useEffect(() => {
     if ((initialTab as string) === 'cms_about' || (initialTab as string) === 'ABOUT') {
       setActiveTab('ABOUT');
+    } else if ((initialTab as string) === 'cms_approval' || (initialTab as string) === 'APPROVAL') {
+      setActiveTab('APPROVAL');
     } else if (initialTab) {
       setActiveTab(initialTab as any);
     }
@@ -310,6 +367,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   const [docSummary, setDocSummary] = useState('');
   const [docIssueDate, setDocIssueDate] = useState(new Date().toISOString().substring(0, 10));
   const [docIsPublic, setDocIsPublic] = useState(true);
+  const [docStatus, setDocStatus] = useState<DocumentStatus>('Pending Review');
+  const [docStatusFilter, setDocStatusFilter] = useState<string>('ALL');
   const [docFileUrl, setDocFileUrl] = useState('');
   const [docFileName, setDocFileName] = useState('');
   const [docFileSize, setDocFileSize] = useState('');
@@ -952,6 +1011,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setDocSummary('');
     setDocIssueDate(new Date().toISOString().substring(0, 10));
     setDocIsPublic(true);
+    setDocStatus(isLeader ? 'Published' : 'Pending Review');
     setDocFileUrl('');
     setDocFileName('');
     setDocFileSize('');
@@ -974,6 +1034,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setDocSummary(doc.summary || '');
     setDocIssueDate(doc.issueDate || new Date().toISOString().substring(0, 10));
     setDocIsPublic(doc.isPublic ?? true);
+    setDocStatus(doc.status || (doc.isPublic ? 'Published' : 'Draft'));
     setDocFileUrl(doc.fileUrl || '');
     setDocFileName(doc.fileName || '');
     setDocFileSize(doc.fileSize || '');
@@ -1059,6 +1120,9 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     e.preventDefault();
     if (!docTitle.trim() || !docCode.trim()) return;
 
+    const effectiveStatus: DocumentStatus = docStatus || (isLeader ? 'Published' : 'Pending Review');
+    const effectiveIsPublic = effectiveStatus === 'Published' || effectiveStatus === 'Approved';
+
     if (editingDoc) {
       const updated: OfficialDocument = {
         ...editingDoc,
@@ -1069,13 +1133,15 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         signer: docSigner.trim(),
         summary: docSummary.trim(),
         issueDate: docIssueDate,
-        isPublic: docIsPublic,
+        isPublic: effectiveIsPublic,
+        status: effectiveStatus,
         fileUrl: docFileUrl || editingDoc.fileUrl,
         fileName: docFileName || editingDoc.fileName,
         fileSize: docFileSize || editingDoc.fileSize,
         driveUrl: docDriveUrl || editingDoc.driveUrl
       };
-      onUpdateDocument(updated);
+      if (onUpdateDocument) onUpdateDocument(updated);
+      onShowToast?.('Cập nhật văn bản', `Văn bản "${updated.codeNumber}" đã được lưu thành công.`);
     } else {
       const newDoc: OfficialDocument = {
         id: 'doc-' + Date.now(),
@@ -1087,13 +1153,19 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         signer: docSigner.trim() || 'Chủ tịch Trần Thị Hoa',
         field: docField,
         summary: docSummary.trim(),
-        isPublic: docIsPublic,
+        isPublic: effectiveIsPublic,
+        status: effectiveStatus,
         fileUrl: docFileUrl || undefined,
         fileName: docFileName || undefined,
         fileSize: docFileSize || undefined,
         driveUrl: docDriveUrl || 'https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL'
       };
-      onAddDocument(newDoc);
+      if (onAddDocument) onAddDocument(newDoc);
+      if (effectiveStatus === 'Pending Review') {
+        onShowToast?.('Đã trình phê duyệt', `Văn bản "${newDoc.codeNumber}" đã được gửi lên trạng thái Chờ duyệt.`);
+      } else {
+        onShowToast?.('Đã ban hành văn bản', `Văn bản "${newDoc.codeNumber}" đã được ban hành.`);
+      }
     }
 
     resetDocForm();
@@ -1261,10 +1333,19 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         doc.codeNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (doc.signer && doc.signer.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesType = selectedCategory === 'ALL' || doc.docType === selectedCategory;
-      return matchesSearch && matchesType;
+      const matchesStatus = docStatusFilter === 'ALL'
+        ? true
+        : docStatusFilter === 'Pending Review'
+        ? doc.status === 'Pending Review'
+        : docStatusFilter === 'Draft'
+        ? doc.status === 'Draft'
+        : docStatusFilter === 'Published'
+        ? (doc.status === 'Published' || doc.status === 'Approved' || (!doc.status && doc.isPublic !== false))
+        : true;
+      return matchesSearch && matchesType && matchesStatus;
     });
     return sortDocumentsNewestFirst(list);
-  }, [documents, searchTerm, selectedCategory]);
+  }, [documents, searchTerm, selectedCategory, docStatusFilter]);
 
   // Filtered Competitions (Always sorted newest / active first)
   const filteredCompetitions = useMemo(() => {
@@ -1288,6 +1369,17 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     });
     return sortOpinionsNewestFirst(list);
   }, [opinions, searchTerm, statusFilter]);
+
+  // Pending Approval lists for "Trình Phê Duyệt" tab
+  const pendingArticles = useMemo(() => {
+    return articles.filter(a => a.status === 'Pending Review');
+  }, [articles]);
+
+  const pendingDocuments = useMemo(() => {
+    return documents.filter(d => d.status === 'Pending Review');
+  }, [documents]);
+
+  const totalPendingApprovals = pendingArticles.length + pendingDocuments.length;
 
   // Stats calculation
   const publishedCount = articles.filter(a => a.status === 'Published').length;
@@ -1389,14 +1481,469 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
               <span>Tạo Hội Thi Mới</span>
             </button>
           )}
+
+          {activeTab === 'APPROVAL' && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => { resetArticleForm(); setIsArticleModalOpen(true); }}
+                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-black rounded-2xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>Trình Bài Viết</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { resetDocForm(); setIsDocModalOpen(true); }}
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white text-xs font-black rounded-2xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>Trình Văn Bản</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* CMS Sub-module Tab Navigation Toolbar */}
+      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-1.5 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('ARTICLES')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+            activeTab === 'ARTICLES'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <Newspaper className="w-4 h-4" />
+          <span>Tin tức &amp; Bài viết</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+            activeTab === 'ARTICLES' ? 'bg-blue-700 text-blue-100' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {articles.length}
+          </span>
+        </button>
 
+        <button
+          onClick={() => setActiveTab('APPROVAL')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+            activeTab === 'APPROVAL'
+              ? 'bg-amber-500 text-slate-950 shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <CheckSquare className="w-4 h-4 text-amber-900" />
+          <span>Trình Phê Duyệt</span>
+          {totalPendingApprovals > 0 ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-600 text-white animate-pulse">
+              +{totalPendingApprovals} CHỜ DUYỆT
+            </span>
+          ) : (
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeTab === 'APPROVAL' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600'
+            }`}>
+              0
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('DOCUMENTS')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+            activeTab === 'DOCUMENTS'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>Văn bản chỉ đạo</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+            activeTab === 'DOCUMENTS' ? 'bg-blue-700 text-blue-100' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {documents.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('SUBMISSIONS')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+            activeTab === 'SUBMISSIONS'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          <span>Bài viết CTV</span>
+          {articleSubmissions.length > 0 && (
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeTab === 'SUBMISSIONS' ? 'bg-blue-700 text-blue-100' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {articleSubmissions.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('OVERVIEW')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+            activeTab === 'OVERVIEW'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span>Thống kê</span>
+        </button>
+      </div>
 
       {/* ========================================================================= */}
-      {/* 0. OVERVIEW ANALYTICS TAB */}
+      {/* APPROVAL WORKSPACE TAB (TRÌNH PHÊ DUYỆT & LÃNH ĐẠO DUYỆT) */}
       {/* ========================================================================= */}
+      {activeTab === 'APPROVAL' && (
+        <div className="space-y-6">
+          {/* Role Status Banner */}
+          <div className={`p-5 rounded-3xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm ${
+            isLeader 
+              ? 'bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100/70 border-amber-300 text-amber-950'
+              : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100/70 border-blue-200 text-blue-950'
+          }`}>
+            <div className="flex items-start gap-3.5">
+              <div className={`p-3 rounded-2xl shrink-0 ${
+                isLeader ? 'bg-amber-500 text-slate-950 shadow-xs' : 'bg-blue-600 text-white shadow-xs'
+              }`}>
+                {isLeader ? <ShieldCheck className="w-6 h-6 stroke-[2.5]" /> : <FileText className="w-6 h-6" />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    isLeader ? 'bg-amber-300 text-amber-900 border border-amber-400' : 'bg-blue-200 text-blue-900 border border-blue-300'
+                  }`}>
+                    {isLeader ? '👑 Quyền Lãnh Đạo Phê Duyệt' : '📋 Cán Bộ Biên Soạn & Trình Duyệt'}
+                  </span>
+                  <span className="text-xs font-bold opacity-60">•</span>
+                  <span className="text-xs font-bold">
+                    {currentUser?.fullname || 'Cán bộ MTTQ'} ({currentUser?.role || 'STAFF'})
+                  </span>
+                </div>
+                <h3 className="text-base font-black mt-1">
+                  {isLeader 
+                    ? 'Không Gian Thẩm Định & Phê Duyệt Văn Bản, Tin Bài CMS' 
+                    : 'Trung Tâm Theo Dõi Tiến Độ Trình Duyệt Hồ Sơ'}
+                </h3>
+                <p className="text-xs opacity-80 mt-0.5 max-w-2xl leading-relaxed">
+                  {isLeader 
+                    ? 'Chỉ có tài khoản có quyền Lãnh đạo mới thấy các nút "Phê duyệt" hoặc "Từ chối". Đồng chí có thể xem trước toàn văn trước khi quyết định ban hành.'
+                    : 'Đồng chí có thể tạo văn bản hoặc bài viết mới và gửi lên trạng thái "Chờ duyệt". Nội dung sẽ được chuyển tới Lãnh đạo để xem xét và duyệt ban hành.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-stretch md:self-auto justify-end">
+              <button
+                type="button"
+                onClick={() => { resetArticleForm(); setIsArticleModalOpen(true); }}
+                className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-800 text-xs font-black rounded-xl border border-slate-300 shadow-2xs cursor-pointer transition-all flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4 text-blue-600" />
+                <span>Trình bài viết mới</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { resetDocForm(); setIsDocModalOpen(true); }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>Trình văn bản mới</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Metric Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3">
+              <div className="p-3 bg-amber-100 text-amber-800 rounded-xl">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-bold">Văn bản chờ duyệt</p>
+                <p className="text-xl font-black text-slate-900">{pendingDocuments.length}</p>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3">
+              <div className="p-3 bg-blue-100 text-blue-800 rounded-xl">
+                <Newspaper className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-bold">Tin bài chờ duyệt</p>
+                <p className="text-xl font-black text-slate-900">{pendingArticles.length}</p>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3">
+              <div className="p-3 bg-emerald-100 text-emerald-800 rounded-xl">
+                <CheckSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-bold">Tổng hồ sơ cần xử lý</p>
+                <p className="text-xl font-black text-slate-900">{totalPendingApprovals}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 1: VĂN BẢN CHỈ ĐẠO CHỜ DUYỆT */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm space-y-4 p-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <h3 className="font-black text-sm text-slate-900">
+                  1. Văn bản chỉ đạo chờ Lãnh đạo phê duyệt ({pendingDocuments.length})
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => { resetDocForm(); setIsDocModalOpen(true); }}
+                className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Thêm văn bản mới</span>
+              </button>
+            </div>
+
+            {pendingDocuments.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 space-y-2">
+                <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-500/60" />
+                <p className="text-xs font-bold text-slate-700">Không có văn bản nào đang chờ duyệt</p>
+                <p className="text-[11px] text-slate-400">Tất cả văn bản đã được Lãnh đạo thẩm định và ban hành.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-50 text-slate-700 font-black text-[10px] uppercase border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3">Số / Ký hiệu</th>
+                      <th className="px-4 py-3">Trích yếu tên văn bản</th>
+                      <th className="px-4 py-3">Loại văn bản</th>
+                      <th className="px-4 py-3">Người ký &amp; Ban hành</th>
+                      <th className="px-4 py-3 text-center">Trạng thái</th>
+                      <th className="px-4 py-3 text-right">Thao tác phê duyệt</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {pendingDocuments.map(doc => (
+                      <tr key={doc.id} className="hover:bg-amber-50/40 transition-colors">
+                        <td className="px-4 py-3.5 font-black text-blue-700 whitespace-nowrap">
+                          {doc.codeNumber}
+                        </td>
+                        <td className="px-4 py-3.5 font-bold text-slate-900 max-w-sm">
+                          <p className="line-clamp-2">{doc.title}</p>
+                          {doc.fileName && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1">
+                              <FileCheck className="w-3 h-3 text-emerald-600" />
+                              {doc.fileName}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 text-[10px] font-bold border border-slate-200">
+                            {doc.docType}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-slate-600 text-[11px] whitespace-nowrap">
+                          <p className="font-bold text-slate-900">{doc.signer || 'Chủ tịch MTTQ'}</p>
+                          <p className="text-slate-400 text-[10px]">{doc.issueDate}</p>
+                        </td>
+                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                          <span className="px-2.5 py-1 rounded-xl text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs">
+                            <Clock className="w-3 h-3 text-amber-600 animate-pulse" />
+                            <span>Chờ duyệt</span>
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isLeader ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveDocument(doc)}
+                                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                                  title="Lãnh đạo phê duyệt ban hành văn bản"
+                                >
+                                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                  <span>Phê duyệt</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRejectDocument(doc)}
+                                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white rounded-xl text-xs font-bold border border-rose-200 shadow-2xs flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                                  title="Từ chối, chuyển về bản nháp"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  <span>Từ chối</span>
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-[11px] text-amber-700 font-bold italic mr-2">
+                                ⏳ Chờ Lãnh đạo duyệt
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDoc(doc)}
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer"
+                              title="Xem chi tiết văn bản"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditDoc(doc)}
+                              className="p-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-xl transition-all cursor-pointer"
+                              title="Sửa nội dung văn bản"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 2: TIN BÀI & BÀI VIẾT CHỜ DUYỆT */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm space-y-4 p-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Newspaper className="w-5 h-5 text-blue-600" />
+                <h3 className="font-black text-sm text-slate-900">
+                  2. Tin tức &amp; Bài viết chờ Lãnh đạo phê duyệt ({pendingArticles.length})
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => { resetArticleForm(); setIsArticleModalOpen(true); }}
+                className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Đăng bài viết mới</span>
+              </button>
+            </div>
+
+            {pendingArticles.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 space-y-2">
+                <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-500/60" />
+                <p className="text-xs font-bold text-slate-700">Không có bài viết nào đang chờ duyệt</p>
+                <p className="text-[11px] text-slate-400">Tất cả bài viết đã được thẩm định và xuất bản công khai.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-50 text-slate-700 font-black text-[10px] uppercase border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3">Bài viết &amp; Tiêu đề</th>
+                      <th className="px-4 py-3">Chuyên mục</th>
+                      <th className="px-4 py-3">Tác giả &amp; Ngày gửi</th>
+                      <th className="px-4 py-3 text-center">Trạng thái</th>
+                      <th className="px-4 py-3 text-right">Thao tác phê duyệt</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {pendingArticles.map(art => {
+                      const imgUrl = typeof art.featuredImage === 'string' ? art.featuredImage : (art.featuredImage?.url || DEFAULT_IMAGE_PRESETS[0].url);
+                      return (
+                        <tr key={art.id} className="hover:bg-amber-50/40 transition-colors">
+                          <td className="px-4 py-3.5 max-w-md">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={imgUrl}
+                                alt={art.title}
+                                className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <h4
+                                  onClick={() => setPreviewArticle(art)}
+                                  className="font-black text-slate-900 line-clamp-1 hover:text-blue-600 cursor-pointer"
+                                >
+                                  {art.title}
+                                </h4>
+                                <p className="text-[11px] text-slate-500 line-clamp-1">{art.summary}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 whitespace-nowrap">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200">
+                              {art.category}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 text-slate-600 text-[11px] whitespace-nowrap">
+                            <p className="font-bold text-slate-900">{art.authorName || 'Cán bộ MTTQ'}</p>
+                            <p className="text-slate-400 text-[10px]">{art.publishDate}</p>
+                          </td>
+                          <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                            <span className="px-2.5 py-1 rounded-xl text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs">
+                              <Clock className="w-3 h-3 text-amber-600 animate-pulse" />
+                              <span>Chờ duyệt</span>
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {isLeader ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApproveArticle(art)}
+                                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                                    title="Lãnh đạo phê duyệt xuất bản bài viết"
+                                  >
+                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                    <span>Phê duyệt</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRejectArticle(art)}
+                                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white rounded-xl text-xs font-bold border border-rose-200 shadow-2xs flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                                    title="Từ chối, trả về bản nháp"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                    <span>Từ chối</span>
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-[11px] text-amber-700 font-bold italic mr-2">
+                                  ⏳ Chờ Lãnh đạo duyệt
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setPreviewArticle(art)}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer"
+                                title="Xem trước bài viết"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditArticle(art)}
+                                className="p-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-xl transition-all cursor-pointer"
+                                title="Sửa nội dung bài viết"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {activeTab === 'OVERVIEW' && (
         <AdminAnalyticsView
           documents={documents}
@@ -1611,25 +2158,56 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
 
                         {/* Status Toggle Badge */}
                         <td className="px-4 py-3.5">
-                          <div className="flex flex-col gap-1">
-                            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black text-center ${
-                              art.status === 'Published' ? 'bg-emerald-100 text-emerald-800' :
-                              art.status === 'Approved' ? 'bg-blue-100 text-blue-800' :
-                              art.status === 'Pending Review' ? 'bg-amber-100 text-amber-800' :
-                              'bg-slate-100 text-slate-600'
+                          <div className="flex flex-col gap-1 items-center min-w-[120px]">
+                            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black text-center inline-flex items-center gap-1 ${
+                              art.status === 'Published' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                              art.status === 'Approved' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                              art.status === 'Pending Review' ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs' :
+                              'bg-slate-100 text-slate-600 border border-slate-300'
                             }`}>
+                              {art.status === 'Pending Review' && <Clock className="w-3 h-3 text-amber-600 animate-pulse" />}
                               {art.status === 'Published' ? 'Đã xuất bản' : art.status === 'Approved' ? 'Đã phê duyệt' : art.status === 'Pending Review' ? 'Chờ duyệt' : 'Bản nháp'}
                             </span>
                             
                             {art.status === 'Draft' && (
-                              <button onClick={() => handleRequestApproval(art)} className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200">Gửi duyệt</button>
+                              <button
+                                type="button"
+                                onClick={() => handleRequestApproval(art)}
+                                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg border border-blue-200 transition-all cursor-pointer shadow-2xs"
+                                title="Trình bài viết lên Lãnh đạo phê duyệt"
+                              >
+                                <Send className="w-3 h-3" />
+                                <span>Trình phê duyệt</span>
+                              </button>
                             )}
 
                             {art.status === 'Pending Review' && isLeader && (
-                              <div className="flex gap-1">
-                                <button onClick={() => handleApproveArticle(art)} className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Phê duyệt</button>
-                                <button onClick={() => handleRejectArticle(art)} className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded border border-red-200">Từ chối</button>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveArticle(art)}
+                                  className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95"
+                                  title="Lãnh đạo phê duyệt bài viết"
+                                >
+                                  <Check className="w-3 h-3 stroke-[3]" />
+                                  <span>Phê duyệt</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRejectArticle(art)}
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white rounded-lg border border-rose-200 transition-all cursor-pointer shadow-2xs active:scale-95"
+                                  title="Từ chối, trả về bản nháp"
+                                >
+                                  <X className="w-3 h-3" />
+                                  <span>Từ chối</span>
+                                </button>
                               </div>
+                            )}
+
+                            {art.status === 'Pending Review' && !isLeader && (
+                              <span className="text-[10px] text-amber-700 font-semibold italic text-center">
+                                ⏳ Chờ Lãnh đạo duyệt
+                              </span>
                             )}
                           </div>
                         </td>
@@ -1847,6 +2425,20 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
 
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
+                <Filter className="w-3.5 h-3.5 text-slate-400" /> Trạng thái:
+              </span>
+              <select
+                value={docStatusFilter}
+                onChange={(e) => setDocStatusFilter(e.target.value)}
+                className="bg-slate-100 px-3 py-1.5 rounded-xl font-bold text-slate-800 text-xs border border-slate-200 outline-hidden cursor-pointer"
+              >
+                <option value="ALL">Tất cả trạng thái ({documents.length})</option>
+                <option value="Pending Review">⏳ Chờ duyệt ({pendingDocuments.length})</option>
+                <option value="Published">🟢 Đã duyệt / Ban hành</option>
+                <option value="Draft">📄 Bản nháp</option>
+              </select>
+
+              <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
                 <Filter className="w-3.5 h-3.5 text-slate-400" /> Loại văn bản:
               </span>
               <select
@@ -1872,13 +2464,14 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                     <th className="px-4 py-3.5">Trích yếu tên văn bản</th>
                     <th className="px-4 py-3.5">Loại văn bản</th>
                     <th className="px-4 py-3.5">Người ký &amp; Ban hành</th>
+                    <th className="px-4 py-3.5 text-center">Trạng thái phê duyệt</th>
                     <th className="px-5 py-3.5 text-right">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {filteredDocuments.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-400 text-xs">
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-xs">
                         <FolderOpen className="w-10 h-10 mx-auto text-slate-300 mb-2" />
                         <p className="font-bold text-slate-600">Không tìm thấy văn bản phù hợp.</p>
                       </td>
@@ -1916,6 +2509,75 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                         <td className="px-4 py-3.5 text-slate-600 text-[11px]">
                           <p className="font-bold text-slate-900">{doc.signer || 'Chủ tịch MTTQ'}</p>
                           <p className="text-slate-400 text-[10px]">{doc.issueDate}</p>
+                        </td>
+                        <td className="px-4 py-3.5 text-center">
+                          <div className="flex flex-col items-center gap-1 min-w-[130px]">
+                            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black inline-flex items-center gap-1 ${
+                              doc.status === 'Pending Review'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs'
+                                : doc.status === 'Draft'
+                                ? 'bg-slate-100 text-slate-700 border border-slate-300'
+                                : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                            }`}>
+                              {doc.status === 'Pending Review' ? (
+                                <>
+                                  <Clock className="w-3 h-3 text-amber-600 animate-pulse" />
+                                  <span>Chờ duyệt</span>
+                                </>
+                              ) : doc.status === 'Draft' ? (
+                                <>
+                                  <FileText className="w-3 h-3 text-slate-500" />
+                                  <span>Bản nháp</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-600" />
+                                  <span>{doc.status === 'Approved' ? 'Đã phê duyệt' : 'Đã ban hành'}</span>
+                                </>
+                              )}
+                            </span>
+
+                            {doc.status === 'Draft' && (
+                              <button
+                                type="button"
+                                onClick={() => handleRequestDocApproval(doc)}
+                                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg border border-blue-200 transition-all cursor-pointer shadow-2xs"
+                                title="Trình văn bản lên Lãnh đạo phê duyệt"
+                              >
+                                <Send className="w-3 h-3" />
+                                <span>Trình phê duyệt</span>
+                              </button>
+                            )}
+
+                            {doc.status === 'Pending Review' && isLeader && (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveDocument(doc)}
+                                  className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all cursor-pointer shadow-2xs active:scale-95"
+                                  title="Lãnh đạo phê duyệt ban hành văn bản"
+                                >
+                                  <Check className="w-3 h-3 stroke-[3]" />
+                                  <span>Phê duyệt</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRejectDocument(doc)}
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white rounded-lg border border-rose-200 transition-all cursor-pointer shadow-2xs active:scale-95"
+                                  title="Từ chối, chuyển về bản nháp"
+                                >
+                                  <X className="w-3 h-3" />
+                                  <span>Từ chối</span>
+                                </button>
+                              </div>
+                            )}
+
+                            {doc.status === 'Pending Review' && !isLeader && (
+                              <span className="text-[10px] text-amber-700 font-semibold italic text-center">
+                                ⏳ Chờ Lãnh đạo duyệt
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
@@ -2279,6 +2941,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                             className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-bold bg-white cursor-pointer"
                           >
                             <option value="Published">🟢 Đã xuất bản (Hiển thị trang chủ)</option>
+                            <option value="Pending Review">⏳ Chờ duyệt (Trình Lãnh đạo phê duyệt)</option>
                             <option value="Draft">🟡 Bản nháp (Ẩn khỏi trang chủ)</option>
                             <option value="Archived">🔴 Lưu trữ (Ẩn khỏi trang chủ)</option>
                           </select>
@@ -2508,21 +3171,39 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                     <span>Đồng bộ tức thì lên Cổng thông tin Mặt trận Chánh Hiệp</span>
                   </div>
 
-                  <div className="flex items-center gap-3 ml-auto">
+                  <div className="flex items-center gap-2 ml-auto flex-wrap">
                     <button
                       type="button"
                       onClick={() => setIsArticleModalOpen(false)}
-                      className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
                     >
                       Hủy bỏ
                     </button>
                     <button
                       type="submit"
-                      className="px-7 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs md:text-sm font-black rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2"
+                      onClick={() => setArtStatus('Draft')}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-colors"
                     >
-                      <Check className="w-4 h-4 text-white stroke-[3]" />
-                      <span>{editingArticle ? 'Lưu Thay Đổi Bài Viết' : 'Xuất Bản Bài Viết Ngay'}</span>
+                      Lưu bản nháp
                     </button>
+                    <button
+                      type="submit"
+                      onClick={() => setArtStatus('Pending Review')}
+                      className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 text-xs font-black rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Send className="w-4 h-4 text-slate-950" />
+                      <span>Trình Lãnh đạo phê duyệt</span>
+                    </button>
+                    {isLeader && (
+                      <button
+                        type="submit"
+                        onClick={() => setArtStatus('Published')}
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2"
+                      >
+                        <Check className="w-4 h-4 text-white stroke-[3]" />
+                        <span>{editingArticle ? 'Lưu & Xuất bản' : 'Xuất bản bài viết ngay'}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </form>
@@ -2933,23 +3614,39 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Toggle: Công khai / Ẩn văn bản */}
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-slate-800 block">Trạng thái hiển thị văn bản</span>
-                        <span className="text-[10.5px] text-slate-500">
-                          {docIsPublic ? '🟢 Đang công khai trên Cổng TTĐT' : '🔒 Đang ẩn (Chỉ lưu trữ nội bộ)'}
+                    {/* Document Approval Status Selector */}
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-black text-slate-800">Quy trình &amp; Trạng thái văn bản</label>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                          docStatus === 'Pending Review'
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                            : docStatus === 'Draft'
+                            ? 'bg-slate-200 text-slate-700'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {docStatus === 'Pending Review' ? '⏳ Chờ duyệt' : docStatus === 'Draft' ? '📄 Bản nháp' : '🟢 Đã ban hành'}
                         </span>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={docIsPublic}
-                          onChange={(e) => setDocIsPublic(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
+                      
+                      <select
+                        value={docStatus}
+                        onChange={(e) => setDocStatus(e.target.value as DocumentStatus)}
+                        className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold cursor-pointer outline-hidden focus:ring-2 focus:ring-blue-600"
+                      >
+                        <option value="Pending Review">⏳ Chờ duyệt (Trình Lãnh đạo phê duyệt ban hành)</option>
+                        <option value="Draft">📄 Bản nháp (Lưu tạm cán bộ biên soạn)</option>
+                        {isLeader && (
+                          <option value="Published">🟢 Đã phê duyệt &amp; Ban hành công khai (Quyền Lãnh đạo)</option>
+                        )}
+                      </select>
+                      <p className="text-[10.5px] text-slate-500">
+                        {docStatus === 'Pending Review'
+                          ? 'Văn bản sẽ được gửi tới Lãnh đạo để xem xét và duyệt trước khi công khai.'
+                          : docStatus === 'Draft'
+                          ? 'Chỉ lưu trữ tạm nội bộ, chưa trình duyệt.'
+                          : 'Văn bản được ban hành và hiển thị ngay trên Cổng thông tin.'}
+                      </p>
                     </div>
                   </div>
 
@@ -3013,7 +3710,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                 </div>
 
                 {/* Modal Footer Buttons */}
-                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-200 mt-2 shrink-0">
+                <div className="pt-4 flex items-center justify-between gap-3 border-t border-slate-200 mt-2 shrink-0 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setIsDocModalOpen(false)}
@@ -3021,12 +3718,36 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   >
                     Hủy bỏ
                   </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer transition-colors active:scale-98"
-                  >
-                    <span>{editingDoc ? 'Lưu cập nhật văn bản' : 'Ban hành văn bản chỉ đạo'}</span>
-                  </button>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="submit"
+                      onClick={() => setDocStatus('Draft')}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-colors"
+                    >
+                      Lưu bản nháp
+                    </button>
+
+                    <button
+                      type="submit"
+                      onClick={() => setDocStatus('Pending Review')}
+                      className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 text-xs font-black rounded-xl shadow-xs cursor-pointer transition-all flex items-center gap-1.5"
+                    >
+                      <Send className="w-4 h-4 text-slate-950" />
+                      <span>Trình Lãnh đạo phê duyệt</span>
+                    </button>
+
+                    {isLeader && (
+                      <button
+                        type="submit"
+                        onClick={() => setDocStatus('Published')}
+                        className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-md cursor-pointer transition-all flex items-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>Phê duyệt &amp; Ban hành</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </form>
             </motion.div>

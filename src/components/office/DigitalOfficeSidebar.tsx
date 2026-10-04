@@ -87,23 +87,31 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   // State for search query
   const [searchQuery, setSearchQuery] = useState('');
   const [unviewedVolunteersCount, setUnviewedVolunteersCount] = useState<number>(0);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
 
   useEffect(() => {
-    const checkVolunteers = () => {
+    const checkCounts = () => {
       try {
         const vols = AppStorageEngine.getVolunteers() || [];
         const count = vols.filter((v: any) => v.isNew || !v.viewedByAdmin || v.status === 'PENDING').length;
         setUnviewedVolunteersCount(count);
+
+        const arts = AppStorageEngine.getArticles() || [];
+        const docs = AppStorageEngine.getDocuments() || [];
+        const artPending = arts.filter((a: any) => a.status === 'Pending Review').length;
+        const docPending = docs.filter((d: any) => d.status === 'Pending Review').length;
+        setPendingApprovalsCount(artPending + docPending);
       } catch {
         setUnviewedVolunteersCount(0);
+        setPendingApprovalsCount(0);
       }
     };
 
-    checkVolunteers();
-    window.addEventListener('storage', checkVolunteers);
-    const interval = setInterval(checkVolunteers, 3000);
+    checkCounts();
+    window.addEventListener('storage', checkCounts);
+    const interval = setInterval(checkCounts, 3000);
     return () => {
-      window.removeEventListener('storage', checkVolunteers);
+      window.removeEventListener('storage', checkCounts);
       clearInterval(interval);
     };
   }, []);
@@ -144,6 +152,14 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         accentColor: 'blue',
         items: [
           { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
+          { 
+            id: 'cms_approval', 
+            label: 'Trình phê duyệt', 
+            icon: CheckSquare, 
+            badge: pendingApprovalsCount > 0 ? `+${pendingApprovalsCount} CHỜ DUYỆT` : 'TRÌNH DUYỆT',
+            badgeStyle: pendingApprovalsCount > 0 ? 'bg-amber-400 text-amber-950 font-black' : undefined,
+            isNewHighlight: pendingApprovalsCount > 0 
+          },
           { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
           { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
           { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
