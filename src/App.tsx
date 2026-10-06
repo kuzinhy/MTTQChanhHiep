@@ -112,8 +112,9 @@ import { VisitorTrackerEngine } from './lib/visitorTracker';
 
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
-import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, AlertTriangle, Landmark, Star, Move, Newspaper, Lightbulb, Info, BarChart3, Award, Users, Building2, Layers, Bell, Settings, PieChart, FolderTree, ShieldAlert } from 'lucide-react';
+import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, CloudUpload, AlertTriangle, Landmark, Star, Move, Newspaper, Lightbulb, Info, BarChart3, Award, Users, Building2, Layers, Bell, Settings, PieChart, FolderTree, ShieldAlert } from 'lucide-react';
 import { browserNotificationService } from './lib/browserNotifications';
+import { uploadCitizenEvidenceImage } from './lib/googleDriveService';
 
 export const VALID_PORTAL_TABS = [
   'home',
@@ -227,6 +228,17 @@ export const TAB_TO_HASH: Record<string, string> = {
 export default function App() {
   // App Initial Loading State
   const [isAppLoading, setIsAppLoading] = useState(false);
+
+  // Global Image Upload to Drive Progress State
+  const [uploadProgressState, setUploadProgressState] = useState<{
+    active: boolean;
+    progress: number;
+    message: string;
+  }>({
+    active: false,
+    progress: 0,
+    message: ''
+  });
 
 
   // Navigation & Space State
@@ -1044,31 +1056,75 @@ export default function App() {
   };
 
   // Data Handlers
-  const handleAddOpinion = (newOp: PublicOpinion) => {
+  const handleAddOpinion = async (newOp: PublicOpinion) => {
+    let finalImageLink = newOp.imageLink;
+
+    // Direct Google Drive upload integration before assigning link into data
+    if (newOp.imageLink && newOp.imageLink.startsWith('data:image/')) {
+      setUploadProgressState({
+        active: true,
+        progress: 10,
+        message: 'Đang chuẩn bị tải ảnh minh chứng lên Google Drive...'
+      });
+
+      try {
+        const res = await fetch(newOp.imageLink);
+        const blob = await res.blob();
+        const file = new File([blob], `minh-chung-y-kien-${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+
+        const uploadRes = await uploadCitizenEvidenceImage(
+          file, 
+          '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B',
+          (pct, msg) => {
+            setUploadProgressState({
+              active: true,
+              progress: pct,
+              message: msg
+            });
+          }
+        );
+
+        if (uploadRes.driveLink || uploadRes.directUrl) {
+          finalImageLink = uploadRes.driveLink || uploadRes.directUrl;
+        }
+      } catch (err) {
+        console.warn('[handleAddOpinion] Drive upload warning:', err);
+      } finally {
+        setTimeout(() => {
+          setUploadProgressState({ active: false, progress: 0, message: '' });
+        }, 600);
+      }
+    }
+
+    const opToSave: PublicOpinion = {
+      ...newOp,
+      imageLink: finalImageLink
+    };
+
     setOpinions(prev => {
-      const next = [newOp, ...prev];
+      const next = [opToSave, ...prev];
       AppStorageEngine.saveOpinions(next);
       return next;
     });
-    CloudDatabase.saveOpinion(newOp);
-    handleTriggerOpinionToast(newOp);
+    CloudDatabase.saveOpinion(opToSave);
+    handleTriggerOpinionToast(opToSave);
 
     // Trigger email notification for new feedback
     const feedback: FeedbackItem = {
-      id: newOp.id,
-      feedbackCode: newOp.receiptCode || newOp.id.replace('op-', '#CH-'),
-      fullName: newOp.fullname || 'Người dân',
-      email: newOp.email || 'nguoidan@chanhhiep.vn',
-      phone: newOp.phone || 'Chưa cung cấp',
-      address: newOp.address || 'Chưa cung cấp',
-      category: newOp.neighborhood || 'Dân sinh',
-      title: String(newOp.topic || 'Ý kiến phản ánh dân sinh'),
-      content: newOp.content || '',
-      attachments: newOp.attachments || [],
-      departmentId: newOp.assignedTo || 'mttq',
+      id: opToSave.id,
+      feedbackCode: opToSave.receiptCode || opToSave.id.replace('op-', '#CH-'),
+      fullName: opToSave.fullname || 'Người dân',
+      email: opToSave.email || 'nguoidan@chanhhiep.vn',
+      phone: opToSave.phone || 'Chưa cung cấp',
+      address: opToSave.address || 'Chưa cung cấp',
+      category: opToSave.neighborhood || 'Dân sinh',
+      title: String(opToSave.topic || 'Ý kiến phản ánh dân sinh'),
+      content: opToSave.content || '',
+      attachments: opToSave.attachments || [],
+      departmentId: opToSave.assignedTo || 'mttq',
       status: 'received',
-      priority: newOp.priority || 'NORMAL',
-      createdAt: newOp.createdAt || new Date().toISOString(),
+      priority: opToSave.priority || 'NORMAL',
+      createdAt: opToSave.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     NotificationService.notifyFeedbackSubmitted(feedback).catch(err => {
@@ -1076,7 +1132,52 @@ export default function App() {
     });
   };
 
-  const handleUpdateOpinionStatus = (id: string, status: OpinionStatus, responseText?: string, imageLink?: string, referenceLink?: string) => {
+  const handleUpdateOpinionStatus = async (
+    id: string, 
+    status: OpinionStatus, 
+    responseText?: string, 
+    imageLink?: string, 
+    referenceLink?: string
+  ) => {
+    let finalImageLink = imageLink;
+
+    // Direct Google Drive upload integration before assigning link into data
+    if (imageLink && imageLink.startsWith('data:image/')) {
+      setUploadProgressState({
+        active: true,
+        progress: 10,
+        message: 'Đang tải ảnh minh chứng phản hồi lên Google Drive...'
+      });
+
+      try {
+        const res = await fetch(imageLink);
+        const blob = await res.blob();
+        const file = new File([blob], `phan-hoi-minh-chung-${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+
+        const uploadRes = await uploadCitizenEvidenceImage(
+          file, 
+          '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B',
+          (pct, msg) => {
+            setUploadProgressState({
+              active: true,
+              progress: pct,
+              message: msg
+            });
+          }
+        );
+
+        if (uploadRes.driveLink || uploadRes.directUrl) {
+          finalImageLink = uploadRes.driveLink || uploadRes.directUrl;
+        }
+      } catch (err) {
+        console.warn('[handleUpdateOpinionStatus] Drive upload warning:', err);
+      } finally {
+        setTimeout(() => {
+          setUploadProgressState({ active: false, progress: 0, message: '' });
+        }, 600);
+      }
+    }
+
     setOpinions(prev => {
       const target = prev.find(o => o.id === id);
       if (target) {
@@ -1084,7 +1185,7 @@ export default function App() {
           ...target, 
           status, 
           adminResponse: responseText !== undefined ? responseText : target.adminResponse,
-          imageLink: imageLink !== undefined ? imageLink : target.imageLink,
+          imageLink: finalImageLink !== undefined ? finalImageLink : target.imageLink,
           referenceLink: referenceLink !== undefined ? referenceLink : target.referenceLink
         };
         CloudDatabase.saveOpinion(updated);
@@ -1123,7 +1224,7 @@ export default function App() {
         ...o, 
         status, 
         adminResponse: responseText !== undefined ? responseText : o.adminResponse,
-        imageLink: imageLink !== undefined ? imageLink : o.imageLink,
+        imageLink: finalImageLink !== undefined ? finalImageLink : o.imageLink,
         referenceLink: referenceLink !== undefined ? referenceLink : o.referenceLink
       } : o);
       AppStorageEngine.saveOpinions(next);
@@ -2640,6 +2741,27 @@ export default function App() {
           else handleSelectPortalTab('home');
         }}
       />
+
+      {/* GLOBAL GOOGLE DRIVE IMAGE UPLOAD PROGRESS OVERLAY */}
+      {uploadProgressState.active && (
+        <div className="fixed bottom-6 right-6 z-[99999] bg-slate-900/95 text-white p-4 rounded-2xl shadow-2xl border border-blue-500/40 flex items-center gap-4 min-w-[320px] max-w-md animate-in slide-in-from-bottom-5 duration-200 backdrop-blur-md">
+          <div className="p-2.5 bg-blue-600/30 text-blue-400 rounded-xl shrink-0 border border-blue-500/30">
+            <CloudUpload className="w-6 h-6 animate-pulse text-blue-400" />
+          </div>
+          <div className="flex-1 min-w-0 space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-bold">
+              <span className="text-slate-100 truncate pr-2">{uploadProgressState.message || 'Đang đẩy ảnh lên Google Drive...'}</span>
+              <span className="text-blue-400 font-mono text-xs font-black">{uploadProgressState.progress}%</span>
+            </div>
+            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700">
+              <div 
+                className="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 h-full transition-all duration-300 ease-out rounded-full"
+                style={{ width: `${uploadProgressState.progress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

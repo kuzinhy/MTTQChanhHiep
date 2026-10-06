@@ -246,6 +246,52 @@ export async function uploadFileViaServerProxy(
 }
 
 /**
+ * Uploads a citizen evidence photo/document to Google Drive and automatically returns the direct image link
+ */
+export async function uploadCitizenEvidenceImage(
+  file: File,
+  folderId: string = '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B',
+  onProgress?: (progress: number, message: string) => void
+): Promise<{ directUrl: string; driveLink: string; fileId?: string; fileName: string; isGoogleDrive: boolean }> {
+  try {
+    if (onProgress) onProgress(15, 'Đang mã hóa tệp ảnh...');
+    const uploadRes = await uploadFileViaServerProxy(file, folderId);
+    if (onProgress) onProgress(80, 'Đang thiết lập quyền truy cập tệp trên Google Drive...');
+    const fileId = uploadRes.id;
+    const driveLink = uploadRes.webViewLink || (fileId && !fileId.startsWith('gdrive-') ? `https://drive.google.com/file/d/${fileId}/view` : '');
+    const directUrl = fileId && !fileId.startsWith('gdrive-')
+      ? `https://lh3.googleusercontent.com/d/${fileId}=w2000`
+      : (driveLink || uploadRes.webContentLink || '');
+    
+    if (onProgress) onProgress(100, 'Tải ảnh lên Google Drive thành công!');
+
+    return {
+      directUrl: directUrl || driveLink || `https://drive.google.com/file/d/${fileId}/view`,
+      driveLink: driveLink || directUrl || `https://drive.google.com/file/d/${fileId}/view`,
+      fileId,
+      fileName: uploadRes.name || file.name,
+      isGoogleDrive: true
+    };
+  } catch (err) {
+    console.warn('[uploadCitizenEvidenceImage] Server proxy upload warning, using local high-res data URL fallback:', err);
+    if (onProgress) onProgress(50, 'Đang xử lý ảnh minh chứng từ thiết bị...');
+    const localDataUrl = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string) || '');
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+    if (onProgress) onProgress(100, 'Đã đọc ảnh thành công!');
+    return {
+      directUrl: localDataUrl,
+      driveLink: localDataUrl,
+      fileName: file.name,
+      isGoogleDrive: false
+    };
+  }
+}
+
+/**
  * Deletes a file both from Google Drive via Server Proxy or Apps Script
  */
 export async function deleteFileFromGoogleDrive(fileIdOrUrl: string): Promise<boolean> {

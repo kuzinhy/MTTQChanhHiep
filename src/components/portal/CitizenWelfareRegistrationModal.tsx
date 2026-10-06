@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   HeartHandshake, X, Send, CheckCircle2, ShieldCheck, 
-  MapPin, Phone, User, Home, AlertCircle, Sparkles, FileText
+  MapPin, Phone, User, Home, AlertCircle, Sparkles, FileText, CloudUpload, Loader2, Image as ImageIcon
 } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../../data/neighborhoodsList';
+import { uploadCitizenEvidenceImage } from '../../lib/googleDriveService';
 
 interface Props {
   isOpen: boolean;
@@ -22,10 +23,39 @@ export const CitizenWelfareRegistrationModal: React.FC<Props> = ({
   const [address, setAddress] = useState('');
   const [programType, setProgramType] = useState('BUA_COM_NGHIA_TINH');
   const [householdCircumstance, setHouseholdCircumstance] = useState('');
+  const [proofImageLink, setProofImageLink] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Chỉ hỗ trợ tệp hình ảnh.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const res = await uploadCitizenEvidenceImage(file);
+      if (res.driveLink || res.directUrl) {
+        setProofImageLink(res.driveLink || res.directUrl);
+      } else {
+        setUploadError('Không lấy được liên kết tệp.');
+      }
+    } catch (err: any) {
+      setUploadError(err?.message || 'Lỗi tải tệp.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +71,7 @@ export const CitizenWelfareRegistrationModal: React.FC<Props> = ({
         address: address.trim(),
         programType,
         circumstance: householdCircumstance.trim(),
+        proofImageLink: proofImageLink.trim() || undefined,
         status: 'PENDING',
         createdAt: new Date().toISOString()
       };
@@ -184,6 +215,64 @@ export const CitizenWelfareRegistrationModal: React.FC<Props> = ({
                 placeholder="Mô tả hoàn cảnh (ví dụ: người già neo đơn không nguồn thu nhập, bệnh tật, nhà dột nát, con em có nguy cơ bỏ học...)"
                 required
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              />
+            </div>
+
+            {/* Proof Image Upload / Link */}
+            <div className="space-y-1.5 pt-1">
+              <label className="font-bold text-slate-700 flex items-center justify-between">
+                <span>Ảnh minh chứng hoàn cảnh / giấy chứng nhận (không bắt buộc):</span>
+                {proofImageLink && proofImageLink.includes('drive.google.com') && (
+                  <span className="text-[10px] text-emerald-700 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    ✓ Google Drive Link
+                  </span>
+                )}
+              </label>
+
+              <div className="relative group">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={isUploading}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                />
+                <div className={`w-full py-2.5 px-3 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  isUploading 
+                    ? 'bg-amber-50 border-amber-300 text-amber-700' 
+                    : proofImageLink && proofImageLink.includes('drive.google.com')
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                      : 'bg-slate-50 border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 text-slate-700'
+                }`}>
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
+                      <span className="font-bold text-amber-700">Đang đẩy ảnh lên Google Drive...</span>
+                    </>
+                  ) : proofImageLink && proofImageLink.includes('drive.google.com') ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span className="font-bold text-emerald-800">✓ Đã tải &amp; tự dán Link Drive (Bấm để đổi ảnh)</span>
+                    </>
+                  ) : (
+                    <>
+                      <CloudUpload className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span className="font-bold text-slate-700">Upload ảnh minh chứng lên Google Drive (Tự dán link)</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {uploadError && (
+                <p className="text-[10.5px] font-bold text-rose-600">{uploadError}</p>
+              )}
+
+              <input
+                type="text"
+                placeholder="Dán hoặc tự nhập link ảnh (https://drive.google.com/...)"
+                value={proofImageLink}
+                onChange={(e) => setProofImageLink(e.target.value)}
+                className="w-full p-2 bg-white border border-slate-200 rounded-xl text-[11px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
             </div>
 

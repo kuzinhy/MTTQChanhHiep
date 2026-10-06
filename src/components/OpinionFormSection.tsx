@@ -3,10 +3,10 @@ import { PublicOpinion, OpinionTopic } from '../types';
 import { 
   MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, 
   UserX, AlertCircle, Copy, ArrowLeft, ArrowRight, CheckCircle2, Layers, Sparkles, 
-  MapPin, X, Loader2, HelpCircle, Info, ExternalLink, AlertTriangle, Image as ImageIcon, Share2
+  MapPin, X, Loader2, HelpCircle, Info, ExternalLink, AlertTriangle, Image as ImageIcon, Share2, CloudUpload
 } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
-import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
+import { getGoogleDriveDirectImageUrl, uploadCitizenEvidenceImage } from '../lib/googleDriveService';
 
 interface OpinionFormSectionProps {
   opinions: PublicOpinion[];
@@ -38,6 +38,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccessNote, setUploadSuccessNote] = useState<string | null>(null);
 
   const MTTQ_DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B?hl=vi';
 
@@ -45,10 +46,10 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Security & Regulation: File size limit (10MB)
-    const MAX_SIZE = 10 * 1024 * 1024;
+    // Security & Regulation: File size limit (15MB)
+    const MAX_SIZE = 15 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      setUploadError('Tệp tin quá lớn. Vui lòng tải ảnh minh chứng dưới 10MB.');
+      setUploadError('Tệp tin quá lớn. Vui lòng tải ảnh minh chứng dưới 15MB.');
       return;
     }
 
@@ -60,27 +61,27 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
 
     setIsUploading(true);
     setUploadError(null);
+    setUploadSuccessNote(null);
 
     try {
-      // Read file into instant high-resolution Data URL for 100% reliable local preview & submission
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setImageLink(reader.result);
-          setIsUploading(false);
+      // Automatic upload to Google Drive & auto-paste returned Drive link!
+      const res = await uploadCitizenEvidenceImage(file, '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B');
+      
+      if (res.driveLink || res.directUrl) {
+        const finalLink = res.driveLink || res.directUrl;
+        setImageLink(finalLink);
+        if (res.isGoogleDrive) {
+          setUploadSuccessNote(`✓ Đã tải ảnh lên Google Drive thành công & tự động dán liên kết tệp!`);
         } else {
-          setUploadError('Không thể đọc tệp hình ảnh. Vui lòng thử lại hoặc dán link Drive.');
-          setIsUploading(false);
+          setUploadSuccessNote(`✓ Đã tải ảnh từ thiết bị lên hệ thống thành công!`);
         }
-      };
-      reader.onerror = () => {
-        setUploadError('Lỗi đọc tệp hình ảnh từ thiết bị.');
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+      } else {
+        setUploadError('Không thể tạo liên kết sau khi tải ảnh. Vui lòng thử lại.');
+      }
     } catch (err: any) {
       console.error('[OpinionForm] Upload error:', err);
-      setUploadError('Không thể tải ảnh. Vui lòng dán link Google Drive trực tiếp.');
+      setUploadError('Lỗi khi tải ảnh lên Google Drive: ' + (err?.message || 'Vui lòng dán link trực tiếp.'));
+    } finally {
       setIsUploading(false);
     }
   };
@@ -437,7 +438,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                         </div>
                         
                         <div className="space-y-2.5">
-                          {/* Option 1: File Upload from Device */}
+                          {/* Dedicated Upload Button to Drive */}
                           <div className="relative group">
                             <input
                               type="file"
@@ -446,31 +447,48 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                               disabled={isUploading}
                               className="absolute inset-0 opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
                             />
-                            <div className={`w-full py-3.5 px-3 border-2 border-dashed rounded-xl flex items-center justify-center gap-2.5 transition-all ${
+                            <div className={`w-full py-3.5 px-3 border-2 border-dashed rounded-xl flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
                               isUploading 
-                                ? 'bg-slate-100 border-slate-300' 
-                                : imageLink.startsWith('data:')
-                                  ? 'bg-emerald-50 border-emerald-300'
-                                  : 'bg-slate-50 border-slate-200 group-hover:border-blue-400 group-hover:bg-blue-50'
+                                ? 'bg-blue-50 border-blue-400 text-blue-700' 
+                                : imageLink && imageLink.includes('drive.google.com')
+                                  ? 'bg-emerald-50 border-emerald-400 text-emerald-800'
+                                  : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-blue-300 hover:border-blue-500 hover:shadow-sm text-blue-900'
                             }`}>
                               {isUploading ? (
                                 <>
                                   <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
-                                  <span className="text-[11px] font-bold text-blue-600">Đang đọc tệp ảnh...</span>
+                                  <span className="text-[11px] font-bold text-blue-700">Đang đẩy ảnh lên Google Drive & lấy link...</span>
                                 </>
-                              ) : imageLink.startsWith('data:') ? (
+                              ) : imageLink && imageLink.includes('drive.google.com') ? (
                                 <>
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                  <span className="text-[11px] font-bold text-emerald-800">Đã chọn ảnh từ thiết bị (Bấm để đổi ảnh)</span>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                  <span className="text-[11px] font-extrabold text-emerald-800">
+                                    ✓ Đã tự động dán Link Google Drive (Bấm để đổi ảnh)
+                                  </span>
+                                </>
+                              ) : imageLink ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                  <span className="text-[11px] font-bold text-emerald-800">Đã chọn ảnh (Bấm để chọn lại)</span>
                                 </>
                               ) : (
                                 <>
-                                  <ImageIcon className="w-4 h-4 text-blue-600" />
-                                  <span className="text-[11px] font-bold text-slate-700">Tải ảnh từ điện thoại / máy tính</span>
+                                  <CloudUpload className="w-4 h-4 text-blue-600 shrink-0 group-hover:scale-110 transition-transform" />
+                                  <div className="text-left">
+                                    <span className="text-[11px] font-black text-blue-900 block">☁️ Upload ảnh lên Google Drive (Tự dán link)</span>
+                                    <span className="text-[9.5px] text-blue-600 font-medium block">Chọn ảnh từ thiết bị - Hệ thống tự tạo &amp; dán link Drive</span>
+                                  </div>
                                 </>
                               )}
                             </div>
                           </div>
+
+                          {uploadSuccessNote && (
+                            <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-1.5 text-emerald-800 text-[10.5px] font-bold animate-in fade-in duration-150">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>{uploadSuccessNote}</span>
+                            </div>
+                          )}
 
                           {uploadError && (
                             <div className="p-2 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-1.5 text-rose-700 text-[10.5px] font-bold">
@@ -481,7 +499,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
 
                           <div className="flex items-center gap-2 pt-0.5">
                             <div className="h-px bg-slate-200 flex-1" />
-                            <span className="text-[9px] font-black text-slate-400 uppercase">Hoặc dán Link ảnh Google Drive</span>
+                            <span className="text-[9px] font-black text-slate-400 uppercase">Hoặc nhập / dán trực tiếp Link Google Drive</span>
                             <div className="h-px bg-slate-200 flex-1" />
                           </div>
 
@@ -503,7 +521,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                             <input
                               type="text"
                               placeholder="Dán link tệp ảnh (https://drive.google.com/file/d/...)"
-                              value={imageLink.startsWith('data:') ? 'Đã tải ảnh trực tiếp từ thiết bị ✓' : imageLink}
+                              value={imageLink}
                               onChange={(e) => setImageLink(e.target.value)}
                               className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
                             />
