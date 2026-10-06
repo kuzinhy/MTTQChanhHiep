@@ -4,15 +4,15 @@ import {
   MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, 
   UserCheck, ShieldAlert, FileText, AlertCircle, Download, Trash2, 
   AlertTriangle, Phone, MapPin, Eye, Filter, User, Tag, Calendar,
-  ArrowRight, ShieldCheck, Check, X, BarChart3, ClipboardList
+  ArrowRight, ShieldCheck, Check, X, BarChart3, ClipboardList, ExternalLink
 } from 'lucide-react';
 import { exportPublicOpinionsToCsv } from '../../lib/exportUtils';
 import { ContactService } from '../../lib/ai/contactService';
-import { getGoogleDriveDirectImageUrl, handleImageError } from '../../lib/googleDriveService';
+import { getGoogleDriveDirectImageUrl, handleImageError, getGoogleDriveViewUrl } from '../../lib/googleDriveService';
 
 interface OpinionsAdminViewProps {
   opinions: PublicOpinion[];
-  onUpdateOpinionStatus: (id: string, status: OpinionStatus, responseText?: string) => void;
+  onUpdateOpinionStatus: (id: string, status: OpinionStatus, responseText?: string, imageLink?: string, referenceLink?: string) => void;
   onDeleteOpinion?: (id: string) => void;
   onOpenAiSummary: () => void;
 }
@@ -145,8 +145,8 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   }, [toastNotification]);
 
   // Automated Status Update Wrapper with Immediate Toast Feedback
-  const handleStatusUpdate = (id: string, newStatus: OpinionStatus, response?: string) => {
-    onUpdateOpinionStatus(id, newStatus, response);
+  const handleStatusUpdate = (id: string, newStatus: OpinionStatus, response?: string, imgL?: string, refL?: string) => {
+    onUpdateOpinionStatus(id, newStatus, response, imgL, refL);
 
     const statusMap: Record<OpinionStatus, string> = {
       NEW: 'Mới tiếp nhận',
@@ -459,18 +459,33 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                           </span>
                         </div>
 
-                        {/* SLA Badge */}
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                          sla.color === 'rose'
-                            ? 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse'
-                            : sla.color === 'amber'
-                            ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                            : sla.color === 'emerald'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {sla.label}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {/* SLA Badge */}
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                            sla.color === 'rose'
+                              ? 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse'
+                              : sla.color === 'amber'
+                              ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                              : sla.color === 'emerald'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {sla.label}
+                          </span>
+                          
+                          {/* List Quick Delete Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpinionToDelete(op);
+                            }}
+                            className="p-1 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            title="Xóa phản ánh"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       <p className="text-xs text-slate-700 line-clamp-2 leading-relaxed font-medium">
@@ -598,42 +613,127 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                     {(selectedOpinion.imageLink || selectedOpinion.referenceLink) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                         {selectedOpinion.imageLink && (
-                          <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                              <MapPin className="w-3 h-3" /> Ảnh minh chứng
-                            </span>
+                          <div className="p-3.5 bg-white border border-slate-200 rounded-2xl space-y-2.5 shadow-2xs">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                                <span>Ảnh minh chứng</span>
+                                {selectedOpinion.imageLink.includes('drive.google.com') && (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 font-extrabold text-[9.5px] border border-blue-200">
+                                    Google Drive
+                                  </span>
+                                )}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm('Xóa ảnh minh chứng này?')) {
+                                    handleStatusUpdate(selectedOpinion.id, selectedOpinion.status, selectedOpinion.adminResponse, '');
+                                  }
+                                }}
+                                className="text-[10.5px] text-rose-600 font-bold hover:underline cursor-pointer"
+                              >
+                                Xóa ảnh
+                              </button>
+                            </div>
+
+                            {/* Image Preview Box */}
                             <a 
-                              href={selectedOpinion.imageLink} 
+                              href={selectedOpinion.imageLink.includes('drive.google.com') 
+                                ? getGoogleDriveViewUrl(selectedOpinion.imageLink) 
+                                : selectedOpinion.imageLink} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="block aspect-video bg-slate-100 rounded-lg overflow-hidden relative group border border-slate-100"
+                              className="block aspect-video bg-slate-100 rounded-xl overflow-hidden relative group border border-slate-200 shadow-2xs cursor-pointer"
+                              title="Bấm để xem ảnh gốc trên Google Drive / tab mới"
                             >
                               <img 
                                 src={getGoogleDriveDirectImageUrl(selectedOpinion.imageLink)} 
                                 alt="Minh chứng" 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 onError={(e) => handleImageError(e)}
                               />
-                              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Eye className="w-6 h-6 text-white" />
+                              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <Eye className="w-5 h-5 text-white" />
+                                <span className="text-white text-xs font-black">Xem ảnh phóng to</span>
                               </div>
                             </a>
-                            <a 
-                              href={selectedOpinion.imageLink} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-[10px] text-blue-600 font-bold hover:underline truncate block"
-                            >
-                              {selectedOpinion.imageLink}
-                            </a>
+
+                            {/* Clean Link Display */}
+                            {selectedOpinion.imageLink.includes('drive.google.com') ? (
+                              <div className="p-2 bg-blue-50/80 border border-blue-200 rounded-xl space-y-1">
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="font-extrabold text-blue-900 flex items-center gap-1">
+                                    <ExternalLink className="w-3 h-3 text-blue-600" />
+                                    <span>Liên kết Google Drive:</span>
+                                  </span>
+                                  <a 
+                                    href={getGoogleDriveViewUrl(selectedOpinion.imageLink)} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="font-bold text-blue-700 hover:text-blue-900 underline"
+                                  >
+                                    Mở Drive ↗
+                                  </a>
+                                </div>
+                                <a 
+                                  href={getGoogleDriveViewUrl(selectedOpinion.imageLink)} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-[10.5px] text-blue-700 font-mono font-bold hover:underline break-all block truncate"
+                                  title={getGoogleDriveViewUrl(selectedOpinion.imageLink)}
+                                >
+                                  {getGoogleDriveViewUrl(selectedOpinion.imageLink)}
+                                </a>
+                              </div>
+                            ) : selectedOpinion.imageLink.startsWith('data:') ? (
+                              <div className="p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-[10.5px]">
+                                <span className="font-bold text-slate-700 flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Ảnh đính kèm từ thiết bị</span>
+                                </span>
+                                <a
+                                  href="https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B?hl=vi"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 font-bold underline inline-flex items-center gap-1"
+                                >
+                                  <span>Kho Drive MTTQ ↗</span>
+                                </a>
+                              </div>
+                            ) : (
+                              <div className="p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                                <a 
+                                  href={selectedOpinion.imageLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-[10.5px] text-blue-600 font-bold hover:underline break-all block truncate"
+                                >
+                                  {selectedOpinion.imageLink}
+                                </a>
+                              </div>
+                            )}
                           </div>
                         )}
                         {selectedOpinion.referenceLink && (
                           <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 flex flex-col justify-between">
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                                <FileText className="w-3 h-3" /> Link bài viết / Tài liệu
-                              </span>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                  <FileText className="w-3 h-3" /> Link bài viết / Tài liệu
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (confirm('Xóa liên kết tài liệu này?')) {
+                                      handleStatusUpdate(selectedOpinion.id, selectedOpinion.status, selectedOpinion.adminResponse, undefined, '');
+                                    }
+                                  }}
+                                  className="text-[10px] text-rose-600 font-bold hover:underline"
+                                >
+                                  Xóa link
+                                </button>
+                              </div>
                               <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
                                 <p className="text-[11px] text-blue-800 font-bold line-clamp-2">
                                   Tài liệu đính kèm từ người dân
@@ -714,13 +814,27 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
                         </select>
                       </div>
 
-                      <button
-                        type="submit"
-                        className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
-                      >
-                        {isSavedToast ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                        <span>{isSavedToast ? 'Đã lưu phản hồi!' : 'Lưu & Trả lời Công dân'}</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm('Xóa trắng nội dung phản hồi hiện tại?')) {
+                              setResponseText('');
+                            }
+                          }}
+                          className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                          title="Xóa trắng phản hồi"
+                        >
+                          Xóa trắng
+                        </button>
+                        <button
+                          type="submit"
+                          className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                        >
+                          {isSavedToast ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                          <span>{isSavedToast ? 'Đã lưu phản hồi!' : 'Lưu & Trả lời Công dân'}</span>
+                        </button>
+                      </div>
                     </div>
                   </form>
                 </div>

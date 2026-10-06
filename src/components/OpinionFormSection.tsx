@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { PublicOpinion, OpinionTopic } from '../types';
-import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle, Copy, ArrowLeft, ArrowRight, CheckCircle2, Layers, Sparkles, MapPin, X, Loader2 } from 'lucide-react';
+import { 
+  MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, 
+  UserX, AlertCircle, Copy, ArrowLeft, ArrowRight, CheckCircle2, Layers, Sparkles, 
+  MapPin, X, Loader2, HelpCircle, Info, ExternalLink, AlertTriangle, Image as ImageIcon, Share2
+} from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
-import { uploadFileViaServerProxy } from '../lib/googleDriveService';
-
+import { getGoogleDriveDirectImageUrl } from '../lib/googleDriveService';
 
 interface OpinionFormSectionProps {
   opinions: PublicOpinion[];
@@ -24,6 +27,9 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [imageLink, setImageLink] = useState('');
   const [referenceLink, setReferenceLink] = useState('');
 
+  // Drive Link Guide Modal State
+  const [isDriveGuideOpen, setIsDriveGuideOpen] = useState(false);
+
   // Lookup Tool State
   const [lookupCode, setLookupCode] = useState('');
   const [foundOpinion, setFoundOpinion] = useState<PublicOpinion | null>(null);
@@ -33,7 +39,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const TARGET_FOLDER_ID = '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B';
+  const MTTQ_DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B?hl=vi';
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,9 +52,9 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
       return;
     }
 
-    // Security: Only images as requested for "upload hình"
+    // Security: Only images
     if (!file.type.startsWith('image/')) {
-      setUploadError('Chỉ hỗ trợ tải lên tệp hình ảnh (jpg, png, webp).');
+      setUploadError('Chỉ hỗ trợ tải lên tệp hình ảnh (jpg, png, webp, jpeg).');
       return;
     }
 
@@ -56,13 +62,25 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     setUploadError(null);
 
     try {
-      const result = await uploadFileViaServerProxy(file, TARGET_FOLDER_ID);
-      // We use the webViewLink so it can be viewed in the admin dashboard
-      setImageLink(result.webViewLink);
+      // Read file into instant high-resolution Data URL for 100% reliable local preview & submission
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setImageLink(reader.result);
+          setIsUploading(false);
+        } else {
+          setUploadError('Không thể đọc tệp hình ảnh. Vui lòng thử lại hoặc dán link Drive.');
+          setIsUploading(false);
+        }
+      };
+      reader.onerror = () => {
+        setUploadError('Lỗi đọc tệp hình ảnh từ thiết bị.');
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (err: any) {
       console.error('[OpinionForm] Upload error:', err);
-      setUploadError('Hệ thống quá tải hoặc lỗi kết nối Drive. Vui lòng dán trực tiếp link ảnh hoặc gửi lại sau.');
-    } finally {
+      setUploadError('Không thể tải ảnh. Vui lòng dán link Google Drive trực tiếp.');
       setIsUploading(false);
     }
   };
@@ -400,13 +418,26 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {/* Image Upload / Link Section */}
                       <div className="space-y-3">
-                        <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-tight flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                          <span>Hình ảnh minh chứng (Tải lên hoặc Gán link)</span>
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-tight flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                            <span>Ảnh minh chứng</span>
+                          </label>
+
+                          {/* Drive Link Guide Trigger Button */}
+                          <button
+                            type="button"
+                            onClick={() => setIsDriveGuideOpen(true)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-[10.5px] font-extrabold border border-amber-300 transition-colors shadow-2xs cursor-pointer group"
+                            title="Bấm để xem cách lấy link tệp ảnh từ Google Drive"
+                          >
+                            <HelpCircle className="w-3.5 h-3.5 text-amber-600 group-hover:scale-110 transition-transform" />
+                            <span>Cách lấy link ảnh Drive</span>
+                          </button>
+                        </div>
                         
-                        <div className="space-y-2">
-                          {/* File Upload to Google Drive */}
+                        <div className="space-y-2.5">
+                          {/* Option 1: File Upload from Device */}
                           <div className="relative group">
                             <input
                               type="file"
@@ -415,62 +446,135 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                               disabled={isUploading}
                               className="absolute inset-0 opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
                             />
-                            <div className={`w-full py-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${
+                            <div className={`w-full py-3.5 px-3 border-2 border-dashed rounded-xl flex items-center justify-center gap-2.5 transition-all ${
                               isUploading 
                                 ? 'bg-slate-100 border-slate-300' 
-                                : 'bg-slate-50 border-slate-200 group-hover:border-blue-400 group-hover:bg-blue-50'
+                                : imageLink.startsWith('data:')
+                                  ? 'bg-emerald-50 border-emerald-300'
+                                  : 'bg-slate-50 border-slate-200 group-hover:border-blue-400 group-hover:bg-blue-50'
                             }`}>
                               {isUploading ? (
                                 <>
-                                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin mb-1" />
-                                  <span className="text-[10px] font-bold text-blue-600">Đang tải lên Google Drive...</span>
+                                  <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                                  <span className="text-[11px] font-bold text-blue-600">Đang đọc tệp ảnh...</span>
+                                </>
+                              ) : imageLink.startsWith('data:') ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                  <span className="text-[11px] font-bold text-emerald-800">Đã chọn ảnh từ thiết bị (Bấm để đổi ảnh)</span>
                                 </>
                               ) : (
                                 <>
-                                  <Sparkles className="w-5 h-5 text-blue-500 mb-1" />
-                                  <span className="text-[10px] font-bold text-slate-600">Bấm để tải ảnh lên Drive Phường</span>
+                                  <ImageIcon className="w-4 h-4 text-blue-600" />
+                                  <span className="text-[11px] font-bold text-slate-700">Tải ảnh từ điện thoại / máy tính</span>
                                 </>
                               )}
                             </div>
                           </div>
 
                           {uploadError && (
-                            <p className="text-[10px] text-red-600 font-bold animate-pulse">
-                              ⚠️ {uploadError}
-                            </p>
+                            <div className="p-2 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-1.5 text-rose-700 text-[10.5px] font-bold">
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                              <span>{uploadError}</span>
+                            </div>
                           )}
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 pt-0.5">
                             <div className="h-px bg-slate-200 flex-1" />
-                            <span className="text-[9px] font-black text-slate-400 uppercase">Hoặc dán URL</span>
+                            <span className="text-[9px] font-black text-slate-400 uppercase">Hoặc dán Link ảnh Google Drive</span>
                             <div className="h-px bg-slate-200 flex-1" />
                           </div>
 
-                          <input
-                            type="text"
-                            placeholder="Dán link ảnh (https://...)"
-                            value={imageLink.includes('drive.google.com') ? 'Đã lưu trên Drive ✓' : imageLink}
-                            onChange={(e) => setImageLink(e.target.value)}
-                            className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                          />
+                          {/* Quick Link to MTTQ Drive Folder */}
+                          <div className="flex items-center justify-between text-[10.5px] bg-slate-50 p-2 rounded-xl border border-slate-200">
+                            <span className="text-slate-600 font-medium">Kho Drive tiếp nhận ảnh MTTQ:</span>
+                            <a
+                              href={MTTQ_DRIVE_FOLDER_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold underline"
+                            >
+                              <span>Mở thư mục Drive</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <input
+                              type="text"
+                              placeholder="Dán link tệp ảnh (https://drive.google.com/file/d/...)"
+                              value={imageLink.startsWith('data:') ? 'Đã tải ảnh trực tiếp từ thiết bị ✓' : imageLink}
+                              onChange={(e) => setImageLink(e.target.value)}
+                              className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                            />
+
+                            {/* Real-time Link Validation Alert: Folder Link Detection */}
+                            {imageLink && imageLink.includes('/drive/folders/') && (
+                              <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-[10.5px] space-y-1 animate-in fade-in duration-200 shadow-2xs">
+                                <div className="flex items-center gap-1.5 font-black text-amber-800">
+                                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                                  <span>Phát hiện Link Thư mục Drive (Chưa phải link ảnh trực tiếp)</span>
+                                </div>
+                                <p className="leading-relaxed">
+                                  Link bạn dán là đường dẫn <strong>Thư mục</strong>, Cán bộ sẽ không thể xem được ảnh của bạn. Vui lòng mở ảnh trong Drive &gt; bấm <strong>Chia sẻ</strong> &gt; sao chép <strong>Link tệp ảnh</strong>!
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsDriveGuideOpen(true)}
+                                  className="font-bold text-blue-700 underline hover:text-blue-900 flex items-center gap-1 cursor-pointer pt-0.5"
+                                >
+                                  <span>Xem ví dụ link đúng &amp; cách lấy link tệp</span>
+                                  <ArrowRight className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Real-time Link Validation Alert: Correct File Link Detection */}
+                            {imageLink && (imageLink.includes('/file/d/') || imageLink.includes('drive.google.com/open?id=') || imageLink.includes('drive.google.com/uc?')) && (
+                              <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-[10.5px] font-bold flex items-center gap-1.5 animate-in fade-in duration-200">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                <span>Đã nhận diện đúng liên kết tệp ảnh Google Drive (Sẵn sàng gửi) ✓</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
+                        {/* Image Preview Card */}
                         {imageLink && (
-                          <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-blue-200 shadow-xs bg-slate-100">
-                            {imageLink.includes('drive.google.com') ? (
-                              <div className="w-full h-full flex flex-col items-center justify-center text-[10px] text-blue-600 font-bold p-1 text-center">
-                                <CheckCircle2 className="w-6 h-6 mb-1" />
-                                <span>Drive File</span>
-                              </div>
-                            ) : (
-                              <img src={imageLink} alt="Preview" className="w-full h-full object-cover" />
-                            )}
+                          <div className="flex items-center gap-3 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300 bg-white shrink-0">
+                              {imageLink.includes('drive.google.com') && !imageLink.includes('/folders/') ? (
+                                <img 
+                                  src={getGoogleDriveDirectImageUrl(imageLink)} 
+                                  alt="Preview" 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : imageLink.startsWith('data:') || imageLink.startsWith('http') ? (
+                                <img src={imageLink} alt="Preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                                  <ImageIcon className="w-5 h-5" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-[11px] font-extrabold text-slate-800 block truncate">
+                                {imageLink.startsWith('data:') ? 'Ảnh đính kèm từ thiết bị' : 'Ảnh từ liên kết ngoài'}
+                              </span>
+                              <span className="text-[10px] text-slate-500 block truncate">
+                                {imageLink.startsWith('data:') ? 'Đã tải thành công' : imageLink}
+                              </span>
+                            </div>
                             <button 
                               type="button"
                               onClick={() => setImageLink('')}
-                              className="absolute top-0 right-0 p-0.5 bg-rose-600 text-white rounded-bl-lg shadow-sm"
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg border border-rose-200 transition-colors shrink-0 cursor-pointer"
+                              title="Gỡ ảnh này"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         )}
@@ -738,6 +842,156 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
         </div>
 
       </div>
+
+      {/* Google Drive Direct Image Link Guide Modal Popup */}
+      {isDriveGuideOpen && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-2xl text-white">
+                  <ImageIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black tracking-tight">
+                    Hướng Dẫn Lấy Link Ảnh Google Drive
+                  </h3>
+                  <p className="text-xs text-blue-100 font-medium">
+                    Cách lấy link tệp ảnh trực tiếp để Cán bộ Mặt trận xem được ngay
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDriveGuideOpen(false)}
+                className="p-1.5 hover:bg-white/20 rounded-xl transition-colors text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-slate-700 text-xs">
+              {/* Important Note Banner */}
+              <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-[11.5px] text-amber-950 leading-relaxed font-medium">
+                  <strong>Lưu ý quan trọng:</strong> Hệ thống cần <strong>Đường dẫn tệp ảnh trực tiếp</strong> (File Link) thay vì đường dẫn cả thư mục (Folder Link) để có thể hiển thị ảnh cho cán bộ xác minh nhanh chóng.
+                </p>
+              </div>
+
+              {/* 3 Steps */}
+              <div className="space-y-3">
+                <h4 className="font-black text-slate-900 uppercase text-[11px] tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <span>3 Bước lấy link ảnh đúng chuẩn:</span>
+                </h4>
+
+                <div className="space-y-2.5">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">1</span>
+                    <div className="space-y-1">
+                      <p className="font-bold text-slate-900">Tải ảnh lên Google Drive của bạn hoặc Kho tiếp nhận MTTQ</p>
+                      <p className="text-[11px] text-slate-500">Nếu chưa có thư mục riêng, bạn có thể tải thẳng vào Kho tiếp nhận của phường.</p>
+                      <a
+                        href={MTTQ_DRIVE_FOLDER_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 font-extrabold underline pt-1"
+                      >
+                        <span>Mở Thư mục Drive tiếp nhận của MTTQ Phường ↗</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">2</span>
+                    <div className="space-y-1">
+                      <p className="font-bold text-slate-900">Lấy liên kết chia sẻ của ĐÚNG TỆP ẢNH</p>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                        • Nhấp chuột phải (hoặc nhấn giữ trên điện thoại) vào <strong>tấm ảnh đã tải lên</strong>.<br />
+                        • Chọn <strong>Chia sẻ (Share)</strong> &gt; Đặt quyền: <strong>"Bất kỳ ai có đường liên kết" (Anyone with the link)</strong>.<br />
+                        • Nhấn nút <strong>Sao chép đường liên kết (Copy link)</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">3</span>
+                    <div>
+                      <p className="font-bold text-slate-900">Dán vào ô Link ảnh trên biểu mẫu</p>
+                      <p className="text-[11px] text-slate-500">Hệ thống sẽ tự động nhận diện và hiển thị ảnh xem trước.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comparison Visual Table */}
+              <div className="space-y-2.5">
+                <h4 className="font-black text-slate-900 uppercase text-[11px] tracking-wider">
+                  Bảng so sánh ví dụ cụ thể:
+                </h4>
+
+                <div className="space-y-2">
+                  {/* WRONG LINK */}
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-1">
+                    <div className="flex items-center gap-1.5 font-extrabold text-rose-800 text-[11.5px]">
+                      <span>❌ LINK SAI (Link thư mục - Cán bộ KHÔNG xem được ảnh)</span>
+                    </div>
+                    <code className="block p-2 bg-white rounded-lg border border-rose-200 text-rose-700 font-mono text-[10.5px] break-all select-all">
+                      https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B
+                    </code>
+                    <p className="text-[10.5px] text-rose-600 italic">
+                      Dấu hiệu nhận biết: Link có chứa chữ <strong>"/folders/..."</strong>. Đây là link cả thư mục, không phải tấm ảnh cụ thể.
+                    </p>
+                  </div>
+
+                  {/* CORRECT LINK */}
+                  <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl space-y-1 shadow-2xs">
+                    <div className="flex items-center gap-1.5 font-extrabold text-emerald-900 text-[11.5px]">
+                      <span>✅ LINK ĐÚNG (Link tệp ảnh trực tiếp - Cán bộ xem được ngay)</span>
+                    </div>
+                    <code className="block p-2 bg-white rounded-lg border border-emerald-300 text-emerald-800 font-mono text-[10.5px] break-all select-all">
+                      https://drive.google.com/file/d/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G/view?usp=sharing
+                    </code>
+                    <p className="text-[10.5px] text-emerald-700 font-medium">
+                      Dấu hiệu nhận biết: Link có chứa <strong>"/file/d/..."</strong> hoặc <strong>"?id=..."</strong>. Hệ thống sẽ ngay lập tức trích xuất và hiển thị ảnh xem trước.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Simple Alternative Tip */}
+              <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200 flex items-center gap-2 text-blue-900 text-[11px] font-medium">
+                <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                <span>Mẹo nhanh: Bạn có thể chọn trực tiếp nút <strong>"Tải ảnh từ điện thoại / máy tính"</strong> phía trên để đính kèm ảnh ngay mà không cần qua Google Drive.</span>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+              <a
+                href={MTTQ_DRIVE_FOLDER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
+              >
+                <span>Mở Kho Drive MTTQ</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setIsDriveGuideOpen(false)}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-colors shadow-xs cursor-pointer"
+              >
+                Đã hiểu, đóng hướng dẫn
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

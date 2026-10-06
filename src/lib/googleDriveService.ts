@@ -224,7 +224,7 @@ export async function uploadFileViaServerProxy(
       fileName: file.name,
       mimeType: file.type || 'application/octet-stream',
       folderId: folderId,
-      fileData: base64Data,
+      base64: base64Data, // Aligned with uploadFileViaAppsScript payload
       appsScriptUrl: getAppsScriptUrl() || undefined
     })
   });
@@ -476,8 +476,10 @@ export function getGoogleDriveDirectImageUrl(urlOrId: string | CloudinaryImageMe
 
   if (trimmed.startsWith('data:image/') || trimmed.startsWith('blob:')) return trimmed;
 
+  // Avoid folder links as they cannot be served as direct images
+  if (trimmed.includes('/folders/')) return '';
+
   // Extract file ID from google drive URLs if applicable
-  // e.g. https://drive.google.com/file/d/1ABCXYZ/view or https://drive.google.com/uc?id=1ABCXYZ
   const fileId = extractGoogleDriveFileId(trimmed);
   if (fileId) {
     // Adding =w2000 parameter forces Google Drive CDN to serve a sharp, high-resolution 2000px image

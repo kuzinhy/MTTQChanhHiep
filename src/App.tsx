@@ -1073,11 +1073,17 @@ export default function App() {
     });
   };
 
-  const handleUpdateOpinionStatus = (id: string, status: OpinionStatus, responseText?: string) => {
+  const handleUpdateOpinionStatus = (id: string, status: OpinionStatus, responseText?: string, imageLink?: string, referenceLink?: string) => {
     setOpinions(prev => {
       const target = prev.find(o => o.id === id);
       if (target) {
-        const updated = { ...target, status, adminResponse: responseText || target.adminResponse };
+        const updated = { 
+          ...target, 
+          status, 
+          adminResponse: responseText !== undefined ? responseText : target.adminResponse,
+          imageLink: imageLink !== undefined ? imageLink : target.imageLink,
+          referenceLink: referenceLink !== undefined ? referenceLink : target.referenceLink
+        };
         CloudDatabase.saveOpinion(updated);
 
         // Map status to FeedbackItem status
@@ -1110,7 +1116,13 @@ export default function App() {
           console.error('Failed to trigger email notification for opinion status update:', err);
         });
       }
-      const next = prev.map(o => o.id === id ? { ...o, status, adminResponse: responseText || o.adminResponse } : o);
+      const next = prev.map(o => o.id === id ? { 
+        ...o, 
+        status, 
+        adminResponse: responseText !== undefined ? responseText : o.adminResponse,
+        imageLink: imageLink !== undefined ? imageLink : o.imageLink,
+        referenceLink: referenceLink !== undefined ? referenceLink : o.referenceLink
+      } : o);
       AppStorageEngine.saveOpinions(next);
       return next;
     });

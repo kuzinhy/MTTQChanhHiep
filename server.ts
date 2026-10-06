@@ -1772,43 +1772,62 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
   // 5. POST /api/drive/upload-proxy - Server-side proxy for Google Apps Script upload to bypass browser CORS/redirects
   app.post('/api/drive/upload-proxy', async (req: Request, res: Response) => {
     try {
-      const { fileName, mimeType, folderId, fileData, appsScriptUrl } = req.body;
+      const { fileName, mimeType, folderId, fileData, base64, appsScriptUrl } = req.body;
+      const finalBase64 = base64 || fileData; // Accept both for transition
       const targetUrl = appsScriptUrl || 'https://script.google.com/macros/s/AKfycbzT4Koz5OxPvUzm8u7SgnzecBk_6aVXHial-8iRSsPX1datRJhpLSvTS1KSNKco_7SM4w/exec';
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for Drive upload
 
       const response = await fetch(targetUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           fileName,
           mimeType,
           folderId,
-          fileData,
+          base64: finalBase64,
           timestamp: Date.now()
         }),
-        redirect: 'follow'
+        redirect: 'follow',
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[UploadProxy] Apps Script Error (${response.status}):`, errorText);
+        return res.status(response.status).json({ 
+          status: 'error', 
+          message: `Lỗi kết nối Apps Script (${response.status}): ${errorText.substring(0, 100)}` 
+        });
+      }
 
       const textResult = await response.text();
       try {
         const jsonResult = JSON.parse(textResult);
+        // Ensure webViewLink is present
+        if (jsonResult.fileId && !jsonResult.webViewLink) {
+          jsonResult.webViewLink = `https://drive.google.com/file/d/${jsonResult.fileId}/view`;
+        }
         res.json(jsonResult);
       } catch (parseErr) {
-        res.json({
-          status: 'success',
-          fileId: 'gdrive-server-' + Date.now(),
-          fileName: fileName,
-          webViewLink: `https://drive.google.com/drive/folders/${folderId}`
-        });
+        // If not JSON, it might be the direct ID or URL as a string
+        if (textResult.startsWith('http')) {
+          res.json({ status: 'success', webViewLink: textResult, fileName });
+        } else if (textResult.length > 20 && !textResult.includes(' ')) {
+          res.json({ status: 'success', fileId: textResult, webViewLink: `https://drive.google.com/file/d/${textResult}/view`, fileName });
+        } else {
+          res.status(500).json({ status: 'error', message: 'Apps Script returned invalid response: ' + textResult });
+        }
       }
     } catch (err: any) {
       console.error('Upload proxy error:', err);
-      res.json({
-        status: 'success',
-        fileId: 'gdrive-proxy-err-' + Date.now(),
-        fileName: req.body?.fileName || 'TaiLieu.dat',
-        webViewLink: `https://drive.google.com/drive/folders/${req.body?.folderId || '1TNEc-8JYkF17R44igkinTIZAmFEjSmOL'}`
+      res.status(500).json({
+        status: 'error',
+        message: err.message || 'Lỗi hệ thống khi tải tệp lên Drive.'
       });
     }
   });
