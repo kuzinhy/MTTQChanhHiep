@@ -58,6 +58,7 @@ import { CompetitionsAdminView } from './components/office/CompetitionsAdminView
 import { CompetitionAdminDetailView } from './components/office/CompetitionAdminDetailView';
 import { QuestionBankAdminView } from './components/office/QuestionBankAdminView';
 import { SurveysAdminView } from './components/office/SurveysAdminView';
+import { SupervisionAdminView } from './components/office/SupervisionAdminView';
 import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
 import { AboutAndMemberOrgsAdminView } from './components/office/AboutAndMemberOrgsAdminView';
@@ -159,6 +160,7 @@ export const VALID_OFFICE_VIEWS = [
   'competitions_admin',
   'question_banks',
   'opinions',
+  'supervision_admin',
   'surveys_admin',
   'member_orgs_admin',
   'cultural_space_admin',
@@ -2293,6 +2295,16 @@ export default function App() {
                     {officeView === 'surveys_admin' && (
                       <SurveysAdminView
                         onTriggerToast={handleTriggerSystemToast}
+                      />
+                    )}
+
+                    {officeView === 'supervision_admin' && (
+                      <SupervisionAdminView
+                        onShowToast={(title, msg) => handleTriggerSystemToast(title, msg)}
+                        onNavigateToPortalTab={(tab) => {
+                          setCurrentSpace('PORTAL');
+                          handleSelectPortalTab(tab);
+                        }}
                       />
                     )}
 

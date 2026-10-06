@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShieldCheck, 
   FileCheck, 
@@ -13,81 +13,85 @@ import {
   Download,
   Users,
   Building2,
-  Scale
+  Scale,
+  ExternalLink,
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import { motion } from 'motion/react';
-
-interface SupervisionPlan {
-  id: string;
-  code: string;
-  title: string;
-  targetUnit: string;
-  field: string;
-  timeframe: string;
-  status: 'COMPLETED' | 'IN_PROGRESS' | 'PLANNED';
-  leader: string;
-  recommendationsCount: number;
-  resultsSummary: string;
-  issuedDate: string;
-}
-
-const SAMPLE_PLANS: SupervisionPlan[] = [
-  {
-    id: 'sp-1',
-    code: 'KH-04/KH-MTTQ',
-    title: 'Giám sát việc thực hiện các chính sách an sinh xã hội và trợ cấp người có công năm 2026',
-    targetUnit: 'Bộ phận Lao động - Thương binh & Xã hội UBND Phường Chánh Hiệp',
-    field: 'An sinh xã hội',
-    timeframe: 'Quý II/2026',
-    status: 'COMPLETED',
-    leader: 'Đ/c Trần Thị Hoa - Chủ tịch MTTQ',
-    recommendationsCount: 4,
-    resultsSummary: 'Đã hoàn tất giám sát trực tiếp tại 21 khu phố. Phát hiện 100% hồ sơ chi trả đúng đối tượng, kiến nghị rút ngắn thời gian giải quyết hỗ trợ đột xuất xuống còn 3 ngày làm việc.',
-    issuedDate: '2026-05-15'
-  },
-  {
-    id: 'sp-2',
-    code: 'KH-07/KH-MTTQ',
-    title: 'Giám sát công tác tiếp công dân và giải quyết thủ tục hành chính tại bộ phận Một cửa',
-    targetUnit: 'Bộ phận Tiếp nhận & Trả kết quả UBND Phường Chánh Hiệp',
-    field: 'Cải cách hành chính',
-    timeframe: 'Tháng 8/2026',
-    status: 'IN_PROGRESS',
-    leader: 'Đ/c Nguyễn Văn Hùng - Phó Chủ tịch MTTQ',
-    recommendationsCount: 2,
-    resultsSummary: 'Đang triển khai lấy ý kiến đánh giá trực tiếp của 300 lượt công dân đến giao dịch. Đã ghi nhận 95.8% mức độ hài lòng.',
-    issuedDate: '2026-08-01'
-  },
-  {
-    id: 'sp-3',
-    code: 'KH-11/KH-MTTQ',
-    title: 'Giám sát tiến độ và chất lượng công trình nâng cấp hạ tầng thoát nước đường Chánh Hiệp 05',
-    targetUnit: 'Ban Quản lý Dự án Đầu tư Xây dựng & Đơn vị Thi công',
-    field: 'Đầu tư công cộng đồng',
-    timeframe: 'Quý III - IV/2026',
-    status: 'PLANNED',
-    leader: 'Ban Thanh tra Nhân dân & Ban Giám sát ĐTCĐ',
-    recommendationsCount: 0,
-    resultsSummary: 'Kế hoạch đã ban hành và phân công Ban Giám sát Đầu tư của cộng đồng khu phố 3 và khu phố 4 cùng giám sát hiện trường.',
-    issuedDate: '2026-08-20'
-  }
-];
+import { SupervisionPlan, SupervisionOverviewStats, SupervisionCategory } from '../types';
+import { AppStorageEngine } from '../lib/storage';
 
 export const SupervisionSection: React.FC<{
-  onOpenOpinionForm?: () => void;
+  onOpenOpinionForm?: (prefillTopic?: string, prefillTitle?: string) => void;
   onSelectDocument?: (doc: any) => void;
 }> = ({ onOpenOpinionForm, onSelectDocument }) => {
+  const [plans, setPlans] = useState<SupervisionPlan[]>(() => AppStorageEngine.getSupervisionPlans());
+  const [stats, setStats] = useState<SupervisionOverviewStats>(() => AppStorageEngine.getSupervisionStats());
+  const [categories, setCategories] = useState<SupervisionCategory[]>(() => AppStorageEngine.getSupervisionCategories());
   const [selectedField, setSelectedField] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<SupervisionPlan | null>(SAMPLE_PLANS[0]);
-
-  const filteredPlans = SAMPLE_PLANS.filter(plan => {
-    const matchesField = selectedField === 'ALL' || plan.field === selectedField;
-    const matchesSearch = plan.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          plan.targetUnit.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          plan.code.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesField && matchesSearch;
+  const [selectedPlan, setSelectedPlan] = useState<SupervisionPlan | null>(() => {
+    const list = AppStorageEngine.getSupervisionPlans();
+    return list.length > 0 ? list[0] : null;
   });
+
+  // Realtime subscription to storage updates from admin panel
+  useEffect(() => {
+    const handlePlansUpdated = () => {
+      const freshPlans = AppStorageEngine.getSupervisionPlans();
+      setPlans(freshPlans);
+      setSelectedPlan((prev) => {
+        if (!prev) return freshPlans[0] || null;
+        const found = freshPlans.find(p => p.id === prev.id);
+        return found || freshPlans[0] || null;
+      });
+    };
+
+    const handleStatsUpdated = () => {
+      setStats(AppStorageEngine.getSupervisionStats());
+    };
+
+    const handleCatsUpdated = () => {
+      setCategories(AppStorageEngine.getSupervisionCategories());
+    };
+
+    window.addEventListener('mttq_supervision_updated', handlePlansUpdated);
+    window.addEventListener('mttq_supervision_stats_updated', handleStatsUpdated);
+    window.addEventListener('mttq_supervision_categories_updated', handleCatsUpdated);
+
+    return () => {
+      window.removeEventListener('mttq_supervision_updated', handlePlansUpdated);
+      window.removeEventListener('mttq_supervision_stats_updated', handleStatsUpdated);
+      window.removeEventListener('mttq_supervision_categories_updated', handleCatsUpdated);
+    };
+  }, []);
+
+  // Compute available fields dynamically from active categories & plan data
+  const availableFields = useMemo(() => {
+    const activeCatNames = categories.filter(c => c.active).map(c => c.name);
+    const fieldsFromData = plans.map(p => p.field).filter(Boolean);
+    const combined = Array.from(new Set([...activeCatNames, ...fieldsFromData]));
+    return ['ALL', ...combined];
+  }, [categories, plans]);
+
+  const filteredPlans = useMemo(() => {
+    return plans.filter(plan => {
+      const matchesField = selectedField === 'ALL' || plan.field === selectedField;
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q ||
+        plan.title.toLowerCase().includes(q) ||
+        plan.targetUnit.toLowerCase().includes(q) ||
+        plan.code.toLowerCase().includes(q) ||
+        (plan.leader && plan.leader.toLowerCase().includes(q));
+      return matchesField && matchesSearch;
+    });
+  }, [plans, selectedField, searchQuery]);
+
+  // Computed metrics
+  const displayTotalPrograms = String(Math.max(plans.length, stats.totalProgramsYear || 8)).padStart(2, '0');
+  const displayAcceptanceRate = `${stats.acceptanceRate || 100}%`;
+  const displayInspectorates = stats.cooperatingInspectorates || '21/21';
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -115,7 +119,7 @@ export const SupervisionSection: React.FC<{
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-slate-900">08</div>
+            <div className="text-2xl font-black text-slate-900">{displayTotalPrograms}</div>
             <div className="text-xs font-bold text-slate-500">Chương trình giám sát 2026</div>
           </div>
         </div>
@@ -124,7 +128,7 @@ export const SupervisionSection: React.FC<{
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-slate-900">100%</div>
+            <div className="text-2xl font-black text-slate-900">{displayAcceptanceRate}</div>
             <div className="text-xs font-bold text-slate-500">Kiến nghị được tiếp thu</div>
           </div>
         </div>
@@ -133,7 +137,7 @@ export const SupervisionSection: React.FC<{
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-slate-900">21/21</div>
+            <div className="text-2xl font-black text-slate-900">{displayInspectorates}</div>
             <div className="text-xs font-bold text-slate-500">Ban TTND Khu phố phối hợp</div>
           </div>
         </div>
@@ -150,16 +154,16 @@ export const SupervisionSection: React.FC<{
                 placeholder="Tìm nội dung giám sát..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden focus:border-blue-500"
+                className="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-hidden focus:border-blue-500 font-medium"
               />
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
             </div>
-            <div className="flex gap-1.5 w-full sm:w-auto overflow-x-auto">
-              {['ALL', 'An sinh xã hội', 'Cải cách hành chính', 'Đầu tư công cộng đồng'].map(field => (
+            <div className="flex gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              {availableFields.map(field => (
                 <button
                   key={field}
                   onClick={() => setSelectedField(field)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-colors cursor-pointer ${
                     selectedField === field 
                       ? 'bg-blue-600 text-white shadow-xs' 
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -172,49 +176,57 @@ export const SupervisionSection: React.FC<{
           </div>
 
           <div className="space-y-3">
-            {filteredPlans.map(plan => {
-              const isSelected = selectedPlan?.id === plan.id;
-              return (
-                <motion.div
-                  key={plan.id}
-                  whileHover={{ y: -1 }}
-                  onClick={() => setSelectedPlan(plan)}
-                  className={`p-5 rounded-2xl border cursor-pointer transition-all ${
-                    isSelected 
-                      ? 'bg-blue-50/60 border-blue-500 shadow-md ring-1 ring-blue-500/20' 
-                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <span className="text-[11px] font-mono font-bold text-blue-700 bg-blue-100/80 px-2.5 py-0.5 rounded-full">
-                      {plan.code}
-                    </span>
-                    <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                      plan.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' :
-                      plan.status === 'IN_PROGRESS' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      {plan.status === 'COMPLETED' ? 'Đã hoàn tất' :
-                       plan.status === 'IN_PROGRESS' ? 'Đang thực hiện' : 'Theo kế hoạch'}
-                    </span>
-                  </div>
+            {filteredPlans.length === 0 ? (
+              <div className="p-10 bg-white rounded-2xl border border-slate-200 text-center space-y-2">
+                <FileCheck className="w-10 h-10 text-slate-300 mx-auto" />
+                <h4 className="font-bold text-slate-700 text-sm">Chưa tìm thấy kế hoạch giám sát phù hợp</h4>
+                <p className="text-xs text-slate-500">Vui lòng thay đổi từ khóa tìm kiếm hoặc chọn bộ lọc lĩnh vực khác.</p>
+              </div>
+            ) : (
+              filteredPlans.map(plan => {
+                const isSelected = selectedPlan?.id === plan.id;
+                return (
+                  <motion.div
+                    key={plan.id}
+                    whileHover={{ y: -1 }}
+                    onClick={() => setSelectedPlan(plan)}
+                    className={`p-5 rounded-2xl border cursor-pointer transition-all ${
+                      isSelected 
+                        ? 'bg-blue-50/60 border-blue-500 shadow-md ring-1 ring-blue-500/20' 
+                        : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <span className="text-[11px] font-mono font-bold text-blue-700 bg-blue-100/80 px-2.5 py-0.5 rounded-full">
+                        {plan.code}
+                      </span>
+                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                        plan.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' :
+                        plan.status === 'IN_PROGRESS' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {plan.status === 'COMPLETED' ? 'Đã hoàn tất' :
+                         plan.status === 'IN_PROGRESS' ? 'Đang triển khai' : 'Theo kế hoạch'}
+                      </span>
+                    </div>
 
-                  <h3 className="font-extrabold text-slate-900 text-sm mb-2 leading-snug hover:text-blue-700 transition-colors">
-                    {plan.title}
-                  </h3>
+                    <h3 className="font-extrabold text-slate-900 text-sm mb-2 leading-snug hover:text-blue-700 transition-colors">
+                      {plan.title}
+                    </h3>
 
-                  <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-500 font-medium">
-                    <span className="flex items-center gap-1">
-                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                      {plan.targetUnit}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      {plan.timeframe}
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
+                    <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-slate-500 font-medium">
+                      <span className="flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                        {plan.targetUnit}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        {plan.timeframe}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -223,8 +235,17 @@ export const SupervisionSection: React.FC<{
           {selectedPlan ? (
             <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-lg space-y-5 sticky top-24">
               <div className="border-b border-slate-100 pb-4">
-                <div className="text-[10px] font-black uppercase tracking-wider text-blue-700 mb-1">
-                  Chi tiết Kế hoạch Giám sát
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-blue-700">
+                    Chi tiết Kế hoạch Giám sát
+                  </span>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                    selectedPlan.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' :
+                    selectedPlan.status === 'IN_PROGRESS' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    {selectedPlan.status === 'COMPLETED' ? 'Đã hoàn tất' :
+                     selectedPlan.status === 'IN_PROGRESS' ? 'Đang triển khai' : 'Theo kế hoạch'}
+                  </span>
                 </div>
                 <h4 className="text-base font-black text-slate-900 leading-snug">
                   {selectedPlan.title}
@@ -244,9 +265,25 @@ export const SupervisionSection: React.FC<{
                   <span className="text-slate-500 font-medium">Trưởng đoàn giám sát:</span>
                   <span className="font-bold text-slate-900">{selectedPlan.leader}</span>
                 </div>
+                {selectedPlan.participatingUnits && (
+                  <div className="flex justify-between py-1.5 border-b border-slate-100">
+                    <span className="text-slate-500 font-medium">Thành phần phối hợp:</span>
+                    <span className="font-bold text-slate-900 text-right max-w-[200px]">{selectedPlan.participatingUnits}</span>
+                  </div>
+                )}
                 <div className="flex justify-between py-1.5 border-b border-slate-100">
                   <span className="text-slate-500 font-medium">Thời gian thực hiện:</span>
                   <span className="font-bold text-slate-900">{selectedPlan.timeframe}</span>
+                </div>
+                {selectedPlan.issuedDate && (
+                  <div className="flex justify-between py-1.5 border-b border-slate-100">
+                    <span className="text-slate-500 font-medium">Ngày ban hành kế hoạch:</span>
+                    <span className="font-bold text-slate-900">{selectedPlan.issuedDate}</span>
+                  </div>
+                )}
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">Số kiến nghị đã chuyển giao:</span>
+                  <span className="font-black text-blue-700">{selectedPlan.recommendationsCount} kiến nghị</span>
                 </div>
               </div>
 
@@ -255,14 +292,28 @@ export const SupervisionSection: React.FC<{
                   <FileCheck className="w-4 h-4 text-cyan-700" />
                   <span>Kết quả &amp; Kiến nghị sau giám sát:</span>
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                <p className="text-xs text-slate-700 leading-relaxed font-medium whitespace-pre-line">
                   {selectedPlan.resultsSummary}
                 </p>
               </div>
 
+              {/* Document attachment if available */}
+              {selectedPlan.documentUrl && (
+                <a
+                  href={selectedPlan.documentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer border border-slate-300"
+                >
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>Xem tệp đính kèm / Văn bản kết luận</span>
+                  <ExternalLink className="w-3 h-3 text-slate-500" />
+                </a>
+              )}
+
               {onOpenOpinionForm && (
                 <button
-                  onClick={onOpenOpinionForm}
+                  onClick={() => onOpenOpinionForm('Giám sát & Phản biện', `Ý kiến về kế hoạch: ${selectedPlan.title} (${selectedPlan.code})`)}
                   className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <AlertCircle className="w-4 h-4" />

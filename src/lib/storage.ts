@@ -44,7 +44,10 @@ import {
   CulturalMedia,
   ArticleSubmission,
   FeedbackItem,
-  EmailNotification
+  EmailNotification,
+  SupervisionPlan,
+  SupervisionOverviewStats,
+  SupervisionCategory
 } from '../types';
 import {
   INITIAL_HOUSEHOLDS,
@@ -125,7 +128,10 @@ export const STORAGE_KEYS = {
   NEIGHBORHOOD_REGISTRATIONS: 'mttq_chanhhiep_registrations_v1',
   URGENT_AID_REQUESTS: 'mttq_chanhhiep_urgent_aid_v1',
   DONATIONS: 'mttq_chanhhiep_donations_v1',
-  SOLIDARITY_ASSESSMENTS: 'mttq_chanhhiep_solidarity_v1'
+  SOLIDARITY_ASSESSMENTS: 'mttq_chanhhiep_solidarity_v1',
+  SUPERVISION_PLANS: 'mttq_chanhhiep_supervision_plans_v2',
+  SUPERVISION_STATS: 'mttq_chanhhiep_supervision_stats_v2',
+  SUPERVISION_CATEGORIES: 'mttq_chanhhiep_supervision_categories_v2'
 };
 
 const KEY_ENTITY_NAME_MAP: Record<string, string> = {
@@ -153,7 +159,10 @@ const KEY_ENTITY_NAME_MAP: Record<string, string> = {
   [STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS]: 'Đăng ký cư dân khu phố',
   [STORAGE_KEYS.URGENT_AID_REQUESTS]: 'Yêu cầu Cứu trợ An sinh Khẩn cấp',
   [STORAGE_KEYS.DONATIONS]: 'Ủng hộ Quỹ An sinh Xã hội',
-  [STORAGE_KEYS.SOLIDARITY_ASSESSMENTS]: 'Tự đánh giá Gia đình Đại đoàn kết'
+  [STORAGE_KEYS.SOLIDARITY_ASSESSMENTS]: 'Tự đánh giá Gia đình Đại đoàn kết',
+  [STORAGE_KEYS.SUPERVISION_PLANS]: 'Kế hoạch Giám sát - Phản biện Xã hội',
+  [STORAGE_KEYS.SUPERVISION_STATS]: 'Chỉ số Giám sát Xã hội',
+  [STORAGE_KEYS.SUPERVISION_CATEGORIES]: 'Chuyên mục Giám sát - Phản biện'
 };
 
 const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
@@ -162,6 +171,8 @@ const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
   [STORAGE_KEYS.COMPETITIONS]: 'competitions',
   [STORAGE_KEYS.OPINIONS]: 'public_opinions',
   [STORAGE_KEYS.TASKS]: 'tasks',
+  [STORAGE_KEYS.SUPERVISION_PLANS]: 'supervision_plans',
+  [STORAGE_KEYS.SUPERVISION_CATEGORIES]: 'supervision_categories',
   [STORAGE_KEYS.NEIGHBORHOOD_HOUSEHOLDS]: 'neighborhood_households',
   [STORAGE_KEYS.NEIGHBORHOOD_BROADCASTS]: 'neighborhood_broadcasts',
   [STORAGE_KEYS.NEIGHBORHOOD_PETITIONS]: 'neighborhood_petitions',
@@ -467,8 +478,247 @@ export const deduplicateStaffUsers = (users: StaffUser[]): StaffUser[] => {
   return Array.from(map.values());
 };
 
+export const INITIAL_SUPERVISION_PLANS: SupervisionPlan[] = [
+  {
+    id: 'sp-1',
+    code: 'KH-04/KH-MTTQ',
+    title: 'Giám sát việc thực hiện các chính sách an sinh xã hội và trợ cấp người có công năm 2026',
+    targetUnit: 'Bộ phận Lao động - Thương binh & Xã hội UBND Phường Chánh Hiệp',
+    field: 'An sinh xã hội',
+    timeframe: 'Quý II/2026',
+    status: 'COMPLETED',
+    leader: 'Đ/c Trần Thị Hoa - Chủ tịch MTTQ',
+    recommendationsCount: 4,
+    resultsSummary: 'Đã hoàn tất giám sát trực tiếp tại 21 khu phố. Phát hiện 100% hồ sơ chi trả đúng đối tượng, kiến nghị rút ngắn thời gian giải quyết hỗ trợ đột xuất xuống còn 3 ngày làm việc.',
+    issuedDate: '2026-05-15',
+    completedDate: '2026-06-25',
+    participatingUnits: 'Ban Thanh tra Nhân dân & Trưởng Ban CTMT 21 Khu phố',
+    feedbackResolutionRate: 100,
+    createdAt: '2026-05-15T08:00:00Z',
+    updatedAt: '2026-06-25T16:30:00Z'
+  },
+  {
+    id: 'sp-2',
+    code: 'KH-07/KH-MTTQ',
+    title: 'Giám sát công tác tiếp công dân và giải quyết thủ tục hành chính tại bộ phận Một cửa',
+    targetUnit: 'Bộ phận Tiếp nhận & Trả kết quả UBND Phường Chánh Hiệp',
+    field: 'Cải cách hành chính',
+    timeframe: 'Tháng 8/2026',
+    status: 'IN_PROGRESS',
+    leader: 'Đ/c Nguyễn Văn Hùng - Phó Chủ tịch MTTQ',
+    recommendationsCount: 2,
+    resultsSummary: 'Đang triển khai lấy ý kiến đánh giá trực tiếp của 300 lượt công dân đến giao dịch. Đã ghi nhận 95.8% mức độ hài lòng.',
+    issuedDate: '2026-08-01',
+    participatingUnits: 'Thành viên Ban Thường trực MTTQ & Ban TTND Phường',
+    feedbackResolutionRate: 95,
+    createdAt: '2026-08-01T08:30:00Z',
+    updatedAt: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'sp-3',
+    code: 'KH-11/KH-MTTQ',
+    title: 'Giám sát tiến độ và chất lượng công trình nâng cấp hạ tầng thoát nước đường Chánh Hiệp 05',
+    targetUnit: 'Ban Quản lý Dự án Đầu tư Xây dựng & Đơn vị Thi công',
+    field: 'Đầu tư công cộng đồng',
+    timeframe: 'Quý III - IV/2026',
+    status: 'PLANNED',
+    leader: 'Ban Thanh tra Nhân dân & Ban Giám sát ĐTCĐ',
+    recommendationsCount: 0,
+    resultsSummary: 'Kế hoạch đã ban hành và phân công Ban Giám sát Đầu tư của cộng đồng khu phố 3 và khu phố 4 cùng giám sát hiện trường.',
+    issuedDate: '2026-08-20',
+    participatingUnits: 'Ban Giám sát đầu tư của cộng đồng KP.3, KP.4',
+    feedbackResolutionRate: 100,
+    createdAt: '2026-08-20T09:00:00Z',
+    updatedAt: '2026-08-20T09:00:00Z'
+  }
+];
+
+export const INITIAL_SUPERVISION_STATS: SupervisionOverviewStats = {
+  totalProgramsYear: 8,
+  acceptanceRate: 100,
+  cooperatingInspectorates: '21/21'
+};
+
+export const INITIAL_SUPERVISION_CATEGORIES: SupervisionCategory[] = [
+  {
+    id: 'cat-ansinh',
+    name: 'An sinh xã hội & Chính sách',
+    code: 'CM-ANSINH',
+    description: 'Giám sát việc chi trả trợ cấp, chính sách người có công, bảo trợ xã hội và chăm lo hộ nghèo, khó khăn tại 21 khu phố.',
+    responsibleUnit: 'Ban Thường trực MTTQ & Ban CTMT 21 Khu phố',
+    iconName: 'heart',
+    color: 'rose',
+    active: true,
+    order: 1
+  },
+  {
+    id: 'cat-cchc',
+    name: 'Cải cách hành chính & Một cửa',
+    code: 'CM-CCHC',
+    description: 'Giám sát công tác tiếp công dân, tinh thần trách nhiệm phục vụ và thời gian giải quyết thủ tục hành chính tại UBND Phường.',
+    responsibleUnit: 'Ban Thường trực MTTQ & Ban Thanh tra Nhân dân',
+    iconName: 'file-text',
+    color: 'blue',
+    active: true,
+    order: 2
+  },
+  {
+    id: 'cat-dtc',
+    name: 'Đầu tư công & Hạ tầng đô thị',
+    code: 'CM-DTC',
+    description: 'Giám sát chất lượng, tiến độ và minh bạch tài chính các công trình nâng cấp hạ tầng, đường hẻm, thoát nước do nhân dân và nhà nước cùng làm.',
+    responsibleUnit: 'Ban Giám sát Đầu tư của Cộng đồng & Ban TTND',
+    iconName: 'building',
+    color: 'emerald',
+    active: true,
+    order: 3
+  },
+  {
+    id: 'cat-datdai',
+    name: 'Quản lý đất đai & Trật tự xây dựng',
+    code: 'CM-DATDAI',
+    description: 'Giám sát việc cấp phép xây dựng, quản lý hành lang kênh rạch, công viên cây xanh và vệ sinh môi trường đô thị.',
+    responsibleUnit: 'Ban Thường trực MTTQ & 21 Ban CTMT',
+    iconName: 'map-pin',
+    color: 'amber',
+    active: true,
+    order: 4
+  },
+  {
+    id: 'cat-congvu',
+    name: 'Đạo đức công vụ & Phòng chống tham nhũng',
+    code: 'CM-CONGVU',
+    description: 'Giám sát việc tu dưỡng, rèn luyện đạo đức lối sống của cán bộ, đảng viên, công chức tại nơi cư trú theo Quy định 124-QĐ/TW.',
+    responsibleUnit: 'Ban Thường trực MTTQ & Cấp ủy chi bộ 21 Khu phố',
+    iconName: 'shield',
+    color: 'purple',
+    active: true,
+    order: 5
+  },
+  {
+    id: 'cat-bttnd',
+    name: 'Thanh tra Nhân dân cấp cơ sở',
+    code: 'CM-BTTND',
+    description: 'Giám sát việc thực hiện chính sách pháp luật, giải quyết khiếu nại tố cáo, quy chế dân chủ cơ sở theo Luật Thực hiện dân chủ ở cơ sở.',
+    responsibleUnit: 'Ban Thanh tra Nhân dân Phường Chánh Hiệp',
+    iconName: 'scale',
+    color: 'indigo',
+    active: true,
+    order: 6
+  },
+  {
+    id: 'cat-ytegdd',
+    name: 'Giáo dục & Y tế cơ sở',
+    code: 'CM-YTE-GD',
+    description: 'Giám sát điều kiện cơ sở vật chất, an toàn thực phẩm trường học và chất lượng khám chữa bệnh tại Trạm Y tế Phường.',
+    responsibleUnit: 'Ban Thường trực MTTQ & Ban TTND',
+    iconName: 'sparkles',
+    color: 'cyan',
+    active: true,
+    order: 7
+  }
+];
+
 export const AppStorageEngine = {
   KEYS: STORAGE_KEYS,
+
+  // ==========================================
+  // SUPERVISION & SOCIAL CRITIQUE (GIÁM SÁT & PHẢN BIỆN)
+  // ==========================================
+  getSupervisionPlans: (): SupervisionPlan[] => {
+    return loadInitialData<SupervisionPlan[]>(STORAGE_KEYS.SUPERVISION_PLANS, INITIAL_SUPERVISION_PLANS);
+  },
+  saveSupervisionPlans: (plans: SupervisionPlan[]) => {
+    saveStorageData(STORAGE_KEYS.SUPERVISION_PLANS, plans);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mttq_supervision_updated', { detail: plans }));
+    }
+  },
+  addSupervisionPlan: (plan: SupervisionPlan): SupervisionPlan => {
+    const list = AppStorageEngine.getSupervisionPlans();
+    const created: SupervisionPlan = {
+      ...plan,
+      id: plan.id || ('sp-' + Date.now()),
+      createdAt: plan.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    const nextList = [created, ...list];
+    AppStorageEngine.saveSupervisionPlans(nextList);
+    return created;
+  },
+  updateSupervisionPlan: (plan: SupervisionPlan): SupervisionPlan | null => {
+    const list = AppStorageEngine.getSupervisionPlans();
+    const idx = list.findIndex(p => p.id === plan.id);
+    if (idx === -1) return null;
+    const updated: SupervisionPlan = {
+      ...list[idx],
+      ...plan,
+      updatedAt: new Date().toISOString()
+    };
+    list[idx] = updated;
+    AppStorageEngine.saveSupervisionPlans([...list]);
+    return updated;
+  },
+  deleteSupervisionPlan: (id: string): boolean => {
+    const list = AppStorageEngine.getSupervisionPlans();
+    const filtered = list.filter(p => p.id !== id);
+    if (filtered.length === list.length) return false;
+    AppStorageEngine.saveSupervisionPlans(filtered);
+    return true;
+  },
+  getSupervisionStats: (): SupervisionOverviewStats => {
+    return loadInitialData<SupervisionOverviewStats>(STORAGE_KEYS.SUPERVISION_STATS, INITIAL_SUPERVISION_STATS);
+  },
+  saveSupervisionStats: (stats: SupervisionOverviewStats) => {
+    saveStorageData(STORAGE_KEYS.SUPERVISION_STATS, stats);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mttq_supervision_stats_updated', { detail: stats }));
+    }
+  },
+
+  // SUPERVISION CATEGORIES (CHUYÊN MỤC GIÁM SÁT - PHẢN BIỆN)
+  getSupervisionCategories: (): SupervisionCategory[] => {
+    return loadInitialData<SupervisionCategory[]>(STORAGE_KEYS.SUPERVISION_CATEGORIES, INITIAL_SUPERVISION_CATEGORIES);
+  },
+  saveSupervisionCategories: (categories: SupervisionCategory[]) => {
+    saveStorageData(STORAGE_KEYS.SUPERVISION_CATEGORIES, categories);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mttq_supervision_categories_updated', { detail: categories }));
+    }
+  },
+  addSupervisionCategory: (category: SupervisionCategory): SupervisionCategory => {
+    const list = AppStorageEngine.getSupervisionCategories();
+    const created: SupervisionCategory = {
+      ...category,
+      id: category.id || ('cat-' + Date.now()),
+      createdAt: category.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    const nextList = [...list, created].sort((a, b) => (a.order || 0) - (b.order || 0));
+    AppStorageEngine.saveSupervisionCategories(nextList);
+    return created;
+  },
+  updateSupervisionCategory: (category: SupervisionCategory): SupervisionCategory | null => {
+    const list = AppStorageEngine.getSupervisionCategories();
+    const idx = list.findIndex(c => c.id === category.id);
+    if (idx === -1) return null;
+    const updated: SupervisionCategory = {
+      ...list[idx],
+      ...category,
+      updatedAt: new Date().toISOString()
+    };
+    list[idx] = updated;
+    const sorted = [...list].sort((a, b) => (a.order || 0) - (b.order || 0));
+    AppStorageEngine.saveSupervisionCategories(sorted);
+    return updated;
+  },
+  deleteSupervisionCategory: (id: string): boolean => {
+    const list = AppStorageEngine.getSupervisionCategories();
+    const filtered = list.filter(c => c.id !== id);
+    if (filtered.length === list.length) return false;
+    AppStorageEngine.saveSupervisionCategories(filtered);
+    return true;
+  },
 
   getArticles: (): Article[] => {
     const raw = loadInitialData<Article[]>(STORAGE_KEYS.ARTICLES, []);

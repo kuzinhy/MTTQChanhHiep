@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, Users, Sparkles, Building2, Newspaper, Lightbulb, FileText, 
-  Info, MessageSquare, BarChart3, Award, Bell, Settings, FolderTree, ShieldCheck
+  Info, MessageSquare, BarChart3, Award, Bell, Settings, FolderTree, ShieldCheck, Scale
 } from 'lucide-react';
 
 export interface AdminFeature {
@@ -30,7 +30,8 @@ export const FUNCTION_REGISTRY: AdminFeature[] = [
   { id: 'cms_documents', title: 'Văn bản', description: 'Lưu trữ chỉ đạo, công văn', group: 'operations', icon: FileText, path: '/admin/cms_documents', badge: 'VĂN BẢN', enabled: true, order: 3 },
   { id: 'cms_about', title: 'Giới thiệu MTTQ', description: 'Bộ máy tổ chức', group: 'operations', icon: Info, path: '/admin/cms_about', badge: 'GIỚI THIỆU', enabled: true, order: 4 },
   { id: 'opinions', title: 'Xử lý Dân nguyện', description: 'Tiếp nhận phản ánh', group: 'operations', icon: MessageSquare, path: '/admin/opinions', badge: 'DÂN NGUYỆN', enabled: true, order: 5 },
-  { id: 'surveys_admin', title: 'Khảo sát & Dư luận', description: 'Thăm dò dư luận xã hội', group: 'operations', icon: BarChart3, path: '/admin/surveys_admin', badge: 'KHẢO SÁT', enabled: true, order: 6 },
+  { id: 'supervision_admin', title: 'Giám sát & Phản biện', description: 'Quản trị kế hoạch, chuyên mục & kết quả giám sát xã hội', group: 'operations', icon: Scale, path: '/admin/supervision_admin', badge: 'GIÁM SÁT', enabled: true, order: 6 },
+  { id: 'surveys_admin', title: 'Khảo sát & Dư luận', description: 'Thăm dò dư luận xã hội', group: 'operations', icon: BarChart3, path: '/admin/surveys_admin', badge: 'KHẢO SÁT', enabled: true, order: 7 },
   { id: 'competitions_admin', title: 'Hội thi & Ngân hàng đề', description: 'Tổ chức hội thi trực tuyến', group: 'operations', icon: Award, path: '/admin/competitions_admin', badge: 'HỘI THI', enabled: true, order: 7 },
   { id: 'member_orgs_admin', title: 'Tổ chức Thành viên', description: 'Quản trị các tổ chức đoàn thể', group: 'operations', icon: Users, path: '/admin/member_orgs_admin', badge: 'THÀNH VIÊN', enabled: true, order: 8 },
   { id: 'cultural_space_admin', title: 'Không gian Văn hóa 3D', description: 'Bảo tàng ảo', group: 'operations', icon: Building2, path: '/admin/cultural_space_admin', badge: '3D VIRTUAL', enabled: true, order: 9 },

@@ -1428,5 +1428,48 @@ export interface EmailNotificationSettings {
   categoryRouting: Record<string, string>; // Maps category name to specific email
 }
 
+export type SupervisionStatus = 'COMPLETED' | 'IN_PROGRESS' | 'PLANNED';
+
+export interface SupervisionPlan {
+  id: string;
+  code: string;
+  title: string;
+  targetUnit: string;
+  field: string;
+  timeframe: string;
+  status: SupervisionStatus;
+  leader: string;
+  recommendationsCount: number;
+  resultsSummary: string;
+  issuedDate: string;
+  completedDate?: string;
+  documentUrl?: string;
+  participatingUnits?: string;
+  feedbackResolutionRate?: number;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SupervisionOverviewStats {
+  totalProgramsYear: number;
+  acceptanceRate: number;
+  cooperatingInspectorates: string;
+}
+
+export interface SupervisionCategory {
+  id: string;
+  name: string; // Tên chuyên mục (e.g., An sinh xã hội & Chính sách, Cải cách hành chính & Một cửa...)
+  code: string; // Mã chuyên mục (e.g., CM-ANSINH, CM-CCHC, CM-DTC...)
+  description?: string; // Mục tiêu & nội dung giám sát chủ yếu
+  responsibleUnit?: string; // Cơ quan / Ban chủ trì giám sát (e.g., Ban Thanh tra Nhân dân, Ban Giám sát ĐTCĐ...)
+  iconName?: string; // Icon hiển thị
+  color?: string; // Màu sắc nhận diện (blue, emerald, amber, purple, rose, cyan, indigo)
+  active: boolean; // Trạng thái hoạt động
+  order: number; // Thứ tự hiển thị
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 
 

@@ -36,6 +36,7 @@ import {
   Eye,
   Radio,
   GitMerge,
+  Scale,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -180,6 +181,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
           { id: 'cms_documents', label: 'Quản trị Văn bản Số', icon: FileText, badge: 'VĂN BẢN' },
           { id: 'procedures', label: 'Quy trình Thủ tục (Một cửa)', icon: ClipboardList, badge: 'MỘT CỬA' },
           { id: 'opinions', label: 'Xử lý Dân nguyện & Dư luận', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
+          { id: 'supervision_admin', label: 'Giám sát & Phản biện Xã hội', icon: Scale, badge: 'GIÁM SÁT' },
           { id: 'surveys_admin', label: 'Khảo sát & Thăm dò Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
           { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
           { 
