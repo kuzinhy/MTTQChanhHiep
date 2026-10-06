@@ -45,6 +45,7 @@ export const AboutAdminView: React.FC<{
   const [memSecPos, setMemSecPos] = useState('');
   const [memAvatar, setMemAvatar] = useState('');
   const [memIsMain, setMemIsMain] = useState(false);
+  const [memPhone, setMemPhone] = useState('');
 
   // Modals / Editing States for Pillars
   const [editingPillar, setEditingPillar] = useState<AboutPillar | null>(null);
@@ -77,6 +78,7 @@ export const AboutAdminView: React.FC<{
       setMemSecPos(member.secondaryPosition || '');
       setMemAvatar(member.avatarUrl || '');
       setMemIsMain(!!member.isMainLeader);
+      setMemPhone(member.phone || '');
     } else {
       setEditingMember(null);
       setMemName('');
@@ -85,6 +87,7 @@ export const AboutAdminView: React.FC<{
       setMemSecPos('');
       setMemAvatar('');
       setMemIsMain(false);
+      setMemPhone('');
     }
     setIsMemberModalOpen(true);
   };
@@ -107,7 +110,8 @@ export const AboutAdminView: React.FC<{
               position: memPos.trim(),
               secondaryPosition: memSecPos.trim() || undefined,
               avatarUrl: memAvatar.trim() || undefined,
-              isMainLeader: memIsMain
+              isMainLeader: memIsMain,
+              phone: memPhone.trim() || undefined
             }
           : m
       );
@@ -120,7 +124,8 @@ export const AboutAdminView: React.FC<{
         position: memPos.trim(),
         secondaryPosition: memSecPos.trim() || undefined,
         avatarUrl: memAvatar.trim() || undefined,
-        isMainLeader: memIsMain
+        isMainLeader: memIsMain,
+        phone: memPhone.trim() || undefined
       };
       updatedMembers.push(newMem);
     }
@@ -381,6 +386,7 @@ export const AboutAdminView: React.FC<{
                   <td className="py-3 px-3">
                     <div className="font-extrabold text-slate-900 flex items-center gap-2">
                       <span>{m.name}</span>
+                      {m.phone && <span className="text-[10px] text-blue-600 font-bold">({m.phone})</span>}
                       {(m.isMainLeader || idx === 0) && (
                         <span className="px-1.5 py-0.5 rounded bg-red-600 text-white font-black text-[9px]">Chủ trì</span>
                       )}
@@ -495,16 +501,28 @@ export const AboutAdminView: React.FC<{
             </div>
 
             <form onSubmit={handleSaveMember} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Họ và Tên cán bộ (*)</label>
-                <input
-                  type="text"
-                  required
-                  value={memName}
-                  onChange={(e) => setMemName(e.target.value)}
-                  placeholder="VD: Nguyễn Công Lý"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-500"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Họ và Tên cán bộ (*)</label>
+                  <input
+                    type="text"
+                    required
+                    value={memName}
+                    onChange={(e) => setMemName(e.target.value)}
+                    placeholder="VD: Nguyễn Công Lý"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Số điện thoại</label>
+                  <input
+                    type="text"
+                    value={memPhone}
+                    onChange={(e) => setMemPhone(e.target.value)}
+                    placeholder="VD: 0912.345.678"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
               </div>
 
               <div>

@@ -490,6 +490,17 @@ export default function App() {
         const currentHostname = window.location.hostname;
         localStorage.setItem('mttq_last_hostname_init', currentHostname);
         localStorage.setItem('mttq_seed_purged_domain_v2', 'true');
+
+        // Clear and force re-seed for the 12 new procedures
+        const isProceduresResetV4 = localStorage.getItem('chanhhiep_procedures_reset_v4') === 'true';
+        if (!isProceduresResetV4) {
+          localStorage.removeItem('chanhhiep_procedures_v1');
+          localStorage.removeItem('chanhhiep_workflow_procedures_v2');
+          localStorage.removeItem('chanh_hiep_ai_knowledge_docs_v2');
+          localStorage.removeItem('chanh_hiep_ai_drive_files_v2');
+          localStorage.setItem('chanhhiep_procedures_reset_v4', 'true');
+          console.log('[Seeds Purge] Successfully purged old procedures and FAQs to load 12 new procedures!');
+        }
       }
     } catch {}
 

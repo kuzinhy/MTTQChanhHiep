@@ -9,6 +9,7 @@ import { analyticsRouter } from './server/analyticsRouter';
 import { mediaRouter } from './server/mediaRouter';
 import { mediaProxyHandler } from './server/mediaProxyRouter';
 import { documentIngestionRouter } from './server/documentIngestionRouter';
+import { INITIAL_PROCEDURES } from './src/data/proceduresSeed';
 
 dotenv.config({ override: true });
 
@@ -872,7 +873,7 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
   // AI Route: Tra cứu Kho Tài liệu, Bản đồ, Dịch vụ & Internet Đa Nguồn (Conversation Memory & Self-Correction)
   app.post('/api/ai/knowledge-search', async (req: Request, res: Response) => {
     try {
-      const { 
+      let { 
         query, 
         documentsContext, 
         knowledgeNotesContext, 
@@ -888,6 +889,30 @@ Hãy bóc tách và trả về duy nhất một đối tượng JSON hợp lệ 
         driveFiles = [],
         knowledgeItems = []
       } = req.body;
+
+      // Dynamically compile scannedDocsContext if not provided
+      if (!scannedDocsContext && Array.isArray(driveFiles) && driveFiles.length > 0) {
+        scannedDocsContext = driveFiles
+          .filter((f: any) => f && f.active)
+          .map((f: any) => `[Tài liệu Google Drive] Tên file: ${f.name}\nMô tả / Snippet: ${f.snippet}\nLink: ${f.webViewLink}`)
+          .join('\n\n');
+      }
+
+      // Dynamically compile knowledgeNotesContext if not provided
+      if (!knowledgeNotesContext && Array.isArray(knowledgeItems) && knowledgeItems.length > 0) {
+        knowledgeNotesContext = knowledgeItems
+          .filter((k: any) => k && k.isActive !== false)
+          .map((k: any) => `[Sổ tay tri thức - ${k.category || 'Chung'}] ${k.title}\nNội dung: ${k.content}`)
+          .join('\n\n');
+      }
+
+      // Dynamically compile proceduresContext if not provided
+      if (!proceduresContext) {
+        proceduresContext = INITIAL_PROCEDURES
+          .map((p: any) => `[Quy trình thủ tục hành chính - Mã: ${p.code}] ${p.name}\n- Lĩnh vực: ${p.category}\n- Thời gian giải quyết: ${p.processingTime}\n- Lệ phí: ${p.fee}\n- Hồ sơ cần chuẩn bị:\n${p.documents.map((d: any, idx: number) => `  ${idx + 1}. ${d.name} (${d.required ? 'Bắt buộc' : 'Không bắt buộc'}${d.quantity ? `, Số lượng: ${d.quantity}` : ''})`).join('\n')}\n- Các bước thực hiện:\n${p.steps.map((s: any) => `  • Bước ${s.stepNumber}: ${s.title} - ${s.description}${s.instruction ? ` (Hướng dẫn: ${s.instruction})` : ''}`).join('\n')}`)
+          .join('\n\n');
+      }
+
       const rawQuery = (query || '').trim();
       const lowerQuery = rawQuery.toLowerCase();
       const chatHistory = Array.isArray(history) && history.length > 0 ? history : Array.isArray(messages) ? messages : [];

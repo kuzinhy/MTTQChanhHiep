@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { OFFICIAL_21_NEIGHBORHOODS } from '../data/neighborhoodsList';
 import { AppStorageEngine } from '../lib/storage';
+import { loadStoredAboutData } from '../lib/aboutDataStore';
 
 export interface ContactItem {
   id: string;
@@ -82,22 +83,7 @@ const EMERGENCY_CONTACTS: ContactItem[] = [
   }
 ];
 
-const STATIC_DIRECTORY_DATA: ContactItem[] = [
-  // Ban Thường trực
-  { id: '1', name: 'Nguyễn Văn Minh', position: 'Chủ tịch Ủy ban MTTQ', unit: 'Thường trực MTTQ Phường', phone: '0912.345.678', email: 'mttq.chanhhiep@hochiminhcity.gov.vn', category: 'BOARD' },
-  { id: '2', name: 'Trần Thị Thu Thảo', position: 'Phó Chủ tịch Thường trực', unit: 'Thường trực MTTQ Phường', phone: '0988.765.432', email: 'thaott.mttq@hochiminhcity.gov.vn', category: 'BOARD' },
-  { id: '3', name: 'Lê Hoàng Nam', position: 'Ủy viên BTT - Trưởng Ban Dân nguyện', unit: 'Thường trực MTTQ Phường', phone: '0903.112.233', email: 'namlh.mttq@hochiminhcity.gov.vn', category: 'BOARD' },
-
-  // Trưởng Ban Công tác Mặt trận 21 khu phố
-  ...OFFICIAL_21_NEIGHBORHOODS.map(n => ({
-    id: `kp_${n.index}`,
-    name: n.leaderName,
-    position: n.leaderPosition,
-    unit: `Khu phố ${n.name}`,
-    phone: n.phone,
-    category: 'NEIGHBORHOOD' as const
-  }))
-];
+// Static data removed to favor dynamic loading from aboutDataStore and neighborhoodsList
 
 interface DigitalDirectoryModalProps {
   isOpen: boolean;
@@ -122,7 +108,28 @@ export const DigitalDirectoryModal: React.FC<DigitalDirectoryModalProps> = ({ is
       category: 'ORGANIZATION' as const
     }));
 
-    return [...EMERGENCY_CONTACTS, ...STATIC_DIRECTORY_DATA, ...dynamicOrgContacts];
+    // Dynamic Board Contacts
+    const aboutData = loadStoredAboutData();
+    const boardContacts: ContactItem[] = aboutData.members.map(m => ({
+      id: m.id,
+      name: m.name,
+      position: m.position,
+      unit: m.unit,
+      phone: m.phone || '',
+      category: 'BOARD' as const
+    }));
+
+    // Neighborhood Contacts
+    const neighborhoodContacts: ContactItem[] = OFFICIAL_21_NEIGHBORHOODS.map(n => ({
+      id: `kp_${n.index}`,
+      name: n.leaderName,
+      position: n.leaderPosition,
+      unit: `Khu phố ${n.name}`,
+      phone: n.phone,
+      category: 'NEIGHBORHOOD' as const
+    }));
+
+    return [...EMERGENCY_CONTACTS, ...boardContacts, ...neighborhoodContacts, ...dynamicOrgContacts];
   }, []);
 
   if (!isOpen) return null;

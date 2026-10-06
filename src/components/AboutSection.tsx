@@ -120,6 +120,21 @@ export const AboutSection: React.FC<{
                   {m.secondaryPosition && (
                     <div className="text-[10px] font-semibold text-slate-600">{m.secondaryPosition}</div>
                   )}
+                  {m.phone && (
+                    <div className="pt-1">
+                      <a 
+                        href={`tel:${m.phone.replace(/[^0-9]/g, '')}`}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[10px] font-bold transition ${
+                          isLeader 
+                            ? 'bg-red-600 text-white border-red-500 hover:bg-red-700' 
+                            : 'bg-white text-blue-600 border-blue-100 hover:bg-blue-50'
+                        }`}
+                      >
+                        <Phone className="w-2.5 h-2.5" />
+                        <span>{m.phone}</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -139,7 +154,8 @@ export const AboutSection: React.FC<{
                   <th className="py-3 px-4 text-center w-16 border-r border-slate-200">STT</th>
                   <th className="py-3 px-4 border-r border-slate-200">Tên đơn vị trực thuộc</th>
                   <th className="py-3 px-4 border-r border-slate-200 font-bold text-red-700">Họ và tên</th>
-                  <th className="py-3 px-4 font-bold text-red-700">Chức vụ</th>
+                  <th className="py-3 px-4 border-r border-slate-200 font-bold text-red-700">Chức vụ</th>
+                  <th className="py-3 px-4 font-bold text-red-700">Số điện thoại</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 font-medium text-slate-800">
@@ -148,8 +164,16 @@ export const AboutSection: React.FC<{
                     <td className="py-3 px-4 text-center font-bold text-red-700 border-r border-slate-200">{m.stt || idx + 1}</td>
                     <td className="py-3 px-4 font-semibold text-red-700 border-r border-slate-200">{m.unit || 'Ủy ban MTTQ VN phường'}</td>
                     <td className="py-3 px-4 font-extrabold text-red-700 border-r border-slate-200">{m.name}</td>
-                    <td className="py-3 px-4 font-semibold text-red-700">
+                    <td className="py-3 px-4 font-semibold text-red-700 border-r border-slate-200">
                       {m.position}{m.secondaryPosition ? `, ${m.secondaryPosition}` : ''}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-blue-700">
+                      {m.phone ? (
+                        <a href={`tel:${m.phone.replace(/[^0-9]/g, '')}`} className="hover:underline flex items-center gap-1.5">
+                          <Phone className="w-3 h-3" />
+                          {m.phone}
+                        </a>
+                      ) : '—'}
                     </td>
                   </tr>
                 ))}

@@ -23,7 +23,14 @@ export const ProcedureGuideModal: React.FC<ProcedureGuideModalProps> = ({
   const [procedures] = useState<ProcedureItem[]>(() => {
     try {
       const saved = localStorage.getItem('chanhhiep_procedures_v1');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.length < 12) {
+          localStorage.setItem('chanhhiep_procedures_v1', JSON.stringify(INITIAL_PROCEDURES));
+          return INITIAL_PROCEDURES;
+        }
+        return parsed;
+      }
     } catch (e) {}
     return INITIAL_PROCEDURES;
   });

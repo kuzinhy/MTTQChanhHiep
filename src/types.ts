@@ -458,6 +458,8 @@ export interface PublicOpinion {
   citizenSatisfaction?: 'VERY_SATISFIED' | 'SATISFIED' | 'NEEDS_IMPROVEMENT';
   citizenFeedback?: string;
   satisfactionSubmittedAt?: string;
+  imageLink?: string;
+  referenceLink?: string;
 }
 
 export interface UrgentWelfareRequest {

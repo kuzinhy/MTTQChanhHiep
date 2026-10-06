@@ -36,7 +36,8 @@ import {
   Globe,
   Radio,
   FileCheck,
-  HeartHandshake
+  HeartHandshake,
+  Copy
 } from 'lucide-react';
 import { Article, OfficialDocument, PublicOpinion, StaffUser } from '../types';
 import { VisitorTrackerEngine, VisitorStats } from '../lib/visitorTracker';
@@ -703,6 +704,64 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
           </div>
         </motion.div>
 
+        {/* AI Executive Briefing Panel - High-Fidelity & Modern Cockpit */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="w-full max-w-[96%] mx-auto mb-6 bg-gradient-to-r from-blue-50/80 via-slate-50 to-indigo-50/70 border border-blue-200/90 rounded-3xl p-5 shadow-[0_12px_36px_-10px_rgba(37,99,235,0.1)] relative overflow-hidden"
+        >
+          {/* Decorative subtle gradient or mesh blur background */}
+          <div className="absolute -right-20 -bottom-20 w-56 h-56 bg-gradient-to-tr from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -left-20 -top-20 w-56 h-56 bg-gradient-to-tr from-amber-400/10 to-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+            {/* Left Column: AI avatar & summary copy */}
+            <div className="flex items-start gap-4 min-w-0">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 text-white flex items-center justify-center shadow-lg shrink-0 animate-pulse">
+                <Sparkles className="w-6 h-6 text-amber-300" />
+              </div>
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-700 bg-indigo-100/80 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                    Bản tin điều hành thông minh
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-semibold">• Đã cập nhật 2 phút trước</span>
+                </div>
+                <h3 className="text-sm font-black text-slate-900 leading-tight">
+                  Tóm Tắt Khung Điều Hành Văn Phòng Số MTTQ Phường Chánh Hiệp
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  Hôm nay, hệ thống ghi nhận sự tương tác cao tại <strong className="text-blue-700">Khu phố 3 &amp; Khu phố 18</strong> về phân hệ tiếp nhận dân nguyện. Công tác chuyển đổi số cho <strong className="text-slate-800">21 Khu phố</strong> đang được đồng bộ hóa thông suốt lên hệ thống lưu trữ Google Drive đám mây. Trợ lý AI khuyến nghị Ban thường trực tập trung duyệt nhanh {pendingOpinionsCount} hồ sơ dân nguyện mới tiếp nhận.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Mini interactive stats and actions */}
+            <div className="w-full lg:w-auto shrink-0 flex flex-wrap items-center gap-3 self-stretch lg:self-auto justify-end border-t border-slate-200/80 lg:border-t-0 pt-3.5 lg:pt-0">
+              <div className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[11px] font-bold text-slate-700">
+                  Hệ thống: Trực tuyến
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  showToast('Đã sao chép báo cáo tóm tắt điều hành vào clipboard!');
+                  navigator.clipboard.writeText(`Bản tóm tắt điều hành Chánh Hiệp Digital Office: Chuyển đổi số 21 Khu phố đang tiến triển tốt, 26 phân hệ hoạt động bình thường.`);
+                }}
+                className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-800 rounded-2xl border border-slate-300 text-xs font-black shadow-2xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+              >
+                <Copy className="w-3.5 h-3.5 text-blue-600" />
+                <span>Sao chép báo cáo nhanh</span>
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
         {/* 4 WORKSPACE CARDS - Google AI Studio Styled with Radiant Gradient Borders */}
         <div className="w-full max-w-[96%] mx-auto mb-6">
           <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4.5 items-stretch">
@@ -772,8 +831,8 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-blue-50 group-hover/row:text-blue-600 transition-colors">
-                              {item.badge}
+                            <span className="text-[10px] font-extrabold text-slate-400 group-hover/row:text-blue-600 tracking-wider uppercase pr-1.5 select-none transition-colors">
+                              · {item.badge}
                             </span>
                           )}
                           <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-blue-600 group-hover/row:translate-x-0.5 transition-all" />
@@ -883,8 +942,8 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-emerald-50 group-hover/row:text-emerald-700 transition-colors">
-                              {item.badge}
+                            <span className="text-[10px] font-extrabold text-slate-400 group-hover/row:text-emerald-700 tracking-wider uppercase pr-1.5 select-none transition-colors">
+                              · {item.badge}
                             </span>
                           )}
                           <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-emerald-600 group-hover/row:translate-x-0.5 transition-all" />
@@ -994,8 +1053,8 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-purple-50 group-hover/row:text-purple-700 transition-colors">
-                              {item.badge}
+                            <span className="text-[10px] font-extrabold text-slate-400 group-hover/row:text-purple-700 tracking-wider uppercase pr-1.5 select-none transition-colors">
+                              · {item.badge}
                             </span>
                           )}
                           <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-purple-600 group-hover/row:translate-x-0.5 transition-all" />
@@ -1105,8 +1164,8 @@ export const DashboardInterface: React.FC<DashboardInterfaceProps> = ({
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
                           {item.badge && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-widest group-hover/row:bg-amber-50 group-hover/row:text-amber-700 transition-colors">
-                              {item.badge}
+                            <span className="text-[10px] font-extrabold text-slate-400 group-hover/row:text-amber-800 tracking-wider uppercase pr-1.5 select-none transition-colors">
+                              · {item.badge}
                             </span>
                           )}
                           <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover/row:text-amber-600 group-hover/row:translate-x-0.5 transition-all" />

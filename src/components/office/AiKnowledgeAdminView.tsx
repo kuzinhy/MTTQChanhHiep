@@ -30,160 +30,269 @@ const SETTINGS_STORAGE_KEY = 'chanh_hiep_ai_settings_v2';
 
 export const SAMPLE_STANDARD_FAQS: KnowledgeDocument[] = [
   {
-    id: 'kb-faq-01',
-    title: 'HỎI: Thủ tục Đăng ký kết hôn tại UBND Phường Chánh Hiệp cần những gì và mất bao lâu?',
-    type: 'TEXT',
-    category: 'THU_TUC',
-    content: 'ĐÁP: Thủ tục Đăng ký kết hôn [Mã TTHC-TP-01] được giải quyết ngay trong 01 ngày làm việc (khi hồ sơ hợp lệ). Lệ phí: Miễn phí. Thành phần hồ sơ gồm: (1) Tờ khai đăng ký kết hôn theo mẫu; (2) Bản chính CCCD/VNeID mức 2 của hai bên nam, nữ; (3) Giấy xác nhận tình trạng hôn nhân (nếu cư trú ngoài địa bàn phường). Cả hai bên phải trực tiếp có mặt tại Bộ phận Một cửa UBND Phường Chánh Hiệp (Số 1240 Đại Lộ Bình Dương, KP Định Hòa 5) để ký vào Sổ hộ tịch.',
-    sourceName: 'Bộ phận Tiếp nhận & Trả kết quả UBND Phường Chánh Hiệp',
-    official: true,
-    tags: ['kết hôn', 'đăng ký kết hôn', 'thủ tục', 'hôn nhân', 'một cửa', 'lệ phí'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-01",
+    "title": "HỎI: Thủ tục Cấp bản sao từ sổ gốc tại UBND Phường Chánh Hiệp có mất phí không và mất bao lâu?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Thủ tục Cấp bản sao từ sổ gốc [Mã 2.000908] tại UBND Phường Chánh Hiệp được giải quyết MIỄN PHÍ. Thời gian thực hiện: Ngay trong ngày làm việc cơ quan tiếp nhận yêu cầu, hoặc trong ngày làm việc tiếp theo nếu tiếp nhận sau 15 giờ. Người dân cần nộp Tờ khai theo mẫu và xuất trình CCCD gắn chip hoặc tài khoản VNeID mức 2.",
+    "sourceName": "Tư pháp - Hộ tịch Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "bản sao từ sổ gốc",
+      "sao lục",
+      "sổ gốc",
+      "miễn phí",
+      "tư pháp"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-02',
-    title: 'HỎI: Tôi muốn xin Giấy xác nhận tình trạng hôn nhân (giấy độc thân) thì liên hệ ở đâu?',
-    type: 'TEXT',
-    category: 'THU_TUC',
-    content: 'ĐÁP: Thủ tục Cấp Giấy xác nhận tình trạng hôn nhân [Mã TTHC-TP-03] được tiếp nhận trực tiếp tại Bộ phận Một cửa UBND Phường hoặc nộp trực tuyến qua Cổng Dịch vụ công Quốc gia. Thời hạn giải quyết tối đa 03 ngày làm việc. Lệ phí: Miễn phí cho công dân cư trú trên địa bàn. Hồ sơ cần có: Tờ khai theo mẫu và CCCD gắn chip (hoặc tài khoản định danh VNeID mức 2).',
-    sourceName: 'Tư pháp - Hộ tịch Phường Chánh Hiệp',
-    official: true,
-    tags: ['độc thân', 'xác nhận độc thân', 'tình trạng hôn nhân', 'tư pháp'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-02",
+    "title": "HỎI: Lệ phí và thời gian chứng thực bản sao từ bản chính (sao y bản chính) được tính thế nào?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Chứng thực bản sao từ bản chính [Mã 2.000907] tại UBND Phường Chánh Hiệp được giải quyết ngay trong ngày (hoặc ngày tiếp theo nếu nộp sau 15h). Lệ phí: 2.000 đồng/trang; từ trang thứ 3 trở lên thu 1.000 đồng/trang, tối đa thu không quá 200.000 đồng/bản. Bản chính phải còn nguyên vẹn, không rách nát, tẩy xóa trái phép.",
+    "sourceName": "Một cửa UBND Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "chứng thực bản sao",
+      "sao y",
+      "bản chính",
+      "photo công chứng",
+      "lệ phí"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-03',
-    title: 'HỎI: Ai là Bí thư Đoàn Thanh niên và phụ trách phong trào tình nguyện của phường?',
-    type: 'TEXT',
-    category: 'DOAN_THE',
-    content: 'ĐÁP: Đồng chí Bùi Văn Huy hiện giữ chức vụ Bí thư Đoàn TNCS Hồ Chí Minh Phường Chánh Hiệp, đồng thời là Ủy viên Ban Thường trực Ủy ban MTTQ Việt Nam Phường Chánh Hiệp (Nhiệm kỳ 2025 - 2030). Đồng chí phụ trách phong trào thanh thiếu nhi, các đội hình tình nguyện (Chuyển đổi số cộng đồng, Hiến máu nhân đạo, Ngày Chủ nhật xanh) và an sinh xã hội trên địa bàn 21 khu phố.',
-    sourceName: 'Đoàn TNCS Hồ Chí Minh & MTTQ Phường Chánh Hiệp',
-    official: true,
-    tags: ['bùi văn huy', 'bí thư đoàn', 'đoàn thanh niên', 'tình nguyện', 'cán bộ'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-03",
+    "title": "HỎI: Tôi muốn chứng thực chữ ký trong đơn cam kết, giấy tờ cá nhân thì làm thế nào?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Thủ tục Chứng thực chữ ký [Mã 2.000906] yêu cầu người dân mang theo bản chính CCCD/VNeID và văn bản cần ký. Người yêu cầu chứng thực chữ ký TUYỆT ĐỐI không được ký trước vào giấy tờ. Việc ký phải được thực hiện trực tiếp trước mặt cán bộ Một cửa tại Quầy số 1. Lệ phí: 10.000 đồng/trường hợp, giải quyết ngay trong ngày.",
+    "sourceName": "Tư pháp Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "chứng thực chữ ký",
+      "ký tên",
+      "điểm chỉ",
+      "cam kết",
+      "mẫu đơn"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-04',
-    title: 'HỎI: Trụ sở UBND và Ủy ban MTTQ Phường Chánh Hiệp ở đâu? Có số hotline không?',
-    type: 'TEXT',
-    category: 'KHU_PHO',
-    content: 'ĐÁP: Trụ sở cơ quan đặt tại: Số 1240 Đại Lộ Bình Dương, Khu phố Định Hòa 5, Phường Chánh Hiệp, TP. Thủ Dầu Một. Đường dây nóng tiếp nhận phản ánh dân sinh và tư vấn thủ tục: 0989614614. Giờ làm việc: Sáng 07:30 - 11:30, Chiều 13:30 - 17:00 (Từ Thứ Hai đến Thứ Sáu, sáng Thứ Bảy trực tiếp nhận Một cửa).',
-    sourceName: 'Văn phòng HĐND - UBND & MTTQ Phường Chánh Hiệp',
-    official: true,
-    tags: ['địa chỉ', 'trụ sở', 'hotline', 'đường dây nóng', 'giờ làm việc'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-04",
+    "title": "HỎI: Có những quy định gì về chứng thực chữ ký người dịch (Cộng tác viên hoặc tự do)?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Phường có hai quy trình: Chứng thực chữ ký người dịch là Cộng tác viên cơ hữu của phường [Mã 2.000905] và người dịch tự do [Mã 2.000904]. Người dịch tự do khi chứng thực phải xuất trình bản chính bằng tốt nghiệp Đại học chuyên ngành ngoại ngữ tương ứng hoặc bằng cấp ngoại ngữ hợp lệ khác. Lệ phí: 10.000 đồng/trường hợp, giải quyết ngay trong ngày làm việc.",
+    "sourceName": "Tư pháp - Hộ tịch Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "chữ ký người dịch",
+      "dịch thuật",
+      "công dịch",
+      "bản dịch",
+      "bằng ngoại ngữ"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-05',
-    title: 'HỎI: Làm sao để đăng ký nhận Bữa cơm nghĩa tình hoặc hỗ trợ Quỹ Vì người nghèo?',
-    type: 'TEXT',
-    category: 'AN_SINH',
-    content: 'ĐÁP: Chương trình "Bữa cơm nghĩa tình" và "Quỹ Vì người nghèo" do Ủy ban MTTQ Phường Chánh Hiệp chủ trì, hỗ trợ miễn phí các suất ăn dinh dưỡng và trợ cấp đột xuất cho người già neo đơn, hộ nghèo, người khuyết tật, người bán vé số. Người dân có thể liên hệ trực tiếp Trưởng Ban Công tác Mặt trận tại khu phố đang cư trú hoặc gửi thông tin qua mục "Phản ánh – An sinh" trên cổng thông tin để được cán bộ đến tận nơi hỗ trợ.',
-    sourceName: 'Ban Thường trực Ủy ban MTTQ Việt Nam Phường Chánh Hiệp',
-    official: true,
-    tags: ['bữa cơm nghĩa tình', 'quỹ vì người nghèo', 'an sinh', 'hộ nghèo', 'khó khăn'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-05",
+    "title": "HỎI: Thủ tục chứng thực hợp đồng mua bán xe, tặng cho tài sản, nhà đất mất bao lâu và phí bao nhiêu?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Thủ tục Chứng thực hợp đồng, giao dịch tài sản [Mã 2.000911] giải quyết trong tối đa 02 ngày làm việc. Lệ phí: 50.000 đồng/giao dịch. Các bên tham gia phải chuẩn bị 03 bản dự thảo hợp đồng, bản gốc giấy chứng nhận tài sản (Sổ hồng, Đăng ký xe gốc...), CCCD và giấy chứng nhận kết hôn hoặc xác nhận độc thân của các bên. Tất cả các bên phải có mặt trực tiếp để ký và điểm chỉ tại Quầy Một cửa.",
+    "sourceName": "Bộ phận Một cửa Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "hợp đồng",
+      "mua bán xe",
+      "chuyển nhượng",
+      "tặng cho",
+      "lệ phí",
+      "ủy quyền"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-06',
-    title: 'HỎI: Điều kiện và mức kinh phí hỗ trợ xây mới/sửa chữa Nhà Đại đoàn kết là bao nhiêu?',
-    type: 'TEXT',
-    category: 'AN_SINH',
-    content: 'ĐÁP: Kinh phí hỗ trợ xây mới Nhà Đại đoàn kết từ Quỹ "Vì người nghèo" phường là 80 - 100 triệu đồng/căn; hỗ trợ sửa chữa nhà dột nát từ 30 - 50 triệu đồng/căn. Đối tượng: Hộ nghèo, hộ cận nghèo, gia đình chính sách khó khăn có đất ở hợp pháp và được Ban Công tác Mặt trận khu phố bình xét công khai.',
-    sourceName: 'Ban Vận động Quỹ Vì người nghèo Phường Chánh Hiệp',
-    official: true,
-    tags: ['nhà đại đoàn kết', 'xây nhà', 'sửa nhà', 'an sinh', 'kinh phí'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-06",
+    "title": "HỎI: Tôi muốn lập di chúc tại phường thì cần chuẩn bị giấy tờ gì để chứng thực?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Chứng thực di chúc [Mã 2.001019] giải quyết trong tối đa 02 ngày làm việc. Lệ phí: 50.000 đồng/di chúc. Yêu cầu bắt buộc: (1) Giấy khám sức khỏe từ Bệnh viện đa khoa xác nhận tinh thần minh mẫn (cấp trong 30 ngày); (2) Bản gốc giấy tờ sở hữu tài sản (Sổ đỏ, sổ tiết kiệm...); (3) CCCD gắn chip của người lập di chúc. Người lập phải tự có mặt trực tiếp đọc hoặc viết di chúc trước mặt cán bộ.",
+    "sourceName": "Tư pháp - Hộ tịch Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "di chúc",
+      "thừa kế",
+      "sức khỏe tâm thần",
+      "minh mẫn",
+      "di sản"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-07',
-    title: 'HỎI: Văn phòng Ban Điều hành Khu phố Định Hòa 5 ở đâu và liên hệ ai?',
-    type: 'TEXT',
-    category: 'KHU_PHO',
-    content: 'ĐÁP: Văn phòng Khu phố Định Hòa 5 tọa lạc ngay trên trục đường Đại Lộ Bình Dương (gần trụ sở UBND Phường). Ban Điều hành Khu phố và Ban Công tác Mặt trận trực ban hàng ngày để tiếp nhận ý kiến cử tri, xác nhận hồ sơ ban đầu và hỗ trợ công tác an sinh xã hội cho bà con trên địa bàn.',
-    sourceName: 'Ban Điều hành 21 Khu phố Chánh Hiệp',
-    official: true,
-    tags: ['định hòa 5', 'khu phố định hòa 5', 'văn phòng khu phố', 'địa chỉ'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-07",
+    "title": "HỎI: Làm thủ tục từ chối nhận di sản thừa kế (đất đai, nhà ở) như thế nào tại Phường Chánh Hiệp?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Chứng thực văn bản từ chối nhận di sản [Mã 2.001016] giải quyết trong tối đa 02 ngày làm việc. Lệ phí: 50.000 đồng/văn bản. Hồ sơ cần có: Dự thảo văn bản từ chối di sản thừa kế, Giấy chứng tử của người để lại di sản, Giấy tờ chứng minh quan hệ thừa kế (khai sinh, kết hôn...) và giấy tờ tài sản gốc. Người từ chối phải trực tiếp ký văn bản tại Quầy Một cửa.",
+    "sourceName": "Tư pháp Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "từ chối nhận di sản",
+      "thừa kế",
+      "khai tử",
+      "từ chối di sản",
+      "đất đai"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-08',
-    title: 'HỎI: Số điện thoại Công an Phường Chánh Hiệp để báo tin an ninh trật tự là gì?',
-    type: 'TEXT',
-    category: 'CHINH_SACH',
-    content: 'ĐÁP: Trực ban Công an Phường Chánh Hiệp: 0274.3822.456 (hoặc tổng đài 113). Đơn vị trực chiến 24/24 để tiếp nhận tin báo về an ninh trật tự, trộm cắp, phòng cháy chữa cháy và hỗ trợ cấp tài khoản định danh VNeID mức 2.',
-    sourceName: 'Công an Phường Chánh Hiệp',
-    official: true,
-    tags: ['công an', 'an ninh trật tự', 'số điện thoại công an', '113', 'khẩn cấp'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-08",
+    "title": "HỎI: Làm sao để chứng thực văn bản thỏa thuận phân chia di sản thừa kế tại UBND phường?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Chứng thực văn bản phân chia di sản [Mã 2.001015] giải quyết trong tối đa 02 ngày làm việc. Lệ phí: 50.000 đồng/văn bản. Tất cả các đồng thừa kế theo di chúc hoặc theo pháp luật phải cùng có mặt trực tiếp tại Một cửa Phường Chánh Hiệp để cùng ký tên và điểm chỉ. Mang theo Giấy chứng tử của người quá cố, giấy tờ diện thừa kế và giấy tờ tài sản gốc.",
+    "sourceName": "Tư pháp - Hộ tịch Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "phân chia di sản",
+      "chia thừa kế",
+      "thỏa thuận",
+      "nhân thân",
+      "sổ hồng"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-09',
-    title: 'HỎI: Lịch tiêm chủng mở rộng tại Trạm Y tế Phường Chánh Hiệp vào những ngày nào?',
-    type: 'TEXT',
-    category: 'CHINH_SACH',
-    content: 'ĐÁP: Trạm Y tế Phường Chánh Hiệp tổ chức Tiêm chủng mở rộng định kỳ cho trẻ em vào ngày 10 và ngày 25 hàng tháng. Số điện thoại Trạm Y tế: 0274.3833.115. Địa chỉ: Khu phố Định Hòa, Phường Chánh Hiệp.',
-    sourceName: 'Trạm Y tế Phường Chánh Hiệp',
-    official: true,
-    tags: ['y tế', 'tiêm chủng', 'trạm y tế', 'lịch tiêm phòng', 'trẻ em'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-09",
+    "title": "HỎI: Tôi muốn sửa đổi, bổ sung hoặc hủy bỏ một hợp đồng, giao dịch đã chứng thực thì làm thế nào?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Thủ tục Chứng thực việc sửa đổi, bổ sung, hủy bỏ giao dịch [Mã 2.000913] giải quyết ngay trong ngày làm việc. Lệ phí: 30.000 đồng/giao dịch. Các bên tham gia hợp đồng gốc phải cùng có mặt tại quầy Một cửa, mang theo bản gốc hợp đồng đã chứng thực trước đây, dự thảo văn bản thỏa thuận sửa đổi/bổ sung/hủy bỏ mới và CCCD gắn chip để cán bộ kiểm tra đối chiếu.",
+    "sourceName": "Bộ phận Một cửa UBND Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "sửa đổi hợp đồng",
+      "bổ sung giao dịch",
+      "hủy hợp đồng",
+      "đối chiếu",
+      "lời chứng"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-10',
-    title: 'HỎI: Quy trình gửi phản ánh rác thải, lấn chiếm lòng lề đường qua Cổng thông tin như thế nào?',
-    type: 'TEXT',
-    category: 'THU_TUC',
-    content: 'ĐÁP: Người dân truy cập mục "Gửi phản ánh – kiến nghị" trên website, chọn khu phố phát sinh sự việc, đính kèm hình ảnh/vị trí và nội dung. Ban Thường trực Mặt trận và UBND Phường sẽ tiếp nhận, phân công lực lượng kiểm tra xử lý trong 24h - 48h và công khai kết quả xử lý ngay trên hệ thống.',
-    sourceName: 'Cổng Thông tin Điện tử Phường Chánh Hiệp',
-    official: true,
-    tags: ['gửi phản ánh', 'rác thải', 'trật tự đô thị', 'kiến nghị', 'xử lý'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-10",
+    "title": "HỎI: Hợp đồng đã công chứng bị ghi sai thông tin cá nhân hoặc số liệu thì đính chính như thế nào?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Thủ tục Sửa lỗi sai sót trong giao dịch [Mã 2.000927] áp dụng cho đính chính lỗi kỹ thuật, chữ viết, số liệu ghi sai so với giấy tờ gốc mà không làm đổi bản chất hợp đồng. Lệ phí: 25.000 đồng/giao dịch, giải quyết ngay trong ngày làm việc. Cần nộp hợp đồng gốc có lỗi, giấy tờ làm căn cứ đính chính (CCCD đúng, Sổ đỏ đúng...) và văn bản đề nghị đính chính của các bên.",
+    "sourceName": "Tư pháp Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "sửa lỗi sai sót",
+      "đính chính",
+      "lỗi kỹ thuật",
+      "hợp đồng sai",
+      "đối chiếu"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-11',
-    title: 'HỎI: Không gian Văn hóa Hồ Chí Minh của Phường Chánh Hiệp mở cửa khi nào và có gì?',
-    type: 'TEXT',
-    category: 'DOAN_THE',
-    content: 'ĐÁP: Không gian Văn hóa Hồ Chí Minh đặt tại Tầng 2 Trụ sở Ủy ban MTTQ Phường Chánh Hiệp (Số 1240 Đại Lộ Bình Dương), mở cửa đón nhân dân, đoàn viên, học sinh tham quan miễn phí trong giờ hành chính. Nơi đây trưng bày các kỷ vật lịch sử (Huy hiệu Bác Hồ mạ men đỏ nguyên bản, khăn rằn Nam Bộ, đèn dầu địa đạo), tủ sách hơn 500 đầu sách về Bác và phòng chiếu phim tư liệu số 3D.',
-    sourceName: 'Ủy ban MTTQ & Hội đồng Đội Phường Chánh Hiệp',
-    official: true,
-    tags: ['không gian văn hóa hồ chí minh', 'bác hồ', 'kỷ vật', 'tham quan', 'mặt trận'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-11",
+    "title": "HỎI: Tôi muốn xin cấp bản sao của một hợp đồng giao dịch đất đai đã chứng thực trước đây tại phường?",
+    "type": "TEXT",
+    "category": "THU_TUC",
+    "content": "ĐÁP: Thủ tục Cấp bản sao hợp đồng, giao dịch đã chứng thực [Mã 2.000942] được giải quyết ngay trong ngày làm việc. Lệ phí: 2.000 đồng/trang (từ trang thứ 3: 1.000 đồng/trang, tối đa 200.000 đồng/bản). Chủ thể trong hợp đồng hoặc người thừa kế/ủy quyền hợp pháp điền Phiếu yêu cầu và xuất trình CCCD gắn chip để cán bộ tra cứu trong kho lưu trữ của phường.",
+    "sourceName": "Phòng Lưu trữ UBND Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "bản sao giao dịch",
+      "sao lục hợp đồng",
+      "kho lưu trữ",
+      "yêu cầu sao lục",
+      "lệ phí"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   },
   {
-    id: 'kb-faq-12',
-    title: 'HỎI: Người cao tuổi từ đủ 80 tuổi trở lên không có lương hưu được trợ cấp bao nhiêu?',
-    type: 'TEXT',
-    category: 'AN_SINH',
-    content: 'ĐÁP: Theo Nghị định 20/2021/NĐ-CP và chính sách an sinh của địa phương, người cao tuổi từ đủ 80 tuổi trở lên không có lương hưu, trợ cấp BHXH được hưởng trợ cấp xã hội hàng tháng và được cấp thẻ BHYT miễn phí 100%. Hồ sơ gồm: Tờ khai thông tin cá nhân và CCCD, nộp tại Bộ phận Một cửa UBND Phường để được xét duyệt.',
-    sourceName: 'Bộ phận Lao động - Thương binh & Xã hội Phường Chánh Hiệp',
-    official: true,
-    tags: ['người cao tuổi', '80 tuổi', 'trợ cấp xã hội', 'bhyt miễn phí', 'bảo trợ'],
-    rolesAllowed: ['PUBLIC', 'STAFF'],
-    updatedAt: '2026-09-30',
-    isActive: true
+    "id": "kb-faq-12",
+    "title": "HỎI: Trụ sở UBND và Ủy ban MTTQ Phường Chánh Hiệp ở đâu? Có số hotline không?",
+    "type": "TEXT",
+    "category": "KHU_PHO",
+    "content": "ĐÁP: Trụ sở cơ quan đặt tại: Số 1240 Đại Lộ Bình Dương, Khu phố Định Hòa 5, Phường Chánh Hiệp, TP. Thủ Dầu Một. Đường dây nóng tiếp nhận phản ánh dân sinh và tư vấn thủ tục: 0989614614. Giờ làm việc: Sáng 07:30 - 11:30, Chiều 13:00 - 17:00 (Từ Thứ Hai đến Thứ Sáu).",
+    "sourceName": "Văn phòng HĐND - UBND & MTTQ Phường Chánh Hiệp",
+    "official": true,
+    "tags": [
+      "địa chỉ",
+      "trụ sở",
+      "hotline",
+      "đường dây nóng",
+      "giờ làm việc"
+    ],
+    "rolesAllowed": [
+      "PUBLIC",
+      "STAFF"
+    ],
+    "updatedAt": "2025-11-13",
+    "isActive": true
   }
 ];
 

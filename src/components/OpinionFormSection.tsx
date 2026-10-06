@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { PublicOpinion, OpinionTopic } from '../types';
-import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle, Copy, ArrowLeft, ArrowRight, CheckCircle2, Layers, Sparkles } from 'lucide-react';
+import { MessageSquareHeart, Send, Search, CheckCircle, ShieldAlert, FileText, Lock, UserX, AlertCircle, Copy, ArrowLeft, ArrowRight, CheckCircle2, Layers, Sparkles, MapPin, X, Loader2 } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
-import { VoiceInputControl } from '../speech/VoiceInputControl';
+import { uploadFileViaServerProxy } from '../lib/googleDriveService';
+
 
 interface OpinionFormSectionProps {
   opinions: PublicOpinion[];
@@ -20,6 +21,8 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [email, setEmail] = useState('');
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [imageLink, setImageLink] = useState('');
+  const [referenceLink, setReferenceLink] = useState('');
 
   // Lookup Tool State
   const [lookupCode, setLookupCode] = useState('');
@@ -27,6 +30,42 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [lookupAttempted, setLookupAttempted] = useState(false);
   const [ratedStar, setRatedStar] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const TARGET_FOLDER_ID = '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B';
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Security & Regulation: File size limit (10MB)
+    const MAX_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setUploadError('Tệp tin quá lớn. Vui lòng tải ảnh minh chứng dưới 10MB.');
+      return;
+    }
+
+    // Security: Only images as requested for "upload hình"
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Chỉ hỗ trợ tải lên tệp hình ảnh (jpg, png, webp).');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const result = await uploadFileViaServerProxy(file, TARGET_FOLDER_ID);
+      // We use the webViewLink so it can be viewed in the admin dashboard
+      setImageLink(result.webViewLink);
+    } catch (err: any) {
+      console.error('[OpinionForm] Upload error:', err);
+      setUploadError('Hệ thống quá tải hoặc lỗi kết nối Drive. Vui lòng dán trực tiếp link ảnh hoặc gửi lại sau.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const topics: OpinionTopic[] = [
     'Vấn đề dân sinh',
@@ -93,7 +132,9 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
       isAnonymous: false,
       status: 'NEW',
       priority: 'NORMAL',
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      imageLink: imageLink.trim() || undefined,
+      referenceLink: referenceLink.trim() || undefined
     };
 
     onSubmitOpinion(newOpinion);
@@ -104,6 +145,8 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
     setPhone('');
     setAddress('');
     setEmail('');
+    setImageLink('');
+    setReferenceLink('');
     setIsSubmitting(false);
   };
 
@@ -206,8 +249,6 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                         Tiến trình điền phản ánh: Bước {currentStep}/3
                       </h4>
                       <p className="text-[11px] text-slate-500 font-medium">
-                        {currentStep === 1 && 'Còn 2 bước nữa để hoàn tất!'}
-                        {currentStep === 2 && 'Còn 1 bước nữa (Thông tin người gửi & Xác nhận)'}
                         {currentStep === 3 && 'Bước cuối cùng - Kiểm tra & Gửi phản ánh chính thức!'}
                       </p>
                     </div>
@@ -338,7 +379,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
               {currentStep === 2 && (
                 <div className="space-y-4 animate-in fade-in duration-200">
                   <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-xs text-blue-900 font-medium">
-                    ✍️ <strong>Bước 2:</strong> Nhập mô tả chi tiết nội dung sự việc, thời gian, địa điểm hoặc bấm nút <i>"Nói ý kiến"</i> để thu âm bằng giọng nói.
+                    ✍️ <strong>Bước 2:</strong> Nhập mô tả chi tiết nội dung sự việc, thời gian, địa điểm và có thể đính kèm hình ảnh hoặc liên kết minh chứng.
                   </div>
 
                   <div>
@@ -347,24 +388,114 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                     </label>
                     <textarea
                       rows={5}
-                      placeholder="Mô tả chi tiết địa điểm, thời gian, sự việc... Hoặc bấm nút 'Nói ý kiến' bên dưới để đọc trực tiếp"
+                      placeholder="Mô tả chi tiết địa điểm, thời gian, sự việc phản ánh..."
                       value={content}
                       onChange={(e) => {
                         setContent(e.target.value);
                         if (formError) setFormError(null);
                       }}
-                      className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden leading-relaxed font-medium"
+                      className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden leading-relaxed font-medium mb-4"
                     />
-                    
-                    {/* Voice Input Module for Citizen Opinions */}
-                    <VoiceInputControl
-                      value={content}
-                      onChange={(val) => {
-                        setContent(val);
-                        if (formError) setFormError(null);
-                      }}
-                      maxLength={2000}
-                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Image Upload / Link Section */}
+                      <div className="space-y-3">
+                        <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-tight flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                          <span>Hình ảnh minh chứng (Tải lên hoặc Gán link)</span>
+                        </label>
+                        
+                        <div className="space-y-2">
+                          {/* File Upload to Google Drive */}
+                          <div className="relative group">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileUpload}
+                              disabled={isUploading}
+                              className="absolute inset-0 opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                            />
+                            <div className={`w-full py-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${
+                              isUploading 
+                                ? 'bg-slate-100 border-slate-300' 
+                                : 'bg-slate-50 border-slate-200 group-hover:border-blue-400 group-hover:bg-blue-50'
+                            }`}>
+                              {isUploading ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin mb-1" />
+                                  <span className="text-[10px] font-bold text-blue-600">Đang tải lên Google Drive...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-5 h-5 text-blue-500 mb-1" />
+                                  <span className="text-[10px] font-bold text-slate-600">Bấm để tải ảnh lên Drive Phường</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {uploadError && (
+                            <p className="text-[10px] text-red-600 font-bold animate-pulse">
+                              ⚠️ {uploadError}
+                            </p>
+                          )}
+
+                          <div className="flex items-center gap-2">
+                            <div className="h-px bg-slate-200 flex-1" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase">Hoặc dán URL</span>
+                            <div className="h-px bg-slate-200 flex-1" />
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Dán link ảnh (https://...)"
+                            value={imageLink.includes('drive.google.com') ? 'Đã lưu trên Drive ✓' : imageLink}
+                            onChange={(e) => setImageLink(e.target.value)}
+                            className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
+                          />
+                        </div>
+
+                        {imageLink && (
+                          <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-blue-200 shadow-xs bg-slate-100">
+                            {imageLink.includes('drive.google.com') ? (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-[10px] text-blue-600 font-bold p-1 text-center">
+                                <CheckCircle2 className="w-6 h-6 mb-1" />
+                                <span>Drive File</span>
+                              </div>
+                            ) : (
+                              <img src={imageLink} alt="Preview" className="w-full h-full object-cover" />
+                            )}
+                            <button 
+                              type="button"
+                              onClick={() => setImageLink('')}
+                              className="absolute top-0 right-0 p-0.5 bg-rose-600 text-white rounded-bl-lg shadow-sm"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Reference Link Section */}
+                      <div className="space-y-3">
+                        <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-tight flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Link bài viết / Video liên quan</span>
+                        </label>
+                        <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl space-y-2">
+                          <input
+                            type="text"
+                            placeholder="Dán link Facebook, Zalo, YouTube... (nếu có)"
+                            value={referenceLink}
+                            onChange={(e) => setReferenceLink(e.target.value)}
+                            className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium shadow-2xs"
+                          />
+                          <p className="text-[10px] text-slate-500 italic leading-relaxed">
+                            Liên kết tới các bài đăng phản ánh trên mạng xã hội giúp Mặt trận dễ dàng nắm bắt bối cảnh sự việc nhanh hơn.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="pt-2 flex items-center justify-between">

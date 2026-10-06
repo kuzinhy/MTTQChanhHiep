@@ -14,6 +14,7 @@ export interface StandingCommitteeMember {
   secondaryPosition?: string;
   avatarUrl?: string;
   isMainLeader?: boolean;
+  phone?: string;
 }
 
 export interface AboutPageData {
@@ -62,51 +63,53 @@ export const DEFAULT_ABOUT_DATA: AboutPageData = {
     {
       id: 'member-1',
       stt: 1,
-      unit: 'Ủy ban MTTQ VN phường',
+      unit: 'Thường trực MTTQ Phường',
       name: 'Nguyễn Công Lý',
-      position: 'Chủ tịch UB MTTQ VN phường',
+      position: 'UV. BTV Đảng ủy, Trưởng ban Xây dựng Đảng, chủ tịch MTTQ Việt Nam phường',
+      phone: '0948183193',
       avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/656671184_1329639585864840_6808310529982809241_n.jpg',
       isMainLeader: true
     },
     {
       id: 'member-2',
       stt: 2,
-      unit: 'Ủy ban MTTQ VN phường',
-      name: 'Trần Văn Phong',
-      position: 'Phó Chủ tịch UB MTTQ VN phường',
-      secondaryPosition: 'Chủ tịch Hội CCB phường',
-      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/Thiet-ke-chua-co-ten-4.png'
+      unit: 'Thường trực MTTQ Phường',
+      name: 'Nguyễn Thị Trúc Chi',
+      position: 'UVBCH Đảng ủy, PCT MTTQ Việt Nam phường, Chủ tịch Công đoàn phường',
+      phone: '0907.845',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/1756517483138_183541955972247973_5059442926877888287_b65946a2e662f6b0f24f3db7157aae0b40b2e854dc5dde7a.jpg'
     },
     {
       id: 'member-3',
       stt: 3,
-      unit: 'Ủy ban MTTQ VN phường',
-      name: 'Nguyễn Thị Trúc Chi',
-      position: 'Phó Chủ tịch UB MTTQ VN phường',
-      secondaryPosition: 'Chủ tịch công đoàn phường',
-      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/1756517483138_183541955972247973_5059442926877888287_b65946a2e662f6b0f24f3db7157aae0b40b2e854dc5dde7a.jpg'
+      unit: 'Thường trực MTTQ Phường',
+      name: 'Phạm Thị Hồng Quế',
+      position: 'UVBCH Đảng ủy, PCT MTTQ Việt Nam phường, Chủ tịch Hội Liên hiệp phụ nữ phường',
+      phone: '0397355226',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/1759245766573_183541955972247973_6357347805632093712_1fdacd72fbda014a852213fac3db646cd8965914de8f9168.jpg'
     },
     {
       id: 'member-4',
       stt: 4,
-      unit: 'Ủy ban MTTQ VN phường',
-      name: 'Phạm Thị Hồng Quế',
-      position: 'Phó Chủ tịch UBMTTQ VN phường',
-      secondaryPosition: 'Chủ tịch Hội LHPN phường',
-      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/1759245766573_183541955972247973_6357347805632093712_1fdacd72fbda014a852213fac3db646cd8965914de8f9168.jpg'
+      unit: 'Thường trực MTTQ Phường',
+      name: 'Trần Văn Phong',
+      position: 'PCT MTTQ Việt Nam phường, Chủ tịch Hội Cựu Chiến binh phường',
+      phone: '0983690337',
+      avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/Thiet-ke-chua-co-ten-4.png'
     },
     {
       id: 'member-5',
       stt: 5,
-      unit: 'Ủy ban MTTQ VN phường',
+      unit: 'Thường trực MTTQ Phường',
       name: 'Bùi Văn Huy',
-      position: 'Bí thư Đoàn Thanh niên phường',
+      position: 'Bí thư Đoàn phường',
+      phone: '0909.127.586',
       avatarUrl: 'https://sv2.anhsieuviet.com/2026/09/05/z6603328537006_3f47e44b82f6fd1bef15706923268e61.jpg'
     }
   ]
 };
 
-const KEY_ABOUT_DATA = 'mttq_chanhhiep_about_data_v1';
+const KEY_ABOUT_DATA = 'mttq_chanhhiep_about_data_v2';
 
 export function loadStoredAboutData(): AboutPageData {
   if (typeof window === 'undefined') return DEFAULT_ABOUT_DATA;

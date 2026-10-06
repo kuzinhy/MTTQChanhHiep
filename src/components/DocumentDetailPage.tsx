@@ -35,7 +35,8 @@ import {
   Info,
   BookOpen,
   PanelRightClose,
-  PanelRightOpen
+  PanelRightOpen,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -60,6 +61,29 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
   const [isExpandedView, setIsExpandedView] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [isPdfOverlayOpen, setIsPdfOverlayOpen] = useState(false);
+
+  // Keyboard shortcut listener (ESC to close PDF overlay)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isPdfOverlayOpen) {
+        setIsPdfOverlayOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPdfOverlayOpen]);
+
+  // Lock body scroll when PDF overlay is open
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isPdfOverlayOpen) {
+      const originalOverflow = window.document.body.style.overflow;
+      window.document.body.style.overflow = 'hidden';
+      return () => {
+        window.document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isPdfOverlayOpen]);
 
   useEffect(() => {
     if (document?.id) {
@@ -213,6 +237,17 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
             </button>
           )}
 
+          {/* PDF Preview Overlay Button */}
+          <button
+            type="button"
+            onClick={() => setIsPdfOverlayOpen(true)}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-600 hover:from-blue-800 hover:to-sky-700 text-white font-black text-xs rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 group"
+            title="Xem trước toàn văn văn bản PDF trực tuyến không cần tải về"
+          >
+            <Eye className="w-3.5 h-3.5 text-amber-300 group-hover:scale-110 transition-transform" />
+            <span>Xem trước PDF</span>
+          </button>
+
           {/* Primary Download Button */}
           <button
             type="button"
@@ -363,9 +398,18 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
               </button>
             </div>
 
-            {/* Quick Status Pill */}
-            <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-500 pr-2">
-              <span className="flex items-center gap-1 text-emerald-700">
+            {/* Quick Status Pill & Open Overlay Button */}
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 pr-1">
+              <button
+                type="button"
+                onClick={() => setIsPdfOverlayOpen(true)}
+                className="px-2.5 py-1 text-[11px] font-black bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 transition-colors flex items-center gap-1 cursor-pointer"
+                title="Mở toàn màn hình xem trước PDF overlay"
+              >
+                <Maximize2 className="w-3 h-3 text-indigo-600" />
+                <span>Xem dạng Overlay</span>
+              </button>
+              <span className="hidden md:flex items-center gap-1 text-emerald-700">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Chữ ký số hợp lệ</span>
               </span>
@@ -524,27 +568,45 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
                 <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold">PDF</span>
               </h3>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2.5">
-                <div className="p-2 bg-red-100 text-red-700 rounded-lg font-black text-xs shrink-0">
+              <div 
+                onClick={() => setIsPdfOverlayOpen(true)}
+                className="p-3 bg-slate-50 hover:bg-blue-50/80 rounded-xl border border-slate-200 hover:border-blue-300 flex items-center gap-2.5 cursor-pointer transition-all group"
+                title="Nhấp để xem trước nội dung văn bản trực tuyến"
+              >
+                <div className="p-2 bg-red-100 group-hover:bg-red-200 text-red-700 rounded-lg font-black text-xs shrink-0 transition-colors">
                   PDF
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-xs text-slate-900 truncate">
+                  <p className="font-bold text-xs text-slate-900 group-hover:text-blue-700 truncate transition-colors">
                     {document.fileName || `${document.codeNumber.replace(/[\/\\]/g, '_')}.pdf`}
                   </p>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">
-                    {document.fileSize || (driveFileId ? 'Lưu trữ Google Drive' : 'Văn bản điện tử')}
-                  </span>
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                    <span>{document.fileSize || (driveFileId ? 'Lưu trữ Google Drive' : 'Văn bản điện tử')}</span>
+                    <span>•</span>
+                    <span className="text-blue-600 font-bold flex items-center gap-0.5">
+                      <Eye className="w-3 h-3" /> Xem trước
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2 pt-1">
+                {/* Primary PDF Preview Overlay Action */}
+                <button
+                  type="button"
+                  onClick={() => setIsPdfOverlayOpen(true)}
+                  className="w-full py-2.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-600 hover:from-blue-800 hover:to-sky-700 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 group"
+                >
+                  <Eye className="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform" />
+                  <span>Xem trước trực tuyến (PDF Preview)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="w-full py-2 bg-blue-700 hover:bg-blue-800 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl border border-slate-300 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5 text-white" />
+                  <Download className="w-3.5 h-3.5 text-blue-700" />
                   <span>Tải bản lưu đầy đủ (.pdf)</span>
                 </button>
 
@@ -552,7 +614,7 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
                   <button
                     type="button"
                     onClick={handleOpenGoogleDrive}
-                    className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-300"
+                    className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
                   >
                     <ExternalLink className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Mở trong Google Drive</span>
@@ -602,6 +664,138 @@ export const DocumentDetailPage: React.FC<DocumentDetailPageProps> = ({
         )}
 
       </div>
+
+      {/* 4. PDF PREVIEW OVERLAY MODAL */}
+      <AnimatePresence>
+        {isPdfOverlayOpen && (
+          <motion.div
+            key="pdf-preview-overlay-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[999] bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsPdfOverlayOpen(false);
+            }}
+          >
+            {/* Modal Dialog Window */}
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 16 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
+              className="relative w-full max-w-7xl h-[95vh] sm:h-[92vh] bg-slate-900 text-white rounded-3xl border border-slate-700/80 shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Overlay Top Bar */}
+              <div className="bg-slate-900/98 border-b border-slate-800 px-4 py-3 sm:px-6 sm:py-3.5 flex items-center justify-between gap-3 shrink-0">
+                {/* Left: Document Info */}
+                <div className="flex items-center gap-3 min-w-0 pr-2">
+                  <div className="p-2 bg-gradient-to-br from-red-500/20 to-rose-600/20 text-rose-400 border border-rose-500/30 rounded-xl shrink-0">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="bg-blue-600 text-white font-black text-[10px] px-2 py-0.5 rounded-md">
+                        {document.docType}
+                      </span>
+                      <span className="text-amber-400 font-extrabold text-xs sm:text-sm">
+                        Số: {document.codeNumber}
+                      </span>
+                      <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded-md">
+                        <CheckCircle className="w-3 h-3 text-emerald-400" />
+                        <span>Xem trước trực tuyến (Không tải file)</span>
+                      </span>
+                    </div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-100 truncate mt-0.5 max-w-md lg:max-w-2xl" title={document.title}>
+                      {document.title}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Right: Actions and Close */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Print */}
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition cursor-pointer"
+                    title="In văn bản"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>In</span>
+                  </button>
+
+                  {/* Open in Google Drive if available */}
+                  {rawDocumentUrl && (
+                    <button
+                      type="button"
+                      onClick={handleOpenGoogleDrive}
+                      className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:text-white bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-800/80 rounded-xl transition cursor-pointer"
+                      title="Mở toàn văn trên Google Drive"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Drive</span>
+                    </button>
+                  )}
+
+                  {/* Download */}
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    className="px-3.5 py-1.5 text-xs font-black text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    title="Tải tệp PDF về máy"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Tải PDF</span>
+                  </button>
+
+                  {/* Close Overlay Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsPdfOverlayOpen(false)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-300 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer border border-slate-700 hover:border-rose-500 ml-1"
+                    title="Đóng trình xem trước (phím ESC)"
+                  >
+                    <X className="w-4 h-4" />
+                    <span className="hidden md:inline text-[11px] font-mono text-slate-400">ESC</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Main PDF Viewer Body */}
+              <div className="flex-1 min-h-0 bg-slate-950 relative overflow-hidden">
+                <SecurePdfViewer
+                  fileUrl={document.fileUrl}
+                  driveUrl={document.driveUrl}
+                  title={document.title}
+                  height="100%"
+                  className="h-full w-full rounded-none border-none shadow-none"
+                  onClose={() => setIsPdfOverlayOpen(false)}
+                />
+              </div>
+
+              {/* Overlay Bottom Status Bar */}
+              <div className="bg-slate-900/98 border-t border-slate-800 px-4 py-2.5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-400 shrink-0">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span>Cơ quan: <strong className="text-slate-200">{document.issuer}</strong></span>
+                  <span>•</span>
+                  <span>Người ký: <strong className="text-slate-200">{document.signer}</strong></span>
+                  <span>•</span>
+                  <span>Ban hành: <strong className="text-slate-200">{document.issueDate}</strong></span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Xem trước an toàn không tải về</span>
+                  </span>
+                  <span className="hidden md:inline">• Nhấn ESC hoặc nhấp bên ngoài để thoát</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
