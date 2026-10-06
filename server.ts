@@ -1832,6 +1832,80 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
     }
   });
 
+  // 5b. POST /api/drive/test-connection - Test and diagnose connection to Google Apps Script / Drive endpoint
+  app.post('/api/drive/test-connection', async (req: Request, res: Response) => {
+    try {
+      const { appsScriptUrl, folderId } = req.body;
+      const targetUrl = (appsScriptUrl && typeof appsScriptUrl === 'string' && appsScriptUrl.trim()) 
+        ? appsScriptUrl.trim() 
+        : 'https://script.google.com/macros/s/AKfycbzT4Koz5OxPvUzm8u7SgnzecBk_6aVXHial-8iRSsPX1datRJhpLSvTS1KSNKco_7SM4w/exec';
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for ping test
+
+      const testUrl = targetUrl.includes('?') 
+        ? `${targetUrl}&folderId=${encodeURIComponent(folderId || '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B')}` 
+        : `${targetUrl}?folderId=${encodeURIComponent(folderId || '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B')}`;
+
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json, text/plain, */*' },
+        redirect: 'follow',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      const status = response.status;
+      const text = await response.text();
+
+      if (status === 200) {
+        try {
+          const json = JSON.parse(text);
+          return res.json({
+            success: true,
+            status,
+            message: 'Kết nối Google Apps Script thành công 100%!',
+            data: json
+          });
+        } catch {
+          if (text.includes('Access denied') || text.includes('accounts.google.com') || text.includes('Service Login')) {
+            return res.json({
+              success: false,
+              status: 403,
+              message: 'Apps Script chưa mở quyền truy cập công khai. Khi triển khai (Deploy), vui lòng chọn "Ai có quyền truy cập: Bất kỳ ai" (Who has access: Anyone).'
+            });
+          }
+          return res.json({
+            success: true,
+            status,
+            message: 'Kết nối máy chủ Apps Script phản hồi thành công.',
+            raw: text.substring(0, 200)
+          });
+        }
+      } else if (status === 403) {
+        return res.json({
+          success: false,
+          status: 403,
+          message: 'Lỗi 403 (Access Denied): Apps Script chưa được cấp quyền công khai ("Bất kỳ ai / Anyone"). Vui lòng kiểm tra lại phần Quản lý bản triển khai.'
+        });
+      } else {
+        return res.json({
+          success: false,
+          status,
+          message: `Apps Script trả về mã phản hồi ${status}: ${text.substring(0, 150)}`
+        });
+      }
+    } catch (err: any) {
+      console.error('[TestConnection] Error:', err);
+      res.status(500).json({
+        success: false,
+        message: err.name === 'AbortError' 
+          ? 'Hết thời gian chờ kết nối (Timeout > 15s). Vui lòng kiểm tra lại đường dẫn Apps Script.' 
+          : (err.message || 'Lỗi kiểm tra kết nối Google Drive.')
+      });
+    }
+  });
+
   // 6. GET & OPTIONS /api/drive/pdf-proxy - Secure Streaming Proxy for Google Drive PDFs & Docs with Service Account Authentication
   app.options('/api/drive/pdf-proxy', (_req: Request, res: Response) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

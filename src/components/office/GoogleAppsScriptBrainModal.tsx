@@ -42,22 +42,22 @@ export const GoogleAppsScriptBrainModal: React.FC<GoogleAppsScriptBrainModalProp
   // Customized, production-ready Google Apps Script template for folder 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G
   const scriptCode = `/**
  * =========================================================================
- * BỘ NÃO AI TRỢ LÝ PHƯỜNG CHÁNH HIỆP - GOOGLE APPS SCRIPT WEBAPP
- * Thư mục kết nối: ${folderId}
- * Tự động quét file, OCR văn bản, tải tệp & đồng bộ Webhook với Bộ não AI
+ * BỘ NÃO AI & HỆ THỐNG TẢI LÊN GOOGLE DRIVE - MTTQ PHƯỜNG CHÁNH HIỆP
+ * Thư mục tiếp nhận: \${folderId}
+ * Tự động tiếp nhận ảnh dân sinh, quét file, cấp quyền xem công khai & đồng bộ
  * =========================================================================
  */
 
-const TARGET_FOLDER_ID = "${folderId}";
-const AI_WEBHOOK_URL = "${currentAppDomain}/api/drive/webhook";
+const TARGET_FOLDER_ID = "\${folderId}";
+const AI_WEBHOOK_URL = "\${currentAppDomain}/api/drive/webhook";
 
 /**
- * 1. Hàm doGet - Cho phép AI Assistant truy vấn danh sách tệp trực tiếp 24/7
+ * 1. Hàm doGet - Cho phép kiểm tra trạng thái hoặc truy vấn danh sách tệp
  */
 function doGet(e) {
   try {
-    var folderId = (e && e.parameter && e.parameter.folderId) ? e.parameter.folderId : TARGET_FOLDER_ID;
-    var folder = DriveApp.getFolderById(folderId);
+    var fId = (e && e.parameter && e.parameter.folderId) ? e.parameter.folderId : TARGET_FOLDER_ID;
+    var folder = DriveApp.getFolderById(fId);
     var files = folder.getFiles();
     var fileList = [];
 
@@ -77,7 +77,7 @@ function doGet(e) {
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
-      folderId: folderId,
+      folderId: fId,
       folderName: folder.getName(),
       totalFiles: fileList.length,
       timestamp: new Date().toISOString(),
@@ -93,34 +93,67 @@ function doGet(e) {
 }
 
 /**
- * 2. Hàm doPost - Xử lý Tải tệp mới & Kích hoạt Đồng bộ Live với AI
+ * 2. Hàm doPost - Tiếp nhận tải ảnh/tệp Base64 từ hệ thống vào Google Drive
  */
 function doPost(e) {
   try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Không nhận được nội dung tải lên (Thiếu postData.contents)."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     var data = JSON.parse(e.postData.contents);
-    var folderId = data.folderId || TARGET_FOLDER_ID;
-    var folder = DriveApp.getFolderById(folderId);
+    var fId = data.folderId || TARGET_FOLDER_ID;
+    var folder;
+    try {
+      folder = DriveApp.getFolderById(fId);
+    } catch (fErr) {
+      folder = DriveApp.getFolderById(TARGET_FOLDER_ID);
+    }
 
     if (data.action === "scan_now") {
-      return ContentService.createTextOutput(JSON.stringify(syncBrainDriveFolder(folderId)))
+      return ContentService.createTextOutput(JSON.stringify(syncBrainDriveFolder(fId)))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Upload tệp Base64 từ hệ thống vào Google Drive
+    var base64Data = data.base64 || data.fileData || "";
+    if (!base64Data) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Dữ liệu Base64 rỗng."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Tạo tệp từ Base64
     var blob = Utilities.newBlob(
-      Utilities.base64Decode(data.base64),
-      data.mimeType || "application/octet-stream",
-      data.fileName || "Tai_lieu_Phuong_Chanh_Hiep.pdf"
+      Utilities.base64Decode(base64Data),
+      data.mimeType || "image/jpeg",
+      data.fileName || ("anh_minh_chung_" + Utilities.formatDate(new Date(), "GMT+7", "yyyyMMdd_HHmmss") + ".jpg")
     );
 
     var createdFile = folder.createFile(blob);
 
+    // Cấp quyền: Bất kỳ ai có liên kết đều xem được (Để Cán bộ xem được ảnh)
+    try {
+      createdFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (permErr) {
+      console.warn("Lưu ý về quyền chia sẻ: " + permErr.toString());
+    }
+
+    var fileId = createdFile.getId();
+    var fileUrl = createdFile.getUrl();
+
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
-      fileId: createdFile.getId(),
+      fileId: fileId,
       fileName: createdFile.getName(),
-      fileUrl: createdFile.getUrl(),
-      message: "Đã lưu tệp vào Thư mục Bộ não Google Drive Phường Chánh Hiệp!"
+      fileUrl: fileUrl,
+      webViewLink: fileUrl,
+      directImageUrl: "https://lh3.googleusercontent.com/d/" + fileId + "=w2000",
+      downloadUrl: "https://drive.google.com/uc?export=download&id=" + fileId,
+      message: "Đã lưu ảnh thành công vào Google Drive Phường Chánh Hiệp!"
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {

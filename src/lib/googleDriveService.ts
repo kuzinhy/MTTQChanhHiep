@@ -110,6 +110,7 @@ export function saveAppsScriptUrl(url: string): void {
  */
 export async function uploadFileViaAppsScript(
   file: File,
+  folderId: string = '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B',
   scriptUrlOverride?: string
 ): Promise<DriveUploadResult> {
   const scriptUrl = scriptUrlOverride || getAppsScriptUrl();
@@ -136,7 +137,7 @@ export async function uploadFileViaAppsScript(
     fileName: file.name,
     mimeType: file.type || 'application/octet-stream',
     base64: base64Data,
-    folderId: DEFAULT_DRIVE_FOLDER_ID,
+    folderId: folderId || '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B',
   };
 
   const response = await fetch(scriptUrl, {
@@ -156,11 +157,12 @@ export async function uploadFileViaAppsScript(
     throw new Error(result.message || 'Apps Script báo lỗi khi tạo tệp trên Drive.');
   }
 
+  const fileId = result.fileId || result.id || '';
   return {
-    id: result.fileId || '',
+    id: fileId,
     name: result.fileName || file.name,
-    webViewLink: result.fileUrl || `https://drive.google.com/file/d/${result.fileId}/view`,
-    webContentLink: result.downloadUrl,
+    webViewLink: result.webViewLink || result.fileUrl || `https://drive.google.com/file/d/${fileId}/view`,
+    webContentLink: result.downloadUrl || result.webContentLink,
   };
 }
 

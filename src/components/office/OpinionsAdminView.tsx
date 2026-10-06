@@ -4,11 +4,13 @@ import {
   MessageSquare, Sparkles, Search, CheckCircle2, Send, Clock, 
   UserCheck, ShieldAlert, FileText, AlertCircle, Download, Trash2, 
   AlertTriangle, Phone, MapPin, Eye, Filter, User, Tag, Calendar,
-  ArrowRight, ShieldCheck, Check, X, BarChart3, ClipboardList, ExternalLink
+  ArrowRight, ShieldCheck, Check, X, BarChart3, ClipboardList, ExternalLink,
+  HardDrive, Cloud, Settings2, UploadCloud
 } from 'lucide-react';
 import { exportPublicOpinionsToCsv } from '../../lib/exportUtils';
 import { ContactService } from '../../lib/ai/contactService';
-import { getGoogleDriveDirectImageUrl, handleImageError, getGoogleDriveViewUrl } from '../../lib/googleDriveService';
+import { getGoogleDriveDirectImageUrl, handleImageError, getGoogleDriveViewUrl, getAppsScriptUrl } from '../../lib/googleDriveService';
+import { GoogleDriveOpinionConnectionModal } from './GoogleDriveOpinionConnectionModal';
 
 interface OpinionsAdminViewProps {
   opinions: PublicOpinion[];
@@ -33,6 +35,7 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   const [isSavedToast, setIsSavedToast] = useState(false);
   const [activeViewTab, setActiveViewTab] = useState<'LIST' | 'ANALYTICS'>('LIST');
   const [analyticsDimension, setAnalyticsDimension] = useState<'TOPIC' | 'NEIGHBORHOOD'>('TOPIC');
+  const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
 
   // Group opinions by topic
   const topicData = useMemo(() => {
@@ -309,8 +312,20 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
 
         <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
+            onClick={() => setIsDriveModalOpen(true)}
+            className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition border border-emerald-500/30 cursor-pointer"
+            title="Kích hoạt & Cấu hình kết nối Google Drive tiếp nhận ảnh phản ánh 21 khu phố"
+          >
+            <HardDrive className="w-4 h-4 text-emerald-200" />
+            <span>Kích hoạt kết nối Google Drive</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => exportPublicOpinionsToCsv(filteredOpinions)}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition border border-slate-200"
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition border border-slate-200 cursor-pointer"
             title="Xuất file Excel/CSV"
           >
             <Download className="w-4 h-4 text-emerald-600" />
@@ -318,12 +333,48 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={onOpenAiSummary}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition"
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
             <span>AI Tổng Hợp Dư Luận</span>
           </button>
+        </div>
+      </div>
+
+      {/* Quick Google Drive Storage Info & Quick Activation Bar */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white p-3 px-4 rounded-2xl border border-blue-800/40 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg border border-blue-400/20">
+            <UploadCloud className="w-4 h-4 text-amber-300" />
+          </div>
+          <div className="text-xs">
+            <span className="font-bold text-slate-200">Lưu trữ ảnh Dân nguyện: </span>
+            <span className="text-blue-300 font-bold">Thư mục Drive 21 Khu phố</span>
+            <span className="mx-2 text-slate-600">|</span>
+            <span className="text-slate-300">ID: <code className="text-amber-300 font-mono text-[11px]">1esbw7TuyePZEFmNe7oimUav-AIyeVv4B</code></span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsDriveModalOpen(true)}
+            className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg border border-white/20 transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <Settings2 className="w-3.5 h-3.5 text-amber-300" />
+            <span>Cài đặt & Kiểm tra Drive</span>
+          </button>
+          <a
+            href="https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B?hl=vi"
+            target="_blank"
+            rel="noreferrer"
+            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1.5"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Mở thư mục Drive</span>
+          </a>
         </div>
       </div>
 
@@ -1110,6 +1161,15 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Google Drive Connection & Activation Modal */}
+      <GoogleDriveOpinionConnectionModal
+        isOpen={isDriveModalOpen}
+        onClose={() => setIsDriveModalOpen(false)}
+        folderId="1esbw7TuyePZEFmNe7oimUav-AIyeVv4B"
+        folderUrl="https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B?hl=vi"
+        onSuccessToast={showToast}
+      />
     </div>
   );
 };
