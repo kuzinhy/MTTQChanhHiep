@@ -12,9 +12,14 @@ import {
   Cpu, 
   Zap,
   HelpCircle,
-  Clock
+  Clock,
+  Loader2,
+  RefreshCw,
+  AlertCircle,
+  HardDrive
 } from 'lucide-react';
 import { getAppsScriptUrl, saveAppsScriptUrl } from '../../lib/googleDriveService';
+import { getApiUrl } from '../../lib/api';
 
 interface GoogleAppsScriptBrainModalProps {
   isOpen: boolean;
@@ -27,13 +32,22 @@ interface GoogleAppsScriptBrainModalProps {
 export const GoogleAppsScriptBrainModal: React.FC<GoogleAppsScriptBrainModalProps> = ({
   isOpen,
   onClose,
-  folderId = '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G',
-  folderUrl = 'https://drive.google.com/drive/folders/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G?hl=vi',
+  folderId: initialFolderId = '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G',
+  folderUrl: initialFolderUrl = 'https://drive.google.com/drive/folders/1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G?hl=vi',
   onSuccessToast
 }) => {
+  const [selectedFolderId, setSelectedFolderId] = useState<string>(initialFolderId);
   const [copied, setCopied] = useState(false);
   const [scriptUrlInput, setScriptUrlInput] = useState(() => getAppsScriptUrl());
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    status: 'idle' | 'success' | 'error';
+    message: string;
+  }>({ status: 'idle', message: '' });
+
+  const currentFolderId = selectedFolderId || initialFolderId;
+  const currentFolderUrl = `https://drive.google.com/drive/folders/${currentFolderId}?hl=vi`;
 
   if (!isOpen) return null;
 
@@ -244,6 +258,45 @@ function formatBytes(bytes) {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    setTestResult({ status: 'idle', message: '' });
+
+    try {
+      const response = await fetch(getApiUrl('/api/drive/test-connection'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appsScriptUrl: scriptUrlInput || undefined,
+          folderId: currentFolderId
+        })
+      });
+
+      const resData = await response.json();
+      if (resData.success) {
+        setTestResult({
+          status: 'success',
+          message: resData.message || 'Kết nối Google Apps Script & Thư mục Drive hoạt động hoàn hảo 100%!'
+        });
+        if (onSuccessToast) {
+          onSuccessToast('Kết nối thành công', 'Máy chủ Apps Script phản hồi 200 OK.');
+        }
+      } else {
+        setTestResult({
+          status: 'error',
+          message: resData.message || 'Không thể kết nối đến Google Apps Script.'
+        });
+      }
+    } catch (err: any) {
+      setTestResult({
+        status: 'error',
+        message: 'Lỗi kiểm tra kết nối: ' + (err.message || 'Máy chủ không phản hồi.')
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-in fade-in zoom-in-95 duration-200">
       <div className="bg-white rounded-3xl shadow-2xl border border-slate-200/90 max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]">
@@ -252,15 +305,15 @@ function formatBytes(bytes) {
         <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 p-4 text-white flex items-center justify-between border-b border-blue-800/40">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-blue-500/20 backdrop-blur-md rounded-2xl border border-blue-400/30">
-              <Cpu className="w-5 h-5 text-amber-300 animate-pulse" />
+              <HardDrive className="w-5 h-5 text-amber-300" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-amber-300">
                 <Sparkles className="w-3 h-3" />
-                <span>BỘ NÃO AI TRỢ LÝ PHƯỜNG CHÁNH HIỆP</span>
+                <span>BỘ NÃO AI &amp; KẾT NỐI GOOGLE DRIVE</span>
               </div>
               <h3 className="text-base font-black text-white leading-tight">
-                Mã Google Apps Script Tự Động Quét Drive
+                Cấu Hình Google Apps Script Tự Động Quét &amp; Tải Lên Drive
               </h3>
             </div>
           </div>
@@ -276,18 +329,47 @@ function formatBytes(bytes) {
         {/* Modal Scrollable Body */}
         <div className="p-5 space-y-4 overflow-y-auto text-slate-800 text-xs sm:text-sm">
           
+          {/* Multi-Folder Selector Chips */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <Folder className="w-4 h-4 text-blue-600" />
+              <span>Chọn Thư Mục Google Drive kết nối:</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {[
+                { id: '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G', label: 'Văn bản số & Bộ não AI', code: '1jz3Qltv...' },
+                { id: '1Vw365JIFDuUFT1AwF-MoJD8kKkvhiLH_', label: 'Văn bản Triển khai', code: '1Vw365JI...' },
+                { id: '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B', label: 'Ảnh Dân nguyện 21 KP', code: '1esbw7Tu...' },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setSelectedFolderId(f.id)}
+                  className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col ${
+                    currentFolderId === f.id
+                      ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20 text-blue-900'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="font-extrabold text-[11px]">{f.label}</span>
+                  <span className="text-[10px] font-mono text-slate-500 mt-0.5">{f.code}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Target Folder Info */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <Folder className="w-5 h-5 text-amber-600 shrink-0" />
               <div>
-                <span className="text-[11px] font-bold text-amber-800 block">Thư mục Drive Bộ não AI đang kết nối:</span>
-                <span className="font-mono text-xs font-black text-slate-900">{folderId}</span>
+                <span className="text-[11px] font-bold text-amber-800 block">Thư mục Drive đang cấu hình:</span>
+                <span className="font-mono text-xs font-black text-slate-900">{currentFolderId}</span>
               </div>
             </div>
 
             <a
-              href={folderUrl}
+              href={currentFolderUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 self-start sm:self-auto shadow-xs"
@@ -296,6 +378,62 @@ function formatBytes(bytes) {
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
+
+          {/* Input WebApp URL & Test Button */}
+          <form onSubmit={handleSaveAppsScriptUrl} className="p-4 bg-blue-50/80 border border-blue-200 rounded-2xl space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="font-extrabold text-blue-950 text-xs block">
+                Đường dẫn Web App Google Apps Script (URL):
+              </label>
+              <span className="text-[10.5px] text-slate-500 font-mono">kết thúc bằng /exec</span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="url"
+                value={scriptUrlInput}
+                onChange={(e) => setScriptUrlInput(e.target.value)}
+                placeholder="https://script.google.com/macros/s/.../exec"
+                className="flex-1 px-3.5 py-2.5 bg-white rounded-xl border border-blue-300 text-xs font-mono text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  {savedSuccess ? <CheckCircle2 className="w-4 h-4 text-amber-200" /> : <Save className="w-4 h-4" />}
+                  <span>{savedSuccess ? 'Đã lưu!' : 'Lưu URL'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={isTesting}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  {isTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  <span>{isTesting ? 'Đang test...' : 'Kiểm tra'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Test Result Feedback */}
+            {testResult.status !== 'idle' && (
+              <div className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                testResult.status === 'success'
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                  : 'bg-rose-50 border-rose-300 text-rose-900'
+              }`}>
+                {testResult.status === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                )}
+                <span>{testResult.message}</span>
+              </div>
+            )}
+          </form>
 
           {/* Code Viewer with 1-Click Copy */}
           <div className="space-y-1.5">
@@ -339,35 +477,10 @@ function formatBytes(bytes) {
                 Bấm <strong>Triển khai (Deploy)</strong> ➔ <strong>Xử lý triển khai mới (New Deployment)</strong> ➔ Chọn kiểu <strong>Ứng dụng web (Web App)</strong>.
               </li>
               <li>
-                Ở mục <em>Ai có quyền truy cập (Who has access)</em> ➔ Chọn <strong>Mọi người (Anyone)</strong> ➔ Bấm <strong>Triển khai</strong> và chép URL Web App thu được dán vào ô bên dưới.
+                Ở mục <em>Ai có quyền truy cập (Who has access)</em> ➔ Chọn <strong>Mọi người (Anyone)</strong> ➔ Bấm <strong>Triển khai</strong> và chép URL Web App thu được dán vào ô bên trên rồi bấm <strong>Lưu URL</strong>.
               </li>
             </ol>
           </div>
-
-          {/* Input WebApp URL */}
-          <form onSubmit={handleSaveAppsScriptUrl} className="p-4 bg-blue-50/80 border border-blue-200 rounded-2xl space-y-3">
-            <label className="font-extrabold text-blue-950 text-xs block">
-              Dán URL Web App Google Apps Script đã tạo tại đây:
-            </label>
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="url"
-                value={scriptUrlInput}
-                onChange={(e) => setScriptUrlInput(e.target.value)}
-                placeholder="https://script.google.com/macros/s/.../exec"
-                className="flex-1 px-3.5 py-2.5 bg-white rounded-xl border border-blue-300 text-xs font-mono text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shrink-0"
-              >
-                {savedSuccess ? <CheckCircle2 className="w-4 h-4 text-amber-200" /> : <Save className="w-4 h-4" />}
-                <span>{savedSuccess ? 'Đã kết nối!' : 'Lưu URL WebApp'}</span>
-              </button>
-            </div>
-          </form>
 
         </div>
 

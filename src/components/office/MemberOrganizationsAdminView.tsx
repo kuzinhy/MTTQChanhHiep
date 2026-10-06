@@ -60,6 +60,8 @@ interface MemberOrganizationsAdminViewProps {
   onSaveAreas?: (areas: Area[]) => void;
   onShowToast?: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   onNavigateTab?: (tab: string) => void;
+  initialMainTab?: 'member_orgs' | 'political_system' | 'areas';
+  initialViewMode?: 'diagram' | 'tree' | 'grid' | 'table' | 'analytics';
 }
 
 export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminViewProps> = ({
@@ -70,13 +72,15 @@ export const MemberOrganizationsAdminView: React.FC<MemberOrganizationsAdminView
   areas: propAreas,
   onSaveAreas: propOnSaveAreas,
   onShowToast,
-  onNavigateTab
+  onNavigateTab,
+  initialMainTab = 'member_orgs',
+  initialViewMode = 'table'
 }) => {
   // Active Main Tab: 'member_orgs' (Khối MTTQ & Đoàn thể) | 'political_system' (Hệ thống chính trị) | 'areas' (Địa bàn hành chính)
-  const [mainTab, setMainTab] = useState<'member_orgs' | 'political_system' | 'areas'>('member_orgs');
+  const [mainTab, setMainTab] = useState<'member_orgs' | 'political_system' | 'areas'>(initialMainTab);
 
   // View modes for Member Organizations: 'diagram' | 'tree' | 'grid' | 'table' | 'analytics'
-  const [viewMode, setViewMode] = useState<'diagram' | 'tree' | 'grid' | 'table' | 'analytics'>('table');
+  const [viewMode, setViewMode] = useState<'diagram' | 'tree' | 'grid' | 'table' | 'analytics'>(initialViewMode);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
   const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set(['mem-org-1', 'mem-org-2', 'mem-org-3', 'mem-org-4', 'org-dang-uy', 'org-mttq']));

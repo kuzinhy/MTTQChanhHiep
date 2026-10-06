@@ -33,6 +33,7 @@ import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { HoChiMinhCulturalSpaceModal } from './components/cultural/HoChiMinhCulturalSpaceModal';
 import { ProcedureControlCenterModal as ProcedureGuideModal } from './components/procedure/ProcedureControlCenterModal';
 import { NotFoundPage } from './components/NotFoundPage';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from './data/neighborhoodsList';
 
 import { DigitalOfficeSidebar } from './components/office/DigitalOfficeSidebar';
@@ -59,6 +60,7 @@ import { QuestionBankAdminView } from './components/office/QuestionBankAdminView
 import { SurveysAdminView } from './components/office/SurveysAdminView';
 import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
 import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
+import { AboutAndMemberOrgsAdminView } from './components/office/AboutAndMemberOrgsAdminView';
 import { CulturalSpaceAdminView } from './components/cultural/CulturalSpaceAdminView';
 import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
 import { NeighborhoodManagementAdminView } from './components/office/neighborhood/NeighborhoodManagementAdminView';
@@ -176,7 +178,8 @@ export const VALID_OFFICE_VIEWS = [
   'duplicate_opinions',
   'geo_broadcast',
   'volunteers_admin',
-  'system_health'
+  'system_health',
+  'google_drive_storage'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -1455,6 +1458,7 @@ export default function App() {
             />
 
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-10">
+              <AppErrorBoundary>
               {notFoundRoute ? (
                 <NotFoundPage
                   attemptedPath={notFoundRoute.attemptedPath || window.location.hash}
@@ -1611,6 +1615,7 @@ export default function App() {
                   )}
                 </>
               )}
+              </AppErrorBoundary>
             </main>
 
             <Footer 
@@ -1828,19 +1833,23 @@ export default function App() {
                     </div>
                   ) : (
                 <AnimatePresence mode="wait">
-                  <motion.div
-                    key={officeView}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.18 }}
-                  >
+                  <AppErrorBoundary>
+                    <motion.div
+                      key={officeView}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.18 }}
+                    >
                     {officeView === 'dashboard' && (
                       <AnalyticsDashboardView
                         articlesCount={(articles || []).length}
                         documentsCount={(documents || []).length}
                         opinionsCount={(opinions || []).length}
                         opinions={opinions || []}
+                        articles={articles || []}
+                        documents={documents || []}
+                        onNavigateToView={(v) => setOfficeView(v)}
                         onNavigateToOpinions={() => setOfficeView('opinions')}
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
                       />
@@ -1929,6 +1938,7 @@ export default function App() {
                         onUpdateOpinionStatus={handleUpdateOpinionStatus}
                         onDeleteOpinion={handleDeleteOpinion}
                         onOpenAiSummary={() => setOfficeView('ai_assistant')}
+                        onNavigateToDriveHub={() => setOfficeView('google_drive_storage')}
                       />
                     )}
 
@@ -2184,7 +2194,8 @@ export default function App() {
                     )}
 
                     {officeView === 'member_orgs_admin' && (
-                      <MemberOrganizationsAdminView
+                      <AboutAndMemberOrgsAdminView
+                        initialSubTab="MEMBER_ORGS"
                         organizations={memberOrganizations}
                         politicalOrganizations={politicalOrganizations}
                         areas={areas}
@@ -2430,6 +2441,7 @@ export default function App() {
                       </div>
                     )}
                   </motion.div>
+                  </AppErrorBoundary>
                 </AnimatePresence>
               )}
             </main>

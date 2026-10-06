@@ -127,8 +127,12 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         accentColor: 'blue',
         items: [
           { id: 'dashboard', label: 'Trang Tổng quan', icon: LayoutDashboard },
-          { id: 'ai_settings', label: 'Cài đặt trợ lý', icon: Bot, badge: 'CÀI ĐẶT' },
-          { id: 'youth_union_admin', label: 'Quản trị Đoàn', icon: Users, badge: 'ADMIN' },
+          { id: 'google_drive_storage', label: 'Trung tâm Kết nối Google Drive & AI', icon: HardDrive, badge: 'DRIVE HUB' },
+          { id: 'ai_brain', label: 'Kho Tri thức & Sổ tay AI', icon: Brain, badge: 'TRI THỨC' },
+          { id: 'ai_data', label: 'Trung tâm Dữ liệu AI & OCR', icon: Database, badge: 'DỮ LIỆU' },
+          { id: 'ai_monitor', label: 'Giám sát & Lịch sử AI', icon: Activity, badge: 'GIÁM SÁT' },
+          { id: 'ai_unanswered', label: 'Câu hỏi chưa trả lời', icon: HelpCircle, badge: 'CẦN NẠP' },
+          { id: 'ai_settings', label: 'Cài đặt Trợ lý AI', icon: Bot, badge: 'CÀI ĐẶT' },
           { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
         ]
       },
@@ -146,9 +150,9 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       },
       {
         id: 'group_cms',
-        title: 'NGHIỆP VỤ & CỔNG TT',
-        icon: Layers,
-        badgeText: 'MTTQ',
+        title: 'CỔNG TT & TRUYỀN THÔNG',
+        icon: Newspaper,
+        badgeText: 'TRUYỀN THÔNG',
         accentColor: 'blue',
         items: [
           { id: 'cms', label: 'Tin tức & Bài viết', icon: Newspaper, badge: 'TIN BÀI' },
@@ -160,18 +164,23 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
             badgeStyle: pendingApprovalsCount > 0 ? 'bg-amber-400 text-amber-950 font-black' : undefined,
             isNewHighlight: pendingApprovalsCount > 0 
           },
-          { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến', icon: Lightbulb, badge: 'MÔ HÌNH' },
-          { id: 'cms_about', label: 'Giới thiệu MTTQ', icon: Info, badge: 'GIỚI THIỆU' },
-          { id: 'cms_documents', label: 'Văn bản triển khai', icon: FileText, badge: 'VĂN BẢN' },
-          { id: 'procedures', label: 'Quy trình Thủ tục (Builder)', icon: ClipboardList, badge: 'MỘT CỬA' },
-          { id: 'bottleneck_analytics', label: 'Điểm nghẽn & Báo cáo CCHC', icon: BarChart3, badge: 'AI CCHC' },
-          { id: 'analytics_charts', label: 'Biểu đồ Lưu lượng & Tiến độ', icon: TrendingUp, badge: 'RECHARTS' },
-          { id: 'opinions', label: 'Xử lý Dân nguyện', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
-          { id: 'duplicate_opinions', label: 'Gom cụm Dân nguyện', icon: GitMerge, badge: 'CLUSTERING' },
-          { id: 'geo_broadcast', label: 'Phát Cảnh báo 21 Khu phố', icon: Radio, badge: 'PHÁT SÓNG' },
-          { id: 'surveys_admin', label: 'Khảo sát & Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
+          { id: 'cms_about', label: 'Giới thiệu & Tổ chức Thành viên', icon: Info, badge: 'HỢP NHẤT' },
+          { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến Dân vận', icon: Lightbulb, badge: 'MÔ HÌNH' },
+          { id: 'cultural_space_admin', label: 'Không gian Văn hóa HCM', icon: Building2, badge: '3D VIRTUAL' },
+        ]
+      },
+      {
+        id: 'group_operations',
+        title: 'NGHIỆP VỤ & TƯƠNG TÁC DÂN',
+        icon: Layers,
+        badgeText: 'NGHIỆP VỤ',
+        accentColor: 'blue',
+        items: [
+          { id: 'cms_documents', label: 'Quản trị Văn bản Số', icon: FileText, badge: 'VĂN BẢN' },
+          { id: 'procedures', label: 'Quy trình Thủ tục (Một cửa)', icon: ClipboardList, badge: 'MỘT CỬA' },
+          { id: 'opinions', label: 'Xử lý Dân nguyện & Dư luận', icon: MessageSquare, badge: 'DÂN NGUYỆN' },
+          { id: 'surveys_admin', label: 'Khảo sát & Thăm dò Dư luận', icon: BarChart3, badge: 'KHẢO SÁT' },
           { id: 'competitions_admin', label: 'Hội thi & Ngân hàng đề', icon: Award, badge: 'HỘI THI' },
-          { id: 'member_orgs_admin', label: 'Tổ chức Thành viên', icon: Users, badge: 'THÀNH VIÊN' },
           { 
             id: 'volunteers_admin', 
             label: 'Quản lý Tình nguyện viên', 
@@ -179,21 +188,19 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
             badge: unviewedVolunteersCount > 0 ? `+${unviewedVolunteersCount} MỚI` : 'TÌNH NGUYỆN',
             isNewHighlight: unviewedVolunteersCount > 0 
           },
-          { id: 'cultural_space_admin', label: 'Không gian Văn hóa 3D', icon: Building2, badge: '3D VIRTUAL' },
         ]
       },
       {
         id: 'group_admin',
-        title: 'QUẢN TRỊ HỆ THỐNG',
+        title: 'HỆ THỐNG & BẢO MẬT',
         icon: Settings,
         badgeText: 'HỆ THỐNG',
         accentColor: 'emerald',
         items: [
-          { id: 'google_drive_storage', label: 'Cơ chế lưu trữ Google Drive', icon: HardDrive, badge: 'DRIVE' },
-          { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
           { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
-          { id: 'analytics', label: 'Thống kê & Báo cáo', icon: PieChart, badge: 'THỐNG KÊ' },
+          { id: 'analytics', label: 'Thống kê & Báo cáo Tổng hợp', icon: PieChart, badge: 'THỐNG KÊ' },
           { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
+          { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
           { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },
         ]
       }
@@ -211,6 +218,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     group_ai: true,
     group_neighborhood: true,
     group_cms: true,
+    group_operations: true,
     group_admin: true
   });
 
@@ -254,6 +262,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       group_ai: true,
       group_neighborhood: true,
       group_cms: true,
+      group_operations: true,
       group_admin: true
     });
   };
@@ -266,6 +275,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       group_ai: false,
       group_neighborhood: false,
       group_cms: false,
+      group_operations: false,
       group_admin: false
     });
   };

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { ChanhHiepDriveFolderBar } from '../office/ChanhHiepDriveFolderBar';
 import { GoogleDriveExplorer, DriveExplorerFile } from '../office/GoogleDriveExplorer';
+import { GoogleAppsScriptBrainModal } from '../office/GoogleAppsScriptBrainModal';
 import { NewDocument, DocumentTask, DocumentAuditLog, ExtractedConfidenceMap } from '../../types';
 import { documentService } from '../../services/documentService';
 import { uploadFileViaServerProxy, extractGoogleDriveFileId, deleteFileFromGoogleDrive } from '../../lib/googleDriveService';
@@ -88,6 +89,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
   const [selectedDriveFilesToImport, setSelectedDriveFilesToImport] = useState<string[]>([]);
   const [isSavedFolderToast, setIsSavedFolderToast] = useState(false);
   const [filterImportFolder, setFilterImportFolder] = useState<string>('ALL');
+  const [isDriveBrainModalOpen, setIsDriveBrainModalOpen] = useState(false);
   
   const [selectedDocForDetail, setSelectedDocForDetail] = useState<NewDocument | null>(null);
   const [detailActiveTab, setDetailActiveTab] = useState<'meta' | 'preview' | 'content' | 'tasks' | 'audit'>('meta');
@@ -892,6 +894,17 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsDriveBrainModalOpen(true)}
+            className="px-4 py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 text-white font-bold text-xs rounded-2xl transition shadow-sm flex items-center gap-1.5 border border-emerald-500/30 cursor-pointer"
+            title="Kích hoạt & Cấu hình kết nối Google Apps Script & Bộ não AI Drive"
+          >
+            <HardDrive className="w-4 h-4 text-emerald-200" />
+            <span>Kích hoạt kết nối Drive &amp; AI</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+          </button>
+
           <button
             onClick={() => loadDocuments()}
             disabled={loading}
@@ -1855,6 +1868,15 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ onShowToast, c
           </div>
         </div>
       )}
+
+      {/* Google Apps Script & Brain AI Drive Connection Modal */}
+      <GoogleAppsScriptBrainModal
+        isOpen={isDriveBrainModalOpen}
+        onClose={() => setIsDriveBrainModalOpen(false)}
+        folderId={monitoredFolderId}
+        folderUrl={`https://drive.google.com/drive/folders/${monitoredFolderId}?hl=vi`}
+        onSuccessToast={(title, msg) => onShowToast?.('success', `${title}: ${msg}`)}
+      />
 
     </div>
   );

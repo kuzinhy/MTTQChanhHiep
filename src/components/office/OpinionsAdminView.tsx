@@ -17,13 +17,15 @@ interface OpinionsAdminViewProps {
   onUpdateOpinionStatus: (id: string, status: OpinionStatus, responseText?: string, imageLink?: string, referenceLink?: string) => void;
   onDeleteOpinion?: (id: string) => void;
   onOpenAiSummary: () => void;
+  onNavigateToDriveHub?: () => void;
 }
 
 export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
   opinions,
   onUpdateOpinionStatus,
   onDeleteOpinion,
-  onOpenAiSummary
+  onOpenAiSummary,
+  onNavigateToDriveHub
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [filterSla, setFilterSla] = useState<'ALL' | 'OVERDUE' | 'NEAR_DUE' | 'ON_TIME'>('ALL');
@@ -358,22 +360,33 @@ export const OpinionsAdminView: React.FC<OpinionsAdminViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {onNavigateToDriveHub && (
+            <button
+              type="button"
+              onClick={onNavigateToDriveHub}
+              className="px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              title="Đến Trung tâm Quản lý & Cấu hình Google Drive tập trung của hệ thống"
+            >
+              <HardDrive className="w-3.5 h-3.5 text-amber-300" />
+              <span>Trung tâm Drive &amp; AI</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setIsDriveModalOpen(true)}
             className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg border border-white/20 transition flex items-center gap-1.5 cursor-pointer"
           >
             <Settings2 className="w-3.5 h-3.5 text-amber-300" />
-            <span>Cài đặt & Kiểm tra Drive</span>
+            <span>Cấu hình nhanh</span>
           </button>
           <a
             href="https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B?hl=vi"
             target="_blank"
             rel="noreferrer"
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1.5"
+            className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition flex items-center gap-1.5"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>Mở thư mục Drive</span>
+            <span>Mở Drive</span>
           </a>
         </div>
       </div>

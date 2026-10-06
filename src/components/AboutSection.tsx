@@ -18,12 +18,16 @@ import { motion } from 'motion/react';
 import { getOfficialCadreAvatarSvg } from '../utils/officialImages';
 import { loadStoredAboutData, AboutPageData } from '../lib/aboutDataStore';
 import { OptimizedImage } from './common/OptimizedImage';
+import { MemberOrganizationsSection } from './MemberOrganizationsSection';
+import { AppStorageEngine } from '../lib/storage';
 
 export const AboutSection: React.FC<{
   onGoToTab?: (tab: string) => void;
   isAdmin?: boolean;
 }> = ({ onGoToTab, isAdmin = true }) => {
   const [aboutData, setAboutData] = useState<AboutPageData>(() => loadStoredAboutData());
+  const [activeSubTab, setActiveSubTab] = useState<'MTTQ_STANDING' | 'MEMBER_ORGS'>('MTTQ_STANDING');
+  const memberOrganizations = AppStorageEngine.getMemberOrganizations() || [];
 
   useEffect(() => {
     const handleUpdate = (e: any) => {
@@ -53,28 +57,64 @@ export const AboutSection: React.FC<{
           <p className="text-blue-100 text-xs sm:text-sm font-medium leading-relaxed">
             {aboutData.headerSubtitle}
           </p>
+
+          {/* Sub-tab Navigation */}
+          <div className="pt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('MTTQ_STANDING')}
+              className={`px-4 py-2 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                activeSubTab === 'MTTQ_STANDING'
+                  ? 'bg-amber-400 text-slate-950 shadow-md'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+            >
+              <Building className="w-3.5 h-3.5" />
+              <span>Ủy ban MTTQ &amp; Ban Thường trực</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('MEMBER_ORGS')}
+              className={`px-4 py-2 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                activeSubTab === 'MEMBER_ORGS'
+                  ? 'bg-amber-400 text-slate-950 shadow-md'
+                  : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Các Tổ chức Thành viên ({memberOrganizations.length})</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Pillars Summary */}
-      {aboutData.pillars && aboutData.pillars.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {aboutData.pillars.map((pillar, idx) => (
-            <div key={pillar.id || idx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-black">
-                {idx === 0 ? <Users className="w-6 h-6" /> : idx === 1 ? <ShieldCheck className="w-6 h-6" /> : <HeartHandshake className="w-6 h-6" />}
-              </div>
-              <h3 className="font-extrabold text-base text-slate-900">{pillar.title}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                {pillar.description}
-              </p>
+      {activeSubTab === 'MEMBER_ORGS' ? (
+        <MemberOrganizationsSection 
+          organizations={memberOrganizations} 
+          onSelectArticleTopic={() => onGoToTab && onGoToTab('news')} 
+          onNavigateTab={onGoToTab}
+        />
+      ) : (
+        <>
+          {/* Pillars Summary */}
+          {aboutData.pillars && aboutData.pillars.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {aboutData.pillars.map((pillar, idx) => (
+                <div key={pillar.id || idx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-black">
+                    {idx === 0 ? <Users className="w-6 h-6" /> : idx === 1 ? <ShieldCheck className="w-6 h-6" /> : <HeartHandshake className="w-6 h-6" />}
+                  </div>
+                  <h3 className="font-extrabold text-base text-slate-900">{pillar.title}</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    {pillar.description}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {/* Leadership & Contact Structure */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-lg space-y-6">
+          {/* Leadership & Contact Structure */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-lg space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-800 font-extrabold text-[11px] uppercase tracking-wider mb-1">
@@ -198,6 +238,8 @@ export const AboutSection: React.FC<{
           </div>
         </div>
       </div>
-    </div>
-  );
+    </>
+  )}
+</div>
+);
 };

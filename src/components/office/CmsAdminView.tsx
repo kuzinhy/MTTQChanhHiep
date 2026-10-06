@@ -19,7 +19,7 @@ import { getApiUrl } from '../../lib/api';
 import { SecurePdfViewer } from '../SecurePdfViewer';
 import { AdminAnalyticsView } from './AdminAnalyticsView';
 import { InitiativesSection } from '../InitiativesSection';
-import { AboutAdminView } from './AboutAdminView';
+import { AboutAndMemberOrgsAdminView } from './AboutAndMemberOrgsAdminView';
 import { MediaUploader } from './MediaUploader';
 import { MediaLibraryView } from './MediaLibraryView';
 import { CulturalMediaAdminSection } from '../cultural/CulturalMediaAdminSection';
@@ -2761,10 +2761,10 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 6. QUẢN TRỊ TRANG GIỚI THIỆU TAB */}
+      {/* 6. QUẢN TRỊ TRANG GIỚI THIỆU & TỔ CHỨC THÀNH VIÊN TAB */}
       {/* ========================================================================= */}
       {activeTab === 'ABOUT' && (
-        <AboutAdminView onShowToast={onShowToast} />
+        <AboutAndMemberOrgsAdminView onShowToast={onShowToast} />
       )}
 
       {/* ========================================================================= */}

@@ -179,8 +179,34 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       });
     }
 
+    // 6. Public Opinions & Tracking Codes
+    if (activeCategory === 'ALL' || activeCategory === 'WELFARE') {
+      opinions.forEach(op => {
+        const code = op.receiptCode || op.id || '';
+        const name = op.fullname || 'Người dân';
+        const area = op.neighborhood || 'Khu phố';
+        if (
+          op.content.toLowerCase().includes(q) ||
+          code.toLowerCase().includes(q) ||
+          name.toLowerCase().includes(q) ||
+          area.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: 'op-' + op.id,
+            title: `Phản ánh dân sinh: ${op.content.slice(0, 65)}...`,
+            subtitle: `Mã tra cứu: #${code} • ${name} (${area})`,
+            category: 'WELFARE',
+            categoryLabel: 'Hòm thư Dân nguyện',
+            route: '/phan-anh',
+            badge: 'Dân nguyện',
+            icon: MessageSquare
+          });
+        }
+      });
+    }
+
     return results.slice(0, 15);
-  }, [query, activeCategory, documents, articles, contacts]);
+  }, [query, activeCategory, documents, articles, opinions, contacts]);
 
   if (!isOpen) return null;
 

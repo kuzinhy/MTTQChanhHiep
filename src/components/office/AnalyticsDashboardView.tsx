@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   BarChart3, 
   CheckSquare, 
@@ -8,19 +8,31 @@ import {
   TrendingUp, 
   Award, 
   AlertTriangle,
-  Clock,
-  ShieldCheck,
-  Sparkles,
-  Printer,
-  FileCheck,
-  Building2,
-  HeartHandshake,
-  Activity,
-  Calendar,
-  Radio,
-  BarChart as BarChartIcon,
-  LineChart as LineChartIcon,
-  RefreshCw
+  Clock, 
+  ShieldCheck, 
+  Sparkles, 
+  Printer, 
+  FileCheck, 
+  Building2, 
+  HeartHandshake, 
+  Activity, 
+  Calendar, 
+  Radio, 
+  BarChart as BarChartIcon, 
+  LineChart as LineChartIcon, 
+  RefreshCw,
+  Plus,
+  ArrowRight,
+  ChevronRight,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  HardDrive,
+  Bot,
+  Zap,
+  Flame,
+  Search
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -37,7 +49,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-import { PublicOpinion, OpinionStatus } from '../../types';
+import { PublicOpinion, OpinionStatus, Article, OfficialDocument } from '../../types';
 import { PendingOpinionsSummaryWidget } from './PendingOpinionsSummaryWidget';
 import {
   subscribeToFirebaseAnalytics,
@@ -51,8 +63,11 @@ interface AnalyticsDashboardViewProps {
   documentsCount: number;
   opinionsCount: number;
   opinions?: PublicOpinion[];
+  articles?: Article[];
+  documents?: OfficialDocument[];
   onNavigateToOpinions?: () => void;
   onUpdateOpinionStatus?: (id: string, status: OpinionStatus, responseText?: string) => void;
+  onNavigateToView?: (view: string) => void;
 }
 
 export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
@@ -60,8 +75,11 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
   documentsCount,
   opinionsCount,
   opinions = [],
+  articles = [],
+  documents = [],
   onNavigateToOpinions,
-  onUpdateOpinionStatus
+  onUpdateOpinionStatus,
+  onNavigateToView
 }) => {
   const [isGeneratingAiReport, setIsGeneratingAiReport] = useState(false);
   const [aiReportGenerated, setAiReportGenerated] = useState(false);
@@ -215,6 +233,265 @@ export const AnalyticsDashboardView: React.FC<AnalyticsDashboardViewProps> = ({
           <p className="text-[11px] text-slate-500 font-bold">
             Văn bản chỉ đạo &amp; Kế hoạch
           </p>
+        </div>
+      </div>
+
+      {/* QUICK ACTIONS & COMMAND BAR */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-amber-300" />
+            <span>Thao tác nhanh</span>
+          </span>
+          <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+            Khởi tạo &amp; Điều phối tác vụ nghiệp vụ tức thì
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onNavigateToView?.('cms')}
+            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Đăng tin bài</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToView?.('cms_documents')}
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Nạp văn bản số</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToOpinions ? onNavigateToOpinions() : onNavigateToView?.('opinions')}
+            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Xử lý dân nguyện</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToView?.('surveys_admin')}
+            className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Tạo khảo sát</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToView?.('google_drive_storage')}
+            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700"
+          >
+            <HardDrive className="w-4 h-4 text-emerald-400" />
+            <span>Trung tâm Drive &amp; AI</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4-QUADRANT EXECUTIVE OPERATIONAL COMMAND CENTER */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* 1. TODAY: Việc Cần Xử Lý Ngay */}
+        <div className="bg-white rounded-3xl border border-rose-200/80 shadow-xs p-5 space-y-3.5 flex flex-col justify-between relative overflow-hidden">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between border-b border-rose-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600">
+                  <Flame className="w-4 h-4" />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-wider text-rose-950">
+                  HÔM NAY (TODAY)
+                </h3>
+              </div>
+              <span className="text-[10px] font-black bg-rose-100 text-rose-800 px-2 py-0.5 rounded-md">
+                {newOpinionsCount} Mới
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium">
+              Các việc cấp bách cần tiếp nhận &amp; phân công xử lý trong ngày:
+            </p>
+
+            <div className="space-y-2 pt-1">
+              {opinions.filter(o => o.status === 'NEW').slice(0, 2).map((op) => (
+                <div key={op.id} className="p-2.5 bg-rose-50/50 rounded-xl border border-rose-100 text-xs space-y-1">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-rose-900">
+                    <span className="truncate">{op.fullname || 'Người dân'} ({op.neighborhood || 'Khu phố'})</span>
+                    <span className="text-[10px] text-rose-600 shrink-0 font-mono">Mã #{op.receiptCode || op.id.slice(0, 6)}</span>
+                  </div>
+                  <p className="text-slate-700 line-clamp-2 text-[11px] leading-relaxed">
+                    {op.content}
+                  </p>
+                </div>
+              ))}
+
+              {newOpinionsCount === 0 && (
+                <div className="py-4 text-center text-xs text-slate-400 italic">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-1 opacity-70" />
+                  Không có phản ánh tồn đọng trong ngày
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToOpinions ? onNavigateToOpinions() : onNavigateToView?.('opinions')}
+            className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer mt-2"
+          >
+            <span>Mở hòm thư dân nguyện</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 2. THIS WEEK: Kế Hoạch & Trọng Tâm Tuần */}
+        <div className="bg-white rounded-3xl border border-blue-200/80 shadow-xs p-5 space-y-3.5 flex flex-col justify-between relative overflow-hidden">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between border-b border-blue-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-wider text-blue-950">
+                  TRỌNG TÂM TUẦN
+                </h3>
+              </div>
+              <span className="text-[10px] font-black bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md">
+                Kế hoạch
+              </span>
+            </div>
+
+            <ul className="space-y-2 text-xs text-slate-700 pt-1">
+              <li className="flex items-start gap-2 p-2 bg-blue-50/40 rounded-xl border border-blue-100/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                <div>
+                  <strong className="text-slate-900 block font-bold text-[11px]">Tuyên truyền Đề án 06 &amp; Chuyển đổi số:</strong>
+                  <span className="text-[10px] text-slate-500">Phát động hướng dẫn người dân 21 khu phố dùng Cổng dịch vụ công.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-2 p-2 bg-blue-50/40 rounded-xl border border-blue-100/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                <div>
+                  <strong className="text-slate-900 block font-bold text-[11px]">Giám sát &amp; Phản biện Xã hội:</strong>
+                  <span className="text-[10px] text-slate-500">Thu thập ý kiến đóng góp dự thảo các quy chế quản lý đô thị.</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToView?.('cms_initiatives')}
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer mt-2"
+          >
+            <span>Xem mô hình &amp; sáng kiến</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 3. WARNING: Cảnh Báo & Rủi Ro Quá Hạn */}
+        <div className="bg-white rounded-3xl border border-amber-200/80 shadow-xs p-5 space-y-3.5 flex flex-col justify-between relative overflow-hidden">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between border-b border-amber-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-wider text-amber-950">
+                  CẢNH BÁO QUÁ HẠN
+                </h3>
+              </div>
+              <span className="text-[10px] font-black bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">
+                SLA &amp; Tiến độ
+              </span>
+            </div>
+
+            <div className="space-y-2 pt-1 text-xs">
+              <div className="p-2.5 bg-amber-50/60 rounded-xl border border-amber-200/60 text-amber-950 space-y-1">
+                <div className="flex items-center justify-between font-bold text-[11px]">
+                  <span>Thời hạn xử lý dân nguyện:</span>
+                  <span className="text-emerald-700 font-extrabold">98.2% Đúng hạn</span>
+                </div>
+                <p className="text-[10px] text-slate-600 leading-normal">
+                  Chỉ còn {processingOpinionsCount} hồ sơ đang thẩm tra xác minh thực địa.
+                </p>
+              </div>
+
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 space-y-1">
+                <div className="flex items-center justify-between font-bold text-[11px]">
+                  <span>Văn bản sắp đến hạn:</span>
+                  <span className="text-blue-700 font-extrabold">03 Kế hoạch</span>
+                </div>
+                <p className="text-[10px] text-slate-500 leading-normal">
+                  Báo cáo tổng kết đợt thi đua cao điểm chào mừng Đại hội MTTQ.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToView?.('bottleneck_analytics')}
+            className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer mt-2"
+          >
+            <span>Xem phân tích điểm nghẽn</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 4. AI INSIGHTS: Trí Tuệ Nhân Tạo Phân Tích */}
+        <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 text-white rounded-3xl p-5 space-y-3.5 flex flex-col justify-between relative overflow-hidden shadow-sm">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-amber-400/20 text-amber-300">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-wider text-amber-300">
+                  AI INSIGHTS &amp; XU HƯỚNG
+                </h3>
+              </div>
+              <span className="text-[10px] font-black bg-white/10 text-cyan-200 px-2 py-0.5 rounded-md border border-cyan-300/20">
+                Gemini Pro
+              </span>
+            </div>
+
+            <div className="space-y-2 pt-1 text-xs text-slate-300">
+              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                <div className="text-cyan-300 font-bold text-[11px] flex items-center gap-1">
+                  <span>💡 Khuyến nghị truyền thông:</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-200">
+                  Dư luận nhân dân tuần qua quan tâm cao về vấn đề vệ sinh môi trường phân loại rác tại nguồn. Đề nghị tăng bài viết hướng dẫn trên Cổng TT.
+                </p>
+              </div>
+
+              <div className="p-2.5 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                <div className="text-amber-300 font-bold text-[11px] flex items-center gap-1">
+                  <span>🧠 Bộ não AI Tri thức:</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-200">
+                  Đã đồng bộ {documentsCount} văn bản chỉ đạo vào Kho tri thức RAG để Trợ lý AI tham mưu chính xác 100%.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToView?.('ai_brain')}
+            className="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer mt-2"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            <span>Mở Trợ lý AI Tham mưu</span>
+          </button>
         </div>
       </div>
 
