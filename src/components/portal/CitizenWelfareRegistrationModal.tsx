@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../../data/neighborhoodsList';
 import { uploadCitizenEvidenceImage } from '../../lib/googleDriveService';
+import { AnimatedIcon } from '../common/AnimatedIcon';
 
 interface Props {
   isOpen: boolean;
@@ -98,15 +99,15 @@ export const CitizenWelfareRegistrationModal: React.FC<Props> = ({
         {/* Header */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 text-white">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-white/20 rounded-xl text-white">
-              <HeartHandshake className="w-5 h-5" />
+            <div className="p-2 bg-white/20 rounded-xl text-white flex items-center justify-center shrink-0">
+              <AnimatedIcon name="citizen" size={24} colorScheme="white" />
             </div>
             <div>
               <h3 className="font-bold text-base">Đăng Ký Nhận Hỗ Trợ An Sinh Xã Hội</h3>
               <p className="text-xs text-orange-100">Ủy ban MTTQ Việt Nam & Ban Vận động Quỹ Vì người nghèo Phường</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/20 transition">
+          <button onClick={onClose} className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/20 transition cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -114,8 +115,8 @@ export const CitizenWelfareRegistrationModal: React.FC<Props> = ({
         {/* Content */}
         {isSuccess ? (
           <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8" />
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <AnimatedIcon name="success" size={36} />
             </div>
             <div className="space-y-1">
               <h4 className="font-black text-lg text-slate-800">Đã Gửi Hồ Sơ Thành Công!</h4>
@@ -251,12 +252,12 @@ export const CitizenWelfareRegistrationModal: React.FC<Props> = ({
                     </>
                   ) : proofImageLink && proofImageLink.includes('drive.google.com') ? (
                     <>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <AnimatedIcon name="success" size={20} className="shrink-0" />
                       <span className="font-bold text-emerald-800">✓ Đã tải &amp; tự dán Link Drive (Bấm để đổi ảnh)</span>
                     </>
                   ) : (
                     <>
-                      <CloudUpload className="w-4 h-4 text-amber-600 shrink-0" />
+                      <AnimatedIcon name="cloud_upload" size={24} className="shrink-0" trigger="hover" />
                       <span className="font-bold text-slate-700">Upload ảnh minh chứng lên Google Drive (Tự dán link)</span>
                     </>
                   )}

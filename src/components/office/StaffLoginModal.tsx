@@ -19,6 +19,7 @@ import {
   MailCheck,
   Send
 } from 'lucide-react';
+import { AnimatedIcon } from '../common/AnimatedIcon';
 import { auth } from '../../lib/firebase';
 import { CloudDatabase } from '../../lib/firestoreService';
 import { OptimizedImage } from '../common/OptimizedImage';
@@ -352,10 +353,10 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
               <div>
                 <h3 className="font-extrabold text-slate-900 text-sm leading-tight tracking-wide flex items-center gap-1.5">
                   <span>CỔNG XÁC THỰC CÁN BỘ</span>
-                  <Lock className="w-3.5 h-3.5 text-blue-700 inline shrink-0" />
+                  <AnimatedIcon name="security" size={16} />
                 </h3>
-                <p className="text-[11px] text-slate-600 font-bold flex items-center gap-1 mt-0.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-700" />
+                <p className="text-[11px] text-slate-600 font-bold flex items-center gap-1.5 mt-0.5">
+                  <AnimatedIcon name="document" size={13} />
                   <span>Văn phòng số Ủy ban MTTQ Phường Chánh Hiệp</span>
                 </p>
               </div>
@@ -374,7 +375,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
           {errorMessage && (
             <div className="p-3 bg-red-50 text-red-950 text-xs rounded-xl border border-red-200 space-y-2 leading-relaxed font-medium">
               <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                <AnimatedIcon name="warning" size={16} className="shrink-0 mt-0.5" />
                 <span className="whitespace-pre-line">{errorMessage}</span>
               </div>
 
@@ -405,7 +406,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
 
           {successMessage && (
             <div className="p-3 bg-emerald-50 text-emerald-950 text-xs rounded-xl border border-emerald-200 flex items-start gap-2 leading-relaxed font-medium">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+              <AnimatedIcon name="success" size={18} className="shrink-0 mt-0.5" />
               <span>{successMessage}</span>
             </div>
           )}
@@ -415,7 +416,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
             <div className="space-y-4 pt-1">
               
               <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] text-slate-600 flex items-center gap-2">
-                <Lock className="w-4 h-4 text-blue-800 shrink-0" />
+                <AnimatedIcon name="security" size={15} />
                 <span>Yêu cầu đăng nhập bằng tên đăng nhập hoặc email công vụ được phân quyền.</span>
               </div>
 
@@ -425,7 +426,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                   <label className="font-bold text-slate-800 block mb-1">
                     Tên Đăng Nhập Hoặc Email (*)
                   </label>
-                  <div className="relative">
+                  <div className="relative group/inp">
                     <input
                       type="text"
                       required
@@ -435,7 +436,9 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                       disabled={isLoading}
                       className="w-full p-2.5 pl-9 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 bg-white text-xs disabled:bg-slate-50"
                     />
-                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <div className="absolute left-3 top-2.5 pointer-events-none text-slate-400 group-focus-within/inp:text-blue-700 transition-colors">
+                      <AnimatedIcon name="user_badge" size={16} />
+                    </div>
                   </div>
                 </div>
 
@@ -452,7 +455,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                       Quên mật khẩu?
                     </button>
                   </div>
-                  <div className="relative">
+                  <div className="relative group/inp">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
@@ -462,7 +465,9 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                       disabled={isLoading}
                       className="w-full p-2.5 pl-9 pr-9 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 bg-white text-xs disabled:bg-slate-50"
                     />
-                    <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <div className="absolute left-3 top-2.5 pointer-events-none text-slate-400 group-focus-within/inp:text-blue-700 transition-colors">
+                      <AnimatedIcon name="key" size={16} />
+                    </div>
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
@@ -481,7 +486,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 text-white animate-spin" />
                   ) : (
-                    <LogIn className="w-4 h-4 text-white" />
+                    <AnimatedIcon name="login" size={18} colorScheme="white" />
                   )}
                   <span>XÁC THỰC &amp; ĐĂNG NHẬP CÔNG VỤ</span>
                 </button>

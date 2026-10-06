@@ -36,6 +36,7 @@ import { adminCollaborationService } from '../../lib/adminCollaborationService';
 import { AdminPresenceDrawer } from './AdminPresenceDrawer';
 import { NotificationCenterDrawer } from './NotificationCenterDrawer';
 import { OfflineSyncStatusWidget } from '../common/OfflineSyncStatusWidget';
+import { AnimatedIcon } from '../common/AnimatedIcon';
 
 interface DigitalOfficeHeaderProps {
   staffName: string;
@@ -203,10 +204,10 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
             <div className="relative z-10">
               <button
                 onClick={() => setNotifDrawerOpen(true)}
-                className="p-1.5 hover:bg-blue-50 rounded-lg relative text-slate-600 hover:text-blue-700 transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-blue-50 rounded-lg relative text-slate-600 hover:text-blue-700 transition-colors cursor-pointer group"
                 title="Trung tâm Thông báo Quản trị"
               >
-                <Bell className="w-4 h-4" />
+                <AnimatedIcon name="bell" size={17} trigger="hover" />
                 {unreadNotifCount > 0 && (
                   <>
                     <span className="absolute -top-0.5 -right-0.5 px-1 py-0.2 rounded-full bg-amber-500 text-slate-950 font-black text-[8px] ring-2 ring-white animate-ping" />
@@ -224,9 +225,9 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
             <div className="p-[1px] rounded-lg bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-xs hover:shadow-md transition-all">
               <button
                 onClick={onOpenAi}
-                className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-[10px] rounded-[7px] transition-all active:scale-95 cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-[10px] rounded-[7px] transition-all active:scale-95 cursor-pointer shadow-2xs group"
               >
-                <Sparkles className="w-3 h-3 text-amber-300 animate-spin-slow" />
+                <AnimatedIcon name="ai_brain" size={14} colorScheme="white" trigger="hover" />
                 <span className="text-white font-bold hidden sm:inline">Trợ lý AI</span>
               </button>
             </div>

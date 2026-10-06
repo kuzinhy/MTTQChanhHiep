@@ -27,6 +27,7 @@ import { motion } from 'motion/react';
 import { PWAInstallButton } from './PWAInstallButton';
 import { OptimizedImage } from './common/OptimizedImage';
 import { CitizenAccessibilityToolbar } from './common/CitizenAccessibilityToolbar';
+import { AnimatedIcon } from './common/AnimatedIcon';
 import { canAccessView } from '../lib/rbac';
 
 import { isSocialWelfareModuleEnabled } from '../lib/moduleSettings';
@@ -147,10 +148,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Notification Bell */}
             <button
               onClick={onOpenNotificationCenter}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center relative transition cursor-pointer border border-white/20 shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center relative transition cursor-pointer border border-white/20 shrink-0 group"
               title="Thông báo"
             >
-              <Bell className="w-4 h-4" />
+              <AnimatedIcon name="bell" size={16} colorScheme="white" trigger="hover" />
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
                 3
               </span>
@@ -165,9 +166,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   alert('Bạn không có quyền truy cập Văn phòng số.');
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0043aa] text-white font-bold text-xs rounded-full border border-blue-300/40 shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0043aa] text-white font-bold text-xs rounded-full border border-blue-300/40 shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap group"
             >
-              <FileText className="w-3.5 h-3.5" />
+              <AnimatedIcon name="tasks" size={14} colorScheme="white" trigger="hover" />
               <span>Văn phòng số</span>
             </button>
 

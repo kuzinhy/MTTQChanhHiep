@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
 import { getGoogleDriveDirectImageUrl, uploadCitizenEvidenceImage } from '../lib/googleDriveService';
+import { AnimatedIcon } from './common/AnimatedIcon';
 
 interface OpinionFormSectionProps {
   opinions: PublicOpinion[];
@@ -461,19 +462,19 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
                                 </>
                               ) : imageLink && imageLink.includes('drive.google.com') ? (
                                 <>
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                  <AnimatedIcon name="success" size={20} className="shrink-0" />
                                   <span className="text-[11px] font-extrabold text-emerald-800">
                                     ✓ Đã tự động dán Link Google Drive (Bấm để đổi ảnh)
                                   </span>
                                 </>
                               ) : imageLink ? (
                                 <>
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                  <AnimatedIcon name="success" size={20} className="shrink-0" />
                                   <span className="text-[11px] font-bold text-emerald-800">Đã chọn ảnh (Bấm để chọn lại)</span>
                                 </>
                               ) : (
                                 <>
-                                  <CloudUpload className="w-4 h-4 text-blue-600 shrink-0 group-hover:scale-110 transition-transform" />
+                                  <AnimatedIcon name="cloud_upload" size={28} className="shrink-0" trigger="hover" />
                                   <div className="text-left">
                                     <span className="text-[11px] font-black text-blue-900 block">☁️ Upload ảnh lên Google Drive (Tự dán link)</span>
                                     <span className="text-[9.5px] text-blue-600 font-medium block">Chọn ảnh từ thiết bị - Hệ thống tự tạo &amp; dán link Drive</span>

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { VisitorTrackerEngine, VisitorStats } from '../lib/visitorTracker';
 import { VisitorStatsModal } from './VisitorStatsModal';
+import { AnimatedIconShowcaseModal } from './common/AnimatedIconShowcaseModal';
 
 export const Footer: React.FC<{
   onSelectTab?: (tab: string) => void;
@@ -25,6 +26,7 @@ export const Footer: React.FC<{
   const [onlineCount, setOnlineCount] = useState<number>(() => VisitorTrackerEngine.getOnlineCount());
   const [stats, setStats] = useState<VisitorStats>(() => VisitorTrackerEngine.getStats());
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [isIconShowcaseOpen, setIsIconShowcaseOpen] = useState(false);
 
   useEffect(() => {
     VisitorTrackerEngine.init();
@@ -281,6 +283,11 @@ export const Footer: React.FC<{
           <span>•</span>
           <button onClick={() => handleNav('opinion')} className="hover:text-amber-300 transition cursor-pointer">Dân nguyện 24/7</button>
           <span>•</span>
+          <button onClick={() => setIsIconShowcaseOpen(true)} className="hover:text-cyan-300 transition cursor-pointer flex items-center gap-1 text-sky-400 font-bold" title="Xem & thử nghiệm bộ Icon động">
+            <Sparkles className="w-3 h-3 text-cyan-400" />
+            Icon Động
+          </button>
+          <span>•</span>
           <button onClick={() => setIsStatsModalOpen(true)} className="hover:text-amber-300 transition cursor-pointer flex items-center gap-1">
             <BarChart3 className="w-3 h-3 text-cyan-400" />
             Lượt truy cập: {stats.totalVisits.toLocaleString('vi-VN')}
@@ -294,6 +301,12 @@ export const Footer: React.FC<{
         onClose={() => setIsStatsModalOpen(false)}
         onlineCount={onlineCount}
         stats={stats}
+      />
+
+      {/* Animated Icon Research & Showcase Modal */}
+      <AnimatedIconShowcaseModal
+        isOpen={isIconShowcaseOpen}
+        onClose={() => setIsIconShowcaseOpen(false)}
       />
     </footer>
   );

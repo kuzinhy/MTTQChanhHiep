@@ -42,6 +42,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   notes: 'STAFF',
   drive: 'STAFF',
   google_drive_storage: 'STAFF',
+  animated_icons_lab: 'STAFF',
   templates: 'STAFF',
   cms: 'CONTRIBUTOR',
   cms_articles: 'CONTRIBUTOR',

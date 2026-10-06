@@ -94,6 +94,7 @@ import { GlobalSearchModal } from './components/common/GlobalSearchModal';
 import { SystemBackupRestoreModal } from './components/office/SystemBackupRestoreModal';
 import { CitizenWelfareRegistrationModal } from './components/portal/CitizenWelfareRegistrationModal';
 import { SystemHealthAdminView } from './components/office/SystemHealthAdminView';
+import { AnimatedIconLabView } from './components/office/AnimatedIconLabView';
 import { canAccessView } from './lib/rbac';
 import { PublicVolunteerRegistrationPage } from './components/portal/PublicVolunteerRegistrationPage';
 
@@ -180,7 +181,8 @@ export const VALID_OFFICE_VIEWS = [
   'geo_broadcast',
   'volunteers_admin',
   'system_health',
-  'google_drive_storage'
+  'google_drive_storage',
+  'animated_icons_lab'
 ];
 
 export const PORTAL_HASH_TO_TAB: Record<string, string> = {
@@ -2510,6 +2512,10 @@ export default function App() {
 
                     {officeView === 'volunteers_admin' && (
                       <VolunteersAdminView onTriggerToast={(title, msg) => handleTriggerSystemToast(title, msg)} />
+                    )}
+
+                    {officeView === 'animated_icons_lab' && (
+                      <AnimatedIconLabView />
                     )}
 
                     {/* Office 404 Fallback when view is not recognized */}

@@ -133,6 +133,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
           { id: 'ai_monitor', label: 'Giám sát & Lịch sử AI', icon: Activity, badge: 'GIÁM SÁT' },
           { id: 'ai_unanswered', label: 'Câu hỏi chưa trả lời', icon: HelpCircle, badge: 'CẦN NẠP' },
           { id: 'ai_settings', label: 'Cài đặt Trợ lý AI', icon: Bot, badge: 'CÀI ĐẶT' },
+          { id: 'animated_icons_lab', label: 'Phòng Thử nghiệm Icon Động', icon: Sparkles, badge: 'LIVELY' },
           { id: 'youth_union_workspace', label: 'Workspace Chi đoàn', icon: Sparkles, badge: 'WS' },
         ]
       },
