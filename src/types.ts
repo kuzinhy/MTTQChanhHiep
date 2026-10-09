@@ -1471,5 +1471,24 @@ export interface SupervisionCategory {
   updatedAt?: string;
 }
 
+export interface LaunchPopupConfig {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  slogan: string;
+  messageHtml: string;
+  senderTitle: string;
+  senderName: string;
+  launchDate: string;
+  primaryButtonText: string;
+  primaryButtonAction: 'EXPLORE' | 'OPEN_ABOUT' | 'SCROLL_NEWS';
+  showConfetti: boolean;
+  congratulationsCount: number;
+  bannerImageUrl?: string;
+  badgeText?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
 
 

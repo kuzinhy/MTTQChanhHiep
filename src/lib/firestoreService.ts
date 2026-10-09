@@ -49,7 +49,8 @@ import {
   Organization,
   CulturalMedia,
   ArticleSubmission,
-  FeedbackItem
+  FeedbackItem,
+  LaunchPopupConfig
 } from '../types';
 import { getUserEffectivePermissions } from '../services/permissionService';
 import {
@@ -1323,6 +1324,47 @@ class CloudSyncService {
         isPermissionError: isPerm, 
         error: err?.message || String(err) 
       };
+    }
+  }
+
+  // ==========================================
+  // LAUNCH POPUP CONFIGURATION & SYNC
+  // ==========================================
+  async saveLaunchPopupConfig(config: LaunchPopupConfig): Promise<void> {
+    try {
+      const docRef = doc(db, FirestoreCollections.SETTINGS, 'launch_popup');
+      await setDoc(docRef, cleanFirestoreData(config), { merge: true });
+    } catch (e) {
+      console.warn('[Firestore] Error saving launch popup config to cloud:', e);
+    }
+  }
+
+  async getLaunchPopupConfig(): Promise<LaunchPopupConfig | null> {
+    try {
+      const docRef = doc(db, FirestoreCollections.SETTINGS, 'launch_popup');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return snap.data() as LaunchPopupConfig;
+      }
+    } catch (e) {
+      console.warn('[Firestore] Error getting launch popup config from cloud:', e);
+    }
+    return null;
+  }
+
+  subscribeToLaunchPopupConfig(callback: (config: LaunchPopupConfig) => void): () => void {
+    try {
+      const docRef = doc(db, FirestoreCollections.SETTINGS, 'launch_popup');
+      return onSnapshot(docRef, (snap) => {
+        if (snap.exists()) {
+          callback(snap.data() as LaunchPopupConfig);
+        }
+      }, (err) => {
+        console.warn('[Firestore] Launch popup config listener notice:', err);
+      });
+    } catch (e) {
+      console.warn('[Firestore] Subscribe to launch popup failed:', e);
+      return () => {};
     }
   }
 

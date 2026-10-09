@@ -105,7 +105,7 @@ export const HcmTimelineAndPeriods: React.FC<HcmTimelineAndPeriodsProps> = ({
           <div>
             <h2 className="text-lg sm:text-xl font-bold font-serif text-rose-950 flex items-center gap-2">
               <DongSonDrumIcon className="w-6 h-6 text-rose-700" />
-              <span>Dòng Thời Gian Lịch Sử &amp; 08 Không Gian Triển Lãm (1890 – 1969)</span>
+              <span>Dòng Thời Gian Lịch Sử</span>
             </h2>
             <p className="text-xs text-rose-800/80 mt-0.5">
               100% sự kiện đã thẩm định theo *Hồ Chí Minh – Biên niên tiểu sử* &amp; *Hồ Chí Minh Toàn tập*

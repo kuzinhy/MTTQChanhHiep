@@ -37,6 +37,7 @@ import {
   Radio,
   GitMerge,
   Scale,
+  PartyPopper,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -169,6 +170,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
           { id: 'cms_about', label: 'Giới thiệu & Tổ chức Thành viên', icon: Info, badge: 'HỢP NHẤT' },
           { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến Dân vận', icon: Lightbulb, badge: 'MÔ HÌNH' },
           { id: 'cultural_space_admin', label: 'Không gian Văn hóa HCM', icon: Building2, badge: '3D VIRTUAL' },
+          { id: 'launch_popup_admin', label: 'Popup Chúc Mừng Ra Mắt', icon: PartyPopper, badge: 'SỰ KIỆN' },
         ]
       },
       {

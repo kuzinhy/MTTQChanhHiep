@@ -48,6 +48,7 @@ export const VIEW_ROLE_REQUIREMENTS: Record<string, UserRole> = {
   cms_articles: 'CONTRIBUTOR',
   cms_approval: 'CONTRIBUTOR',
   cms_initiatives: 'CONTRIBUTOR',
+  launch_popup_admin: 'STAFF',
   cms_about: 'STAFF',
   cms_documents: 'STAFF',
   documents: 'EDITOR',

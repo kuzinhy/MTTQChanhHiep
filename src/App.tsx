@@ -98,13 +98,15 @@ import { SystemHealthAdminView } from './components/office/SystemHealthAdminView
 import { AnimatedIconLabView } from './components/office/AnimatedIconLabView';
 import { canAccessView } from './lib/rbac';
 import { PublicVolunteerRegistrationPage } from './components/portal/PublicVolunteerRegistrationPage';
+import { LaunchCelebrationModal } from './components/common/LaunchCelebrationModal';
+import { LaunchPopupAdminView } from './components/office/LaunchPopupAdminView';
 
 import { 
   INITIAL_TRIVIA_QUESTIONS, 
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization, FeedbackItem, ArticleSubmission } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization, FeedbackItem, ArticleSubmission, LaunchPopupConfig } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine, deduplicateStaffUsers } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -116,7 +118,7 @@ import { VisitorTrackerEngine } from './lib/visitorTracker';
 
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
-import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, CloudUpload, AlertTriangle, Landmark, Star, Move, Newspaper, Lightbulb, Info, BarChart3, Award, Users, Building2, Layers, Bell, Settings, PieChart, FolderTree, ShieldAlert } from 'lucide-react';
+import { Sparkles, MessageSquare, FileText, ShieldCheck, Lock, Cloud, CloudCheck, CloudUpload, AlertTriangle, Landmark, Star, Move, Newspaper, Lightbulb, Info, BarChart3, Award, Users, Building2, Layers, Bell, Settings, PieChart, FolderTree, ShieldAlert, PartyPopper } from 'lucide-react';
 import { browserNotificationService } from './lib/browserNotifications';
 import { uploadCitizenEvidenceImage } from './lib/googleDriveService';
 
@@ -158,6 +160,7 @@ export const VALID_OFFICE_VIEWS = [
   'cms_initiatives',
   'cms_documents',
   'cms_about',
+  'launch_popup_admin',
   'documents',
   'competitions_admin',
   'question_banks',
@@ -275,6 +278,62 @@ export default function App() {
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [sharePosterData, setSharePosterData] = useState<{ isOpen: boolean; title: string; url?: string } | null>(null);
+
+  // Launch Celebration Popup Configuration & State
+  const [launchPopupConfig, setLaunchPopupConfig] = useState<LaunchPopupConfig>(() => {
+    return AppStorageEngine.getLaunchPopupConfig();
+  });
+  const [isLaunchPopupOpen, setIsLaunchPopupOpen] = useState(false);
+  const [hasCongratulatedLaunch, setHasCongratulatedLaunch] = useState(() => {
+    return AppStorageEngine.hasUserCongratulatedLaunch();
+  });
+
+  // Real-time synchronization for Launch Popup config from Cloud Firestore
+  useEffect(() => {
+    const unsubscribe = CloudDatabase.subscribeToLaunchPopupConfig((cloudConfig) => {
+      if (cloudConfig) {
+        setLaunchPopupConfig(prev => ({ ...prev, ...cloudConfig }));
+        AppStorageEngine.saveLaunchPopupConfig(cloudConfig);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Auto-trigger launch popup on Public Portal visit if enabled and not dismissed today
+  useEffect(() => {
+    if (currentSpace !== 'PORTAL') return;
+    if (!launchPopupConfig.enabled) return;
+
+    const isDismissed = AppStorageEngine.hasDismissedLaunchPopup();
+    if (isDismissed) return;
+
+    // Small delay so initial portal loads smoothly first
+    const timer = setTimeout(() => {
+      setIsLaunchPopupOpen(true);
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [currentSpace, launchPopupConfig.enabled]);
+
+  const handleCongratulateLaunch = () => {
+    const newCount = AppStorageEngine.incrementLaunchCongratulations();
+    AppStorageEngine.setUserCongratulatedLaunch();
+    setHasCongratulatedLaunch(true);
+    const updated = { ...launchPopupConfig, congratulationsCount: newCount };
+    setLaunchPopupConfig(updated);
+    CloudDatabase.saveLaunchPopupConfig(updated);
+    handleTriggerSystemToast(
+      'Cảm ơn bạn đã gửi lời chúc!',
+      'Ủy ban MTTQ Việt Nam Phường Chánh Hiệp trân trọng cảm ơn sự đồng hành của bạn!'
+    );
+  };
+
+  const handleDismissLaunchPopupToday = () => {
+    AppStorageEngine.setDismissLaunchPopup(24);
+  };
 
   // Global Ctrl+K / Cmd+K shortcut listener for Universal Search
   useEffect(() => {
@@ -1657,6 +1716,7 @@ export default function App() {
                         window.location.hash = `#/van-phong-so/${targetView}`;
                       }}
                       currentStaffUser={currentStaffUser}
+                      onOpenLaunchPopup={() => setIsLaunchPopupOpen(true)}
                     />
                   )}
 
@@ -2541,6 +2601,10 @@ export default function App() {
                       <AnimatedIconLabView />
                     )}
 
+                    {officeView === 'launch_popup_admin' && (
+                      <LaunchPopupAdminView onTriggerToast={handleTriggerSystemToast} />
+                    )}
+
                     {/* Office 404 Fallback when view is not recognized */}
                     {!VALID_OFFICE_VIEWS.includes(officeView) && (
                       <div className="p-8 max-w-lg mx-auto my-12 bg-white rounded-3xl border border-amber-200 shadow-xl text-center space-y-4">
@@ -2767,6 +2831,41 @@ export default function App() {
           else if (route === '/phan-anh') handleSelectPortalTab('opinions');
           else if (route === '/an-sinh') setIsWelfareRegistrationModalOpen(true);
           else if (route === '/tinh-nguyen') setIsVolunteerModalOpen(true);
+          else handleSelectPortalTab('home');
+        }}
+      />
+
+      {/* FLOATING LAUNCH CELEBRATION BUTTON (PORTAL SPACE) */}
+      {currentSpace === 'PORTAL' && launchPopupConfig.enabled && !isLaunchPopupOpen && (
+        <motion.button
+          type="button"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsLaunchPopupOpen(true)}
+          className="fixed bottom-20 left-4 z-40 bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white px-3.5 py-2 rounded-full shadow-xl border-2 border-amber-300 flex items-center gap-2 text-xs font-black cursor-pointer ring-4 ring-amber-400/20 backdrop-blur-xs"
+          title="Mở Thư Chúc Mừng Ra Mắt Cổng Thông Tin"
+        >
+          <PartyPopper className="w-4 h-4 text-amber-200 animate-bounce" />
+          <span className="hidden sm:inline">Thư Chúc Mừng Ra Mắt</span>
+          <span className="inline-flex items-center gap-1 bg-black/25 px-2 py-0.5 rounded-full text-[10px] text-amber-100 font-bold">
+            ❤️ {launchPopupConfig.congratulationsCount || 0}
+          </span>
+        </motion.button>
+      )}
+
+      {/* LAUNCH CELEBRATION MODAL POPUP */}
+      <LaunchCelebrationModal
+        isOpen={isLaunchPopupOpen}
+        onClose={() => setIsLaunchPopupOpen(false)}
+        config={launchPopupConfig}
+        onCongratulate={handleCongratulateLaunch}
+        hasCongratulated={hasCongratulatedLaunch}
+        onDismissToday={handleDismissLaunchPopupToday}
+        onNavigateAction={(action) => {
+          if (action === 'OPEN_ABOUT') handleSelectPortalTab('about');
+          else if (action === 'SCROLL_NEWS') handleSelectPortalTab('news');
           else handleSelectPortalTab('home');
         }}
       />

@@ -61,6 +61,7 @@ interface ChanhHiepPortalHomeProps {
   onOpenProcedureModal: () => void;
   onGoToOffice: (view?: any) => void;
   currentStaffUser?: StaffUser | null;
+  onOpenLaunchPopup?: () => void;
 }
 
 export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
@@ -74,7 +75,8 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   onOpenDirectory,
   onOpenProcedureModal,
   onGoToOffice,
-  currentStaffUser
+  currentStaffUser,
+  onOpenLaunchPopup
 }) => {
   // Safe articles: Chỉ hiển thị bài viết chính thống do cán bộ đăng tải (đã duyệt hoặc xuất bản)
   const safeArticles: Article[] = useMemo(() => {
@@ -155,6 +157,16 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
     };
   }, []);
 
+  const [launchConfig, setLaunchConfig] = useState(() => AppStorageEngine.getLaunchPopupConfig());
+
+  React.useEffect(() => {
+    const handleStorage = () => {
+      setLaunchConfig(AppStorageEngine.getLaunchPopupConfig());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const [isOpinionTrackerOpen, setIsOpinionTrackerOpen] = useState(false);
   const [isWelfareHubOpen, setIsWelfareHubOpen] = useState(false);
   const [isFeeCalculatorOpen, setIsFeeCalculatorOpen] = useState(false);
@@ -196,6 +208,53 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
+
+      {/* BANNER CHÀO MỪNG RA MẮT CỔNG THÔNG TIN SỐ */}
+      {launchConfig.enabled && onOpenLaunchPopup && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-red-700 via-rose-700 to-amber-600 rounded-3xl p-4 sm:p-5 text-white shadow-md border-2 border-amber-300/80 flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden relative"
+        >
+          <div className="flex items-center gap-3.5 min-w-0 z-10">
+            <div className="w-12 h-12 rounded-2xl bg-white p-1 text-red-600 flex items-center justify-center shrink-0 shadow-md ring-2 ring-amber-300/80">
+              <img
+                src={launchConfig.bannerImageUrl || 'https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png'}
+                alt="Logo MTTQ"
+                className="w-full h-full object-contain"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-400 text-slate-950">
+                  {launchConfig.badgeText || 'CHÍNH THỨC RA MẮT'}
+                </span>
+                <span className="text-[11px] text-amber-200 font-bold hidden md:inline">
+                  {launchConfig.launchDate || 'Tháng 10/2026'}
+                </span>
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-white truncate drop-shadow-xs mt-0.5">
+                {launchConfig.title}
+              </h3>
+              <p className="text-xs text-amber-100/90 truncate">
+                {launchConfig.subtitle} • {launchConfig.congratulationsCount || 0} người dân đã gửi lời chúc mừng & đồng hành
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end z-10">
+            <button
+              type="button"
+              onClick={onOpenLaunchPopup}
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-slate-900" />
+              <span>Xem Thư & Gửi Lời Chúc</span>
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* ========================================================================= */}
       {/* 1. TIỆN ÍCH SỐ - Quick Services Grid */}

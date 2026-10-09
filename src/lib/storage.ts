@@ -47,8 +47,10 @@ import {
   EmailNotification,
   SupervisionPlan,
   SupervisionOverviewStats,
-  SupervisionCategory
+  SupervisionCategory,
+  LaunchPopupConfig
 } from '../types';
+import { DEFAULT_LAUNCH_POPUP_CONFIG } from '../data/launchPopupSeed';
 import {
   INITIAL_HOUSEHOLDS,
   INITIAL_BROADCASTS,
@@ -133,7 +135,10 @@ export const STORAGE_KEYS = {
   SOLIDARITY_ASSESSMENTS: 'mttq_chanhhiep_solidarity_v1',
   SUPERVISION_PLANS: 'mttq_chanhhiep_supervision_plans_v2',
   SUPERVISION_STATS: 'mttq_chanhhiep_supervision_stats_v2',
-  SUPERVISION_CATEGORIES: 'mttq_chanhhiep_supervision_categories_v2'
+  SUPERVISION_CATEGORIES: 'mttq_chanhhiep_supervision_categories_v2',
+  LAUNCH_POPUP_CONFIG: 'mttq_chanhhiep_launch_popup_config_v1',
+  LAUNCH_POPUP_DISMISSED: 'mttq_chanhhiep_launch_popup_dismissed_until',
+  LAUNCH_POPUP_USER_CONGRATULATED: 'mttq_chanhhiep_launch_popup_user_congratulated'
 };
 
 const KEY_ENTITY_NAME_MAP: Record<string, string> = {
@@ -164,7 +169,8 @@ const KEY_ENTITY_NAME_MAP: Record<string, string> = {
   [STORAGE_KEYS.SOLIDARITY_ASSESSMENTS]: 'Tự đánh giá Gia đình Đại đoàn kết',
   [STORAGE_KEYS.SUPERVISION_PLANS]: 'Kế hoạch Giám sát - Phản biện Xã hội',
   [STORAGE_KEYS.SUPERVISION_STATS]: 'Chỉ số Giám sát Xã hội',
-  [STORAGE_KEYS.SUPERVISION_CATEGORIES]: 'Chuyên mục Giám sát - Phản biện'
+  [STORAGE_KEYS.SUPERVISION_CATEGORIES]: 'Chuyên mục Giám sát - Phản biện',
+  [STORAGE_KEYS.LAUNCH_POPUP_CONFIG]: 'Cấu hình Popup Chào Mừng Ra Mắt'
 };
 
 const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
@@ -173,6 +179,7 @@ const FIRESTORE_COLLECTION_MAP: Record<string, string> = {
   [STORAGE_KEYS.COMPETITIONS]: 'competitions',
   [STORAGE_KEYS.OPINIONS]: 'public_opinions',
   [STORAGE_KEYS.TASKS]: 'tasks',
+  [STORAGE_KEYS.LAUNCH_POPUP_CONFIG]: 'settings',
   [STORAGE_KEYS.SUPERVISION_PLANS]: 'supervision_plans',
   [STORAGE_KEYS.SUPERVISION_CATEGORIES]: 'supervision_categories',
   [STORAGE_KEYS.NEIGHBORHOOD_HOUSEHOLDS]: 'neighborhood_households',
@@ -1842,6 +1849,89 @@ export const AppStorageEngine = {
   },
   saveNeighborhoodRegistrations: (registrations: NeighborhoodRegistration[]) => {
     saveStorageData(STORAGE_KEYS.NEIGHBORHOOD_REGISTRATIONS, registrations || []);
+  },
+
+  // Launch Popup Configuration & Interactivity
+  getLaunchPopupConfig: (): LaunchPopupConfig => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.LAUNCH_POPUP_CONFIG);
+      if (stored) {
+        return { ...DEFAULT_LAUNCH_POPUP_CONFIG, ...JSON.parse(stored) };
+      }
+    } catch (e) {
+      console.warn('Error reading launch popup config from storage:', e);
+    }
+    return DEFAULT_LAUNCH_POPUP_CONFIG;
+  },
+
+  saveLaunchPopupConfig: (config: LaunchPopupConfig): void => {
+    try {
+      const cleaned: LaunchPopupConfig = {
+        ...config,
+        updatedAt: new Date().toISOString()
+      };
+      saveStorageData(STORAGE_KEYS.LAUNCH_POPUP_CONFIG, cleaned);
+    } catch (e) {
+      console.error('Error saving launch popup config to storage:', e);
+    }
+  },
+
+  incrementLaunchCongratulations: (): number => {
+    try {
+      const current = AppStorageEngine.getLaunchPopupConfig();
+      const newCount = (current.congratulationsCount || 0) + 1;
+      const updated = { ...current, congratulationsCount: newCount };
+      saveStorageData(STORAGE_KEYS.LAUNCH_POPUP_CONFIG, updated);
+      return newCount;
+    } catch {
+      return 1;
+    }
+  },
+
+  hasDismissedLaunchPopup: (): boolean => {
+    try {
+      const dismissedUntil = localStorage.getItem(STORAGE_KEYS.LAUNCH_POPUP_DISMISSED);
+      if (dismissedUntil) {
+        const timestamp = parseInt(dismissedUntil, 10);
+        if (Date.now() < timestamp) return true;
+      }
+    } catch {
+      // ignore
+    }
+    return false;
+  },
+
+  setDismissLaunchPopup: (dismissForHours: number = 24): void => {
+    try {
+      const expireTime = Date.now() + dismissForHours * 60 * 60 * 1000;
+      localStorage.setItem(STORAGE_KEYS.LAUNCH_POPUP_DISMISSED, expireTime.toString());
+    } catch {
+      // ignore
+    }
+  },
+
+  clearDismissLaunchPopup: (): void => {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.LAUNCH_POPUP_DISMISSED);
+    } catch {
+      // ignore
+    }
+  },
+
+  hasUserCongratulatedLaunch: (): boolean => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.LAUNCH_POPUP_USER_CONGRATULATED) === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setUserCongratulatedLaunch: (): void => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.LAUNCH_POPUP_USER_CONGRATULATED, 'true');
+    } catch {
+      // ignore
+    }
   },
 
   // Export all application data as a JSON file backup
