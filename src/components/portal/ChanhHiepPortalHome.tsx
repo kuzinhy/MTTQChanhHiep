@@ -38,21 +38,15 @@ import { CitizenPublicServiceGuide } from './CitizenPublicServiceGuide';
 import { CitizenOpinionTrackerModal } from './CitizenOpinionTrackerModal';
 import { CitizenWelfareHubModal } from './CitizenWelfareHubModal';
 import { ARTICLE_BANNERS, getBannerForCategory } from '../../utils/officialImages';
-import { handleOptimizedImageError } from '../../lib/imageOptimization';
+import { handleOptimizedImageError, normalizeImageUrl } from '../../lib/imageOptimization';
 import { ProcedureGuideCard } from '../procedure/ProcedureGuideCard';
 import { OneStopQueueEstimatorWidget } from './OneStopQueueEstimatorWidget';
 import { LifeEventBundlesWidget } from './LifeEventBundlesWidget';
 import { CivicFeeCalculatorModal } from './CivicFeeCalculatorModal';
 import { IndoorWayfindingModal } from './IndoorWayfindingModal';
 
-const getImageUrl = (image?: string | CloudinaryImageMeta, category?: string): string => {
-  const fallback = category ? getBannerForCategory(category) : ARTICLE_BANNERS.default;
-  if (!image) return fallback;
-  if (typeof image === 'string') {
-    const trimmed = image.trim();
-    return trimmed || fallback;
-  }
-  return image.secureUrl || image.url || fallback;
+const getImageUrl = (image?: string | CloudinaryImageMeta, category?: string, title?: string): string => {
+  return normalizeImageUrl(image, category, title);
 };
 
 interface ChanhHiepPortalHomeProps {
@@ -365,9 +359,13 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
               <img
-                src={getImageUrl(currentHero.featuredImage, currentHero.category)}
-                alt={currentHero.title}
-                onError={(e) => handleOptimizedImageError(e, getBannerForCategory(currentHero.category))}
+                key={currentHero.id || heroIndex}
+                src={getImageUrl(currentHero.featuredImage, currentHero.category, currentHero.title)}
+                alt={currentHero.title || 'Tin tức Mặt trận'}
+                loading="eager"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                onError={(e) => handleOptimizedImageError(e, getBannerForCategory(currentHero.category, currentHero.title))}
                 className="w-full h-full object-cover object-top sm:object-center transition-transform duration-700 group-hover:scale-[1.02]"
               />
               {/* Low-profile Soft Bottom Gradient Overlay */}
@@ -471,9 +469,13 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                     {/* Thumbnail */}
                     <div className="w-24 h-20 sm:w-28 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative">
                       <img
-                        src={getImageUrl(art.featuredImage, art.category)}
-                        alt={art.title}
-                        onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category))}
+                        key={art.id}
+                        src={getImageUrl(art.featuredImage, art.category, art.title)}
+                        alt={art.title || 'Tin bài'}
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category, art.title))}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
@@ -935,9 +937,13 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                     className="h-44 sm:h-48 overflow-hidden bg-slate-100 cursor-pointer relative"
                   >
                     <img
-                      src={getImageUrl(art.featuredImage, art.category)}
-                      alt={art.title}
-                      onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category))}
+                      key={art.id}
+                      src={getImageUrl(art.featuredImage, art.category, art.title)}
+                      alt={art.title || 'Tin bài'}
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category, art.title))}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-2.5 left-2.5">

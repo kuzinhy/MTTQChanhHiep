@@ -40,8 +40,8 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  const fallback = fallbackSrc || (fallbackCategory ? getBannerForCategory(fallbackCategory) : ARTICLE_BANNERS.default);
-  const normalizedSrc = normalizeImageUrl(src, fallbackCategory);
+  const fallback = fallbackSrc || getBannerForCategory(fallbackCategory, alt);
+  const normalizedSrc = normalizeImageUrl(src, fallbackCategory, alt);
   const responsive = getResponsiveImageSources(normalizedSrc || fallback, variant, customSizes);
 
   // Reset error state when src changes

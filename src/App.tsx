@@ -108,6 +108,8 @@ import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOp
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine, deduplicateStaffUsers } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
+import { getBannerForCategory } from './utils/officialImages';
+import { isFacebookCdnUrl } from './lib/imageOptimization';
 import { NotificationService } from './services/notificationService';
 import { canCreatePost, canEditPost, canDeletePost, canPublishPost, mapPermissionError, getUserEffectivePermissions } from './services/permissionService';
 import { VisitorTrackerEngine } from './lib/visitorTracker';
@@ -526,7 +528,16 @@ export default function App() {
     // Start Realtime Cloud Database Sync with Firebase Firestore
     CloudDatabase.initCloudDatabase({
       onArticlesUpdate: (arts) => {
-        const cleanArts = (arts || []).filter(a => !isSeedArticle(a));
+        const cleanArts = (arts || []).filter(a => !isSeedArticle(a)).map(a => {
+          const imgStr = typeof a.featuredImage === 'string' ? a.featuredImage : a.featuredImage?.secureUrl || a.featuredImage?.url || '';
+          if (!imgStr) {
+            return {
+              ...a,
+              featuredImage: getBannerForCategory(a.category, a.title)
+            };
+          }
+          return a;
+        });
         setArticles(cleanArts);
         setIsDataSyncing(false);
 

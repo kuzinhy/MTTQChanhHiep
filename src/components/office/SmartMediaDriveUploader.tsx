@@ -10,7 +10,7 @@ import {
   extractGoogleDriveFileId,
   handleImageError
 } from '../../lib/googleDriveService';
-import { inspectImageFile, formatBytes } from '../../lib/imageOptimization';
+import { inspectImageFile, formatBytes, isFacebookCdnUrl, isFacebookPostUrl, compressAndOptimizeImageFile } from '../../lib/imageOptimization';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
   Link2, 
@@ -24,6 +24,9 @@ import {
   Copy, 
   Sparkles, 
   AlertCircle, 
+  AlertTriangle,
+  Palette,
+  ShieldCheck,
   Loader2, 
   X, 
   Eye, 
@@ -54,11 +57,17 @@ interface SmartMediaDriveUploaderProps {
 }
 
 const DEFAULT_PRESETS = [
-  { label: 'Hội nghị MTTQ', url: ARTICLE_BANNERS.thidua, folder: 'van-ban-mttq' },
-  { label: 'Không gian Bác Hồ', url: ARTICLE_BANNERS.hoctapbac, folder: 'hcm' },
-  { label: 'Chăm lo An sinh', url: ARTICLE_BANNERS.ansinh, folder: 'van-ban-mttq' },
-  { label: 'Giám sát Phản biện', url: ARTICLE_BANNERS.giamsat, folder: 'van-ban-mttq' },
-  { label: 'Khu phố Đoàn kết', url: ARTICLE_BANNERS.default, folder: 'kien-thuc-chung' },
+  { label: 'Lễ chào cờ & Dưới cờ', url: ARTICLE_BANNERS.chao_co, folder: 'van-ban-mttq', tag: 'Chào cờ' },
+  { label: 'Hội nghị & Thi đua MTTQ', url: ARTICLE_BANNERS.thidua, folder: 'van-ban-mttq', tag: 'Thi đua' },
+  { label: 'Không gian Bác Hồ', url: ARTICLE_BANNERS.hoctapbac, folder: 'hcm', tag: 'Bác Hồ' },
+  { label: 'Chăm lo An sinh & Sức khỏe', url: ARTICLE_BANNERS.ansinh, folder: 'van-ban-mttq', tag: 'An sinh' },
+  { label: 'Tuổi trẻ & Youth Fest', url: ARTICLE_BANNERS.thanhnien, folder: 'kien-thuc-chung', tag: 'Thanh niên' },
+  { label: 'Hội Liên hiệp Phụ nữ', url: ARTICLE_BANNERS.phunu, folder: 'van-ban-mttq', tag: 'Phụ nữ' },
+  { label: '21 Khu phố & Đại hội', url: ARTICLE_BANNERS.khupho, folder: 'kien-thuc-chung', tag: 'Khu phố' },
+  { label: 'Giám sát & Phản biện', url: ARTICLE_BANNERS.giamsat, folder: 'van-ban-mttq', tag: 'Giám sát' },
+  { label: 'Tết Trung thu thiếu nhi', url: ARTICLE_BANNERS.trungthu, folder: 'kien-thuc-chung', tag: 'Trung thu' },
+  { label: 'Biểu trưng Chánh Hiệp', url: ARTICLE_BANNERS.logo_chanh_hiep, folder: 'kien-thuc-chung', tag: 'Logo' },
+  { label: 'Cổng thông tin Mặt trận', url: ARTICLE_BANNERS.default, folder: 'kien-thuc-chung', tag: 'MTTQ' },
 ];
 
 export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = ({
@@ -93,11 +102,30 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const [isTestingUrlValid, setIsTestingUrlValid] = useState<boolean | null>(null);
+  const [isSavingPermanent, setIsSavingPermanent] = useState(false);
+  const [isExtractingFbPost, setIsExtractingFbPost] = useState(false);
+
   // Sync internal link input when currentValue changes
   useEffect(() => {
     setInputUrl(currentValue);
     analyzeUrl(currentValue);
   }, [currentValue]);
+
+  // Test external URL image loading
+  useEffect(() => {
+    if (!inputUrl || linkDiagnostics.isDrive || isFacebookPostUrl(inputUrl)) {
+      setIsTestingUrlValid(null);
+      return;
+    }
+    if (modeType === 'image' && (inputUrl.startsWith('http://') || inputUrl.startsWith('https://'))) {
+      const testImg = new window.Image();
+      testImg.referrerPolicy = 'no-referrer';
+      testImg.onload = () => setIsTestingUrlValid(true);
+      testImg.onerror = () => setIsTestingUrlValid(false);
+      testImg.src = inputUrl;
+    }
+  }, [inputUrl, linkDiagnostics.isDrive, modeType]);
 
   // Analyze URL to detect Google Drive file ID, high-res direct image URL, and embed URL
   const analyzeUrl = (url: string) => {
@@ -127,18 +155,107 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
     if (!inputUrl.trim()) return;
     const fileId = extractGoogleDriveFileId(inputUrl);
     const isDrive = !!fileId || inputUrl.includes('drive.google.com');
-    const directImage = getGoogleDriveDirectImageUrl(inputUrl);
+    const isFbCdn = isFacebookCdnUrl(inputUrl);
+    const isFbPost = isFacebookPostUrl(inputUrl);
+    const directImage = isFbPost ? ARTICLE_BANNERS.default : getGoogleDriveDirectImageUrl(inputUrl);
 
     onMediaSelected({
-      url: inputUrl.trim(),
+      url: isFbPost ? ARTICLE_BANNERS.default : inputUrl.trim(),
       directImageUrl: directImage || inputUrl.trim(),
-      name: currentName || (isDrive ? `Drive File (${fileId.slice(0, 8)}...)` : 'Tài liệu / Ảnh liên kết'),
+      name: currentName || (isDrive ? `Drive File (${fileId.slice(0, 8)}...)` : isFbCdn ? 'Ảnh từ Facebook' : isFbPost ? 'Banner chính thống Mặt trận' : 'Tài liệu / Ảnh liên kết'),
       isDrive,
       folderCode: selectedFolderCode
     });
   };
 
-  // Handle local file selection
+  // Convert external image (Facebook CDN or Web) into permanent persistent image in /uploads/
+  const handleSaveToPermanentStorage = async () => {
+    if (!inputUrl.trim()) return;
+    setIsSavingPermanent(true);
+    setUploadError(null);
+    try {
+      const res = await fetch('/api/media/save-external-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: inputUrl.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Không thể lưu ảnh từ liên kết.');
+      }
+      onMediaSelected({
+        url: data.directImageUrl,
+        directImageUrl: data.directImageUrl,
+        name: `Ảnh lưu trữ vĩnh viễn (${data.sizeFormatted})`,
+        size: data.sizeFormatted,
+        isDrive: false,
+        folderCode: selectedFolderCode
+      });
+      setInputUrl(data.directImageUrl);
+      analyzeUrl(data.directImageUrl);
+      setUploadSuccess(true);
+    } catch (err: any) {
+      setUploadError(err.message || 'Lỗi khi lưu ảnh vĩnh viễn');
+    } finally {
+      setIsSavingPermanent(false);
+    }
+  };
+
+  // Extract representative image from a Facebook Post link
+  const handleExtractFromFbPost = async () => {
+    if (!inputUrl.trim()) return;
+    setIsExtractingFbPost(true);
+    setUploadError(null);
+    try {
+      const res = await fetch('/api/media/parse-facebook-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: inputUrl.trim() })
+      });
+      const data = await res.json();
+      if (data.data?.imageUrl) {
+        // Automatically save it permanently to uploads so it never expires
+        try {
+          const saveRes = await fetch('/api/media/save-external-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: data.data.imageUrl })
+          });
+          const saveData = await saveRes.json();
+          const finalUrl = (saveData.success && saveData.directImageUrl) ? saveData.directImageUrl : data.data.imageUrl;
+          onMediaSelected({
+            url: finalUrl,
+            directImageUrl: finalUrl,
+            name: `Ảnh trích xuất từ bài viết Facebook (${data.data.title || 'Bài viết'})`,
+            isDrive: false,
+            folderCode: selectedFolderCode
+          });
+          setInputUrl(finalUrl);
+          analyzeUrl(finalUrl);
+          setUploadSuccess(true);
+          return;
+        } catch {
+          onMediaSelected({
+            url: data.data.imageUrl,
+            directImageUrl: data.data.imageUrl,
+            name: `Ảnh trích xuất từ bài viết Facebook`,
+            isDrive: false
+          });
+          setInputUrl(data.data.imageUrl);
+          analyzeUrl(data.data.imageUrl);
+          setUploadSuccess(true);
+        }
+      } else {
+        setUploadError('Facebook bảo mật bài viết này. Vui lòng bấm tab "Tải ảnh từ máy" để tải ảnh lên hoặc chọn Banner phù hợp bên tab "Ảnh mẫu".');
+      }
+    } catch (err: any) {
+      setUploadError('Không thể lấy ảnh từ bài viết Facebook: ' + err.message);
+    } finally {
+      setIsExtractingFbPost(false);
+    }
+  };
+
+  // Handle local file selection with auto client-side image compression
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -147,7 +264,29 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
     setUploadError(null);
     setUploadSuccess(false);
 
-    // Read as DataURL for immediate preview
+    const isImageFile = file.type.startsWith('image/') || modeType === 'image';
+    if (isImageFile) {
+      try {
+        const compressed = await compressAndOptimizeImageFile(file);
+        const originalMb = (compressed.originalSize / (1024 * 1024)).toFixed(2);
+        const compKb = Math.round(compressed.compressedSize / 1024);
+        
+        onMediaSelected({
+          url: compressed.dataUrl,
+          directImageUrl: compressed.dataUrl,
+          name: file.name,
+          size: `${compKb} KB (gốc ${originalMb} MB)`,
+          isDrive: false,
+          folderCode: selectedFolderCode
+        });
+        setUploadSuccess(true);
+        return;
+      } catch (compErr) {
+        console.warn('[SmartMediaDriveUploader] Compression fallback:', compErr);
+      }
+    }
+
+    // Fallback DataURL reader for non-images
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
@@ -162,6 +301,7 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
           isDrive: false,
           folderCode: selectedFolderCode
         });
+        setUploadSuccess(true);
       }
     };
     reader.readAsDataURL(file);
@@ -374,6 +514,121 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                   Tự động chuyển đổi HD
                 </span>
+              </div>
+            )}
+
+            {/* Facebook Post Detection Card */}
+            {isFacebookPostUrl(inputUrl) && (
+              <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-xl space-y-2 text-xs text-blue-950 shadow-2xs">
+                <div className="flex items-center gap-2 font-bold text-blue-900">
+                  <ExternalLink className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>Phát hiện liên kết bài viết Facebook (Trang web HTML)</span>
+                </div>
+                <p className="text-[11px] text-blue-800 leading-relaxed">
+                  Đây là liên kết trang bài viết Facebook chứ không phải tệp ảnh trực tiếp. Để bài viết có ảnh đại diện đẹp và không bị lỗi, bạn có thể:
+                </p>
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={handleExtractFromFbPost}
+                    disabled={isExtractingFbPost}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
+                  >
+                    {isExtractingFbPost ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isExtractingFbPost ? 'Đang trích xuất ảnh...' : '🔍 Tự động trích xuất ảnh từ bài viết Facebook này'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('upload')}
+                    className="px-2.5 py-1.5 bg-white border border-blue-200 hover:bg-blue-100 text-blue-900 font-bold rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Tải ảnh từ máy lên</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('presets')}
+                    className="px-2.5 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-950 font-bold rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Palette className="w-3.5 h-3.5" />
+                    <span>Chọn Banner chuyên đề</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Facebook CDN Image Detection Card */}
+            {isFacebookCdnUrl(inputUrl) && !isFacebookPostUrl(inputUrl) && (
+              <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-xl space-y-2 text-xs text-amber-950 shadow-2xs">
+                <div className="flex items-center gap-2 font-bold text-amber-900">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Phát hiện liên kết ảnh Facebook CDN (fbcdn / token có thời hạn)</span>
+                </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  Liên kết ảnh trực tiếp từ Facebook có kèm mã định danh có thời hạn và có thể <strong>hết hạn sau vài tuần (lỗi 403)</strong>. Để bài viết luôn hiển thị vĩnh viễn, bạn nên chọn:
+                </p>
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={handleSaveToPermanentStorage}
+                    disabled={isSavingPermanent}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
+                  >
+                    {isSavingPermanent ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isSavingPermanent ? 'Đang lưu vào hệ thống...' : '📥 Tải & Lưu ảnh vĩnh viễn (Khuyên dùng - 100% không lo hết hạn)'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleApplyLink}
+                    className="px-2.5 py-1.5 bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 font-bold rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Áp dụng dùng qua Proxy chống chặn</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('presets')}
+                    className="px-2.5 py-1.5 bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Palette className="w-3.5 h-3.5" />
+                    <span>Chọn Banner chuyên đề</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Live Web Image Tester (for non-Drive and non-Facebook URLs) */}
+            {inputUrl && !isFacebookCdnUrl(inputUrl) && !linkDiagnostics.isDrive && (
+              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800 text-[11px]">Trạng thái kết nối ảnh:</span>
+                  {isTestingUrlValid === true && (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Liên kết hoạt động tốt
+                    </span>
+                  )}
+                  {isTestingUrlValid === false && (
+                    <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> Trang nguồn chặn hiển thị
+                    </span>
+                  )}
+                  {isTestingUrlValid === null && (
+                    <span className="text-[10px] text-slate-400">Đang kiểm tra kết nối...</span>
+                  )}
+                </div>
+                {isTestingUrlValid === false && (
+                  <p className="text-[10.5px] text-red-600 leading-tight">
+                    Liên kết này bị máy chủ nguồn chặn truy cập trực tiếp (CORS/Hotlink). Bạn nên lưu ảnh về máy tính và bấm tab <strong>"Tải lên từ thiết bị"</strong> hoặc <strong>"Ảnh mẫu"</strong> để đảm bảo hiển thị 100%.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -591,6 +846,7 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
                 <img
                   src={getGoogleDriveDirectImageUrl(currentValue)}
                   alt="Xem trước"
+                  referrerPolicy="no-referrer"
                   onError={(e) => handleImageError(e, ARTICLE_BANNERS.default)}
                   className="w-full h-full object-cover"
                 />

@@ -66,6 +66,8 @@ import {
   sortOpinionsNewestFirst,
   sortEventsNewestFirst
 } from './dateUtils';
+import { getBannerForCategory } from '../utils/officialImages';
+import { isFacebookCdnUrl } from './imageOptimization';
 
 // ==========================================
 // OFFLINE STORAGE & SMART CLOUD SYNC ENGINE
@@ -724,12 +726,32 @@ export const AppStorageEngine = {
     const raw = loadInitialData<Article[]>(STORAGE_KEYS.ARTICLES, []);
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
     const filtered = (raw || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.id.startsWith('demo-') && !(a as any).isSample);
-    return sortArticlesNewestFirst(filtered);
+    const sanitized = filtered.map(a => {
+      const imgStr = typeof a.featuredImage === 'string' ? a.featuredImage : a.featuredImage?.secureUrl || a.featuredImage?.url || '';
+      if (!imgStr) {
+        return {
+          ...a,
+          featuredImage: getBannerForCategory(a.category, a.title)
+        };
+      }
+      return a;
+    });
+    return sortArticlesNewestFirst(sanitized);
   },
   saveArticles: (articles: Article[]) => {
     const demoIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-7', 'art-8']);
     const filtered = (articles || []).filter(a => a && a.id && !demoIds.has(a.id) && !a.id.startsWith('demo-') && !(a as any).isSample);
-    saveStorageData(STORAGE_KEYS.ARTICLES, sortArticlesNewestFirst(filtered));
+    const sanitized = filtered.map(a => {
+      const imgStr = typeof a.featuredImage === 'string' ? a.featuredImage : a.featuredImage?.secureUrl || a.featuredImage?.url || '';
+      if (!imgStr) {
+        return {
+          ...a,
+          featuredImage: getBannerForCategory(a.category, a.title)
+        };
+      }
+      return a;
+    });
+    saveStorageData(STORAGE_KEYS.ARTICLES, sortArticlesNewestFirst(sanitized));
   },
 
   getDeletedDocIds: (): Set<string> => {

@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -1343,6 +1344,125 @@ Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đ
     }
   });
 
+  // Route: Lưu ảnh bên ngoài (Facebook CDN / Web) thành ảnh vĩnh viễn trên máy chủ (/uploads/)
+  app.post('/api/media/save-external-image', async (req: Request, res: Response) => {
+    try {
+      const { url } = req.body;
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ success: false, error: 'Thiếu đường dẫn (URL) ảnh cần lưu.' });
+      }
+
+      let targetUrl = url.trim();
+      // Google Drive direct image handling
+      const gDriveMatch = targetUrl.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/i);
+      if (gDriveMatch && gDriveMatch[1]) {
+        targetUrl = `https://lh3.googleusercontent.com/d/${gDriveMatch[1]}=w2000`;
+      }
+
+      const isFb = /fbcdn\.net|facebook\.com|scontent|lookaside\.fbsbx/i.test(targetUrl);
+      const fetchHeaders: Record<string, string> = {
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+      };
+      if (!isFb && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))) {
+        try {
+          const u = new URL(targetUrl);
+          fetchHeaders['Referer'] = `${u.protocol}//${u.host}/`;
+        } catch {}
+      }
+
+      const response = await fetch(targetUrl, {
+        method: 'GET',
+        headers: fetchHeaders
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({
+          success: false,
+          error: `Không thể tải ảnh từ máy chủ nguồn (HTTP ${response.status}). Có thể đường dẫn đã hết hạn.`
+        });
+      }
+
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      let ext = 'jpg';
+      if (contentType.includes('png')) ext = 'png';
+      else if (contentType.includes('webp')) ext = 'webp';
+      else if (contentType.includes('svg')) ext = 'svg';
+
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+      const fileName = `art_img_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const filePath = path.join(uploadsDir, fileName);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      fs.writeFileSync(filePath, buffer);
+
+      const sizeKb = Math.round(buffer.length / 1024);
+      const directImageUrl = `/uploads/${fileName}`;
+
+      console.log(`[MediaSave] Successfully saved external image to permanent storage: ${directImageUrl} (${sizeKb} KB)`);
+
+      return res.json({
+        success: true,
+        url: directImageUrl,
+        directImageUrl,
+        fileName,
+        sizeBytes: buffer.length,
+        sizeFormatted: `${sizeKb} KB`,
+        contentType
+      });
+    } catch (err: any) {
+      console.error('[MediaSave] Error saving external image:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Lỗi khi lưu ảnh vĩnh viễn' });
+    }
+  });
+
+  // Route: Trích xuất thông tin & ảnh đại diện từ bài viết Facebook
+  app.post('/api/media/parse-facebook-post', async (req: Request, res: Response) => {
+    try {
+      const { url } = req.body;
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ success: false, error: 'Thiếu đường dẫn bài viết Facebook.' });
+      }
+
+      const targetUrl = url.trim();
+      const fbRes = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+          'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7'
+        }
+      });
+
+      let title = '';
+      let description = '';
+      let imageUrl = '';
+
+      if (fbRes.ok) {
+        const html = await fbRes.text();
+        const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i);
+        if (ogTitleMatch && ogTitleMatch[1]) title = ogTitleMatch[1];
+
+        const ogDescMatch = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i);
+        if (ogDescMatch && ogDescMatch[1]) description = ogDescMatch[1];
+
+        const ogImgMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+        if (ogImgMatch && ogImgMatch[1]) imageUrl = ogImgMatch[1];
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          title,
+          description,
+          imageUrl,
+          url: targetUrl
+        }
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // AI Route: Bóc tách Tin tức từ Link URL (Parse News Link)
   app.post('/api/ai/parse-news-link', async (req: Request, res: Response) => {
     try {
@@ -1353,16 +1473,27 @@ Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đ
 
       const ai = getGeminiClient();
       let scrapedText = '';
+      let openGraphImage = '';
+      const isFbUrl = /facebook\.com|fb\.watch|fb\.me/i.test(url);
 
       try {
         // Try fetching page content
+        const userAgent = isFbUrl
+          ? 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+          : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
         const pageRes = await fetch(url, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            'User-Agent': userAgent,
+            'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7'
           }
         });
         if (pageRes.ok) {
           const html = await pageRes.text();
+          const ogImg = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+          if (ogImg && ogImg[1]) {
+            openGraphImage = ogImg[1];
+          }
           // Stripping HTML tags for plain text context
           scrapedText = html
             .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
@@ -1378,6 +1509,7 @@ Hãy phân tích toàn bộ dữ liệu trên và trả về DUY NHẤT một đ
       const prompt = `Bạn là Trợ lý AI Bóc tách dữ liệu Báo chí & Tin tức cho Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.
 Nhiệm vụ: Bóc tách nội dung chi tiết bài viết từ đường dẫn URL sau: "${url}".
 ${scrapedText ? `Dưới đây là một phần nội dung đã quét được từ trang web:\n"""\n${scrapedText}\n"""` : ''}
+${openGraphImage ? `Ảnh đại diện bóc tách được từ mã nguồn trang web: "${openGraphImage}"` : ''}
 
 Hãy phân tích và trả về định dạng JSON thuần hợp lệ (không kèm mạ markdown backticks) với đúng các trường sau:
 {
@@ -1387,9 +1519,9 @@ Hãy phân tích và trả về định dạng JSON thuần hợp lệ (không k
   "category": "Một trong các danh mục: Hoạt động Mặt trận | Học tập và làm theo Bác | Đại đoàn kết | An sinh xã hội | Hoạt động khu phố | Tuyên truyền & Nghị quyết | Dân vận khéo | Khu phố đoàn kết | Giám sát - Phản biện | Phong trào thi đua",
   "tags": ["Từ khóa 1", "Từ khóa 2", "Từ khóa 3"],
   "authorName": "Tên tác giả hoặc tên cơ quan thông tấn",
-  "sourceName": "Tên báo/trang tin gốc (vd: Báo Bình Dương, Cổng TTĐT TP.HCM...)",
+  "sourceName": "Tên báo/trang tin gốc (vd: Báo Bình Dương, Cổng TTĐT TP.HCM, Trang Thông tin điện tử MTTQ Phường Chánh Hiệp...)",
   "publishDate": "YYYY-MM-DD",
-  "imageUrl": "Đường dẫn ảnh nếu bóc tách được từ link hoặc chuỗi rỗng nếu không có",
+  "imageUrl": "${openGraphImage || 'Đường dẫn ảnh nếu bóc tách được từ link hoặc chuỗi rỗng nếu không có'}",
   "videoUrl": "Đường dẫn video YouTube hoặc Facebook nếu bài viết có video clip/phóng sự, hoặc chuỗi rỗng nếu không có"
 }`;
 
@@ -1402,6 +1534,9 @@ Hãy phân tích và trả về định dạng JSON thuần hợp lệ (không k
       });
 
       const parsed = JSON.parse(response.text || '{}');
+      if (!parsed.imageUrl && openGraphImage) {
+        parsed.imageUrl = openGraphImage;
+      }
       res.json({ success: true, data: parsed });
     } catch (error: any) {
       console.error('Error in /api/ai/parse-news-link:', error);

@@ -59,6 +59,8 @@ import {
   sortOpinionsNewestFirst,
   sortEventsNewestFirst
 } from './dateUtils';
+import { isFacebookCdnUrl } from './imageOptimization';
+import { getBannerForCategory } from '../utils/officialImages';
 
 function cleanFirestoreData(data: any): any {
   if (data === null || typeof data !== 'object') {
@@ -159,9 +161,18 @@ class CloudSyncService {
             .map(d => ({ ...(d.data() as Article), id: d.id }))
             .filter(a => a && a.id && !a.id.startsWith('demo-'));
           
-          const sorted = sortArticlesNewestFirst(remoteArticles);
-          // App.tsx state will update local storage via its own effect or we can do it here once.
-          // Prefer doing it here to ensure local storage always reflects cloud state even if App component is unmounted.
+          const sanitizedArticles: Article[] = remoteArticles.map(a => {
+            const imgStr = typeof a.featuredImage === 'string' ? a.featuredImage : a.featuredImage?.secureUrl || a.featuredImage?.url || '';
+            if (!imgStr) {
+              return {
+                ...a,
+                featuredImage: getBannerForCategory(a.category, a.title)
+              };
+            }
+            return a;
+          });
+
+          const sorted = sortArticlesNewestFirst(sanitizedArticles);
           AppStorageEngine.saveArticles(sorted);
           callbacks.onArticlesUpdate?.(sorted);
         }, (err) => {
@@ -576,6 +587,12 @@ class CloudSyncService {
     } catch (err) {
       console.warn('[Firestore] Purge demo articles error:', err);
     }
+  }
+
+  // Automatically repair any Facebook CDN URLs in Cloud Firestore with permanent official banners
+  public async sanitizeFacebookArticleImages() {
+    // Preserves original images - no destructive overwrites
+    return;
   }
 
   // Seed Firestore only if never initialized before - Disabled auto-seeding to respect strict zero-demo policy

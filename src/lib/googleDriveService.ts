@@ -510,6 +510,7 @@ export function getGoogleDriveDirectDownloadUrl(urlOrId: string | undefined | nu
 
 import { CloudinaryImageMeta } from '../types';
 import { ARTICLE_BANNERS } from '../utils/officialImages';
+import { isFacebookCdnUrl } from './imageOptimization';
 
 /**
  * Converts a Google Drive share link, view link, Cloudinary image meta, or file ID into a high-resolution direct image URL

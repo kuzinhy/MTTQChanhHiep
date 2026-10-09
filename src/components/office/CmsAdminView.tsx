@@ -27,8 +27,8 @@ import { ChanhHiepDriveFolderBar } from './ChanhHiepDriveFolderBar';
 import { SmartMediaDriveUploader } from './SmartMediaDriveUploader';
 import { ContentImageDriveModal } from './ContentImageDriveModal';
 import { EmbeddedVideoPlayer, parseVideoUrl } from '../common/EmbeddedVideoPlayer';
-import { inspectImageFile, formatBytes, getOptimalImageUrl } from '../../lib/imageOptimization';
-import { ARTICLE_BANNERS } from '../../utils/officialImages';
+import { inspectImageFile, formatBytes, getOptimalImageUrl, normalizeImageUrl, handleOptimizedImageError, isFacebookCdnUrl } from '../../lib/imageOptimization';
+import { ARTICLE_BANNERS, getBannerForCategory } from '../../utils/officialImages';
 import { 
   Article, 
   OfficialDocument, 
@@ -139,12 +139,17 @@ interface CmsAdminViewProps {
 }
 
 const DEFAULT_IMAGE_PRESETS = [
+  { label: 'Lễ chào cờ', url: ARTICLE_BANNERS.chao_co },
   { label: 'Hội nghị MTTQ', url: ARTICLE_BANNERS.thidua },
   { label: 'Chăm lo An sinh', url: ARTICLE_BANNERS.ansinh },
   { label: 'Không gian Bác Hồ', url: ARTICLE_BANNERS.hoctapbac },
   { label: 'Giám sát Phản biện', url: ARTICLE_BANNERS.giamsat },
-  { label: 'Khu phố Dân cư', url: ARTICLE_BANNERS.default },
-  { label: 'Đoàn kết Dân tộc', url: ARTICLE_BANNERS.thidua },
+  { label: 'Tuổi trẻ Chánh Hiệp', url: ARTICLE_BANNERS.thanhnien },
+  { label: 'Hội Phụ nữ', url: ARTICLE_BANNERS.phunu },
+  { label: '21 Khu phố', url: ARTICLE_BANNERS.khupho },
+  { label: 'Tết Trung thu', url: ARTICLE_BANNERS.trungthu },
+  { label: 'Logo Chánh Hiệp', url: ARTICLE_BANNERS.logo_chanh_hiep },
+  { label: 'Cổng thông tin', url: ARTICLE_BANNERS.default },
 ];
 
 const ARTICLE_CATEGORIES: ArticleCategory[] = [
@@ -681,7 +686,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setArtContent(art.content);
     setArtCategory(art.category);
     setArtAuthor(art.authorName || 'Cán bộ Tuyên giáo');
-    setArtImage(typeof art.featuredImage === 'string' ? art.featuredImage : art.featuredImage?.secureUrl || DEFAULT_IMAGE_PRESETS[0].url);
+    const rawImg = typeof art.featuredImage === 'string' ? art.featuredImage : art.featuredImage?.secureUrl || DEFAULT_IMAGE_PRESETS[0].url;
+    setArtImage(rawImg);
     setArtTags((art.tags || []).join(', '));
     setArtStatus(art.status || 'Published');
     setArtIsFeatured(!!art.isFeatured);
@@ -859,7 +865,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         slug: finalSlug,
         summary: finalSummary,
         content: artContent.trim(),
-        featuredImage: artImage,
+        featuredImage: (artImage && artImage.trim()) ? artImage.trim() : getBannerForCategory(artCategory, artTitle),
         category: artCategory,
         tags: parsedTags.length > 0 ? parsedTags : ['Mặt trận', 'Chánh Hiệp'],
         status: effectiveStatus,
@@ -931,7 +937,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         slug: finalSlug,
         summary: finalSummary,
         content: artContent.trim(),
-        featuredImage: artImage,
+        featuredImage: (artImage && artImage.trim()) ? artImage.trim() : getBannerForCategory(artCategory, artTitle),
         category: artCategory,
         tags: parsedTags.length > 0 ? parsedTags : ['Mặt trận', 'Chánh Hiệp'],
         status: effectiveStatus,
@@ -1852,7 +1858,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
                     {pendingArticles.map(art => {
-                      const imgUrl = typeof art.featuredImage === 'string' ? art.featuredImage : (art.featuredImage?.url || DEFAULT_IMAGE_PRESETS[0].url);
+                      const imgUrl = normalizeImageUrl(art.featuredImage, art.category, art.title);
                       return (
                         <tr key={art.id} className="hover:bg-amber-50/40 transition-colors">
                           <td className="px-4 py-3.5 max-w-md">
@@ -1860,6 +1866,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                               <img
                                 src={imgUrl}
                                 alt={art.title}
+                                onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category, art.title))}
                                 className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
                               />
                               <div className="min-w-0">
@@ -2075,17 +2082,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                         <td className="px-4 py-3.5 max-w-md">
                           <div className="flex items-start gap-3">
                             <img
-                              src={getGoogleDriveDirectImageUrl(art.featuredImage) || DEFAULT_IMAGE_PRESETS[0].url}
+                              src={normalizeImageUrl(art.featuredImage, art.category, art.title)}
                               alt={art.title}
                               className="w-16 h-12 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
                               onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                const imgStr = typeof art.featuredImage === 'string' ? art.featuredImage : art.featuredImage?.secureUrl || '';
-                                if (imgStr && imgStr.includes('drive.google.com') && !target.dataset.triedThumbnail) {
-                                  target.dataset.triedThumbnail = 'true';
-                                  const match = imgStr.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || imgStr.match(/id=([a-zA-Z0-9_-]+)/);
-                                  if (match && match[1]) target.src = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w2000`;
-                                }
+                                handleOptimizedImageError(e, getBannerForCategory(art.category, art.title));
                               }}
                             />
                             <div className="space-y-1">
@@ -2334,7 +2335,12 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                         <td className="px-4 py-4 max-w-md">
                           <div className="flex items-start gap-3">
                             <div className="w-16 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
-                              <img src={sub.thumbnailUrl || DEFAULT_IMAGE_PRESETS[0].url} className="w-full h-full object-cover" alt="" />
+                              <img 
+                                src={normalizeImageUrl(sub.thumbnailUrl, sub.unit, sub.title)} 
+                                onError={(e) => handleOptimizedImageError(e, getBannerForCategory(sub.unit, sub.title))}
+                                className="w-full h-full object-cover" 
+                                alt="" 
+                              />
                             </div>
                             <div className="space-y-0.5">
                               <p className="font-black text-xs text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors">{sub.title}</p>
@@ -4102,17 +4108,11 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
 
               {previewArticle.featuredImage && (
                 <img
-                  src={getGoogleDriveDirectImageUrl(previewArticle.featuredImage)}
+                  src={normalizeImageUrl(previewArticle.featuredImage, previewArticle.category, previewArticle.title)}
                   alt={previewArticle.title}
                   className="w-full h-72 md:h-80 object-cover rounded-2xl border border-slate-200 shadow-sm"
                   onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    const imgStr = typeof previewArticle.featuredImage === 'string' ? previewArticle.featuredImage : previewArticle.featuredImage?.secureUrl || '';
-                    if (imgStr && imgStr.includes('drive.google.com') && !target.dataset.triedThumbnail) {
-                      target.dataset.triedThumbnail = 'true';
-                      const match = imgStr.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || imgStr.match(/id=([a-zA-Z0-9_-]+)/);
-                      if (match && match[1]) target.src = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w2000`;
-                    }
+                    handleOptimizedImageError(e, getBannerForCategory(previewArticle.category, previewArticle.title));
                   }}
                 />
               )}
@@ -4305,7 +4305,12 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
 
               <div className="space-y-4">
                 <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <img src={respondingSubmission.thumbnailUrl} className="w-32 h-24 rounded-xl object-cover border border-slate-200" alt="" />
+                  <img 
+                    src={normalizeImageUrl(respondingSubmission.thumbnailUrl, respondingSubmission.unit, respondingSubmission.title)} 
+                    onError={(e) => handleOptimizedImageError(e, getBannerForCategory(respondingSubmission.unit, respondingSubmission.title))}
+                    className="w-32 h-24 rounded-xl object-cover border border-slate-200" 
+                    alt="" 
+                  />
                   <div className="space-y-1 flex-1">
                     <h2 className="font-black text-lg text-slate-900 leading-tight">{respondingSubmission.title}</h2>
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Tác giả: {respondingSubmission.authorName} • {respondingSubmission.unit}</p>

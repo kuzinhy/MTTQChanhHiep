@@ -42,6 +42,12 @@ export async function mediaProxyHandler(req: Request, res: Response) {
 
     // List of trusted / common cultural and media domains
     const safeDomains = [
+      'fbcdn.net',
+      'facebook.com',
+      'scontent',
+      'fna.fbcdn.net',
+      'lookaside.fbsbx.com',
+      'fb.me',
       'hochiminh.vn',
       'drive.google.com',
       'google.com',
@@ -76,7 +82,8 @@ export async function mediaProxyHandler(req: Request, res: Response) {
       'pinimg.com'
     ];
 
-    const isDomainAllowed = safeDomains.some(domain => urlObj.hostname.endsWith(domain)) ||
+    const isFb = urlObj.hostname.includes('fbcdn.net') || urlObj.hostname.includes('facebook.com') || urlObj.hostname.includes('fbsbx.com');
+    const isDomainAllowed = isFb || safeDomains.some(domain => urlObj.hostname.endsWith(domain)) ||
       /\.(mp3|m4a|wav|ogg|aac|mp4|webm|mov|jpg|jpeg|png|webp|gif|svg|avif)(\?.*)?$/i.test(mediaUrl) ||
       req.headers.accept?.includes('image/') ||
       urlObj.pathname.includes('/image') ||
@@ -86,6 +93,8 @@ export async function mediaProxyHandler(req: Request, res: Response) {
       return res.status(403).json({ error: 'Domain hoặc tệp tư liệu không được cho phép qua proxy' });
     }
 
+    const refererHeader = isFb ? '' : `${urlObj.protocol}//${urlObj.host}/`;
+
     // Use a standard modern browser User-Agent so government and image hosting sites don't block requests
     const response = await fetch(mediaUrl, {
       method: 'GET',
@@ -93,7 +102,7 @@ export async function mediaProxyHandler(req: Request, res: Response) {
         'Range': req.headers.range || '',
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,audio/*,video/*,*/*;q=0.8',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Referer': `${urlObj.protocol}//${urlObj.host}/`
+        ...(refererHeader ? { 'Referer': refererHeader } : {})
       }
     });
 
