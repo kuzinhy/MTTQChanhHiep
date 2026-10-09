@@ -1031,7 +1031,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                         </span>
                         <span className="flex items-center gap-1">
                           <Eye className="w-3 h-3 text-slate-400" />
-                          {(art.views || 1256).toLocaleString('vi-VN')}
+                          {(art.views ?? 0).toLocaleString('vi-VN')}
                         </span>
                         {art.authorName && (
                           <span className="truncate max-w-[110px] text-slate-500 font-medium">

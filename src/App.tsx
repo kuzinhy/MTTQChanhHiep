@@ -562,6 +562,22 @@ export default function App() {
   // Initialize real-time visitor & session tracking, Offline Sync & Firebase Cloud Sync
   useEffect(() => {
     VisitorTrackerEngine.init();
+    if (articles.length > 0) {
+      VisitorTrackerEngine.syncArticlesBaseline(articles);
+    }
+
+    const handleArticleViewsUpdated = (e: any) => {
+      const { articleId, views } = e.detail || {};
+      if (articleId && typeof views === 'number') {
+        setArticles(prev => {
+          const next = prev.map(a => a.id === articleId ? { ...a, views } : a);
+          AppStorageEngine.saveArticles(next);
+          return next;
+        });
+      }
+    };
+
+    window.addEventListener('article_views_updated', handleArticleViewsUpdated);
     const cleanupOfflineSync = AppStorageEngine.initOfflineSyncEngine();
 
     // Đánh dấu tên miền đã khởi tạo và dọn sạch seed data
@@ -680,6 +696,7 @@ export default function App() {
     }, 1500);
 
     return () => {
+      window.removeEventListener('article_views_updated', handleArticleViewsUpdated);
       cleanupOfflineSync();
       clearTimeout(timer);
     };
@@ -1675,6 +1692,16 @@ export default function App() {
                   }}
                   onGoToOpinion={() => handleSelectPortalTab('opinion')}
                   onSelectDocumentTab={() => handleSelectPortalTab('documents')}
+                  onArticleViewsUpdated={(artId, newViews) => {
+                    setArticles(prev => {
+                      const next = prev.map(a => a.id === artId ? { ...a, views: newViews } : a);
+                      AppStorageEngine.saveArticles(next);
+                      return next;
+                    });
+                    if (selectedArticle && selectedArticle.id === artId) {
+                      setSelectedArticle(prev => prev ? { ...prev, views: newViews } : null);
+                    }
+                  }}
                 />
               ) : selectedDocument ? (
                 <DocumentDetailPage

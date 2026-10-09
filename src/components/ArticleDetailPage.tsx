@@ -28,6 +28,7 @@ import {
   HardDrive
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { VisitorTrackerEngine } from '../lib/visitorTracker';
 
 interface ArticleDetailPageProps {
   article: Article;
@@ -37,6 +38,7 @@ interface ArticleDetailPageProps {
   onBack: () => void;
   onGoToOpinion?: () => void;
   onSelectDocumentTab?: () => void;
+  onArticleViewsUpdated?: (articleId: string, newViews: number) => void;
 }
 
 export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
@@ -47,6 +49,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   onBack,
   onGoToOpinion = () => {},
   onSelectDocumentTab,
+  onArticleViewsUpdated,
 }) => {
   const [copied, setCopied] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -54,6 +57,33 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   const [commentSubmitted, setCommentSubmitted] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [lightboxTitle, setLightboxTitle] = useState<string | undefined>(undefined);
+  const [liveViews, setLiveViews] = useState<number>(article?.views || 0);
+
+  // Sync and record article view on server with anti-duplicate debounce
+  useEffect(() => {
+    if (!article?.id) return;
+
+    setLiveViews(article.views || 0);
+
+    let isMounted = true;
+    VisitorTrackerEngine.recordArticleView(
+      article.id,
+      article.title,
+      article.category,
+      article.views || 0
+    ).then((result) => {
+      if (isMounted && result.views) {
+        setLiveViews(result.views);
+        if (onArticleViewsUpdated) {
+          onArticleViewsUpdated(article.id, result.views);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [article?.id]);
 
   const safeArticles: Article[] = Array.isArray(allArticles) ? allArticles : (Array.isArray(articles) ? articles : []);
   const effectiveVideoUrl = article?.videoUrl || (article?.originalUrl && parseVideoUrl(article.originalUrl)?.type !== 'unsupported' ? article.originalUrl : undefined);
@@ -197,9 +227,10 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                   <Calendar className="w-4 h-4 text-blue-600" />
                   {article.publishDate}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Eye className="w-4 h-4 text-blue-600" />
-                  {article.views} lượt xem
+                <span className="flex items-center gap-1.5 font-bold text-slate-800 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs" title="Số lượt xem thực tế được lưu và xác thực trên máy chủ">
+                  <Eye className="w-3.5 h-3.5 text-blue-600" />
+                  <span>{(liveViews || 0).toLocaleString('vi-VN')} lượt xem</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" title="Đồng bộ máy chủ thời gian thực" />
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
                   <Clock className="w-4 h-4 text-slate-400" />
@@ -479,7 +510,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                         {rel.title}
                       </h4>
                       <p className="text-[10px] text-slate-500">
-                        {rel.publishDate} • {rel.views} lượt xem
+                        {rel.publishDate} • {(rel.views || 0).toLocaleString('vi-VN')} lượt xem
                       </p>
                     </div>
                   </div>
@@ -514,7 +545,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                       {pop.title}
                     </h4>
                     <span className="text-[10px] text-slate-400 font-semibold block">
-                      {pop.views} lượt xem
+                      {(pop.views || 0).toLocaleString('vi-VN')} lượt xem
                     </span>
                   </div>
                 </div>
