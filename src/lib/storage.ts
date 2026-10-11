@@ -1941,11 +1941,16 @@ export const AppStorageEngine = {
   },
 
   // Export all application data as a JSON file backup
-  exportFullDatabase: () => {
+  exportFullDatabase: (customFileName?: string) => {
     const backupData = {
-      version: '2.0',
+      version: '3.0',
       exportedAt: new Date().toISOString(),
       source: 'MTTQ Phường Chánh Hiệp - Văn phòng số & Cổng thông tin',
+      systemInfo: {
+        app: 'Ủy ban MTTQ Việt Nam Phường Chánh Hiệp',
+        environment: 'Production Web App',
+        storageEngine: 'AppStorageEngine v3.0'
+      },
       data: {
         articles: AppStorageEngine.getArticles(),
         documents: AppStorageEngine.getDocuments(),
@@ -1964,45 +1969,186 @@ export const AppStorageEngine = {
         auditLogs: AppStorageEngine.getAuditLogs(),
         currentUser: AppStorageEngine.getCurrentUser(),
         articleSubmissions: AppStorageEngine.getArticleSubmissions(),
-        feedback: AppStorageEngine.getFeedback()
+        feedback: AppStorageEngine.getFeedback(),
+        launchPopupConfig: AppStorageEngine.getLaunchPopupConfig()
       }
     };
+
+    // Save timestamp of last backup
+    try {
+      localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
+    } catch {}
 
     const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `backup_mttq_chanhhiep_${new Date().toISOString().substring(0, 10)}.json`;
+    const defaultName = `backup_mttq_chanhhiep_${new Date().toISOString().substring(0, 10)}.json`;
+    a.download = customFileName || defaultName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    return backupData;
   },
 
-  // Import application data from JSON
-  importDatabaseFromJson: (jsonText: string): boolean => {
+  // Get current dataset raw snapshot object
+  getFullDatabaseObject: () => {
+    return {
+      version: '3.0',
+      exportedAt: new Date().toISOString(),
+      source: 'MTTQ Phường Chánh Hiệp - System Snapshot',
+      data: {
+        articles: AppStorageEngine.getArticles(),
+        documents: AppStorageEngine.getDocuments(),
+        competitions: AppStorageEngine.getCompetitions(),
+        opinions: AppStorageEngine.getOpinions(),
+        tasks: AppStorageEngine.getTasks(),
+        events: AppStorageEngine.getEvents(),
+        notes: AppStorageEngine.getNotes(),
+        templates: AppStorageEngine.getTemplates(),
+        submissions: AppStorageEngine.getSubmissions(),
+        driveFiles: AppStorageEngine.getDriveFiles(),
+        staffUsers: AppStorageEngine.getStaffUsers(),
+        memberOrganizations: AppStorageEngine.getMemberOrganizations(),
+        areas: AppStorageEngine.getAreas(),
+        organizations: AppStorageEngine.getOrganizations(),
+        auditLogs: AppStorageEngine.getAuditLogs(),
+        currentUser: AppStorageEngine.getCurrentUser(),
+        articleSubmissions: AppStorageEngine.getArticleSubmissions(),
+        feedback: AppStorageEngine.getFeedback(),
+        launchPopupConfig: AppStorageEngine.getLaunchPopupConfig()
+      }
+    };
+  },
+
+  // Create an emergency rollback backup in localStorage before restoring
+  createEmergencySnapshot: () => {
+    try {
+      const db = AppStorageEngine.getFullDatabaseObject();
+      localStorage.setItem('mttq_emergency_backup_snapshot', JSON.stringify(db));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  // Restore from the emergency rollback snapshot
+  restoreEmergencySnapshot: (): boolean => {
+    try {
+      const raw = localStorage.getItem('mttq_emergency_backup_snapshot');
+      if (!raw) return false;
+      return AppStorageEngine.importDatabaseFromJson(raw, 'OVERWRITE');
+    } catch {
+      return false;
+    }
+  },
+
+  // Calculate database health statistics & record counts
+  getDatabaseHealthStats: () => {
+    const articles = AppStorageEngine.getArticles();
+    const documents = AppStorageEngine.getDocuments();
+    const competitions = AppStorageEngine.getCompetitions();
+    const opinions = AppStorageEngine.getOpinions();
+    const tasks = AppStorageEngine.getTasks();
+    const staff = AppStorageEngine.getStaffUsers();
+    const memberOrgs = AppStorageEngine.getMemberOrganizations();
+    const auditLogs = AppStorageEngine.getAuditLogs();
+    const lastBackupTime = localStorage.getItem(STORAGE_KEYS.LAST_BACKUP_TIME);
+
+    let totalBytes = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k) {
+          totalBytes += (k.length + (localStorage.getItem(k)?.length || 0)) * 2;
+        }
+      }
+    } catch {}
+
+    return {
+      articlesCount: articles.length,
+      documentsCount: documents.length,
+      competitionsCount: competitions.length,
+      opinionsCount: opinions.length,
+      tasksCount: tasks.length,
+      staffCount: staff.length,
+      memberOrgsCount: memberOrgs.length,
+      auditLogsCount: auditLogs.length,
+      totalRecords: articles.length + documents.length + competitions.length + opinions.length + tasks.length + staff.length + memberOrgs.length + auditLogs.length,
+      totalSizeFormatted: (totalBytes / (1024 * 1024)).toFixed(2) + ' MB',
+      lastBackupTime: lastBackupTime ? new Date(lastBackupTime).toLocaleString('vi-VN') : 'Chưa sao lưu gần đây',
+      storageUsagePercent: Math.min(100, Math.round((totalBytes / (5 * 1024 * 1024)) * 100))
+    };
+  },
+
+  // Import application data from JSON with MERGE or OVERWRITE strategy
+  importDatabaseFromJson: (jsonText: string, mode: 'MERGE' | 'OVERWRITE' = 'MERGE'): boolean => {
     try {
       const parsed = JSON.parse(jsonText);
-      const data = parsed.data || parsed;
+      const data = parsed.data || parsed.tables || parsed;
 
-      if (data.articles) AppStorageEngine.saveArticles(data.articles);
-      if (data.documents) AppStorageEngine.saveDocuments(data.documents);
-      if (data.competitions) AppStorageEngine.saveCompetitions(data.competitions);
-      if (data.opinions) AppStorageEngine.saveOpinions(data.opinions);
-      if (data.tasks) AppStorageEngine.saveTasks(data.tasks);
-      if (data.events) AppStorageEngine.saveEvents(data.events);
-      if (data.notes) AppStorageEngine.saveNotes(data.notes);
-      if (data.templates) AppStorageEngine.saveTemplates(data.templates);
-      if (data.submissions) AppStorageEngine.saveSubmissions(data.submissions);
-      if (data.driveFiles) AppStorageEngine.saveDriveFiles(data.driveFiles);
-      if (data.staffUsers) AppStorageEngine.saveStaffUsers(data.staffUsers);
-      if (data.memberOrganizations) AppStorageEngine.saveMemberOrganizations(data.memberOrganizations);
-      if (data.areas) AppStorageEngine.saveAreas(data.areas);
-      if (data.organizations) AppStorageEngine.saveOrganizations(data.organizations);
-      if (data.auditLogs) AppStorageEngine.saveAuditLogs(data.auditLogs);
-      if (data.currentUser) AppStorageEngine.saveCurrentUser(data.currentUser);
-      if (data.articleSubmissions) AppStorageEngine.saveArticleSubmissions(data.articleSubmissions);
-      if (data.feedback) AppStorageEngine.saveFeedback(data.feedback);
+      // Create an emergency rollback before applying changes
+      AppStorageEngine.createEmergencySnapshot();
+
+      if (mode === 'OVERWRITE') {
+        if (data.articles) AppStorageEngine.saveArticles(data.articles);
+        if (data.documents) AppStorageEngine.saveDocuments(data.documents);
+        if (data.competitions) AppStorageEngine.saveCompetitions(data.competitions);
+        if (data.opinions) AppStorageEngine.saveOpinions(data.opinions);
+        if (data.tasks) AppStorageEngine.saveTasks(data.tasks);
+        if (data.events) AppStorageEngine.saveEvents(data.events);
+        if (data.notes) AppStorageEngine.saveNotes(data.notes);
+        if (data.templates) AppStorageEngine.saveTemplates(data.templates);
+        if (data.submissions) AppStorageEngine.saveSubmissions(data.submissions);
+        if (data.driveFiles) AppStorageEngine.saveDriveFiles(data.driveFiles);
+        if (data.staffUsers) AppStorageEngine.saveStaffUsers(data.staffUsers);
+        if (data.memberOrganizations) AppStorageEngine.saveMemberOrganizations(data.memberOrganizations);
+        if (data.areas) AppStorageEngine.saveAreas(data.areas);
+        if (data.organizations) AppStorageEngine.saveOrganizations(data.organizations);
+        if (data.auditLogs) AppStorageEngine.saveAuditLogs(data.auditLogs);
+        if (data.currentUser) AppStorageEngine.saveCurrentUser(data.currentUser);
+        if (data.articleSubmissions) AppStorageEngine.saveArticleSubmissions(data.articleSubmissions);
+        if (data.feedback) AppStorageEngine.saveFeedback(data.feedback);
+        if (data.launchPopupConfig) AppStorageEngine.saveLaunchPopupConfig(data.launchPopupConfig);
+      } else {
+        // MERGE Mode: combine items avoiding duplicate IDs
+        const mergeArrays = (existing: any[], incoming: any[]) => {
+          if (!Array.isArray(incoming)) return existing;
+          if (!Array.isArray(existing)) return incoming;
+          const map = new Map();
+          existing.forEach(item => { if (item.id) map.set(item.id, item); });
+          incoming.forEach(item => { if (item.id) map.set(item.id, item); });
+          return Array.from(map.values());
+        };
+
+        if (data.articles) AppStorageEngine.saveArticles(mergeArrays(AppStorageEngine.getArticles(), data.articles));
+        if (data.documents) AppStorageEngine.saveDocuments(mergeArrays(AppStorageEngine.getDocuments(), data.documents));
+        if (data.competitions) AppStorageEngine.saveCompetitions(mergeArrays(AppStorageEngine.getCompetitions(), data.competitions));
+        if (data.opinions) AppStorageEngine.saveOpinions(mergeArrays(AppStorageEngine.getOpinions(), data.opinions));
+        if (data.tasks) AppStorageEngine.saveTasks(mergeArrays(AppStorageEngine.getTasks(), data.tasks));
+        if (data.events) AppStorageEngine.saveEvents(mergeArrays(AppStorageEngine.getEvents(), data.events));
+        if (data.notes) AppStorageEngine.saveNotes(mergeArrays(AppStorageEngine.getNotes(), data.notes));
+        if (data.templates) AppStorageEngine.saveTemplates(mergeArrays(AppStorageEngine.getTemplates(), data.templates));
+        if (data.submissions) AppStorageEngine.saveSubmissions(mergeArrays(AppStorageEngine.getSubmissions(), data.submissions));
+        if (data.driveFiles) AppStorageEngine.saveDriveFiles(mergeArrays(AppStorageEngine.getDriveFiles(), data.driveFiles));
+        if (data.staffUsers) AppStorageEngine.saveStaffUsers(mergeArrays(AppStorageEngine.getStaffUsers(), data.staffUsers));
+        if (data.memberOrganizations) AppStorageEngine.saveMemberOrganizations(mergeArrays(AppStorageEngine.getMemberOrganizations(), data.memberOrganizations));
+        if (data.areas) AppStorageEngine.saveAreas(mergeArrays(AppStorageEngine.getAreas(), data.areas));
+        if (data.organizations) AppStorageEngine.saveOrganizations(mergeArrays(AppStorageEngine.getOrganizations(), data.organizations));
+        if (data.auditLogs) AppStorageEngine.saveAuditLogs(mergeArrays(AppStorageEngine.getAuditLogs(), data.auditLogs));
+        if (data.articleSubmissions) AppStorageEngine.saveArticleSubmissions(mergeArrays(AppStorageEngine.getArticleSubmissions(), data.articleSubmissions));
+        if (data.feedback) AppStorageEngine.saveFeedback(mergeArrays(AppStorageEngine.getFeedback(), data.feedback));
+        if (data.launchPopupConfig) AppStorageEngine.saveLaunchPopupConfig({ ...AppStorageEngine.getLaunchPopupConfig(), ...data.launchPopupConfig });
+      }
+
+      // Record restore timestamp
+      localStorage.setItem(STORAGE_KEYS.LAST_BACKUP_TIME, new Date().toISOString());
+
+      // Notify window custom event for real-time app update
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('mttq_data_restored', { detail: { mode, timestamp: new Date().toISOString() } }));
+      }
 
       return true;
     } catch (err) {
@@ -2013,6 +2159,9 @@ export const AppStorageEngine = {
 
   resetAllToDefaults: () => {
     localStorage.clear();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mttq_data_restored', { detail: { mode: 'RESET', timestamp: new Date().toISOString() } }));
+    }
   },
 
   // ==========================================

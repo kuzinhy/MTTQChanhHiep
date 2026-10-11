@@ -234,6 +234,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         items: [
           { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
           { id: 'analytics', label: 'Thống kê & Báo cáo Tổng hợp', icon: PieChart, badge: 'THỐNG KÊ' },
+          { id: 'system_backup', label: 'Sao lưu & Khôi phục Web', icon: Database, badge: 'BACKUP 3.0' },
           { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
           { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
           { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },

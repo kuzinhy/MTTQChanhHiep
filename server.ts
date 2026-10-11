@@ -10,6 +10,7 @@ import { analyticsRouter } from './server/analyticsRouter';
 import { mediaRouter } from './server/mediaRouter';
 import { mediaProxyHandler } from './server/mediaProxyRouter';
 import { documentIngestionRouter } from './server/documentIngestionRouter';
+import { backupRouter } from './server/backupRouter';
 import { INITIAL_PROCEDURES } from './src/data/proceduresSeed';
 
 dotenv.config({ override: true });
@@ -54,6 +55,9 @@ async function startServer() {
 
   // Smart Document Processing & Ingestion API Router
   app.use('/api/documents', documentIngestionRouter);
+
+  // Server-side Automated Backup & Snapshot Router
+  app.use('/api/admin/backup', backupRouter);
 
   // Static files for locally uploaded media with full CORS support
   app.use('/uploads', cors(), express.static(path.join(process.cwd(), 'uploads'), {

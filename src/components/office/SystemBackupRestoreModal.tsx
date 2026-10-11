@@ -3,6 +3,7 @@ import {
   Download, Upload, ShieldCheck, AlertTriangle, CheckCircle2, 
   RefreshCw, Database, FileJson, X, Clock, FileCheck
 } from 'lucide-react';
+import { AppStorageEngine } from '../../lib/storage';
 
 interface Props {
   isOpen: boolean;
@@ -24,35 +25,8 @@ export const SystemBackupRestoreModal: React.FC<Props> = ({
   const handleExportBackup = () => {
     setIsExporting(true);
     try {
-      // Collect all critical localStorage tables
-      const backupData: Record<string, any> = {
-        exportedAt: new Date().toISOString(),
-        version: '3.0',
-        system: 'MTTQ_PHUONG_CHANH_HIEP',
-        tables: {}
-      };
-
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('chanh_hiep_') || key.startsWith('app_') || key.includes('documents') || key.includes('articles') || key.includes('opinions'))) {
-          try {
-            backupData.tables[key] = JSON.parse(localStorage.getItem(key) || '');
-          } catch {
-            backupData.tables[key] = localStorage.getItem(key);
-          }
-        }
-      }
-
-      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      link.href = url;
-      link.download = `backup_mttq_chanh_hiep_${dateStr}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      AppStorageEngine.exportFullDatabase();
+      setImportStatus('Đã xuất và tải về bản sao lưu dữ liệu toàn web thành công!');
     } catch (err) {
       console.error('Export error:', err);
       alert('Có lỗi xảy ra trong quá trình xuất bản sao lưu.');
@@ -70,20 +44,15 @@ export const SystemBackupRestoreModal: React.FC<Props> = ({
       try {
         setIsImporting(true);
         const content = event.target?.result as string;
-        const backupData = JSON.parse(content);
+        if (!content) return;
+        const ok = AppStorageEngine.importDatabaseFromJson(content, 'MERGE');
 
-        if (!backupData || !backupData.tables) {
+        if (ok) {
+          setImportStatus('Đã khôi phục và đồng bộ thành công dữ liệu web từ tệp sao lưu!');
+          onRefreshAllData();
+        } else {
           throw new Error('Định dạng tệp sao lưu không hợp lệ.');
         }
-
-        const tableKeys = Object.keys(backupData.tables);
-        tableKeys.forEach(k => {
-          const val = backupData.tables[k];
-          localStorage.setItem(k, typeof val === 'object' ? JSON.stringify(val) : String(val));
-        });
-
-        setImportStatus(`Đã khôi phục thành công ${tableKeys.length} bảng dữ liệu!`);
-        onRefreshAllData();
       } catch (err: any) {
         alert(`Lỗi khôi phục: ${err.message || 'Tệp không đúng cấu trúc'}`);
       } finally {

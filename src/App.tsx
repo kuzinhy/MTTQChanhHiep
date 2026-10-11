@@ -93,6 +93,7 @@ import { HcmQuoteRotator } from './components/common/HcmQuoteRotator';
 import { NewInterfacePage } from './components/NewInterfacePage';
 import { GlobalSearchModal } from './components/common/GlobalSearchModal';
 import { SystemBackupRestoreModal } from './components/office/SystemBackupRestoreModal';
+import { BackupRestoreAdminView } from './components/office/BackupRestoreAdminView';
 import { CitizenWelfareRegistrationModal } from './components/portal/CitizenWelfareRegistrationModal';
 import { SystemHealthAdminView } from './components/office/SystemHealthAdminView';
 import { AnimatedIconLabView } from './components/office/AnimatedIconLabView';
@@ -2607,6 +2608,10 @@ export default function App() {
                     )}
 
                     {officeView === 'audit_logs' && <AuditLogsView logs={auditLogs} />}
+
+                    {officeView === 'system_backup' && (
+                      <BackupRestoreAdminView onRefreshAllData={handleRefreshAllData} />
+                    )}
 
                     {officeView === 'system_health' && <SystemHealthAdminView />}
 
