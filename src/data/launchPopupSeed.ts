@@ -26,6 +26,8 @@ Kính chúc toàn thể bà con và gia đình luôn dồi dào sức khỏe, h�
   primaryButtonText: 'Khám Phá Cổng Thông Tin Ngay',
   primaryButtonAction: 'EXPLORE',
   showConfetti: true,
+  autoPopup: true,
+  showFloatingBadge: true,
   congratulationsCount: 168,
   updatedAt: new Date().toISOString()
 };

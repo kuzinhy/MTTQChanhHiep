@@ -1484,6 +1484,8 @@ export interface LaunchPopupConfig {
   primaryButtonAction: 'EXPLORE' | 'OPEN_ABOUT' | 'SCROLL_NEWS';
   showConfetti: boolean;
   congratulationsCount: number;
+  autoPopup?: boolean;
+  showFloatingBadge?: boolean;
   bannerImageUrl?: string;
   badgeText?: string;
   updatedAt?: string;

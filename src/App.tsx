@@ -288,7 +288,7 @@ export default function App() {
     return AppStorageEngine.hasUserCongratulatedLaunch();
   });
 
-  // Real-time synchronization for Launch Popup config from Cloud Firestore
+  // Real-time synchronization for Launch Popup config from Cloud Firestore and local events
   useEffect(() => {
     const unsubscribe = CloudDatabase.subscribeToLaunchPopupConfig((cloudConfig) => {
       if (cloudConfig) {
@@ -297,15 +297,24 @@ export default function App() {
       }
     });
 
+    const handleLocalConfigUpdate = (e: any) => {
+      if (e.detail) {
+        setLaunchPopupConfig(e.detail);
+      }
+    };
+    window.addEventListener('mttq_launch_popup_config_updated', handleLocalConfigUpdate);
+
     return () => {
       unsubscribe();
+      window.removeEventListener('mttq_launch_popup_config_updated', handleLocalConfigUpdate);
     };
   }, []);
 
-  // Auto-trigger launch popup on Public Portal visit if enabled and not dismissed today
+  // Auto-trigger launch popup on Public Portal visit if enabled and autoPopup is true, and not dismissed today
   useEffect(() => {
     if (currentSpace !== 'PORTAL') return;
     if (!launchPopupConfig.enabled) return;
+    if (launchPopupConfig.autoPopup === false) return;
 
     const isDismissed = AppStorageEngine.hasDismissedLaunchPopup();
     if (isDismissed) return;
@@ -316,7 +325,7 @@ export default function App() {
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, [currentSpace, launchPopupConfig.enabled]);
+  }, [currentSpace, launchPopupConfig.enabled, launchPopupConfig.autoPopup]);
 
   const handleCongratulateLaunch = () => {
     const newCount = AppStorageEngine.incrementLaunchCongratulations();
@@ -2629,7 +2638,10 @@ export default function App() {
                     )}
 
                     {officeView === 'launch_popup_admin' && (
-                      <LaunchPopupAdminView onTriggerToast={handleTriggerSystemToast} />
+                      <LaunchPopupAdminView 
+                        onTriggerToast={handleTriggerSystemToast} 
+                        onGoToPortal={() => setCurrentSpace('PORTAL')}
+                      />
                     )}
 
                     {/* Office 404 Fallback when view is not recognized */}
@@ -2863,7 +2875,7 @@ export default function App() {
       />
 
       {/* FLOATING LAUNCH CELEBRATION BUTTON (PORTAL SPACE) */}
-      {currentSpace === 'PORTAL' && launchPopupConfig.enabled && !isLaunchPopupOpen && (
+      {currentSpace === 'PORTAL' && launchPopupConfig.enabled && launchPopupConfig.showFloatingBadge !== false && !isLaunchPopupOpen && (
         <motion.button
           type="button"
           initial={{ scale: 0, opacity: 0 }}

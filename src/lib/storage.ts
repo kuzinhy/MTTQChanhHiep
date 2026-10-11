@@ -1871,6 +1871,9 @@ export const AppStorageEngine = {
         updatedAt: new Date().toISOString()
       };
       saveStorageData(STORAGE_KEYS.LAUNCH_POPUP_CONFIG, cleaned);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('mttq_launch_popup_config_updated', { detail: cleaned }));
+      }
     } catch (e) {
       console.error('Error saving launch popup config to storage:', e);
     }
@@ -1882,6 +1885,9 @@ export const AppStorageEngine = {
       const newCount = (current.congratulationsCount || 0) + 1;
       const updated = { ...current, congratulationsCount: newCount };
       saveStorageData(STORAGE_KEYS.LAUNCH_POPUP_CONFIG, updated);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('mttq_launch_popup_config_updated', { detail: updated }));
+      }
       return newCount;
     } catch {
       return 1;

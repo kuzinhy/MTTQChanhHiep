@@ -90,6 +90,25 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [unviewedVolunteersCount, setUnviewedVolunteersCount] = useState<number>(0);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
+  const [isLaunchPopupEnabled, setIsLaunchPopupEnabled] = useState<boolean>(() => {
+    try {
+      return AppStorageEngine.getLaunchPopupConfig().enabled;
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    const handlePopupConfigUpdate = (e: any) => {
+      if (e.detail && typeof e.detail.enabled === 'boolean') {
+        setIsLaunchPopupEnabled(e.detail.enabled);
+      }
+    };
+    window.addEventListener('mttq_launch_popup_config_updated', handlePopupConfigUpdate);
+    return () => {
+      window.removeEventListener('mttq_launch_popup_config_updated', handlePopupConfigUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     const checkCounts = () => {
@@ -103,6 +122,9 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         const artPending = arts.filter((a: any) => a.status === 'Pending Review').length;
         const docPending = docs.filter((d: any) => d.status === 'Pending Review').length;
         setPendingApprovalsCount(artPending + docPending);
+
+        const popupCfg = AppStorageEngine.getLaunchPopupConfig();
+        setIsLaunchPopupEnabled(popupCfg.enabled);
       } catch {
         setUnviewedVolunteersCount(0);
         setPendingApprovalsCount(0);
@@ -170,7 +192,15 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
           { id: 'cms_about', label: 'Giới thiệu & Tổ chức Thành viên', icon: Info, badge: 'HỢP NHẤT' },
           { id: 'cms_initiatives', label: 'Mô hình & Sáng kiến Dân vận', icon: Lightbulb, badge: 'MÔ HÌNH' },
           { id: 'cultural_space_admin', label: 'Không gian Văn hóa HCM', icon: Building2, badge: '3D VIRTUAL' },
-          { id: 'launch_popup_admin', label: 'Popup Chúc Mừng Ra Mắt', icon: PartyPopper, badge: 'SỰ KIỆN' },
+          { 
+            id: 'launch_popup_admin', 
+            label: 'Thư Chúc Mừng Ra Mắt', 
+            icon: PartyPopper, 
+            badge: isLaunchPopupEnabled ? 'ĐANG BẬT' : 'ĐÃ TẮT',
+            badgeStyle: isLaunchPopupEnabled 
+              ? 'bg-emerald-500 text-white font-black shadow-2xs' 
+              : 'bg-slate-200 text-slate-600 font-bold'
+          },
         ]
       },
       {

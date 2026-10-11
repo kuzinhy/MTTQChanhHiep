@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   PartyPopper, 
   Sparkles, 
@@ -14,7 +14,16 @@ import {
   Settings2,
   ExternalLink,
   ShieldCheck,
-  RefreshCw
+  RefreshCw,
+  Power,
+  PowerOff,
+  Bell,
+  Sliders,
+  Volume2,
+  VolumeX,
+  Compass,
+  ArrowRight,
+  Info
 } from 'lucide-react';
 import { LaunchPopupConfig } from '../../types';
 import { DEFAULT_LAUNCH_POPUP_CONFIG } from '../../data/launchPopupSeed';
@@ -24,10 +33,12 @@ import { LaunchCelebrationModal } from '../common/LaunchCelebrationModal';
 
 interface LaunchPopupAdminViewProps {
   onTriggerToast: (title: string, message: string) => void;
+  onGoToPortal?: () => void;
 }
 
 export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
-  onTriggerToast
+  onTriggerToast,
+  onGoToPortal
 }) => {
   const [config, setConfig] = useState<LaunchPopupConfig>(() => {
     return AppStorageEngine.getLaunchPopupConfig();
@@ -35,7 +46,102 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isInstantToggling, setIsInstantToggling] = useState(false);
 
+  // Sync with Firestore Cloud and local updates
+  useEffect(() => {
+    const unsub = CloudDatabase.subscribeToLaunchPopupConfig((cloudCfg) => {
+      if (cloudCfg) {
+        setConfig(prev => ({ ...prev, ...cloudCfg }));
+      }
+    });
+
+    const handleLocalUpdate = (e: any) => {
+      if (e.detail) {
+        setConfig(e.detail);
+      }
+    };
+    window.addEventListener('mttq_launch_popup_config_updated', handleLocalUpdate);
+
+    return () => {
+      unsub();
+      window.removeEventListener('mttq_launch_popup_config_updated', handleLocalUpdate);
+    };
+  }, []);
+
+  /**
+   * BẬT / TẮT TỨC THÌ (Instant One-click Toggle):
+   * Tự động lưu và đồng bộ ngay lên Cloud Database + Local Storage + Broadcast Event
+   */
+  const handleToggleEnabled = async () => {
+    const nextEnabled = !config.enabled;
+    const updatedConfig: LaunchPopupConfig = {
+      ...config,
+      enabled: nextEnabled,
+      updatedAt: new Date().toISOString()
+    };
+
+    setConfig(updatedConfig);
+    setIsInstantToggling(true);
+
+    try {
+      // 1. Lưu LocalStorage & Dispatch Event
+      AppStorageEngine.saveLaunchPopupConfig(updatedConfig);
+
+      // 2. Lưu Cloud Firestore
+      await CloudDatabase.saveLaunchPopupConfig(updatedConfig);
+
+      if (nextEnabled) {
+        onTriggerToast(
+          'Đã BẬT Thư Chúc Mừng Ra Mắt',
+          'Popup và huy hiệu nổi sẽ hiển thị cho người dân khi truy cập Cổng Thông Tin Điện Tử.'
+        );
+      } else {
+        onTriggerToast(
+          'Đã TẮT Thư Chúc Mừng Ra Mắt',
+          'Đã tạm dừng hiển thị popup và ẩn hoàn toàn huy hiệu nổi ngoài Cổng thông tin.'
+        );
+      }
+    } catch (err) {
+      console.error('Error toggling popup:', err);
+      onTriggerToast('Thông báo lưu trữ', 'Đã cập nhật trạng thái trên máy (sẽ đồng bộ đám mây khi có kết nối).');
+    } finally {
+      setTimeout(() => setIsInstantToggling(false), 500);
+    }
+  };
+
+  /**
+   * BẬT / TẮT CÁC TÙY CHỌN CON TỨC THÌ (Granular Toggles)
+   */
+  const handleToggleSubOption = async (field: 'autoPopup' | 'showFloatingBadge' | 'showConfetti') => {
+    const nextVal = config[field] === false ? true : false;
+    const updatedConfig: LaunchPopupConfig = {
+      ...config,
+      [field]: nextVal,
+      updatedAt: new Date().toISOString()
+    };
+
+    setConfig(updatedConfig);
+
+    try {
+      AppStorageEngine.saveLaunchPopupConfig(updatedConfig);
+      await CloudDatabase.saveLaunchPopupConfig(updatedConfig);
+
+      const labels: Record<string, string> = {
+        autoPopup: nextVal ? 'Đã BẬT tự động mở popup khi tải trang' : 'Đã TẮT tự động mở popup khi tải trang',
+        showFloatingBadge: nextVal ? 'Đã BẬT huy hiệu nổi góc màn hình' : 'Đã TẮT huy hiệu nổi góc màn hình',
+        showConfetti: nextVal ? 'Đã BẬT hiệu ứng pháo hoa & âm thanh' : 'Đã TẮT hiệu ứng pháo hoa & âm thanh'
+      };
+
+      onTriggerToast('Cập nhật tùy chọn hiển thị', labels[field] || 'Đã cập nhật cấu hình.');
+    } catch (err) {
+      console.warn('Sub-option save notice:', err);
+    }
+  };
+
+  /**
+   * LƯU CẤU HÌNH TOÀN BỘ BIỂU MẪU (Nội dung thư, chữ ký, khẩu hiệu)
+   */
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -55,8 +161,8 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
       setTimeout(() => setSavedSuccess(false), 2500);
 
       onTriggerToast(
-        'Đã lưu cấu hình Popup Ra Mắt',
-        'Nội dung và trạng thái popup chúc mừng đã được đồng bộ hóa toàn hệ thống.'
+        'Đã lưu toàn bộ cấu hình Thư Chúc Mừng',
+        'Nội dung thư chúc mừng và trạng thái đã được đồng bộ hóa thành công trên toàn hệ thống.'
       );
     } catch (err: any) {
       console.error('Save popup config error:', err);
@@ -67,18 +173,25 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
   };
 
   const handleResetToDefault = () => {
-    if (window.confirm('Bạn có chắc chắn muốn nạp lại mẫu thư chúc mừng ra mắt chuẩn mặc định không?')) {
-      setConfig({
+    if (window.confirm('Bạn có chắc chắn muốn nạp lại mẫu thư chúc mừng ra mắt chuẩn mặc định của Ban Thường trực MTTQ không?')) {
+      const restored: LaunchPopupConfig = {
         ...DEFAULT_LAUNCH_POPUP_CONFIG,
-        congratulationsCount: config.congratulationsCount
-      });
-      onTriggerToast('Đã nạp mẫu chuẩn', 'Nội dung thư chúc mừng đã được điền lại theo mẫu chính thức.');
+        congratulationsCount: config.congratulationsCount,
+        updatedAt: new Date().toISOString()
+      };
+      setConfig(restored);
+      AppStorageEngine.saveLaunchPopupConfig(restored);
+      CloudDatabase.saveLaunchPopupConfig(restored);
+      onTriggerToast('Đã nạp mẫu chuẩn MTTQ', 'Nội dung thư chúc mừng đã được điền lại theo mẫu chính thức.');
     }
   };
 
   const handleClearDismissCache = () => {
     AppStorageEngine.clearDismissLaunchPopup();
-    onTriggerToast('Đã xóa bộ nhớ đệm', 'Popup sẽ tự động hiển thị lại khi người dùng vào Cổng thông tin.');
+    onTriggerToast(
+      'Đã xóa bộ nhớ đệm (24h cache)',
+      'Popup chúc mừng sẽ tự động xuất hiện lại ngay lập tức khi bạn vào Cổng Thông Tin.'
+    );
   };
 
   const handleAdjustCount = (delta: number) => {
@@ -94,7 +207,7 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+    <div className="space-y-6 max-w-6xl mx-auto pb-16">
       {/* Page Header */}
       <div className="bg-gradient-to-r from-red-700 via-rose-700 to-amber-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         {/* Background Decorative Pattern */}
@@ -106,32 +219,44 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/25 border border-amber-300/40 text-amber-200 text-xs font-black uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Sự Kiện Lễ Ra Mắt Chính Thức</span>
+              <span>Sự Kiện Lễ Ra Mắt Chính Thức Cổng TTĐT</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Quản Trị Popup Chúc Mừng Ra Mắt
+              Quản Trị Bật/Tắt Thư Chúc Mừng Ra Mắt
             </h1>
             <p className="text-xs sm:text-sm text-red-100 max-w-2xl leading-relaxed">
-              Thiết lập thông điệp chào mừng trang trọng, bật/tắt hiển thị tự động và theo dõi lượt người dân gửi lời chúc mừng khi truy cập Cổng Thông Tin Điện Tử.
+              Thiết lập công tắc bật/tắt hiển thị, thông điệp chào mừng trang trọng và theo dõi lượt nhân dân gửi lời chúc mừng khi truy cập Cổng Thông Tin Điện Tử Phường Chánh Hiệp.
             </p>
           </div>
 
           {/* Quick Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <button
               type="button"
               onClick={() => setIsPreviewOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all flex items-center gap-2 border border-white/20 cursor-pointer shadow-sm"
+              className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all flex items-center gap-2 border border-white/20 cursor-pointer shadow-sm active:scale-95"
             >
               <Eye className="w-4 h-4 text-amber-300" />
-              <span>Xem Trước Popup (Live Preview)</span>
+              <span>Xem Trước (Live Preview)</span>
             </button>
+
+            {onGoToPortal && (
+              <button
+                type="button"
+                onClick={onGoToPortal}
+                className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all flex items-center gap-1.5 border border-white/20 cursor-pointer shadow-sm active:scale-95"
+                title="Chuyển sang Cổng thông tin công cộng"
+              >
+                <span>Ra Cổng TTĐT</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
 
             <button
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-lg hover:shadow-xl cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-lg hover:shadow-xl cursor-pointer disabled:opacity-50 active:scale-95"
             >
               {savedSuccess ? (
                 <>
@@ -146,7 +271,7 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
               ) : (
                 <>
                   <Save className="w-4 h-4 text-slate-900" />
-                  <span>Lưu Cấu Hình Toàn Hệ Thống</span>
+                  <span>Lưu Cấu Hình</span>
                 </>
               )}
             </button>
@@ -154,47 +279,160 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
         </div>
       </div>
 
-      {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Status */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Trạng Thái Hiển Thị</p>
-            <p className="text-lg font-black text-slate-900">
-              {config.enabled ? 'Đang Bật Hiển Thị' : 'Đang Tắt'}
-            </p>
-            <p className="text-[11px] text-slate-500">
-              {config.enabled ? 'Tự động mở khi truy cập' : 'Ẩn khỏi người dùng'}
+      {/* ======================================================== */}
+      {/* 1. MASTER TOGGLE HERO BANNER (CÔNG TẮC BẬT / TẮT CHÍNH) */}
+      {/* ======================================================== */}
+      <div 
+        className={`rounded-3xl p-6 sm:p-7 border-2 transition-all shadow-lg ${
+          config.enabled 
+            ? 'bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border-emerald-400 shadow-emerald-500/10' 
+            : 'bg-gradient-to-r from-slate-50 via-zinc-50 to-stone-50 border-slate-300 shadow-slate-500/5'
+        }`}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          {/* Status Details */}
+          <div className="space-y-2 flex-1">
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                config.enabled 
+                  ? 'bg-emerald-500 text-white shadow-xs' 
+                  : 'bg-slate-300 text-slate-700'
+              }`}>
+                {config.enabled ? (
+                  <>
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                    </span>
+                    <span>ĐANG BẬT PHÁT HÀNH</span>
+                  </>
+                ) : (
+                  <>
+                    <PowerOff className="w-3.5 h-3.5" />
+                    <span>ĐANG TẮT / TẠM DỪNG</span>
+                  </>
+                )}
+              </span>
+
+              {isInstantToggling && (
+                <span className="text-[11px] text-blue-600 font-bold flex items-center gap-1 animate-pulse">
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  Đang đồng bộ máy chủ...
+                </span>
+              )}
+            </div>
+
+            <h2 className={`text-xl sm:text-2xl font-black tracking-tight ${
+              config.enabled ? 'text-emerald-950' : 'text-slate-800'
+            }`}>
+              {config.enabled 
+                ? 'Thư Chúc Mừng Đang Hoạt Động Trên Cổng Thông Tin' 
+                : 'Thư Chúc Mừng Đang Tắt (Không Hiển Thị Ngoài Trang Chủ)'}
+            </h2>
+
+            <p className={`text-xs sm:text-sm leading-relaxed max-w-2xl font-medium ${
+              config.enabled ? 'text-emerald-800/90' : 'text-slate-600'
+            }`}>
+              {config.enabled 
+                ? 'Người dân khi truy cập Cổng TTĐT sẽ được tiếp cận Thư chúc mừng trang trọng từ Ban Thường trực MTTQ, có thể bấm xem toàn văn và gửi lời chúc mừng (thả tim) tương tác.' 
+                : 'Popup và biểu tượng nổi đã được tạm ẩn hoàn toàn. Người dân truy cập trang sẽ vào thẳng giao diện tin tức mà không có thông báo chào mừng xuất hiện.'}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
-            className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-              config.enabled ? 'bg-emerald-500' : 'bg-slate-300'
-            }`}
-          >
-            <span
-              className={`block w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                config.enabled ? 'translate-x-6' : 'translate-x-0.5'
-              }`}
-            />
-          </button>
+
+          {/* Master Switch Large Button */}
+          <div className="flex flex-col items-center sm:items-end gap-2.5 shrink-0">
+            <div className="flex items-center gap-3">
+              <span className={`text-xs font-extrabold uppercase tracking-wide ${
+                config.enabled ? 'text-emerald-700' : 'text-slate-500'
+              }`}>
+                {config.enabled ? 'Đang Mở (ON)' : 'Đang Tắt (OFF)'}
+              </span>
+
+              {/* Large Animated Toggle */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={config.enabled}
+                onClick={handleToggleEnabled}
+                className={`relative inline-flex h-12 w-24 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-emerald-500/30 shadow-inner ${
+                  config.enabled ? 'bg-emerald-600' : 'bg-slate-300'
+                }`}
+              >
+                <span className="sr-only">Bật/tắt thư chúc mừng</span>
+                <span
+                  className={`pointer-events-none flex items-center justify-center h-11 w-11 transform rounded-full bg-white shadow-lg ring-0 transition duration-300 ease-in-out ${
+                    config.enabled ? 'translate-x-12 text-emerald-600' : 'translate-x-0 text-slate-400'
+                  }`}
+                >
+                  {config.enabled ? (
+                    <Power className="w-5 h-5 stroke-[2.5]" />
+                  ) : (
+                    <PowerOff className="w-5 h-5 stroke-[2.5]" />
+                  )}
+                </span>
+              </button>
+            </div>
+
+            <span className="text-[11px] text-slate-500 font-medium">
+              💡 Nhấp gạt công tắc để bật/tắt tức thì (tự động lưu)
+            </span>
+          </div>
         </div>
 
-        {/* Card 2: Congratulations Count */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
-          <div className="space-y-1">
+        {/* Quick Testing Bar inside Hero Card */}
+        <div className="mt-5 pt-4 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-slate-600">
+            <Info className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              Bộ nhớ đệm máy: Nếu bạn đã chọn "Không hiện lại hôm nay", bấm nút bên cạnh để xem lại ngay.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleClearDismissCache}
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-blue-700 font-bold text-xs border border-blue-200 shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Xóa Cache 24h (Xem Lại Ngay)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Xem Thử Popup</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. STATS & GRANULAR TOGGLES ROW */}
+      {/* ======================================================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Congratulations Hearts */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
             <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Lượt Chúc Mừng</p>
-            <p className="text-lg font-black text-rose-600 flex items-center gap-1.5">
-              <Heart className="w-5 h-5 fill-rose-600" />
-              <span>{config.congratulationsCount || 0}</span>
+            <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+              <Heart className="w-4 h-4 fill-rose-500" />
+            </div>
+          </div>
+          <div>
+            <p className="text-2xl font-black text-rose-600 font-mono flex items-center gap-2">
+              <span>{(config.congratulationsCount || 0).toLocaleString('vi-VN')}</span>
+              <span className="text-xs text-rose-400 font-sans font-bold">lượt thả tim</span>
             </p>
-            <div className="flex items-center gap-1 pt-1">
+            <div className="flex items-center gap-1.5 pt-2">
               <button
                 type="button"
                 onClick={() => handleAdjustCount(-10)}
                 className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+                title="Giảm 10 lượt"
               >
                 -10
               </button>
@@ -202,6 +440,7 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
                 type="button"
                 onClick={() => handleAdjustCount(10)}
                 className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+                title="Tăng 10 lượt"
               >
                 +10
               </button>
@@ -209,54 +448,129 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
                 type="button"
                 onClick={() => handleAdjustCount(50)}
                 className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer"
+                title="Tăng 50 lượt"
               >
                 +50
               </button>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-            <Heart className="w-5 h-5 fill-rose-500" />
+        </div>
+
+        {/* Card 2: Auto-Popup Sub Toggle */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Tự Động Mở Popup</p>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+              config.autoPopup !== false ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'
+            }`}>
+              <Bell className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-black text-slate-900">
+                {config.autoPopup !== false ? 'Tự Động Mở (1.2s)' : 'Tắt Tự Mở'}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleToggleSubOption('autoPopup')}
+                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                  config.autoPopup !== false ? 'bg-blue-600' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`block w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${
+                    config.autoPopup !== false ? 'translate-x-5' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-tight">
+              {config.autoPopup !== false 
+                ? 'Popup tự mở khi vào Cổng TT' 
+                : 'Chỉ mở khi bấm nút góc màn hình'}
+            </p>
           </div>
         </div>
 
-        {/* Card 3: Launch Date */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Thời Khắc Ra Mắt</p>
-            <p className="text-base font-black text-slate-900 truncate">
-              {config.launchDate || 'Tháng 10/2026'}
-            </p>
-            <p className="text-[11px] text-slate-500">
-              {config.showConfetti ? 'Có pháo hoa chúc mừng' : 'Tắt hiệu ứng pháo hoa'}
-            </p>
+        {/* Card 3: Floating Badge Sub Toggle */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Huy Hiệu Nổi Góc</p>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+              config.showFloatingBadge !== false ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'
+            }`}>
+              <PartyPopper className="w-4 h-4" />
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-            <Calendar className="w-5 h-5" />
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-black text-slate-900">
+                {config.showFloatingBadge !== false ? 'Hiển Thị Nút Nổi' : 'Ẩn Nút Nổi'}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleToggleSubOption('showFloatingBadge')}
+                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                  config.showFloatingBadge !== false ? 'bg-amber-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`block w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${
+                    config.showFloatingBadge !== false ? 'translate-x-5' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-tight">
+              {config.showFloatingBadge !== false 
+                ? 'Nút nổi góc trái kèm số tim' 
+                : 'Ẩn hoàn toàn nút nổi'}
+            </p>
           </div>
         </div>
 
-        {/* Card 4: Last Updated */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Lần Cập Nhật Cuối</p>
-            <p className="text-xs font-black text-slate-900">
-              {config.updatedAt ? new Date(config.updatedAt).toLocaleString('vi-VN') : 'Mặc định ban đầu'}
-            </p>
-            <button
-              type="button"
-              onClick={handleClearDismissCache}
-              className="text-[11px] text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
-            >
-              Xóa cache đã đóng trên máy này
-            </button>
+        {/* Card 4: Fireworks Confetti Toggle */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Pháo Hoa & Chuông</p>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+              config.showConfetti ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'
+            }`}>
+              <Sparkles className="w-4 h-4" />
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-5 h-5" />
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-black text-slate-900">
+                {config.showConfetti ? 'Có Pháo Hoa' : 'Tắt Pháo Hoa'}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleToggleSubOption('showConfetti')}
+                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                  config.showConfetti ? 'bg-emerald-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`block w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${
+                    config.showConfetti ? 'translate-x-5' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-tight">
+              {config.showConfetti 
+                ? 'Bắn pháo hoa rực rỡ khi mở thư' 
+                : 'Chỉ mở modal văn bản thông thường'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Main Configuration Form */}
+      {/* ======================================================== */}
+      {/* 3. MAIN FORM: CONTENT & SIGNATURE CONFIGURATION */}
+      {/* ======================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Form Controls (2 cols) */}
         <div className="lg:col-span-2 space-y-6">
@@ -280,7 +594,7 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
             {/* Title & Subtitle */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Tiêu đề chính của Popup *</label>
+                <label className="text-xs font-bold text-slate-700">Tiêu đề chính của Thư *</label>
                 <input
                   type="text"
                   value={config.title}
@@ -400,55 +714,13 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Settings & CTA Controls (1 col) */}
+        {/* Right Column: Appearance & Action Settings (1 col) */}
         <div className="space-y-6">
           <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs space-y-5">
             <h2 className="text-base font-black text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
               <Settings2 className="w-5 h-5 text-amber-600" />
               <span>Thiết Lập Tương Tác & Giao Diện</span>
             </h2>
-
-            {/* Master Toggle */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-              <div className="space-y-0.5">
-                <p className="text-xs font-bold text-slate-900">Bật Popup Tự Động</p>
-                <p className="text-[11px] text-slate-500">Hiển thị khi người dân vào Cổng TT</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setConfig({ ...config, enabled: !config.enabled })}
-                className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  config.enabled ? 'bg-emerald-500' : 'bg-slate-300'
-                }`}
-              >
-                <span
-                  className={`block w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                    config.enabled ? 'translate-x-6' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Confetti & Fireworks Toggle */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-              <div className="space-y-0.5">
-                <p className="text-xs font-bold text-slate-900">Hiệu Ứng Pháo Hoa / Confetti</p>
-                <p className="text-[11px] text-slate-500">Bắn hoa rực rỡ khi mở popup & thả tim</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setConfig({ ...config, showConfetti: !config.showConfetti })}
-                className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  config.showConfetti ? 'bg-amber-500' : 'bg-slate-300'
-                }`}
-              >
-                <span
-                  className={`block w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
-                    config.showConfetti ? 'translate-x-6' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
-            </div>
 
             {/* Launch Date */}
             <div className="space-y-1.5">
@@ -516,7 +788,7 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
                 type="button"
                 onClick={handleSave}
                 disabled={isSaving}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white text-xs font-black shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white text-xs font-black shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
               >
                 {savedSuccess ? (
                   <>
@@ -534,7 +806,7 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsPreviewOpen(true)}
-                className="w-full py-2.5 rounded-2xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 rounded-2xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
                 <Eye className="w-4 h-4 text-blue-600" />
                 <span>Xem Trước Giao Diện Thực Tế</span>
@@ -551,7 +823,7 @@ export const LaunchPopupAdminView: React.FC<LaunchPopupAdminViewProps> = ({
         config={config}
         onCongratulate={() => {
           handleAdjustCount(1);
-          onTriggerToast('Thả tim thành công!', 'Đã tăng lượt chúc mừng trong bản xem trước.');
+          onTriggerToast('Thả tim thành công!', 'Đã tăng 1 lượt chúc mừng trong bản xem trước.');
         }}
         hasCongratulated={false}
         onNavigateAction={(action) => {
