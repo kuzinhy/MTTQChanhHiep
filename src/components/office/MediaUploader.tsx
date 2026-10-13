@@ -3,6 +3,7 @@ import { Upload, Image as ImageIcon, CheckCircle, AlertCircle, Trash2, Copy, Ref
 import { CloudinaryImageMeta } from '../../types';
 import { uploadMediaToCloudinary } from '../../lib/cloudinaryService';
 import { inspectImageFile, ImageFileDiagnostics, formatBytes } from '../../lib/imageOptimization';
+import { DragDropUpload032 } from '../common/DragDropUpload032';
 
 interface MediaUploaderProps {
   onImageUploaded: (image: CloudinaryImageMeta) => void;
@@ -350,53 +351,66 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
           )}
         </div>
       ) : (
-        /* Drag & Drop Upload Zone */
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => !isUploading && fileInputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer ${
-            isDragging 
-              ? 'border-blue-500 bg-blue-50/70 scale-[0.99]' 
-              : 'border-slate-300 hover:border-blue-400 bg-slate-50/50 hover:bg-slate-50'
-          }`}
-        >
-          {isUploading ? (
-            <div className="py-6 flex flex-col items-center justify-center space-y-3">
-              <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
-              <div className="text-sm font-semibold text-slate-800">
-                Đang tải ảnh lên Cloudinary server...
-              </div>
-              <p className="text-xs text-slate-500">
-                Vui lòng đợi trong giây lát, hệ thống đang lưu và tạo secure URL.
-              </p>
-            </div>
-          ) : (
-            <div className="py-4 space-y-3">
-              <div className="w-12 h-12 mx-auto bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center shadow-sm">
-                <Upload className="w-6 h-6" />
-              </div>
+        /* Drag & Drop Upload Zone (032, Inputs & Search) */
+        <DragDropUpload032
+          accept="image/jpeg,image/png,image/webp"
+          multiple={false}
+          maxSizeBytes={10 * 1024 * 1024}
+          title="Kéo thả tệp ảnh vào đây hoặc"
+          actionWord="chọn tệp"
+          subtitle="Chấp nhận tệp: JPG, PNG, WEBP (Tối đa 10MB)"
+          onUploadFile={async (file, updateProgress) => {
+            setErrorMessage(null);
+            setSuccessMessage(null);
 
-              <div>
-                <span className="text-sm font-bold text-slate-800 block">
-                  Kéo và thả tệp ảnh vào đây, hoặc{' '}
-                  <span className="text-blue-600 hover:underline">bấm chọn tệp</span>
-                </span>
-                <p className="text-xs text-slate-500 mt-1">
-                  Chấp nhận các tệp: <strong>JPG, PNG, WEBP</strong> (Dung lượng tối đa <strong>10MB</strong>)
-                </p>
-              </div>
+            // Validate MIME type
+            const validMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validMimeTypes.includes(file.type)) {
+              const err = 'Định dạng tệp không hợp lệ! Chỉ chấp nhận ảnh JPG, PNG hoặc WEBP.';
+              setErrorMessage(err);
+              return { success: false, error: err };
+            }
 
-              <button
-                type="button"
-                className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors"
-              >
-                <Upload className="w-4 h-4" /> Tải ảnh lên
-              </button>
-            </div>
-          )}
-        </div>
+            // Validate size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+              const err = 'Kích thước ảnh quá lớn! Dung lượng tối đa được phép tải lên là 10MB.';
+              setErrorMessage(err);
+              return { success: false, error: err };
+            }
+
+            // Inspect file quality
+            updateProgress(0.2);
+            const diag = await inspectImageFile(file);
+            setDiagnostics(diag);
+
+            setIsUploading(true);
+            updateProgress(0.45);
+
+            const result = await uploadMediaToCloudinary(file, folder);
+            setIsUploading(false);
+
+            if (result.success && result.image) {
+              updateProgress(1);
+              const meta: CloudinaryImageMeta = {
+                ...result.image,
+                alt: altText,
+                caption: captionText
+              };
+              onImageUploaded(meta);
+              if (result.isFallback) {
+                setSuccessMessage(result.warning || 'Đã lưu ảnh nguyên bản dưới dạng Data URL dự phòng.');
+              } else {
+                setSuccessMessage('Đã tải ảnh gốc lên Cloudinary thành công với độ phân giải nguyên bản!');
+              }
+              setTimeout(() => setSuccessMessage(null), 6000);
+              return { success: true, data: meta };
+            } else {
+              const err = result.error || 'Tải ảnh lên thất bại. Vui lòng thử lại.';
+              setErrorMessage(err);
+              return { success: false, error: err };
+            }
+          }}
+        />
       )}
     </div>
   );

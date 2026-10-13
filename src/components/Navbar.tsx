@@ -28,6 +28,7 @@ import { PWAInstallButton } from './PWAInstallButton';
 import { OptimizedImage } from './common/OptimizedImage';
 import { CitizenAccessibilityToolbar } from './common/CitizenAccessibilityToolbar';
 import { AnimatedIcon } from './common/AnimatedIcon';
+import { NotificationBell074 } from './common/NotificationBell074';
 import { canAccessView } from '../lib/rbac';
 
 import { isSocialWelfareModuleEnabled } from '../lib/moduleSettings';
@@ -145,17 +146,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Actions: Notifications, Văn phòng số, Staff Profile, Red Banner */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Notification Bell */}
-            <button
-              onClick={onOpenNotificationCenter}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center relative transition cursor-pointer border border-white/20 shrink-0 group"
-              title="Thông báo"
-            >
-              <AnimatedIcon name="bell" size={16} colorScheme="white" trigger="hover" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
-                3
-              </span>
-            </button>
+            {/* Notification Bell Dropdown (074, Alerts & Feedback) */}
+            <NotificationBell074
+              variant="portal-banner"
+              currentUser={currentUser}
+              onOpenFullCenter={onOpenNotificationCenter}
+              onSelectNotification={(item) => {
+                if (item.category === 'news') setActiveTab('news');
+                else if (item.category === 'document') setActiveTab('documents');
+                else if (item.type === 'CIVIL_OPINION') setActiveTab('opinion');
+                else if (onOpenNotificationCenter) onOpenNotificationCenter();
+              }}
+            />
 
             {/* Văn phòng số Pill Button */}
             <button

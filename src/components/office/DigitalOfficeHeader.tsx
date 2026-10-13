@@ -25,10 +25,13 @@ import {
   BellRing,
   Check,
   Phone,
-  Database
+  Database,
+  PieChart,
+  Settings,
+  Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getRoleBadgeStyle, getRoleLabel } from '../../lib/rbac';
+import { getRoleBadgeStyle, getRoleLabel, canAccessView } from '../../lib/rbac';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { UserRole, StaffUser, AdminNotification, AdminPresence } from '../../types';
 import { browserNotificationService } from '../../lib/browserNotifications';
@@ -37,6 +40,7 @@ import { AdminPresenceDrawer } from './AdminPresenceDrawer';
 import { NotificationCenterDrawer } from './NotificationCenterDrawer';
 import { OfflineSyncStatusWidget } from '../common/OfflineSyncStatusWidget';
 import { AnimatedIcon } from '../common/AnimatedIcon';
+import { NotificationBell074 } from '../common/NotificationBell074';
 
 interface DigitalOfficeHeaderProps {
   staffName: string;
@@ -198,27 +202,19 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
             )}
           </div>
 
-          {/* div:nth-of-type(2) - Notifications Bell Container */}
-          <div className="relative">
-            {/* div:nth-of-type(1) - Notification Bell Trigger */}
-            <div className="relative z-10">
-              <button
-                onClick={() => setNotifDrawerOpen(true)}
-                className="p-1.5 hover:bg-blue-50 rounded-lg relative text-slate-600 hover:text-blue-700 transition-colors cursor-pointer group"
-                title="Trung tâm Thông báo Quản trị"
-              >
-                <AnimatedIcon name="bell" size={17} trigger="hover" />
-                {unreadNotifCount > 0 && (
-                  <>
-                    <span className="absolute -top-0.5 -right-0.5 px-1 py-0.2 rounded-full bg-amber-500 text-slate-950 font-black text-[8px] ring-2 ring-white animate-ping" />
-                    <span className="absolute -top-0.5 -right-0.5 px-1 py-0.2 rounded-full bg-amber-500 text-slate-950 font-black text-[8px] ring-2 ring-white">
-                      {unreadNotifCount}
-                    </span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          {/* div:nth-of-type(2) - Notification Bell Dropdown (074, Alerts & Feedback) */}
+          <NotificationBell074
+            variant="office-header"
+            currentUser={currentUser}
+            onOpenFullCenter={() => setNotifDrawerOpen(true)}
+            onSelectNotification={(item) => {
+              if (onNavigateToEntity && item.source_type) {
+                onNavigateToEntity(item.source_type, item.source_id);
+              } else {
+                setNotifDrawerOpen(true);
+              }
+            }}
+          />
 
           {/* div:nth-of-type(3) - AI & Profile */}
           <div className="flex items-center gap-2 border-l border-slate-200 pl-2">
@@ -288,7 +284,11 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
                       </div>
                     </div>
 
+                    {/* Personal & Work Group */}
                     <div className="space-y-0.5">
+                      <div className="px-2 pt-1 pb-0.5 text-[9px] font-black uppercase tracking-wider text-slate-400">
+                        Cá nhân & Công tác
+                      </div>
                       <button onClick={() => handleUserMenuAction('profile')} className="w-full flex items-center gap-2 px-2.5 py-1.5 text-slate-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
                         <UserCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                         <span className="text-[11px]">Hồ sơ Cán bộ</span>
@@ -303,17 +303,92 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
                       </button>
                     </div>
 
-                    <div className="border-t border-slate-100 my-0.5"></div>
+                    <div className="border-t border-slate-100 my-1"></div>
+
+                    {/* System & Administration Group */}
+                    <div className="space-y-0.5">
+                      <div className="px-2 pt-0.5 pb-0.5 text-[9px] font-black uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                        <span>Hệ thống & Quản trị</span>
+                        <span className="text-[8px] bg-slate-100 text-slate-600 px-1 py-0.2 rounded font-bold">Admin</span>
+                      </div>
+
+                      {canAccessView(currentUser || role, 'users') && (
+                        <button onClick={() => handleUserMenuAction('users')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <span className="text-[11px]">Quản lý Tài khoản Cán bộ</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-blue-100 text-blue-700 px-1 py-0.2 rounded">CÁN BỘ</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'analytics') && (
+                        <button onClick={() => handleUserMenuAction('analytics')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2">
+                            <PieChart className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span className="text-[11px]">Thống kê & Báo cáo</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-emerald-100 text-emerald-700 px-1 py-0.2 rounded">THỐNG KÊ</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'system_backup') && (
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => handleUserMenuAction('system_backup')} className="flex-1 flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg font-bold transition-colors cursor-pointer text-left group">
+                            <div className="flex items-center gap-2">
+                              <Database className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                              <span className="text-[11px]">Sao lưu & Khôi phục Web</span>
+                            </div>
+                            <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1 py-0.2 rounded">BACKUP 3.0</span>
+                          </button>
+                          {onOpenBackupModal && (
+                            <button
+                              onClick={() => { setUserMenuOpen(false); onOpenBackupModal(); }}
+                              title="Mở nhanh hộp thoại Sao lưu"
+                              className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Database className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {canAccessView(currentUser || role, 'audit_logs') && (
+                        <button onClick={() => handleUserMenuAction('audit_logs')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-purple-700 hover:bg-purple-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2">
+                            <ShieldAlert className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                            <span className="text-[11px]">Nhật ký Hoạt động (Audit)</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-purple-100 text-purple-700 px-1 py-0.2 rounded">AUDIT</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'notifications') && (
+                        <button onClick={() => handleUserMenuAction('notifications')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-sky-700 hover:bg-sky-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2">
+                            <Bell className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                            <span className="text-[11px]">Trung tâm Thông báo</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-sky-100 text-sky-700 px-1 py-0.2 rounded">REALTIME</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'email_settings') && (
+                        <button onClick={() => handleUserMenuAction('email_settings')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2">
+                            <Settings className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                            <span className="text-[11px]">Cấu hình Email Tự động</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-indigo-100 text-indigo-700 px-1 py-0.2 rounded">EMAIL</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="border-t border-slate-100 my-1"></div>
 
                     <div className="space-y-0.5">
-                      <button onClick={() => { setUserMenuOpen(false); if (onOpenBackupModal) onOpenBackupModal(); }} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg font-bold transition-colors cursor-pointer text-left group">
-                        <div className="flex items-center gap-2">
-                          <Database className="w-3.5 h-3.5 text-amber-500" />
-                          <span className="text-[11px]">Sao lưu dữ liệu</span>
-                        </div>
-                      </button>
                       <button onClick={() => { setUserMenuOpen(false); onLogout(); }} className="w-full flex items-center gap-2 px-2.5 py-1.5 text-red-600 hover:bg-red-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
-                        <LogOut className="w-3.5 h-3.5 text-red-500" />
+                        <LogOut className="w-3.5 h-3.5 text-red-500 shrink-0" />
                         <span className="text-[11px]">Đăng xuất</span>
                       </button>
                     </div>

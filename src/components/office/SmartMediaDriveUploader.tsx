@@ -35,6 +35,7 @@ import {
   Folder
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { DragDropUpload032 } from '../common/DragDropUpload032';
 
 interface SmartMediaDriveUploaderProps {
   label?: string;
@@ -657,30 +658,61 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
               </select>
             </div>
 
-            {/* File Dropzone / Picker */}
-            <div className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-4 text-center bg-slate-50/60 hover:bg-blue-50/40 transition-all">
-              <input
-                type="file"
-                id={`smart-uploader-${label}`}
-                accept={accept}
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <label
-                htmlFor={`smart-uploader-${label}`}
-                className="cursor-pointer flex flex-col items-center justify-center space-y-1.5"
-              >
-                <div className="p-2.5 bg-blue-100 text-blue-600 rounded-2xl">
-                  <Upload className="w-5 h-5" />
-                </div>
-                <p className="text-xs font-bold text-slate-800">
-                  {selectedFile ? selectedFile.name : 'Bấm để chọn tệp từ máy tính hoặc kéo thả vào đây'}
-                </p>
-                <p className="text-[10px] text-slate-500">
-                  Hỗ trợ PNG, JPG, WEBP, PDF, DOCX, XLSX (Tối đa 50MB)
-                </p>
-              </label>
-            </div>
+            {/* File Dropzone / Picker (032, Inputs & Search) */}
+            <DragDropUpload032
+              accept={accept}
+              multiple={false}
+              maxSizeBytes={50 * 1024 * 1024}
+              title="Kéo thả tệp hoặc ảnh vào đây hoặc"
+              actionWord="chọn tệp"
+              subtitle={`Hỗ trợ ${modeType === 'image' ? 'JPG, PNG, WEBP' : 'JPG, PNG, PDF, DOCX, XLSX'} (Tối đa 50MB)`}
+              onUploadFile={async (file, updateProgress) => {
+                setSelectedFile(file);
+                setIsUploading(true);
+                setUploadError(null);
+                try {
+                  updateProgress(0.25);
+                  setUploadProgress(25);
+
+                  updateProgress(0.6);
+                  setUploadProgress(60);
+
+                  const res = await uploadFileToGoogleDrive(file, DEFAULT_DRIVE_FOLDER_ID);
+                  
+                  updateProgress(0.9);
+                  setUploadProgress(90);
+
+                  const webViewLink = res.webViewLink || `https://drive.google.com/file/d/${res.id}/view`;
+                  const directImage = res.id ? `https://lh3.googleusercontent.com/d/${res.id}=w2000` : webViewLink;
+                  const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                  const formattedSize = sizeMb === '0.00' ? `${(file.size / 1024).toFixed(1)} KB` : `${sizeMb} MB`;
+
+                  onMediaSelected({
+                    url: webViewLink,
+                    directImageUrl: directImage,
+                    name: res.name || file.name,
+                    size: formattedSize,
+                    isDrive: true,
+                    folderCode: selectedFolderCode
+                  });
+
+                  setInputUrl(webViewLink);
+                  analyzeUrl(webViewLink);
+                  setUploadSuccess(true);
+                  updateProgress(1);
+                  setUploadProgress(100);
+
+                  return { success: true, data: { url: webViewLink, name: res.name || file.name } };
+                } catch (err: any) {
+                  console.error('[SmartMediaDriveUploader] Upload error:', err);
+                  const msg = `Lỗi tải lên: ${err?.message || 'Không thể kết nối Drive'}`;
+                  setUploadError(msg);
+                  return { success: false, error: msg };
+                } finally {
+                  setIsUploading(false);
+                }
+              }}
+            />
 
             {/* Upload Action Button */}
             {selectedFile && (

@@ -185,3 +185,33 @@ backupRouter.delete('/snapshots/:filename', (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: err.message || 'Lỗi xóa tệp sao lưu' });
   }
 });
+
+// 6. GET /api/admin/backup/latest - Get latest snapshot JSON
+backupRouter.get('/latest', (req: Request, res: Response) => {
+  try {
+    if (!fs.existsSync(BACKUP_DIR)) {
+      return res.status(404).json({ success: false, error: 'Chưa có bản sao lưu nào trên máy chủ' });
+    }
+
+    const files = fs.readdirSync(BACKUP_DIR).filter(f => f.endsWith('.json'));
+    if (files.length === 0) {
+      return res.status(404).json({ success: false, error: 'Chưa có bản sao lưu nào' });
+    }
+
+    const sorted = files.map(f => ({
+      name: f,
+      mtime: fs.statSync(path.join(BACKUP_DIR, f)).mtime.getTime()
+    })).sort((a, b) => b.mtime - a.mtime);
+
+    const latestFile = sorted[0].name;
+    const content = fs.readFileSync(path.join(BACKUP_DIR, latestFile), 'utf-8');
+    res.json({
+      success: true,
+      filename: latestFile,
+      data: JSON.parse(content)
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Lỗi đọc bản sao lưu mới nhất' });
+  }
+});
+

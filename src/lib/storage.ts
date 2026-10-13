@@ -1940,39 +1940,143 @@ export const AppStorageEngine = {
     }
   },
 
-  // Export all application data as a JSON file backup
-  exportFullDatabase: (customFileName?: string) => {
-    const backupData = {
+  /**
+   * Triển khai hàm getSystemSnapshot để lấy toàn bộ dữ liệu hiện tại
+   * (articles, documents, opinions, users) và chuyển đổi thành định dạng JSON
+   * để phục vụ cho chức năng sao lưu dữ liệu.
+   *
+   * @param options Tuỳ chọn xuất snapshot:
+   *   - boolean: nếu false trả về snapshot data object, nếu true (mặc định) trả về snapshot dạng JSON
+   *   - object: { asJsonString?: boolean, pretty?: boolean, format?: 'json' | 'object' }
+   */
+  getSystemSnapshot: (
+    options?: boolean | { asJsonString?: boolean; pretty?: boolean; format?: 'json' | 'object' }
+  ) => {
+    const articles = AppStorageEngine.getArticles();
+    const documents = AppStorageEngine.getDocuments();
+    const opinions = AppStorageEngine.getOpinions();
+    const users = AppStorageEngine.getStaffUsers();
+
+    // Toàn bộ các bảng dữ liệu bổ sung trong hệ thống nhằm đảm bảo khôi phục toàn vẹn
+    const competitions = AppStorageEngine.getCompetitions();
+    const tasks = AppStorageEngine.getTasks();
+    const events = AppStorageEngine.getEvents();
+    const notes = AppStorageEngine.getNotes();
+    const templates = AppStorageEngine.getTemplates();
+    const submissions = AppStorageEngine.getSubmissions();
+    const driveFiles = AppStorageEngine.getDriveFiles();
+    const memberOrganizations = AppStorageEngine.getMemberOrganizations();
+    const areas = AppStorageEngine.getAreas();
+    const organizations = AppStorageEngine.getOrganizations();
+    const auditLogs = AppStorageEngine.getAuditLogs();
+    const currentUser = AppStorageEngine.getCurrentUser();
+    const articleSubmissions = AppStorageEngine.getArticleSubmissions();
+    const feedback = AppStorageEngine.getFeedback();
+    const launchPopupConfig = AppStorageEngine.getLaunchPopupConfig();
+
+    const timestamp = new Date().toISOString();
+
+    const snapshotPayload = {
       version: '3.0',
-      exportedAt: new Date().toISOString(),
-      source: 'MTTQ Phường Chánh Hiệp - Văn phòng số & Cổng thông tin',
+      exportedAt: timestamp,
+      timestamp,
+      source: 'MTTQ Phường Chánh Hiệp - System Snapshot Engine',
       systemInfo: {
         app: 'Ủy ban MTTQ Việt Nam Phường Chánh Hiệp',
         environment: 'Production Web App',
         storageEngine: 'AppStorageEngine v3.0'
       },
+      metadata: {
+        articlesCount: articles.length,
+        documentsCount: documents.length,
+        opinionsCount: opinions.length,
+        usersCount: users.length,
+        totalRecords: articles.length + documents.length + opinions.length + users.length,
+        timestamp
+      },
+      // 4 bảng dữ liệu cốt lõi theo yêu cầu: articles, documents, opinions, users
+      articles,
+      documents,
+      opinions,
+      users,
+      staffUsers: users,
+      // Cấu trúc data đầy đủ phục vụ sao lưu & khôi phục toàn diện
       data: {
-        articles: AppStorageEngine.getArticles(),
-        documents: AppStorageEngine.getDocuments(),
-        competitions: AppStorageEngine.getCompetitions(),
-        opinions: AppStorageEngine.getOpinions(),
-        tasks: AppStorageEngine.getTasks(),
-        events: AppStorageEngine.getEvents(),
-        notes: AppStorageEngine.getNotes(),
-        templates: AppStorageEngine.getTemplates(),
-        submissions: AppStorageEngine.getSubmissions(),
-        driveFiles: AppStorageEngine.getDriveFiles(),
-        staffUsers: AppStorageEngine.getStaffUsers(),
-        memberOrganizations: AppStorageEngine.getMemberOrganizations(),
-        areas: AppStorageEngine.getAreas(),
-        organizations: AppStorageEngine.getOrganizations(),
-        auditLogs: AppStorageEngine.getAuditLogs(),
-        currentUser: AppStorageEngine.getCurrentUser(),
-        articleSubmissions: AppStorageEngine.getArticleSubmissions(),
-        feedback: AppStorageEngine.getFeedback(),
-        launchPopupConfig: AppStorageEngine.getLaunchPopupConfig()
-      }
+        articles,
+        documents,
+        opinions,
+        users,
+        staffUsers: users,
+        competitions,
+        tasks,
+        events,
+        notes,
+        templates,
+        submissions,
+        driveFiles,
+        memberOrganizations,
+        areas,
+        organizations,
+        auditLogs,
+        currentUser,
+        articleSubmissions,
+        feedback,
+        launchPopupConfig
+      },
+      // Các bảng khác ở cấp root để tương thích mọi cấu trúc
+      competitions,
+      tasks,
+      events,
+      notes,
+      templates,
+      submissions,
+      driveFiles,
+      memberOrganizations,
+      areas,
+      organizations,
+      auditLogs,
+      currentUser,
+      articleSubmissions,
+      feedback,
+      launchPopupConfig
     };
+
+    const isRawObject =
+      options === false ||
+      (typeof options === 'object' &&
+        (options.asJsonString === false || options.format === 'object'));
+
+    if (isRawObject) {
+      return snapshotPayload;
+    }
+
+    const pretty =
+      typeof options === 'object' && options.pretty !== undefined ? options.pretty : true;
+
+    // Chuyển đổi thành định dạng JSON
+    const jsonString = JSON.stringify(snapshotPayload, null, pretty ? 2 : 0);
+
+    // Tạo đối tượng chuỗi JSON đa năng (vừa là chuỗi JSON hợp lệ, vừa truy cập được các trường trực tiếp)
+    const resultObj: any = new String(jsonString);
+    resultObj.articles = articles;
+    resultObj.documents = documents;
+    resultObj.opinions = opinions;
+    resultObj.users = users;
+    resultObj.staffUsers = users;
+    resultObj.data = snapshotPayload.data;
+    resultObj.metadata = snapshotPayload.metadata;
+    resultObj.version = snapshotPayload.version;
+    resultObj.timestamp = timestamp;
+    resultObj.raw = snapshotPayload;
+    resultObj.toJSON = () => snapshotPayload;
+    resultObj.jsonString = jsonString;
+
+    return resultObj;
+  },
+
+  // Export all application data as a JSON file backup
+  exportFullDatabase: (customFileName?: string) => {
+    const backupData = AppStorageEngine.getSystemSnapshot(false);
 
     // Save timestamp of last backup
     try {
@@ -1994,32 +2098,7 @@ export const AppStorageEngine = {
 
   // Get current dataset raw snapshot object
   getFullDatabaseObject: () => {
-    return {
-      version: '3.0',
-      exportedAt: new Date().toISOString(),
-      source: 'MTTQ Phường Chánh Hiệp - System Snapshot',
-      data: {
-        articles: AppStorageEngine.getArticles(),
-        documents: AppStorageEngine.getDocuments(),
-        competitions: AppStorageEngine.getCompetitions(),
-        opinions: AppStorageEngine.getOpinions(),
-        tasks: AppStorageEngine.getTasks(),
-        events: AppStorageEngine.getEvents(),
-        notes: AppStorageEngine.getNotes(),
-        templates: AppStorageEngine.getTemplates(),
-        submissions: AppStorageEngine.getSubmissions(),
-        driveFiles: AppStorageEngine.getDriveFiles(),
-        staffUsers: AppStorageEngine.getStaffUsers(),
-        memberOrganizations: AppStorageEngine.getMemberOrganizations(),
-        areas: AppStorageEngine.getAreas(),
-        organizations: AppStorageEngine.getOrganizations(),
-        auditLogs: AppStorageEngine.getAuditLogs(),
-        currentUser: AppStorageEngine.getCurrentUser(),
-        articleSubmissions: AppStorageEngine.getArticleSubmissions(),
-        feedback: AppStorageEngine.getFeedback(),
-        launchPopupConfig: AppStorageEngine.getLaunchPopupConfig()
-      }
-    };
+    return AppStorageEngine.getSystemSnapshot(false);
   },
 
   // Create an emergency rollback backup in localStorage before restoring
@@ -2333,3 +2412,11 @@ export const AppStorageEngine = {
 };
 
 export const migrateChanhHiep21Neighborhoods = AppStorageEngine.migrateChanhHiep21Neighborhoods;
+export const getSystemSnapshot = AppStorageEngine.getSystemSnapshot;
+export const getSystemSnapshotJSON = (pretty = true): string => {
+  return JSON.stringify(AppStorageEngine.getSystemSnapshot(false), null, pretty ? 2 : 0);
+};
+export const getSystemSnapshotObject = () => {
+  return AppStorageEngine.getSystemSnapshot(false);
+};
+

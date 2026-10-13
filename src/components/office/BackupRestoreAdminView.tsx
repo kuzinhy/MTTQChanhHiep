@@ -3,9 +3,10 @@ import {
   Database, Download, Upload, ShieldCheck, AlertTriangle, CheckCircle2, 
   RefreshCw, FileJson, Clock, Server, HardDrive, Cpu, Undo2, Trash2, 
   Layers, Lock, Sparkles, AlertCircle, FileCheck, CheckSquare, ArrowRight,
-  ShieldAlert, Settings, Info, Save, History, Calendar, Play
+  ShieldAlert, Settings, Info, Save, History, Calendar, Play,
+  Copy, Check, Code, Eye
 } from 'lucide-react';
-import { AppStorageEngine } from '../../lib/storage';
+import { AppStorageEngine, getSystemSnapshot } from '../../lib/storage';
 
 interface ServerSnapshot {
   filename: string;
@@ -40,7 +41,10 @@ interface Props {
 }
 
 export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) => {
-  const [activeTab, setActiveTab] = useState<'hub' | 'server' | 'granular' | 'automation' | 'reset'>('hub');
+  const [activeTab, setActiveTab] = useState<'hub' | 'snapshot' | 'server' | 'granular' | 'automation' | 'reset'>('hub');
+  const [snapshotJsonText, setSnapshotJsonText] = useState<string>('');
+  const [snapshotObj, setSnapshotObj] = useState<any>(null);
+  const [copiedSnapshot, setCopiedSnapshot] = useState(false);
   
   // Health Stats State
   const [stats, setStats] = useState(() => AppStorageEngine.getDatabaseHealthStats());
@@ -88,6 +92,61 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
     setStats(AppStorageEngine.getDatabaseHealthStats());
     setHasEmergencySnapshot(!!localStorage.getItem('mttq_emergency_backup_snapshot'));
   };
+
+  const handleGenerateSnapshot = () => {
+    try {
+      const snap = getSystemSnapshot();
+      const jsonStr = snap.jsonString || String(snap);
+      setSnapshotJsonText(jsonStr);
+      setSnapshotObj(snap.data || snap);
+    } catch (err: any) {
+      setFeedbackMsg({
+        type: 'error',
+        text: `Lỗi tạo snapshot: ${err?.message || 'Không thể tạo'}`
+      });
+    }
+  };
+
+  const handleCopySnapshotJson = () => {
+    if (!snapshotJsonText) return;
+    navigator.clipboard.writeText(snapshotJsonText);
+    setCopiedSnapshot(true);
+    setTimeout(() => setCopiedSnapshot(false), 2000);
+    setFeedbackMsg({
+      type: 'success',
+      text: 'Đã sao chép System Snapshot JSON (articles, documents, opinions, users) vào bộ nhớ tạm!'
+    });
+  };
+
+  const handleDownloadSnapshotJson = () => {
+    try {
+      const jsonStr = snapshotJsonText || String(getSystemSnapshot());
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `system_snapshot_${new Date().toISOString().substring(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setFeedbackMsg({
+        type: 'success',
+        text: 'Đã xuất và tải xuống tệp System Snapshot JSON thành công!'
+      });
+    } catch (err: any) {
+      setFeedbackMsg({
+        type: 'error',
+        text: `Lỗi tải tệp: ${err?.message || 'Thất bại'}`
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'snapshot') {
+      handleGenerateSnapshot();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     refreshStats();
@@ -527,6 +586,19 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
         </button>
 
         <button
+          onClick={() => setActiveTab('snapshot')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+            activeTab === 'snapshot'
+              ? 'bg-white text-blue-700 shadow-sm border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+          }`}
+        >
+          <FileJson className="w-4 h-4 text-amber-500" />
+          <span>System Snapshot JSON</span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">4 Bảng dữ liệu</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('server')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
             activeTab === 'server'
@@ -759,6 +831,175 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
                 Chưa chọn tệp khôi phục. Hãy tải tệp .JSON để kiểm duyệt chi tiết trước khi ghi đè.
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT: SYSTEM SNAPSHOT (JSON) - getSystemSnapshot */}
+      {activeTab === 'snapshot' && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+          {/* HEADER */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-amber-100 text-amber-800 rounded-xl">
+                  <FileJson className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-lg">
+                  System Snapshot Engine (JSON)
+                </h3>
+                <span className="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">
+                  getSystemSnapshot() Active
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                Hàm <code>getSystemSnapshot()</code> tự động trích xuất toàn bộ dữ liệu hiện hành của hệ thống bao gồm 4 bảng dữ liệu cốt lõi: <strong>articles</strong>, <strong>documents</strong>, <strong>opinions</strong>, <strong>users</strong> và đóng gói thành định dạng JSON chuẩn mực phục vụ sao lưu & phục hồi.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 self-start md:self-center">
+              <button
+                onClick={handleGenerateSnapshot}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                title="Gọi lại hàm getSystemSnapshot để lấy dữ liệu mới nhất"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+                <span>Trích xuất lại</span>
+              </button>
+
+              <button
+                onClick={handleCopySnapshotJson}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+              >
+                {copiedSnapshot ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-300" />
+                    <span>Đã sao chép!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Sao chép JSON</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleDownloadSnapshotJson}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Tải tệp .JSON</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4 CORE DATASETS SUMMARY CARDS */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+            {/* 1. ARTICLES */}
+            <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-100 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-blue-700 text-xs font-bold">
+                  <span>1. Articles (Tin bài)</span>
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                </div>
+                <div className="text-2xl font-black text-blue-900 mt-2">
+                  {(snapshotObj?.articles || []).length}
+                </div>
+                <div className="text-[11px] text-blue-600 font-medium mt-0.5">
+                  Bài viết & Tin hoạt động
+                </div>
+              </div>
+              <div className="mt-3 pt-2.5 border-t border-blue-200/60 text-[10px] text-blue-800 line-clamp-1">
+                Gần nhất: {snapshotObj?.articles?.[0]?.title || 'Chưa có'}
+              </div>
+            </div>
+
+            {/* 2. DOCUMENTS */}
+            <div className="p-4 bg-indigo-50/60 rounded-2xl border border-indigo-100 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-indigo-700 text-xs font-bold">
+                  <span>2. Documents (Văn bản)</span>
+                  <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                </div>
+                <div className="text-2xl font-black text-indigo-900 mt-2">
+                  {(snapshotObj?.documents || []).length}
+                </div>
+                <div className="text-[11px] text-indigo-600 font-medium mt-0.5">
+                  Văn bản chỉ đạo & Hướng dẫn
+                </div>
+              </div>
+              <div className="mt-3 pt-2.5 border-t border-indigo-200/60 text-[10px] text-indigo-800 line-clamp-1">
+                Số hiệu: {snapshotObj?.documents?.[0]?.documentNumber || 'Chưa có'}
+              </div>
+            </div>
+
+            {/* 3. OPINIONS */}
+            <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-100 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-amber-700 text-xs font-bold">
+                  <span>3. Opinions (Ý kiến)</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                </div>
+                <div className="text-2xl font-black text-amber-900 mt-2">
+                  {(snapshotObj?.opinions || []).length}
+                </div>
+                <div className="text-[11px] text-amber-600 font-medium mt-0.5">
+                  Ý kiến & Kiến nghị nhân dân
+                </div>
+              </div>
+              <div className="mt-3 pt-2.5 border-t border-amber-200/60 text-[10px] text-amber-800 line-clamp-1">
+                Chủ đề: {snapshotObj?.opinions?.[0]?.title || 'Chưa có'}
+              </div>
+            </div>
+
+            {/* 4. USERS */}
+            <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-emerald-700 text-xs font-bold">
+                  <span>4. Users (Cán bộ)</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                </div>
+                <div className="text-2xl font-black text-emerald-900 mt-2">
+                  {(snapshotObj?.users || []).length}
+                </div>
+                <div className="text-[11px] text-emerald-600 font-medium mt-0.5">
+                  Tài khoản Cán bộ & Quản trị
+                </div>
+              </div>
+              <div className="mt-3 pt-2.5 border-t border-emerald-200/60 text-[10px] text-emerald-800 line-clamp-1">
+                Tài khoản: {snapshotObj?.users?.[0]?.fullname || 'Chưa có'}
+              </div>
+            </div>
+          </div>
+
+          {/* JSON CODE PREVIEW BOX */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-inner">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800 text-xs">
+              <div className="flex items-center gap-2 text-slate-300 font-mono font-medium">
+                <Code className="w-4 h-4 text-amber-400" />
+                <span>system_snapshot.json</span>
+                <span className="text-[10px] text-slate-500 font-sans">
+                  ({((snapshotJsonText.length * 2) / 1024).toFixed(1)} KB)
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-slate-400">
+                  Định dạng JSON RFC 8259
+                </span>
+                <button
+                  onClick={handleCopySnapshotJson}
+                  className="text-xs text-amber-400 hover:text-amber-300 font-medium transition flex items-center gap-1"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Sao chép</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 font-mono text-[11px] leading-relaxed text-slate-200 whitespace-pre">
+              {snapshotJsonText || '// Đang tạo bản snapshot JSON...'}
+            </div>
           </div>
         </div>
       )}

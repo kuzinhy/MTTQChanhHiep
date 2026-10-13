@@ -1947,6 +1947,7 @@ export default function App() {
                 staffName={currentStaffUser?.fullname || ''}
                 staffRole={currentStaffUser?.role || ''}
                 staffAvatar={currentStaffUser?.avatar}
+                staffEmail={currentStaffUser?.email}
                 isMobileOpen={isMobileOfficeSidebarOpen}
                 onCloseMobile={() => setIsMobileOfficeSidebarOpen(false)}
               />

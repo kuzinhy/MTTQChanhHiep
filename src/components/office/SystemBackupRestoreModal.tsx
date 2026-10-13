@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { 
   Download, Upload, ShieldCheck, AlertTriangle, CheckCircle2, 
-  RefreshCw, Database, FileJson, X, Clock, FileCheck
+  RefreshCw, Database, FileJson, X, Clock, FileCheck, Copy, Check
 } from 'lucide-react';
-import { AppStorageEngine } from '../../lib/storage';
+import { AppStorageEngine, getSystemSnapshot } from '../../lib/storage';
 
 interface Props {
   isOpen: boolean;
@@ -19,6 +19,7 @@ export const SystemBackupRestoreModal: React.FC<Props> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   if (!isOpen) return null;
 
@@ -26,12 +27,25 @@ export const SystemBackupRestoreModal: React.FC<Props> = ({
     setIsExporting(true);
     try {
       AppStorageEngine.exportFullDatabase();
-      setImportStatus('Đã xuất và tải về bản sao lưu dữ liệu toàn web thành công!');
+      setImportStatus('Đã xuất và tải về bản sao lưu dữ liệu toàn web (articles, documents, opinions, users) thành công!');
     } catch (err) {
       console.error('Export error:', err);
       alert('Có lỗi xảy ra trong quá trình xuất bản sao lưu.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleCopySnapshot = () => {
+    try {
+      const snap = getSystemSnapshot();
+      const jsonStr = snap.jsonString || String(snap);
+      navigator.clipboard.writeText(jsonStr);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+      setImportStatus('Đã sao chép System Snapshot JSON (articles, documents, opinions, users) vào clipboard!');
+    } catch (err) {
+      console.error('Copy error:', err);
     }
   };
 
@@ -102,16 +116,27 @@ export const SystemBackupRestoreModal: React.FC<Props> = ({
               </span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Tải toàn bộ văn bản chỉ đạo, tin tức, cấu hình 21 khu phố, danh bạ cán bộ và sổ tay tri thức AI thành 1 file JSON lưu trữ an toàn trên máy tính.
+              Tải toàn bộ dữ liệu web gồm <strong>Bài viết (articles)</strong>, <strong>Văn bản (documents)</strong>, <strong>Ý kiến nhân dân (opinions)</strong>, <strong>Cán bộ (users)</strong> và cấu hình hệ thống thành 1 file JSON lưu trữ an toàn.
             </p>
-            <button
-              onClick={handleExportBackup}
-              disabled={isExporting}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
-            >
-              {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              <span>{isExporting ? 'Đang xuất tệp sao lưu...' : 'Tải Về Bản Sao Lưu Ngay'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportBackup}
+                disabled={isExporting}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+              >
+                {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                <span>{isExporting ? 'Đang xuất tệp...' : 'Tải Về Tệp Sao Lưu (.JSON)'}</span>
+              </button>
+              <button
+                onClick={handleCopySnapshot}
+                type="button"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition"
+                title="Sao chép nhanh System Snapshot JSON vào clipboard"
+              >
+                {isCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-600" />}
+                <span>{isCopied ? 'Đã chép!' : 'Chép JSON'}</span>
+              </button>
+            </div>
           </div>
 
           {/* 2. Import Section */}

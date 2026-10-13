@@ -38,12 +38,15 @@ import {
   GitMerge,
   Scale,
   PartyPopper,
+  UserCheck,
+  StickyNote,
+  LogOut,
   LucideIcon 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppStorageEngine } from '../../lib/storage';
 import { OptimizedImage } from '../common/OptimizedImage';
-import { canAccessView } from '../../lib/rbac';
+import { canAccessView, getRoleBadgeStyle, getRoleLabel } from '../../lib/rbac';
 import { UserRole } from '../../types';
 
 interface SidebarItem {
@@ -72,6 +75,7 @@ interface DigitalOfficeSidebarProps {
   staffName?: string;
   staffRole?: string;
   staffAvatar?: string;
+  staffEmail?: string;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -80,11 +84,16 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   currentView,
   setCurrentView,
   onGoToPortal,
+  onLogout,
+  staffName = 'Cán bộ MTTQ',
   staffRole = 'STAFF',
+  staffAvatar,
+  staffEmail,
   isMobileOpen = false,
   onCloseMobile
 }) => {
   const userRole = (staffRole as UserRole) || 'STAFF';
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   // State for search query
   const [searchQuery, setSearchQuery] = useState('');
@@ -224,21 +233,6 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
             isNewHighlight: unviewedVolunteersCount > 0 
           },
         ]
-      },
-      {
-        id: 'group_admin',
-        title: 'HỆ THỐNG & BẢO MẬT',
-        icon: Settings,
-        badgeText: 'HỆ THỐNG',
-        accentColor: 'emerald',
-        items: [
-          { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
-          { id: 'analytics', label: 'Thống kê & Báo cáo Tổng hợp', icon: PieChart, badge: 'THỐNG KÊ' },
-          { id: 'system_backup', label: 'Sao lưu & Khôi phục Web', icon: Database, badge: 'BACKUP 3.0' },
-          { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
-          { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
-          { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },
-        ]
       }
     ];
 
@@ -248,17 +242,32 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
     })).filter(group => group.items.length > 0);
   }, [userRole, unviewedVolunteersCount]);
 
+  // System menu items housed inside the User Menu
+  const systemMenuItems: SidebarItem[] = useMemo(() => {
+    const rawItems: SidebarItem[] = [
+      { id: 'users', label: 'Quản lý Tài khoản Cán bộ', icon: Users, badge: 'CÁN BỘ' },
+      { id: 'analytics', label: 'Thống kê & Báo cáo Tổng hợp', icon: PieChart, badge: 'THỐNG KÊ' },
+      { id: 'system_backup', label: 'Sao lưu & Khôi phục Web', icon: Database, badge: 'BACKUP 3.0' },
+      { id: 'audit_logs', label: 'Nhật ký Hoạt động (Audit)', icon: ShieldAlert, badge: 'AUDIT' },
+      { id: 'notifications', label: 'Trung tâm Thông báo', icon: Bell, badge: 'REALTIME' },
+      { id: 'email_settings', label: 'Cấu hình Email Tự động', icon: Settings, badge: 'EMAIL' },
+    ];
+    return rawItems.filter(item => canAccessView(userRole, item.id));
+  }, [userRole]);
+
+  const isSystemViewActive = useMemo(() => {
+    return ['users', 'analytics', 'system_backup', 'audit_logs', 'notifications', 'email_settings'].includes(currentView);
+  }, [currentView]);
 
   // Track expanded groups state
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     group_ai: true,
     group_neighborhood: true,
     group_cms: true,
-    group_operations: true,
-    group_admin: true
+    group_operations: true
   });
 
-  // Auto expand group containing the current view
+  // Auto expand group containing the current view or open user menu if system view is active
   useEffect(() => {
     groups.forEach((group) => {
       const hasActive = group.items.some(
@@ -268,7 +277,11 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         setExpandedGroups((prev) => ({ ...prev, [group.id]: true }));
       }
     });
-  }, [currentView, groups]);
+
+    if (isSystemViewActive || ['profile', 'notes', 'calendar'].includes(currentView)) {
+      setIsUserMenuOpen(true);
+    }
+  }, [currentView, groups, isSystemViewActive]);
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
@@ -298,8 +311,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       group_ai: true,
       group_neighborhood: true,
       group_cms: true,
-      group_operations: true,
-      group_admin: true
+      group_operations: true
     });
   };
 
@@ -311,8 +323,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
       group_ai: false,
       group_neighborhood: false,
       group_cms: false,
-      group_operations: false,
-      group_admin: false
+      group_operations: false
     });
   };
 
@@ -320,7 +331,7 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
   const filteredGroups = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return groups.map((group) => {
+    const result = groups.map((group) => {
       // Filter items that user has permission to see (or display with lock) AND match search query
       const visibleItems = group.items.filter((item) => {
         const matchesQuery = query === '' || item.label.toLowerCase().includes(query) || (item.badge && item.badge.toLowerCase().includes(query));
@@ -332,7 +343,26 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
         items: visibleItems
       };
     }).filter((group) => group.items.length > 0);
-  }, [groups, searchQuery]);
+
+    // If searching, also include matching system menu items housed in User Menu
+    if (query !== '') {
+      const matchingSystemItems = systemMenuItems.filter(item => 
+        item.label.toLowerCase().includes(query) || (item.badge && item.badge.toLowerCase().includes(query))
+      );
+      if (matchingSystemItems.length > 0) {
+        result.push({
+          id: 'group_system_search',
+          title: 'HỆ THỐNG (MENU USER)',
+          icon: Settings,
+          badgeText: 'MENU USER',
+          accentColor: 'emerald',
+          items: matchingSystemItems
+        });
+      }
+    }
+
+    return result;
+  }, [groups, searchQuery, systemMenuItems]);
 
   return (
     <>
@@ -626,6 +656,179 @@ export const DigitalOfficeSidebar: React.FC<DigitalOfficeSidebarProps> = ({
               );
             })
           )}
+        </div>
+
+        {/* User Profile & System Menu Section (Menu User) */}
+        <div className="mt-auto shrink-0 border-t border-blue-900/80 bg-blue-950/80 p-2.5 space-y-1.5 select-none shadow-lg">
+          {/* Expanded System & Personal Menus */}
+          <AnimatePresence>
+            {isUserMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden bg-blue-900/50 rounded-xl border border-blue-700/50 p-2 space-y-2 text-xs mb-1.5 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700"
+              >
+                {/* Personal Section */}
+                <div className="space-y-0.5">
+                  <div className="px-2 pt-0.5 pb-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300/80">
+                    Cá nhân & Công tác
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentView('profile');
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer text-xs font-semibold ${
+                      currentView === 'profile' 
+                        ? 'bg-amber-400 text-blue-950 font-black shadow-sm' 
+                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                    <span>Hồ sơ Cán bộ</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentView('notes');
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer text-xs font-semibold ${
+                      currentView === 'notes' 
+                        ? 'bg-amber-400 text-blue-950 font-black shadow-sm' 
+                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <StickyNote className="w-3.5 h-3.5 shrink-0" />
+                    <span>Ghi chú cá nhân</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentView('calendar');
+                      if (onCloseMobile) onCloseMobile();
+                    }}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer text-xs font-semibold ${
+                      currentView === 'calendar' 
+                        ? 'bg-amber-400 text-blue-950 font-black shadow-sm' 
+                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Calendar className="w-3.5 h-3.5 shrink-0" />
+                    <span>Lịch công tác</span>
+                  </button>
+                </div>
+
+                <div className="border-t border-blue-700/40 my-1"></div>
+
+                {/* System Management Section - Các menu hệ thống */}
+                <div className="space-y-0.5">
+                  <div className="px-2 pt-0.5 pb-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 flex items-center justify-between">
+                    <span>Menu Hệ thống</span>
+                    <span className="text-[8px] bg-amber-400/20 text-amber-300 border border-amber-300/30 px-1 py-0.2 rounded font-black">Admin</span>
+                  </div>
+
+                  {systemMenuItems.map((item) => {
+                    const ItemIcon = item.icon;
+                    const isActive = currentView === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setCurrentView(item.id);
+                          if (onCloseMobile) onCloseMobile();
+                        }}
+                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer text-xs font-semibold ${
+                          isActive 
+                            ? 'bg-amber-400 text-blue-950 font-black shadow-sm' 
+                            : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <ItemIcon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-950' : 'text-amber-300'}`} />
+                          <span className="truncate text-[11px]">{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className={`text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 ${
+                            isActive ? 'bg-blue-950 text-amber-300' : 'bg-blue-800 text-blue-200 border border-blue-700'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {onLogout && (
+                  <>
+                    <div className="border-t border-blue-700/40 my-1"></div>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-rose-300 hover:bg-rose-900/30 hover:text-rose-200 text-left transition-colors cursor-pointer text-xs font-bold"
+                    >
+                      <LogOut className="w-3.5 h-3.5 shrink-0 text-rose-400" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* User Trigger Card */}
+          <div className="flex items-center justify-between gap-2 p-1.5 bg-blue-900/40 hover:bg-blue-900/70 border border-blue-700/40 rounded-xl transition-all">
+            <button
+              type="button"
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer group"
+            >
+              <div className="relative shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 text-blue-950 font-black flex items-center justify-center text-xs shadow-sm overflow-hidden border border-amber-300">
+                  {staffAvatar ? (
+                    <OptimizedImage src={staffAvatar} alt={staffName} variant="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{staffName ? staffName.charAt(0) : 'CB'}</span>
+                  )}
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-blue-950" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[11px] font-black text-white truncate group-hover:text-amber-300 transition-colors">
+                    {staffName}
+                  </p>
+                  {isSystemViewActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" title="Đang ở trang hệ thống" />
+                  )}
+                </div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className={`text-[8px] font-black px-1.5 py-0.2 rounded-full ${getRoleBadgeStyle(userRole)}`}>
+                    {getRoleLabel(userRole)}
+                  </span>
+                  <span className="text-[8px] text-blue-300 font-medium truncate">
+                    Menu User
+                  </span>
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className={`p-1.5 rounded-lg text-blue-300 hover:text-white hover:bg-blue-800 transition-colors cursor-pointer ${
+                isUserMenuOpen ? 'bg-blue-800 text-amber-300' : ''
+              }`}
+              title={isUserMenuOpen ? 'Thu gọn Menu User' : 'Mở Menu User & Hệ thống'}
+            >
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
         </div>
       </aside>
     </>
