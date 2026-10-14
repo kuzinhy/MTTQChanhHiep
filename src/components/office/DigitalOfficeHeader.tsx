@@ -231,14 +231,15 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className={`flex items-center gap-1.5 p-0.5 sm:pr-2 rounded-xl transition-all cursor-pointer text-left border ${
+                className={`flex items-center gap-2 p-1 sm:pr-2.5 rounded-xl transition-all cursor-pointer text-left border ${
                   userMenuOpen 
-                    ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-100' 
-                    : 'hover:bg-slate-50 border-transparent hover:border-slate-200'
+                    ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-100 shadow-xs' 
+                    : 'hover:bg-slate-50 border-slate-200 hover:border-blue-300 bg-white shadow-2xs'
                 }`}
+                title="Tài khoản & Menu Hệ thống"
               >
                 <div className="relative">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black flex items-center justify-center text-[10px] shadow-xs overflow-hidden border border-white">
+                  <div className="w-7.5 h-7.5 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-600 to-sky-600 text-white font-black flex items-center justify-center text-[11px] shadow-xs overflow-hidden border border-white">
                     {staffAvatar ? (
                       <OptimizedImage src={staffAvatar} alt={staffName} variant="avatar" className="w-full h-full object-cover" />
                     ) : (
@@ -247,11 +248,12 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-white" />
                 </div>
-                <div className="hidden lg:block">
+                <div className="hidden sm:block">
                   <div className="flex items-center gap-1">
-                    <p className="text-[11px] font-black text-slate-900 leading-tight max-w-[120px] truncate">{staffName}</p>
+                    <p className="text-[11px] font-black text-slate-900 leading-tight max-w-[125px] truncate">{staffName}</p>
                     <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform ${userMenuOpen ? 'rotate-180 text-blue-600' : ''}`} />
                   </div>
+                  <p className="text-[9px] font-bold text-slate-500 truncate leading-tight mt-0.5">{getRoleLabel(role)}</p>
                 </div>
               </button>
 
@@ -380,6 +382,16 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
                             <span className="text-[11px]">Cấu hình Email Tự động</span>
                           </div>
                           <span className="text-[8px] font-black bg-indigo-100 text-indigo-700 px-1 py-0.2 rounded">EMAIL</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'system_health') && (
+                        <button onClick={() => handleUserMenuAction('system_health')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2">
+                            <Activity className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span className="text-[11px]">Sức khỏe & Trạng thái Hệ thống</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-emerald-100 text-emerald-700 px-1 py-0.2 rounded">ONLINE</span>
                         </button>
                       )}
                     </div>

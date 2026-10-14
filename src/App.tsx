@@ -2122,21 +2122,14 @@ export default function App() {
                       />
                     )}
 
-                    {officeView === 'neighborhood_management' && (
+                    {(officeView === 'neighborhood_management' || officeView === 'neighborhood_map' || officeView === 'neighborhood_emulation') && (
                       <NeighborhoodManagementAdminView
                         currentStaffUser={currentStaffUser}
+                        opinions={opinions}
+                        initialTab={officeView === 'neighborhood_map' ? 'map' : officeView === 'neighborhood_emulation' ? 'emulation' : 'households'}
                         onShowToast={(title, msg) => handleTriggerSystemToast(title, msg)}
                         onNavigateToOpinions={() => handleNavigateOfficeView('opinions')}
                         onNavigateToMap={() => handleNavigateOfficeView('neighborhood_map')}
-                      />
-                    )}
-
-                    {officeView === 'neighborhood_map' && (
-                      <NeighborhoodMapDashboard
-                        opinions={opinions}
-                        onSelectNeighborhoodOpinions={() => {
-                          setOfficeView('opinions');
-                        }}
                       />
                     )}
 
@@ -2162,10 +2155,6 @@ export default function App() {
 
                     {officeView === 'document_ai_plan_generator' && (
                       <DocumentAiPlanGenerator />
-                    )}
-
-                    {officeView === 'neighborhood_emulation' && (
-                      <NeighborhoodEmulationDashboard />
                     )}
 
                     {officeView === 'youth_union_admin' && (

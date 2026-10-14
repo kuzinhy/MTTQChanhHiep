@@ -32,7 +32,9 @@ import {
   ArrowRight,
   TrendingUp,
   Megaphone,
-  UserCheck
+  UserCheck,
+  Trophy,
+  Award
 } from 'lucide-react';
 import { OFFICIAL_21_NEIGHBORHOODS, NeighborhoodOfficialInfo } from '../../../data/neighborhoodsList';
 import { 
@@ -44,25 +46,46 @@ import {
   INITIAL_CADRES 
 } from '../../../data/neighborhoodManagementData';
 import { AppStorageEngine } from '../../../lib/storage';
-import { StaffUser } from '../../../types';
+import { StaffUser, PublicOpinion } from '../../../types';
+import { NeighborhoodMapDashboard } from '../NeighborhoodMapDashboard';
+import { NeighborhoodEmulationDashboard } from '../NeighborhoodEmulationDashboard';
+
+export type NeighborhoodManagementTab = 
+  | 'households' 
+  | 'map' 
+  | 'emulation' 
+  | 'broadcasts' 
+  | 'petitions' 
+  | 'registrations' 
+  | 'cadres' 
+  | 'analytics';
 
 interface NeighborhoodManagementAdminViewProps {
   currentStaffUser?: StaffUser | null;
   onShowToast?: (title: string, message: string) => void;
   onNavigateToOpinions?: () => void;
   onNavigateToMap?: () => void;
+  opinions?: PublicOpinion[];
+  initialTab?: NeighborhoodManagementTab;
 }
 
 export const NeighborhoodManagementAdminView: React.FC<NeighborhoodManagementAdminViewProps> = ({
   currentStaffUser,
   onShowToast,
   onNavigateToOpinions,
-  onNavigateToMap
+  onNavigateToMap,
+  opinions = [],
+  initialTab = 'households'
 }) => {
-  // Active Tab State
-  const [activeTab, setActiveTab] = useState<
-    'households' | 'broadcasts' | 'petitions' | 'registrations' | 'cadres' | 'analytics'
-  >('households');
+  // Active Tab State (supports Map & Emulation tabs)
+  const [activeTab, setActiveTab] = useState<NeighborhoodManagementTab>(initialTab);
+
+  // Sync activeTab when initialTab prop updates
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Filter States
   const isNeighborhoodLevel = currentStaffUser?.userLevel === 'NEIGHBORHOOD';
@@ -418,7 +441,8 @@ export const NeighborhoodManagementAdminView: React.FC<NeighborhoodManagementAdm
       </div>
 
       {/* 2. FILTER & NEIGHBORHOOD SELECTOR BAR */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      {activeTab !== 'map' && activeTab !== 'emulation' && (
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         {/* Neighborhood Select */}
         <div className="flex items-center gap-3 flex-1">
           <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700 shrink-0">
@@ -467,9 +491,10 @@ export const NeighborhoodManagementAdminView: React.FC<NeighborhoodManagementAdm
           )}
         </div>
       </div>
+      )}
 
       {/* Cadre Banner if specific neighborhood selected */}
-      {currentNeighborhoodObj && (
+      {currentNeighborhoodObj && activeTab !== 'map' && activeTab !== 'emulation' && (
         <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 animate-in fade-in">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
@@ -522,6 +547,36 @@ export const NeighborhoodManagementAdminView: React.FC<NeighborhoodManagementAdm
         >
           <Users className="w-4 h-4" />
           <span>Danh bạ Hộ dân ({filteredHouseholds.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('map')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shrink-0 cursor-pointer ${
+            activeTab === 'map'
+              ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <MapPin className="w-4 h-4" />
+          <span>Bản đồ 21 Khu phố (GIS)</span>
+          <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${
+            activeTab === 'map' ? 'bg-white text-orange-700' : 'bg-amber-100 text-amber-800'
+          }`}>BẢN ĐỒ SỐ</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('emulation')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shrink-0 cursor-pointer ${
+            activeTab === 'emulation'
+              ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Trophy className="w-4 h-4" />
+          <span>Thi đua 21 Khu phố</span>
+          <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${
+            activeTab === 'emulation' ? 'bg-white text-orange-700' : 'bg-amber-100 text-amber-800'
+          }`}>XẾP HẠNG</span>
         </button>
 
         <button
@@ -717,7 +772,30 @@ export const NeighborhoodManagementAdminView: React.FC<NeighborhoodManagementAdm
         </div>
       )}
 
-      {/* 4.2 TAB: BROADCASTS & NOTICES */}
+      {/* 4.2 TAB: BẢN ĐỒ 21 KHU PHỐ (GIS) */}
+      {activeTab === 'map' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <NeighborhoodMapDashboard 
+            opinions={opinions}
+            onSelectNeighborhoodOpinions={(neighborhoodName) => {
+              if (onNavigateToOpinions) {
+                onNavigateToOpinions();
+              } else {
+                notify('Chuyển mục ý kiến', `Xem phản ánh của người dân tại ${neighborhoodName}`);
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {/* 4.3 TAB: THI ĐUA 21 KHU PHỐ */}
+      {activeTab === 'emulation' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <NeighborhoodEmulationDashboard />
+        </div>
+      )}
+
+      {/* 4.4 TAB: BROADCASTS & NOTICES */}
       {activeTab === 'broadcasts' && (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
