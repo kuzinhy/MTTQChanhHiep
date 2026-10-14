@@ -28,7 +28,10 @@ import {
   Database,
   PieChart,
   Settings,
-  Mail
+  Mail,
+  HardDrive,
+  Brain,
+  Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getRoleBadgeStyle, getRoleLabel, canAccessView } from '../../lib/rbac';
@@ -263,7 +266,7 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
                     initial={{ opacity: 0, y: 6, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.96 }}
-                    className="absolute right-0 mt-1.5 w-64 max-h-[82vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-[9999] space-y-1.5 text-xs"
+                    className="absolute right-0 mt-1.5 w-72 sm:w-80 max-h-[84vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-2.5 z-[9999] space-y-2 text-xs"
                   >
                     <div className="p-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white rounded-xl shadow-xs">
                       <div className="flex items-center gap-2.5">
@@ -303,6 +306,56 @@ export const DigitalOfficeHeader: React.FC<DigitalOfficeHeaderProps> = (props) =
                         <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                         <span className="text-[11px]">Lịch công tác</span>
                       </button>
+                    </div>
+
+                    <div className="border-t border-slate-100 my-1"></div>
+
+                    {/* AI Hub & Tools Group */}
+                    <div className="space-y-0.5">
+                      <div className="px-2 pt-0.5 pb-0.5 text-[9px] font-black uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                        <span>Tiện ích & Cấu hình AI</span>
+                        <span className="text-[8px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-1.5 py-0.2 rounded font-black">AI & TOOLS</span>
+                      </div>
+
+                      {canAccessView(currentUser || role, 'google_drive_storage') && (
+                        <button onClick={() => handleUserMenuAction('google_drive_storage')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <HardDrive className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <span className="text-[11px] truncate">Kết nối Google Drive & AI</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.2 rounded shrink-0">DRIVE HUB</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'ai_brain') && (
+                        <button onClick={() => handleUserMenuAction('ai_brain')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Brain className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                            <span className="text-[11px] truncate">Kho Tri thức & Sổ tay AI</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded shrink-0">TRI THỨC</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'ai_settings') && (
+                        <button onClick={() => handleUserMenuAction('ai_settings')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-sky-700 hover:bg-sky-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Bot className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                            <span className="text-[11px] truncate">Cài đặt Trợ lý AI</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-sky-100 text-sky-700 px-1.5 py-0.2 rounded shrink-0">CÀI ĐẶT</span>
+                        </button>
+                      )}
+
+                      {canAccessView(currentUser || role, 'animated_icons_lab') && (
+                        <button onClick={() => handleUserMenuAction('animated_icons_lab')} className="w-full flex items-center justify-between px-2.5 py-1.5 text-slate-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg font-bold transition-colors cursor-pointer text-left">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <span className="text-[11px] truncate">Phòng Thử nghiệm Icon Động</span>
+                          </div>
+                          <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.2 rounded shrink-0">LIVELY</span>
+                        </button>
+                      )}
                     </div>
 
                     <div className="border-t border-slate-100 my-1"></div>
