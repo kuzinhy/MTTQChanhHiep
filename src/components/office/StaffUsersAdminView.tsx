@@ -242,15 +242,28 @@ export const StaffUsersAdminView: React.FC<StaffUsersAdminViewProps> = ({
     return cleanStaffUsers.filter(u => canViewStaffUserInfo(u, currentStaffUser));
   }, [cleanStaffUsers, currentStaffUser]);
 
+  const [categoryTab, setCategoryTab] = useState<'ALL' | 'ADMIN_STAFF' | 'CITIZEN' | 'LOCKED'>('ALL');
+
   // KPIs calculated on strictly visible unique staff users
   const totalCount = visibleStaffUsers.length;
   const activeCount = visibleStaffUsers.filter(u => u.active !== false && u.status !== 'inactive').length;
   const lockedCount = totalCount - activeCount;
-  const adminCount = visibleStaffUsers.filter(u => ['SUPER_ADMIN', 'MTTQ_ADMIN', 'ADMIN', 'MANAGER', 'LEADER'].includes(u.role)).length;
+  const adminCount = visibleStaffUsers.filter(u => !['PUBLIC', 'CONTRIBUTOR'].includes(u.role)).length;
+  const citizenCount = visibleStaffUsers.filter(u => ['PUBLIC', 'CONTRIBUTOR'].includes(u.role)).length;
 
   // Filtered Users
   const filteredUsers = useMemo(() => {
     return visibleStaffUsers.filter(u => {
+      // Category Tab Filter
+      if (categoryTab === 'ADMIN_STAFF') {
+        if (['PUBLIC', 'CONTRIBUTOR'].includes(u.role)) return false;
+      } else if (categoryTab === 'CITIZEN') {
+        if (!['PUBLIC', 'CONTRIBUTOR'].includes(u.role)) return false;
+      } else if (categoryTab === 'LOCKED') {
+        const isActive = u.active !== false && u.status !== 'inactive';
+        if (isActive) return false;
+      }
+
       if (search) {
         const q = search.toLowerCase();
         const matchName = (u.fullname || '').toLowerCase().includes(q);
@@ -272,7 +285,7 @@ export const StaffUsersAdminView: React.FC<StaffUsersAdminViewProps> = ({
 
       return true;
     });
-  }, [visibleStaffUsers, search, roleFilter, statusFilter]);
+  }, [visibleStaffUsers, categoryTab, search, roleFilter, statusFilter]);
 
   // Open Add Modal
   const handleOpenAdd = () => {
@@ -721,6 +734,57 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
         </div>
       </div>
 
+      {/* Category Tab Switcher */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <button
+          onClick={() => { setCategoryTab('ALL'); setRoleFilter('ALL'); }}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 border ${
+            categoryTab === 'ALL'
+              ? 'bg-blue-600 text-white border-blue-700 shadow-md'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Globe className="w-4 h-4" />
+          <span>Tất cả thành viên ({totalCount})</span>
+        </button>
+
+        <button
+          onClick={() => { setCategoryTab('ADMIN_STAFF'); setRoleFilter('ALL'); }}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 border ${
+            categoryTab === 'ADMIN_STAFF'
+              ? 'bg-indigo-600 text-white border-indigo-700 shadow-md'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Shield className="w-4 h-4" />
+          <span>Quản trị viên &amp; Cán bộ ({adminCount})</span>
+        </button>
+
+        <button
+          onClick={() => { setCategoryTab('CITIZEN'); setRoleFilter('ALL'); }}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 border ${
+            categoryTab === 'CITIZEN'
+              ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Thành viên Người dân ({citizenCount})</span>
+        </button>
+
+        <button
+          onClick={() => { setCategoryTab('LOCKED'); setRoleFilter('ALL'); }}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shrink-0 border ${
+            categoryTab === 'LOCKED'
+              ? 'bg-rose-600 text-white border-rose-700 shadow-md'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Lock className="w-4 h-4" />
+          <span>Tạm khóa / Chờ duyệt ({lockedCount})</span>
+        </button>
+      </div>
+
       {/* Filter & Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Search */}
@@ -912,6 +976,27 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
                       {/* Actions */}
                       <td className="p-3.5 pr-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Quick Promote Citizen */}
+                          {(u.role === 'PUBLIC' || u.role === 'CONTRIBUTOR') && (
+                            <button
+                              onClick={() => {
+                                handleOpenEdit(u);
+                                setFormData(prev => ({
+                                  ...prev,
+                                  role: 'STAFF',
+                                  position: 'Cán bộ Mặt trận Chuyên trách',
+                                  department: 'Mặt trận Phường Chánh Hiệp',
+                                  permissionMap: { ...DEFAULT_ROLE_PERMISSIONS.STAFF }
+                                }));
+                              }}
+                              className="px-2 py-1 text-[10px] font-black text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors cursor-pointer border border-amber-300 flex items-center gap-1 shadow-2xs shrink-0"
+                              title="Nâng cấp tài khoản Người dân thành Cán bộ Quản trị"
+                            >
+                              <UserPlus className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Nâng Cấp</span>
+                            </button>
+                          )}
+
                           {/* KIỂM TRA QUYỀN BUTTON */}
                           <button
                             onClick={() => handleOpenDiagnostics(u)}
