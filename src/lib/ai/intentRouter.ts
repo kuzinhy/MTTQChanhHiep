@@ -145,7 +145,7 @@ export class IntentRouter {
           answer: 'Thủ tục **Đăng ký kết hôn** tại UBND Phường Chánh Hiệp [Mã: TTHC-TP-01]: Thời hạn giải quyết trong 01 ngày làm việc (ngay trong ngày tiếp nhận hồ sơ). Lệ phí: Miễn phí. Hồ sơ gồm: Tờ khai đăng ký kết hôn theo mẫu, CCCD gắn chip (hoặc VNeID mức 2), Giấy xác nhận tình trạng hôn nhân (nếu cư trú khác địa bàn).',
           actions: [
             { type: 'OPEN_ROUTE', label: 'Xem sơ đồ quy trình', route: '/van-ban' },
-            { type: 'OPEN_EXTERNAL', label: 'Tải biểu mẫu từ Drive', route: 'https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL' }
+            { type: 'OPEN_EXTERNAL', label: 'Cổng Dịch vụ công Tỉnh', route: 'https://dichvucong.binhduong.gov.vn' }
           ],
           followUps: ['Thủ tục xác nhận tình trạng hôn nhân', 'Thủ tục chứng thực bản sao']
         }
@@ -304,9 +304,9 @@ export class IntentRouter {
         confidence: 0.95,
         extractedEntities,
         directResponse: {
-          answer: 'Toàn bộ biểu mẫu hồ sơ, văn bản hướng dẫn và tài liệu chỉ đạo của Phường Chánh Hiệp được lưu trữ tại Thư mục Google Drive chính thức.',
+          answer: 'Toàn bộ biểu mẫu hồ sơ, văn bản hướng dẫn và tài liệu chỉ đạo chính thức của Phường Chánh Hiệp được lưu trữ và niêm yết tại Kho Văn Bản Điện Tử Cổng Thông Tin.',
           actions: [
-            { type: 'OPEN_EXTERNAL', label: 'Mở Thư mục Google Drive', route: 'https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL' }
+            { type: 'OPEN_ROUTE', label: 'Tra cứu Kho Văn Bản Điện Tử', route: '/van-ban' }
           ]
         }
       };

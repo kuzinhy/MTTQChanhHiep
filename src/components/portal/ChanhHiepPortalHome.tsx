@@ -32,6 +32,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Article, OfficialDocument, PublicOpinion, CloudinaryImageMeta, StaffUser } from '../../types';
 import { AppStorageEngine } from '../../lib/storage';
 import { isSocialWelfareModuleEnabled } from '../../lib/moduleSettings';
+import { canAccessAdminSpace } from '../../lib/rbac';
 import { MapLocation } from '../../data/mapSchema';
 import { DigitalCommunityMap } from '../map/DigitalCommunityMap';
 import { CitizenPublicServiceGuide } from './CitizenPublicServiceGuide';
@@ -271,8 +272,8 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </span>
         </div>
 
-        {/* 6 Grid Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* 5 Public Citizen Action Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           
           {/* Card 1: Không gian Văn hóa Hồ Chí Minh */}
           <motion.div
@@ -378,25 +379,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
             </div>
           </motion.div>
 
-          {/* Card 6: Văn phòng số */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onGoToOffice}
-            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all cursor-pointer flex items-start gap-3 group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-              <Monitor className="w-5 h-5 text-white" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="font-bold text-xs text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">
-                Văn phòng số
-              </h3>
-              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
-                Hệ thống điều hành, quản lý công việc nội bộ
-              </p>
-            </div>
-          </motion.div>
+
 
         </div>
       </section>

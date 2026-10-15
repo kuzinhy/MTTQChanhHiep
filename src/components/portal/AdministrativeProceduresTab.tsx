@@ -326,16 +326,6 @@ export const AdministrativeProceduresTab: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <a
-              href="https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl border border-white/20 text-xs font-bold transition-all shadow-sm hover:scale-102 active:scale-98"
-            >
-              <FolderOpen className="w-4 h-4 text-amber-300" />
-              <span>Kho Biểu mẫu Drive (1TNEc...)</span>
-              <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-            </a>
 
             <a
               href="https://dichvucong.binhduong.gov.vn"

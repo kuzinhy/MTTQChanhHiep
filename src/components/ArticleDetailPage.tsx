@@ -329,8 +329,8 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
 
 
 
-          {/* Attachment Section (File / Image attached & Google Drive Link) */}
-          {(article.attachment || article.attachmentName || article.driveFolderUrl) && (
+          {/* Attachment Section (Only render attached official downloadable files) */}
+          {(article.attachment || article.attachmentName) && (
             <div className="p-5 bg-gradient-to-r from-emerald-50 via-teal-50/70 to-emerald-50/40 rounded-3xl border border-emerald-200/90 shadow-2xs space-y-3.5">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2.5">
@@ -342,13 +342,10 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                       Tệp &amp; Tài liệu đính kèm bài viết
                     </h4>
                     <p className="text-xs text-emerald-700 font-medium">
-                      Tài liệu lưu trữ trực tiếp tại Thư mục Google Drive chính thức
+                      Tài liệu chính thức do Ủy ban MTTQ công bố
                     </p>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-[10px] font-black uppercase">
-                  Google Drive Storage
-                </span>
               </div>
 
               {article.attachmentName && (
@@ -359,7 +356,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                     </div>
                     <div className="truncate">
                       <p className="text-xs font-black text-slate-900 truncate">{article.attachmentName}</p>
-                      <p className="text-[11px] text-slate-500 font-medium">Kích thước: {article.attachmentSize || 'Đã đính kèm'}</p>
+                      <p className="text-[11px] text-slate-500 font-medium">Trạng thái: Tệp chính thức</p>
                     </div>
                   </div>
 
@@ -371,25 +368,12 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                         className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        <span>Tải tệp</span>
+                        <span>Tải tệp đính kèm</span>
                       </a>
                     )}
                   </div>
                 </div>
               )}
-
-              <div className="pt-1 flex items-center justify-between gap-3 flex-wrap text-xs">
-                <a
-                  href={article.driveFolderUrl || 'https://drive.google.com/drive/folders/1TNEc-8JYkF17R44igkinTIZAmFEjSmOL'}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-bold transition-all inline-flex items-center gap-2 shadow-xs cursor-pointer"
-                >
-                  <HardDrive className="w-4 h-4 text-emerald-300" />
-                  <span>Mở Thư mục Google Drive (1TNEc-8JYkF17R44igkinTIZAmFEjSmOL)</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
             </div>
           )}
 
