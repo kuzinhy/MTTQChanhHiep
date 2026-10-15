@@ -208,7 +208,8 @@ service cloud.firestore {
     }
     match /auditLogs/{id} {
       allow read: if isSuperAdmin() || isAdmin() || hasPermission('audit_view') || isStaff();
-      allow write: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false; // Immutability: Prevent modification or deletion of audit records
     }
 
     // 8. User Management (users & staffUsers collections)
