@@ -266,6 +266,78 @@ export class NotificationService {
   }
 
   /**
+   * Event: REGISTRATION_OTP_VERIFICATION
+   * Sends 6-digit OTP directly to recipient email for account registration verification
+   */
+  static async sendRegistrationOtp(
+    recipientEmail: string,
+    recipientName: string,
+    otpCode: string,
+    expiryMinutes: number = 3
+  ): Promise<boolean> {
+    const eventKey = `OTP_${recipientEmail.toLowerCase()}_${Date.now()}`;
+    const subject = `[MTTQ CHÁNH HIỆP] Mã xác thực đăng ký tài khoản: ${otpCode}`;
+    const htmlBody = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); padding: 24px 20px; text-align: center; color: #ffffff;">
+          <h1 style="margin: 0; font-size: 15px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+            ỦY BAN MẶT TRẬN TỔ QUỐC VIỆT NAM PHƯỜNG CHÁNH HIỆP
+          </h1>
+          <p style="margin: 4px 0 0 0; font-size: 11px; color: #bfdbfe; font-weight: 500;">
+            Hệ thống Quản trị & Điều hành Văn phòng số
+          </p>
+        </div>
+
+        <div style="padding: 28px 20px; color: #1e293b;">
+          <p style="font-size: 14px; margin-top: 0;">Kính gửi đồng chí <strong>${recipientName}</strong>,</p>
+          <p style="font-size: 13px; line-height: 1.6; color: #475569;">
+            Hệ thống vừa nhận được yêu cầu đăng ký tài khoản cán bộ công vụ với địa chỉ email <strong>${recipientEmail}</strong>. Để hoàn tất quy trình xác thực danh tính, đồng chí vui lòng sử dụng mã xác thực (OTP) bên dưới:
+          </p>
+
+          <div style="margin: 24px 0; text-align: center;">
+            <div style="display: inline-block; background: #f8fafc; border: 2px dashed #2563eb; border-radius: 12px; padding: 14px 32px;">
+              <span style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: 900; letter-spacing: 8px; color: #1e3a8a;">
+                ${otpCode}
+              </span>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 11px; color: #64748b; font-weight: 600;">
+              Mã có hiệu lực trong vòng <strong style="color: #dc2626;">${expiryMinutes} phút</strong>
+            </p>
+          </div>
+
+          <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 14px; border-radius: 4px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 11.5px; color: #92400e; line-height: 1.5;">
+              <strong>Lưu ý an toàn:</strong> Tuyệt đối không chia sẻ mã này cho bất kỳ ai. Ban Quản trị hệ thống không bao giờ yêu cầu đồng chí cung cấp mã xác thực này qua điện thoại hay tin nhắn.
+            </p>
+          </div>
+
+          <p style="font-size: 11.5px; color: #64748b; line-height: 1.5; margin: 0;">
+            Nếu đồng chí không thực hiện yêu cầu đăng ký này, vui lòng bỏ qua email hoặc thông báo ngay cho Thường trực Ủy ban MTTQ Phường Chánh Hiệp để kiểm tra an toàn.
+          </p>
+        </div>
+
+        <div style="background: #f1f5f9; padding: 14px 20px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 10.5px; color: #64748b;">
+          <p style="margin: 0; font-weight: 700;">UBND & ỦY BAN MTTQ VIỆT NAM PHƯỜNG CHÁNH HIỆP</p>
+          <p style="margin: 3px 0 0 0;">Số 189 đường Nguyễn Đức Thuận, Khu phố 5, Phường Chánh Hiệp, TP. Thủ Dầu Một, Bình Dương</p>
+          <p style="margin: 3px 0 0 0;">Điện thoại: (0274) 3822 567 • Email: mttqvietnamphuongchanhhiep@gmail.com</p>
+        </div>
+      </div>
+    `;
+
+    return this.sendEmail(
+      'REGISTRATION_OTP',
+      eventKey,
+      'staffUsers',
+      'otp-' + Date.now(),
+      recipientEmail,
+      recipientName,
+      subject,
+      htmlBody,
+      { otpCode, expiryMinutes }
+    );
+  }
+
+  /**
    * Event 1: USER_REGISTERED
    */
   static async notifyUserRegistered(user: StaffUser): Promise<void> {

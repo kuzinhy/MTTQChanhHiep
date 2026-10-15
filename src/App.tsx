@@ -1029,6 +1029,21 @@ export default function App() {
     });
   };
 
+  // Listen to OTP verification dispatch event for real-time sandbox / notification feedback
+  useEffect(() => {
+    const handleOtpDispatched = (e: any) => {
+      const { email, otpCode } = e.detail || {};
+      if (email && otpCode) {
+        handleTriggerSystemToast(
+          'Mã Xác Thực Email (OTP)',
+          `Mã xác thực đăng ký đã gửi đến ${email}. Mã OTP: ${otpCode} (Hiệu lực 3 phút).`
+        );
+      }
+    };
+    window.addEventListener('mttq_otp_dispatched', handleOtpDispatched);
+    return () => window.removeEventListener('mttq_otp_dispatched', handleOtpDispatched);
+  }, []);
+
   const handleRefreshAllData = () => {
     setArticles(AppStorageEngine.getArticles());
     setDocuments(AppStorageEngine.getDocuments());

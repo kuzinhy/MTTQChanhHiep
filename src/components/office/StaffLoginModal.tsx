@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StaffUser } from '../../types';
 import { 
   LogIn, 
@@ -17,7 +17,13 @@ import {
   Loader2, 
   Lock,
   MailCheck,
-  Send
+  Send,
+  Sparkles,
+  Clock,
+  RotateCcw,
+  CheckCheck,
+  ShieldAlert,
+  Check
 } from 'lucide-react';
 import { AnimatedIcon } from '../common/AnimatedIcon';
 import { auth } from '../../lib/firebase';
@@ -30,6 +36,8 @@ import {
   sendEmailVerification,
   updateProfile
 } from 'firebase/auth';
+import { EmailVerificationService } from '../../services/emailVerificationService';
+import { NotificationService } from '../../services/notificationService';
 
 interface StaffLoginModalProps {
   isOpen: boolean;
@@ -46,7 +54,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
   onLoginSuccess,
   onRegisterUser
 }) => {
-  const [activeView, setActiveView] = useState<'login' | 'register' | 'forgot_password'>('login');
+  const [activeView, setActiveView] = useState<'login' | 'register' | 'verify_otp' | 'forgot_password'>('login');
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -66,6 +74,70 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
   const [regPassword, setRegPassword] = useState('');
   const [regPosition, setRegPosition] = useState('Cán bộ Chuyên trách MTTQ');
   const [regPhone, setRegPhone] = useState('');
+
+  // 6-Digit OTP Verification state
+  const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const [otpCountdown, setOtpCountdown] = useState<number>(180); // 3 minutes
+  const [resendCooldown, setResendCooldown] = useState<number>(60); // 60 seconds
+  const [currentOtp, setCurrentOtp] = useState<string>('');
+  const [otpEmail, setOtpEmail] = useState<string>('');
+  const [otpName, setOtpName] = useState<string>('');
+  const [pendingUserData, setPendingUserData] = useState<StaffUser | null>(null);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpSuccess, setOtpSuccess] = useState<boolean>(false);
+  const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Sound generator using Web Audio API
+  const playChime = (type: 'send' | 'success' | 'error') => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === 'send') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.12);
+      } else if (type === 'success') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
+        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.16);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.28);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        osc.frequency.setValueAtTime(140, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.18);
+      }
+    } catch {}
+  };
+
+  // Countdown timers for OTP expiration and resend cooldown
+  useEffect(() => {
+    if (activeView !== 'verify_otp' || otpSuccess) return;
+
+    const timer = setInterval(() => {
+      setOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeView, otpSuccess]);
 
   if (!isOpen) return null;
 
@@ -238,11 +310,18 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
     }
   };
 
-  // Register New Staff Account with Mandated Email Verification
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  // Register New Staff Account: Initiates 6-Digit Email OTP Verification
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
+    setOtpError(null);
 
     const cleanRegEmail = regEmail.trim().toLowerCase();
     const trimmedName = regName.trim();
@@ -257,36 +336,17 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
       return;
     }
 
+    // Check if email already registered in existing active staff
+    const existing = staffUsers.find((u) => u.email.toLowerCase() === cleanRegEmail);
+    if (existing) {
+      setErrorMessage(`Email "${cleanRegEmail}" đã được đăng ký tài khoản. Vui lòng chuyển sang Đăng nhập.`);
+      return;
+    }
+
     setIsLoading(true);
-    let verificationSent = false;
 
     try {
-      // 1. Register with Firebase Auth & send verification email
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, cleanRegEmail, regPassword);
-        const user = userCredential.user;
-
-        if (user) {
-          await updateProfile(user, { displayName: trimmedName }).catch(() => {});
-          await sendEmailVerification(user).catch((e) => console.warn('Email verification send failed:', e));
-          verificationSent = true;
-        }
-      } catch (authErr: any) {
-        console.warn('Firebase user creation notice:', authErr?.code || authErr);
-        if (authErr.code === 'auth/email-already-in-use') {
-          setErrorMessage(`Email "${cleanRegEmail}" đã được đăng ký tài khoản. Vui lòng chọn Đăng nhập hoặc Quên mật khẩu.`);
-          setIsLoading(false);
-          return;
-        }
-        if (authErr.code === 'auth/invalid-email') {
-          setErrorMessage('Địa chỉ email không hợp lệ!');
-          setIsLoading(false);
-          return;
-        }
-        // If auth/operation-not-allowed, proceed gracefully with direct database registration
-      }
-
-      // 2. Save StaffUser record in Firestore & LocalStorage
+      // Build pending StaffUser record
       const newStaffUser: StaffUser = {
         id: 'staff-' + Date.now(),
         email: cleanRegEmail,
@@ -303,34 +363,184 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
         createdAt: new Date().toISOString().split('T')[0]
       };
 
-      CloudDatabase.saveStaffUser(newStaffUser).catch(console.warn);
-      if (onRegisterUser) {
-        onRegisterUser(newStaffUser);
-      }
+      // Start OTP verification session & dispatch email
+      const result = await EmailVerificationService.startVerification(cleanRegEmail, trimmedName, newStaffUser);
+      playChime('send');
 
-      if (verificationSent) {
-        setSuccessMessage(
-          `ĐĂNG KÝ THÀNH CÔNG & ĐÃ GỬI EMAIL XÁC THỰC! Vui lòng kiểm tra hộp thư "${cleanRegEmail}" (kể cả mục Spam/Thư rác) và bấm vào liên kết xác thực trước khi đăng nhập công vụ.`
-        );
-      } else {
-        setSuccessMessage(
-          `ĐÃ GỬI HỒ SƠ ĐĂNG KÝ! Hệ thống đã ghi nhận hồ sơ cán bộ "${trimmedName}". Tài khoản đang được chuyển đến Ban Thường trực MTTQ Phường Chánh Hiệp xét duyệt kích hoạt.`
-        );
-      }
+      setPendingUserData(newStaffUser);
+      setOtpEmail(cleanRegEmail);
+      setOtpName(trimmedName);
+      setCurrentOtp(result.otpCode);
+      setOtpDigits(['', '', '', '', '', '']);
+      setOtpCountdown(180);
+      setResendCooldown(60);
+      setOtpSuccess(false);
+      setActiveView('verify_otp');
 
-      setRegName('');
-      setRegEmail('');
-      setRegPassword('');
-      setRegPhone('');
       setTimeout(() => {
-        setActiveView('login');
-      }, 4000);
+        otpInputsRef.current[0]?.focus();
+      }, 150);
     } catch (err: any) {
-      console.error('Registration error:', err);
-      setErrorMessage('Đăng ký không thành công: ' + (err.message || 'Lỗi hệ thống.'));
+      console.error('Registration init error:', err);
+      setErrorMessage('Không thể khởi tạo mã xác thực: ' + (err.message || 'Lỗi hệ thống.'));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Submit and verify entered 6-digit OTP code
+  const handleVerifyOtpSubmit = async (codeToVerify?: string) => {
+    const code = (codeToVerify || otpDigits.join('')).trim();
+    if (code.length < 6) {
+      setOtpError('Vui lòng nhập đủ 6 chữ số mã xác thực.');
+      return;
+    }
+
+    setIsLoading(true);
+    setOtpError(null);
+
+    try {
+      const result = EmailVerificationService.verifyCode(otpEmail, code);
+      if (!result.success) {
+        playChime('error');
+        setOtpError(result.error || 'Mã xác thực không chính xác.');
+        setOtpDigits(['', '', '', '', '', '']);
+        setTimeout(() => {
+          otpInputsRef.current[0]?.focus();
+        }, 100);
+        setIsLoading(false);
+        return;
+      }
+
+      // Verification Success!
+      playChime('success');
+      setOtpSuccess(true);
+
+      const verifiedUser: StaffUser = {
+        ...(pendingUserData || result.userData || {}),
+        id: pendingUserData?.id || 'staff-' + Date.now(),
+        email: otpEmail,
+        fullname: otpName,
+        position: pendingUserData?.position || regPosition || 'Cán bộ MTTQ',
+        department: pendingUserData?.department || 'Mặt trận Phường Chánh Hiệp',
+        role: 'STAFF',
+        active: false,
+        status: 'inactive',
+        createdAt: new Date().toISOString().split('T')[0]
+      } as StaffUser;
+
+      // Also create Firebase Auth user in background if possible
+      try {
+        if (regPassword) {
+          const userCred = await createUserWithEmailAndPassword(auth, otpEmail, regPassword);
+          if (userCred.user) {
+            await updateProfile(userCred.user, { displayName: otpName }).catch(() => {});
+          }
+        }
+      } catch (authErr) {
+        console.warn('[Auth] Firebase auth create notice:', authErr);
+      }
+
+      // Save to CloudDatabase & Local
+      await CloudDatabase.saveStaffUser(verifiedUser).catch(console.warn);
+      if (onRegisterUser) {
+        onRegisterUser(verifiedUser);
+      }
+
+      // Notify Admin
+      NotificationService.notifyUserRegistered(verifiedUser).catch(console.warn);
+
+      // Clean session
+      EmailVerificationService.clearSession(otpEmail);
+
+      // Pre-fill email for login
+      setEmailInput(otpEmail);
+
+    } catch (err: any) {
+      console.error('OTP verification error:', err);
+      setOtpError('Lỗi trong quá trình xác thực: ' + (err.message || 'Vui lòng thử lại.'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend fresh OTP
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || isLoading) return;
+    setIsLoading(true);
+    setOtpError(null);
+    try {
+      const result = await EmailVerificationService.resendCode(otpEmail);
+      if (result.success && result.newOtp) {
+        playChime('send');
+        setCurrentOtp(result.newOtp);
+        setOtpCountdown(180);
+        setResendCooldown(60);
+        setOtpDigits(['', '', '', '', '', '']);
+        setTimeout(() => otpInputsRef.current[0]?.focus(), 100);
+      } else {
+        setOtpError(result.error || 'Chưa thể gửi lại mã lúc này.');
+      }
+    } catch (err: any) {
+      setOtpError('Lỗi gửi lại mã: ' + (err?.message || 'Vui lòng thử lại.'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle single and multi-digit OTP inputs
+  const handleOtpDigitChange = (index: number, val: string) => {
+    const cleaned = val.replace(/\D/g, '');
+    if (cleaned.length > 1) {
+      const newDigits = [...otpDigits];
+      const chars = cleaned.slice(0, 6).split('');
+      chars.forEach((c, i) => {
+        if (index + i < 6) newDigits[index + i] = c;
+      });
+      setOtpDigits(newDigits);
+      const nextFocus = Math.min(index + chars.length, 5);
+      otpInputsRef.current[nextFocus]?.focus();
+      if (newDigits.every((d) => d !== '')) {
+        handleVerifyOtpSubmit(newDigits.join(''));
+      }
+      return;
+    }
+
+    const digit = cleaned.slice(-1);
+    const newDigits = [...otpDigits];
+    newDigits[index] = digit;
+    setOtpDigits(newDigits);
+
+    if (digit && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+
+    if (newDigits.every((d) => d !== '')) {
+      handleVerifyOtpSubmit(newDigits.join(''));
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (!otpDigits[index] && index > 0) {
+        otpInputsRef.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleAutoFillOtp = (code: string) => {
+    if (!code) return;
+    const digits = code.slice(0, 6).split('');
+    const next = ['', '', '', '', '', ''];
+    digits.forEach((d, i) => {
+      if (i < 6) next[i] = d;
+    });
+    setOtpDigits(next);
+    handleVerifyOtpSubmit(code);
   };
 
   return (
@@ -656,29 +866,222 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-950 leading-tight space-y-1">
-                  <p className="font-bold flex items-center gap-1">
-                    <MailCheck className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Yêu cầu xác thực Email &amp; Phê duyệt:</span>
+                <div className="p-2.5 bg-blue-50/80 border border-blue-200 rounded-xl text-[11px] text-blue-950 leading-tight space-y-1">
+                  <p className="font-bold flex items-center gap-1 text-blue-900">
+                    <MailCheck className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Quy trình bảo mật xác thực OTP 2 lớp:</span>
                   </p>
-                  <p className="text-amber-900">
-                    Hệ thống sẽ gửi email xác thực đến địa chỉ của bạn. Bạn cần mở email và bấm vào liên kết xác thực trước khi đăng nhập. Ban Thường trực sẽ kích hoạt tài khoản ngay sau khi kiểm tra.
+                  <p className="text-blue-800">
+                    Hệ thống sẽ gửi ngay mã xác thực OTP 6 chữ số đến email của đồng chí. Đồng chí cần nhập mã xác thực để hoàn tất gửi hồ sơ công vụ.
                   </p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-2.5 bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
+                  className="w-full py-2.5 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 hover:from-blue-800 hover:to-slate-950 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 text-white animate-spin" />
                   ) : (
-                    <UserPlus className="w-4 h-4 text-white" />
+                    <Send className="w-4 h-4 text-white" />
                   )}
-                  <span>Đăng Ký &amp; Gửi Email Xác Thực</span>
+                  <span>Tiếp Tục &amp; Nhận Mã OTP Qua Email</span>
                 </button>
               </form>
+            </div>
+          )}
+
+          {/* VIEW 4: 6-DIGIT EMAIL OTP VERIFICATION */}
+          {activeView === 'verify_otp' && (
+            <div className="space-y-3.5 pt-1 text-xs">
+              {!otpSuccess ? (
+                <>
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveView('register');
+                        setOtpError(null);
+                      }}
+                      className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Quay lại</span>
+                    </button>
+                    <div className="flex items-center gap-1.5 text-blue-700 font-black text-xs uppercase tracking-wider">
+                      <MailCheck className="w-4 h-4" />
+                      <span>Xác thực OTP Email</span>
+                    </div>
+                  </div>
+
+                  <div className="text-center space-y-1">
+                    <p className="text-slate-600 text-[11.5px] leading-relaxed">
+                      Mã xác thực bảo mật 6 chữ số đã được gửi đến địa chỉ email:
+                    </p>
+                    <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-900 px-2.5 py-1 rounded-lg border border-blue-200 font-bold text-xs">
+                      <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span className="truncate max-w-[240px]">{otpEmail}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveView('register');
+                          setOtpError(null);
+                        }}
+                        className="ml-1 text-[10px] text-blue-700 hover:underline cursor-pointer"
+                      >
+                        (Đổi)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Sandbox / Testing Helper Card */}
+                  {currentOtp && (
+                    <div className="p-2.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50 border border-blue-200/90 rounded-xl flex items-center justify-between text-xs shadow-2xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Sparkles className="w-4 h-4 text-blue-600 shrink-0 animate-pulse" />
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">Hộp thư / Sandbox thử nghiệm:</span>
+                          <span className="font-mono font-black text-sm text-blue-800 tracking-widest">{currentOtp}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAutoFillOtp(currentOtp)}
+                        disabled={isLoading}
+                        className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-[11px] rounded-lg transition-all shadow-xs cursor-pointer shrink-0 flex items-center gap-1"
+                      >
+                        <span>Tự động điền</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 6 Digit Input Boxes */}
+                  <div className="space-y-2">
+                    <label className="font-bold text-slate-800 block text-center text-xs">
+                      Nhập mã 6 chữ số từ hộp thư (*)
+                    </label>
+
+                    <div className="flex items-center justify-center gap-2" onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      const digits = text.replace(/\D/g, '').slice(0, 6);
+                      if (digits) {
+                        e.preventDefault();
+                        handleAutoFillOtp(digits);
+                      }
+                    }}>
+                      {otpDigits.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => { otpInputsRef.current[idx] = el; }}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          disabled={isLoading || otpCountdown === 0}
+                          className={`w-11 h-13 text-center text-xl font-mono font-black rounded-xl border transition-all outline-hidden select-none ${
+                            digit
+                              ? 'bg-blue-50 border-blue-600 text-blue-900 ring-2 ring-blue-200'
+                              : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100'
+                          } ${otpCountdown === 0 ? 'bg-slate-100 opacity-60' : ''}`}
+                        />
+                      ))}
+                    </div>
+
+                    {otpError && (
+                      <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs text-center font-bold animate-shake">
+                        {otpError}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Expiry Countdown & Resend Control */}
+                  <div className="flex items-center justify-between pt-1 text-[11px]">
+                    <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                      <Clock className={`w-3.5 h-3.5 ${otpCountdown < 30 ? 'text-red-600 animate-pulse' : otpCountdown < 60 ? 'text-amber-600' : 'text-blue-600'}`} />
+                      <span>
+                        Hết hạn sau:{' '}
+                        <strong className={`font-mono font-black ${otpCountdown < 30 ? 'text-red-600' : otpCountdown < 60 ? 'text-amber-600' : 'text-slate-800'}`}>
+                          {formatTimer(otpCountdown)}
+                        </strong>
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={resendCooldown > 0 || isLoading}
+                      className="font-bold text-blue-700 hover:text-blue-900 disabled:text-slate-400 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <RotateCcw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                      <span>
+                        {resendCooldown > 0 ? `Gửi lại mã (${resendCooldown}s)` : 'Gửi lại mã OTP'}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Submit Verification Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleVerifyOtpSubmit()}
+                    disabled={isLoading || otpDigits.some((d) => !d) || otpCountdown === 0}
+                    className="w-full py-2.5 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 hover:from-blue-800 hover:to-slate-950 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 text-white animate-spin" />
+                    ) : (
+                      <CheckCheck className="w-4 h-4 text-white" />
+                    )}
+                    <span>Xác Thực &amp; Hoàn Tất Đăng Ký</span>
+                  </button>
+
+                  <div className="p-2 bg-slate-50 rounded-lg border border-slate-200/60 text-[10.5px] text-slate-500 leading-relaxed text-center">
+                    Mã xác thực được gửi tự động qua hệ thống Webhook &amp; Mail Server MTTQ Phường Chánh Hiệp. Vui lòng kiểm tra cả mục Thư rác/Spam.
+                  </div>
+                </>
+              ) : (
+                /* Celebratory Success View */
+                <div className="py-4 text-center space-y-3 animate-fadeIn">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-inner ring-8 ring-emerald-50">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+                  </div>
+
+                  <div>
+                    <h4 className="text-base font-black text-slate-900">
+                      XÁC THỰC EMAIL THÀNH CÔNG!
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-1 max-w-xs mx-auto">
+                      Địa chỉ email <strong>{otpEmail}</strong> của đồng chí <strong>{otpName}</strong> đã được xác minh chính chủ.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-left text-[11px] text-blue-950 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5 text-blue-900">
+                      <ShieldCheck className="w-4 h-4 text-blue-700" />
+                      <span>Trạng thái hồ sơ:</span>
+                    </p>
+                    <p className="text-slate-700">
+                      Hồ sơ đã được gửi trực tiếp đến Ban Thường trực Ủy ban MTTQ Phường Chánh Hiệp để xem xét và cấp quyền công vụ.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveView('login');
+                      setOtpSuccess(false);
+                      setErrorMessage(null);
+                      setSuccessMessage(`Đã xác thực email thành công cho "${otpEmail}". Vui lòng đăng nhập bằng mật khẩu vừa đăng ký.`);
+                    }}
+                    className="w-full py-2.5 bg-blue-800 hover:bg-blue-900 text-white font-black text-xs rounded-xl shadow-md transition-colors cursor-pointer"
+                  >
+                    Chuyển Đến Màn Hình Đăng Nhập
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
