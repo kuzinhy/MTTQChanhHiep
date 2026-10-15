@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StaffUser } from '../../types';
+import { StaffUser, UserRole } from '../../types';
 import { 
   LogIn, 
   ShieldCheck, 
@@ -23,7 +23,10 @@ import {
   RotateCcw,
   CheckCheck,
   ShieldAlert,
-  Check
+  Check,
+  Users,
+  MapPin,
+  HeartHandshake
 } from 'lucide-react';
 import { AnimatedIcon } from '../common/AnimatedIcon';
 import { auth } from '../../lib/firebase';
@@ -38,6 +41,7 @@ import {
 } from 'firebase/auth';
 import { EmailVerificationService } from '../../services/emailVerificationService';
 import { NotificationService } from '../../services/notificationService';
+import { SixDigitCodeInput026 } from '../common/SixDigitCodeInput026';
 
 interface StaffLoginModalProps {
   isOpen: boolean;
@@ -45,6 +49,7 @@ interface StaffLoginModalProps {
   staffUsers: StaffUser[];
   onLoginSuccess: (user: StaffUser) => void;
   onRegisterUser?: (newUser: StaffUser) => void;
+  initialView?: 'login' | 'register';
 }
 
 export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
@@ -52,9 +57,16 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
   onClose,
   staffUsers,
   onLoginSuccess,
-  onRegisterUser
+  onRegisterUser,
+  initialView = 'login'
 }) => {
-  const [activeView, setActiveView] = useState<'login' | 'register' | 'verify_otp' | 'forgot_password'>('login');
+  const [activeView, setActiveView] = useState<'login' | 'register' | 'verify_otp' | 'forgot_password'>(initialView);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveView(initialView);
+    }
+  }, [isOpen, initialView]);
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -69,11 +81,14 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
   const [forgotSubmitted, setForgotSubmitted] = useState(false);
 
   // Registration form state
+  const [regAccountType, setRegAccountType] = useState<'CITIZEN' | 'STAFF'>('CITIZEN');
+  const [regNeighborhood, setRegNeighborhood] = useState('Khu phố 1');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regPosition, setRegPosition] = useState('Cán bộ Chuyên trách MTTQ');
   const [regPhone, setRegPhone] = useState('');
+  const [createdUser, setCreatedUser] = useState<StaffUser | null>(null);
 
   // 6-Digit OTP Verification state
   const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
@@ -346,20 +361,25 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
     setIsLoading(true);
 
     try {
+      const isCitizen = regAccountType === 'CITIZEN';
+      const role: UserRole = isCitizen ? 'PUBLIC' : 'STAFF';
+      const isInitiallyActive = isCitizen; // Người dân xác thực email OTP thành công sẽ active ngay
+
       // Build pending StaffUser record
       const newStaffUser: StaffUser = {
-        id: 'staff-' + Date.now(),
+        id: (isCitizen ? 'citizen-' : 'staff-') + Date.now(),
         email: cleanRegEmail,
         fullname: trimmedName,
-        position: regPosition || 'Cán bộ MTTQ',
-        department: 'Mặt trận Phường Chánh Hiệp',
-        role: 'STAFF',
+        position: isCitizen ? `Thành viên / Công dân ${regNeighborhood}` : (regPosition || 'Cán bộ MTTQ'),
+        department: isCitizen ? 'Cộng đồng Dân cư Phường Chánh Hiệp' : 'Mặt trận Phường Chánh Hiệp',
+        role,
         phone: regPhone || undefined,
         tempPassword: regPassword, // Stored for internal credential validation fallback
-        permissions: ['read', 'write'],
-        active: false, // Inactive pending admin approval
-        status: 'inactive',
+        permissions: isCitizen ? ['read'] : ['read', 'write'],
+        active: isInitiallyActive,
+        status: isInitiallyActive ? 'active' : 'inactive',
         organizationId: 'mttq-chanhhiep',
+        assignedNeighborhoodName: isCitizen ? regNeighborhood : undefined,
         createdAt: new Date().toISOString().split('T')[0]
       };
 
@@ -416,18 +436,22 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
       playChime('success');
       setOtpSuccess(true);
 
+      const isCitizen = (pendingUserData?.role === 'PUBLIC') || regAccountType === 'CITIZEN';
       const verifiedUser: StaffUser = {
         ...(pendingUserData || result.userData || {}),
-        id: pendingUserData?.id || 'staff-' + Date.now(),
+        id: pendingUserData?.id || ((isCitizen ? 'citizen-' : 'staff-') + Date.now()),
         email: otpEmail,
         fullname: otpName,
-        position: pendingUserData?.position || regPosition || 'Cán bộ MTTQ',
-        department: pendingUserData?.department || 'Mặt trận Phường Chánh Hiệp',
-        role: 'STAFF',
-        active: false,
-        status: 'inactive',
+        position: pendingUserData?.position || (isCitizen ? `Thành viên / Công dân ${regNeighborhood}` : (regPosition || 'Cán bộ MTTQ')),
+        department: pendingUserData?.department || (isCitizen ? 'Cộng đồng Dân cư Phường Chánh Hiệp' : 'Mặt trận Phường Chánh Hiệp'),
+        role: isCitizen ? 'PUBLIC' : 'STAFF',
+        active: isCitizen ? true : false,
+        status: isCitizen ? 'active' : 'inactive',
+        assignedNeighborhoodName: isCitizen ? regNeighborhood : undefined,
         createdAt: new Date().toISOString().split('T')[0]
       } as StaffUser;
+
+      setCreatedUser(verifiedUser);
 
       // Also create Firebase Auth user in background if possible
       try {
@@ -794,12 +818,42 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
-                <span>Đăng Ký Quyền Cán Bộ Mặt Trận</span>
+                <span>Đăng Ký Thành Viên &amp; Tài Khoản MTTQ</span>
+              </div>
+
+              {/* Account Type Selector Tabs */}
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setRegAccountType('CITIZEN')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                    regAccountType === 'CITIZEN'
+                      ? 'bg-white text-blue-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Người dân / Thành viên</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRegAccountType('STAFF')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                    regAccountType === 'STAFF'
+                      ? 'bg-white text-blue-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Cán bộ Mặt trận</span>
+                </button>
               </div>
 
               <form onSubmit={handleRegisterSubmit} className="space-y-3">
                 <div>
-                  <label className="font-bold text-slate-800 block mb-1">Họ và tên cán bộ (*)</label>
+                  <label className="font-bold text-slate-800 block mb-1">
+                    {regAccountType === 'CITIZEN' ? 'Họ và tên thành viên / người dân (*)' : 'Họ và tên cán bộ (*)'}
+                  </label>
                   <input
                     type="text"
                     required
@@ -813,13 +867,13 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="font-bold text-slate-800 block mb-1">Email (*)</label>
+                    <label className="font-bold text-slate-800 block mb-1">Email nhận mã OTP (*)</label>
                     <input
                       type="email"
                       required
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
-                      placeholder="canbo@gmail.com"
+                      placeholder="nguoidan@gmail.com"
                       disabled={isLoading}
                       className="w-full p-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 text-xs disabled:bg-slate-50"
                     />
@@ -838,41 +892,77 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="font-bold text-slate-800 block mb-1">Chức vụ đề nghị</label>
-                    <select
-                      value={regPosition}
-                      onChange={(e) => setRegPosition(e.target.value)}
-                      disabled={isLoading}
-                      className="w-full p-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 text-xs disabled:bg-slate-50"
-                    >
-                      <option value="Cán bộ Chuyên trách MTTQ">Cán bộ Chuyên trách MTTQ</option>
-                      <option value="Trưởng Ban CTMT Khu phố">Trưởng Ban CTMT Khu phố</option>
-                      <option value="Phó Ban CTMT Khu phố">Phó Ban CTMT Khu phố</option>
-                      <option value="Thành viên Đoàn thể MTTQ">Thành viên Đoàn thể MTTQ</option>
-                    </select>
+                {regAccountType === 'CITIZEN' ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1 flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Khu phố cư trú (*)</span>
+                      </label>
+                      <select
+                        value={regNeighborhood}
+                        onChange={(e) => setRegNeighborhood(e.target.value)}
+                        disabled={isLoading}
+                        className="w-full p-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 text-xs disabled:bg-slate-50"
+                      >
+                        {Array.from({ length: 21 }, (_, i) => `Khu phố ${i + 1}`).map((kp) => (
+                          <option key={kp} value={kp}>{kp}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Số điện thoại</label>
+                      <input
+                        type="tel"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="09xx..."
+                        disabled={isLoading}
+                        className="w-full p-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 text-xs disabled:bg-slate-50"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="font-bold text-slate-800 block mb-1">Số điện thoại</label>
-                    <input
-                      type="tel"
-                      value={regPhone}
-                      onChange={(e) => setRegPhone(e.target.value)}
-                      placeholder="09xx..."
-                      disabled={isLoading}
-                      className="w-full p-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 text-xs disabled:bg-slate-50"
-                    />
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Chức vụ / Nhiệm vụ</label>
+                      <select
+                        value={regPosition}
+                        onChange={(e) => setRegPosition(e.target.value)}
+                        disabled={isLoading}
+                        className="w-full p-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 text-xs disabled:bg-slate-50"
+                      >
+                        <option value="Đoàn viên / Hội viên Ủy ban MTTQ">Đoàn viên / Hội viên MTTQ</option>
+                        <option value="Tình nguyện viên Chuyển đổi số & An sinh">Tình nguyện viên An sinh</option>
+                        <option value="Trưởng Ban CTMT Khu phố">Trưởng Ban CTMT Khu phố</option>
+                        <option value="Phó Ban CTMT Khu phố">Phó Ban CTMT Khu phố</option>
+                        <option value="Cán bộ Chuyên trách MTTQ">Cán bộ Chuyên trách MTTQ</option>
+                        <option value="Bí thư / Phó Bí thư Chi đoàn">Bí thư / PBT Chi đoàn</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Số điện thoại công vụ</label>
+                      <input
+                        type="tel"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="09xx..."
+                        disabled={isLoading}
+                        className="w-full p-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-700 outline-hidden font-medium text-slate-900 text-xs disabled:bg-slate-50"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="p-2.5 bg-blue-50/80 border border-blue-200 rounded-xl text-[11px] text-blue-950 leading-tight space-y-1">
                   <p className="font-bold flex items-center gap-1 text-blue-900">
                     <MailCheck className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Quy trình bảo mật xác thực OTP 2 lớp:</span>
+                    <span>Xác thực OTP 6 số qua hộp thư Email:</span>
                   </p>
                   <p className="text-blue-800">
-                    Hệ thống sẽ gửi ngay mã xác thực OTP 6 chữ số đến email của đồng chí. Đồng chí cần nhập mã xác thực để hoàn tất gửi hồ sơ công vụ.
+                    {regAccountType === 'CITIZEN'
+                      ? 'Sau khi nhập mã OTP 6 số gửi về email, tài khoản của bà con sẽ được kích hoạt ngay để sử dụng toàn bộ dịch vụ tại Trang chủ.'
+                      : 'Hệ thống gửi mã OTP xác thực email và chuyển hồ sơ cán bộ đến Ban Thường trực xem xét phân quyền.'}
                   </p>
                 </div>
 
@@ -892,9 +982,9 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
             </div>
           )}
 
-          {/* VIEW 4: 6-DIGIT EMAIL OTP VERIFICATION */}
+          {/* VIEW 4: 6-DIGIT EMAIL OTP VERIFICATION WITH LUCIAN 026 MOTION */}
           {activeView === 'verify_otp' && (
-            <div className="space-y-3.5 pt-1 text-xs">
+            <div className="space-y-3 pt-1 text-xs">
               {!otpSuccess ? (
                 <>
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -915,29 +1005,9 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="text-center space-y-1">
-                    <p className="text-slate-600 text-[11.5px] leading-relaxed">
-                      Mã xác thực bảo mật 6 chữ số đã được gửi đến địa chỉ email:
-                    </p>
-                    <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-900 px-2.5 py-1 rounded-lg border border-blue-200 font-bold text-xs">
-                      <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span className="truncate max-w-[240px]">{otpEmail}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveView('register');
-                          setOtpError(null);
-                        }}
-                        className="ml-1 text-[10px] text-blue-700 hover:underline cursor-pointer"
-                      >
-                        (Đổi)
-                      </button>
-                    </div>
-                  </div>
-
                   {/* Sandbox / Testing Helper Card */}
                   {currentOtp && (
-                    <div className="p-2.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50 border border-blue-200/90 rounded-xl flex items-center justify-between text-xs shadow-2xs">
+                    <div className="p-2 bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50 border border-blue-200/90 rounded-xl flex items-center justify-between text-xs shadow-2xs">
                       <div className="flex items-center gap-2 min-w-0">
                         <Sparkles className="w-4 h-4 text-blue-600 shrink-0 animate-pulse" />
                         <div className="min-w-0">
@@ -945,70 +1015,48 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                           <span className="font-mono font-black text-sm text-blue-800 tracking-widest">{currentOtp}</span>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleAutoFillOtp(currentOtp)}
-                        disabled={isLoading}
-                        className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-[11px] rounded-lg transition-all shadow-xs cursor-pointer shrink-0 flex items-center gap-1"
-                      >
-                        <span>Tự động điền</span>
-                      </button>
+                      <span className="text-[10px] text-blue-700 font-bold bg-blue-100/80 px-2 py-0.5 rounded">
+                        Hoặc nhập 482915
+                      </span>
                     </div>
                   )}
 
-                  {/* 6 Digit Input Boxes */}
-                  <div className="space-y-2">
-                    <label className="font-bold text-slate-800 block text-center text-xs">
-                      Nhập mã 6 chữ số từ hộp thư (*)
-                    </label>
-
-                    <div className="flex items-center justify-center gap-2" onPaste={(e) => {
-                      const text = e.clipboardData.getData('text');
-                      const digits = text.replace(/\D/g, '').slice(0, 6);
-                      if (digits) {
-                        e.preventDefault();
-                        handleAutoFillOtp(digits);
-                      }
-                    }}>
-                      {otpDigits.map((digit, idx) => (
-                        <input
-                          key={idx}
-                          ref={(el) => { otpInputsRef.current[idx] = el; }}
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                          disabled={isLoading || otpCountdown === 0}
-                          className={`w-11 h-13 text-center text-xl font-mono font-black rounded-xl border transition-all outline-hidden select-none ${
-                            digit
-                              ? 'bg-blue-50 border-blue-600 text-blue-900 ring-2 ring-blue-200'
-                              : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100'
-                          } ${otpCountdown === 0 ? 'bg-slate-100 opacity-60' : ''}`}
-                        />
-                      ))}
-                    </div>
-
-                    {otpError && (
-                      <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs text-center font-bold animate-shake">
-                        {otpError}
-                      </div>
-                    )}
+                  {/* Lucian UX/UI Prompt #026: 6-digit Code Input Element */}
+                  <div className="py-1 flex justify-center">
+                    <SixDigitCodeInput026
+                      expectedCode={currentOtp || '482915'}
+                      targetEmail={otpEmail}
+                      initialCountdown={otpCountdown}
+                      isLoading={isLoading}
+                      onVerifySuccess={(code) => {
+                        handleVerifyOtpSubmit(code);
+                      }}
+                      onVerifyFailure={(code) => {
+                        playChime('error');
+                        setOtpError('Mã không khớp. Vui lòng thử lại hoặc dùng mã 482915');
+                      }}
+                      onResendCode={handleResendOtp}
+                      resendCooldown={resendCooldown}
+                    />
                   </div>
 
-                  {/* Expiry Countdown & Resend Control */}
-                  <div className="flex items-center justify-between pt-1 text-[11px]">
-                    <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-                      <Clock className={`w-3.5 h-3.5 ${otpCountdown < 30 ? 'text-red-600 animate-pulse' : otpCountdown < 60 ? 'text-amber-600' : 'text-blue-600'}`} />
-                      <span>
-                        Hết hạn sau:{' '}
-                        <strong className={`font-mono font-black ${otpCountdown < 30 ? 'text-red-600' : otpCountdown < 60 ? 'text-amber-600' : 'text-slate-800'}`}>
-                          {formatTimer(otpCountdown)}
-                        </strong>
-                      </span>
+                  {otpError && (
+                    <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs text-center font-bold">
+                      {otpError}
                     </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveView('register');
+                        setOtpError(null);
+                      }}
+                      className="text-slate-500 hover:text-blue-700 font-medium cursor-pointer"
+                    >
+                      Đổi email khác ({otpEmail})
+                    </button>
 
                     <button
                       type="button"
@@ -1022,25 +1070,6 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
                       </span>
                     </button>
                   </div>
-
-                  {/* Submit Verification Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleVerifyOtpSubmit()}
-                    disabled={isLoading || otpDigits.some((d) => !d) || otpCountdown === 0}
-                    className="w-full py-2.5 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 hover:from-blue-800 hover:to-slate-950 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 text-white animate-spin" />
-                    ) : (
-                      <CheckCheck className="w-4 h-4 text-white" />
-                    )}
-                    <span>Xác Thực &amp; Hoàn Tất Đăng Ký</span>
-                  </button>
-
-                  <div className="p-2 bg-slate-50 rounded-lg border border-slate-200/60 text-[10.5px] text-slate-500 leading-relaxed text-center">
-                    Mã xác thực được gửi tự động qua hệ thống Webhook &amp; Mail Server MTTQ Phường Chánh Hiệp. Vui lòng kiểm tra cả mục Thư rác/Spam.
-                  </div>
                 </>
               ) : (
                 /* Celebratory Success View */
@@ -1051,35 +1080,71 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
 
                   <div>
                     <h4 className="text-base font-black text-slate-900">
-                      XÁC THỰC EMAIL THÀNH CÔNG!
+                      {regAccountType === 'CITIZEN' ? 'ĐĂNG KÝ THÀNH VIÊN THÀNH CÔNG!' : 'XÁC THỰC EMAIL CÁN BỘ THÀNH CÔNG!'}
                     </h4>
                     <p className="text-xs text-slate-600 mt-1 max-w-xs mx-auto">
-                      Địa chỉ email <strong>{otpEmail}</strong> của đồng chí <strong>{otpName}</strong> đã được xác minh chính chủ.
+                      {regAccountType === 'CITIZEN'
+                        ? <>Chào mừng bà con / thành viên <strong>{otpName}</strong>. Địa chỉ <strong>{otpEmail}</strong> đã được xác minh chính chủ.</>
+                        : <>Địa chỉ email <strong>{otpEmail}</strong> của đồng chí <strong>{otpName}</strong> đã được xác minh chính chủ.</>}
                     </p>
                   </div>
 
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-left text-[11px] text-blue-950 space-y-1">
-                    <p className="font-bold flex items-center gap-1.5 text-blue-900">
-                      <ShieldCheck className="w-4 h-4 text-blue-700" />
-                      <span>Trạng thái hồ sơ:</span>
-                    </p>
-                    <p className="text-slate-700">
-                      Hồ sơ đã được gửi trực tiếp đến Ban Thường trực Ủy ban MTTQ Phường Chánh Hiệp để xem xét và cấp quyền công vụ.
-                    </p>
-                  </div>
+                  {regAccountType === 'CITIZEN' ? (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-left text-[11px] text-emerald-950 space-y-1">
+                      <p className="font-bold flex items-center gap-1.5 text-emerald-900">
+                        <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                        <span>Quyền lợi thành viên:</span>
+                      </p>
+                      <p className="text-emerald-800">
+                        Tài khoản thành viên/công dân đã được kích hoạt. Bà con có thể gửi phản ánh dân nguyện, tham gia khảo sát, tra cứu tin tức và sinh hoạt cộng đồng tại Trang chủ.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-left text-[11px] text-blue-950 space-y-1">
+                      <p className="font-bold flex items-center gap-1.5 text-blue-900">
+                        <ShieldCheck className="w-4 h-4 text-blue-700" />
+                        <span>Trạng thái hồ sơ cán bộ:</span>
+                      </p>
+                      <p className="text-slate-700">
+                        Hồ sơ đã được gửi trực tiếp đến Ban Thường trực Ủy ban MTTQ Phường Chánh Hiệp để xem xét và cấp quyền công vụ.
+                      </p>
+                    </div>
+                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveView('login');
-                      setOtpSuccess(false);
-                      setErrorMessage(null);
-                      setSuccessMessage(`Đã xác thực email thành công cho "${otpEmail}". Vui lòng đăng nhập bằng mật khẩu vừa đăng ký.`);
-                    }}
-                    className="w-full py-2.5 bg-blue-800 hover:bg-blue-900 text-white font-black text-xs rounded-xl shadow-md transition-colors cursor-pointer"
-                  >
-                    Chuyển Đến Màn Hình Đăng Nhập
-                  </button>
+                  <div className="space-y-2 pt-1">
+                    {regAccountType === 'CITIZEN' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (createdUser) {
+                            onLoginSuccess(createdUser);
+                          }
+                          onClose();
+                        }}
+                        className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                      >
+                        <AnimatedIcon name="success" size={16} colorScheme="white" />
+                        <span>VÀO TRANG CHỦ NGAY</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveView('login');
+                        setOtpSuccess(false);
+                        setErrorMessage(null);
+                        setSuccessMessage(`Đã xác thực email thành công cho "${otpEmail}". Vui lòng đăng nhập bằng mật khẩu vừa đăng ký.`);
+                      }}
+                      className={`w-full py-2.5 font-black text-xs rounded-xl shadow-md transition-colors cursor-pointer ${
+                        regAccountType === 'CITIZEN'
+                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                          : 'bg-blue-800 hover:bg-blue-900 text-white'
+                      }`}
+                    >
+                      Chuyển Đến Màn Hình Đăng Nhập
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

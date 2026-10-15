@@ -112,6 +112,26 @@ export function isLeadershipRole(user: StaffUser | UserRole | undefined): boolea
   return role === 'LEADER' || role === 'ADMIN' || role === 'MTTQ_ADMIN' || role === 'SUPER_ADMIN';
 }
 
+export function isAdminOrAbove(user: StaffUser | UserRole | undefined): boolean {
+  if (!user) return false;
+  const role = typeof user === 'object' ? user.role : user;
+  return role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'MTTQ_ADMIN' || role === 'LEADER' || role === 'MANAGER' || role === 'ORGANIZATION_ADMIN';
+}
+
+export function canAccessAdminSpace(user: StaffUser | undefined | null): boolean {
+  if (!user) return false;
+  if (user.active === false || user.status === 'inactive') return false;
+  // Citizens and contributors are restricted to public homepage
+  if (user.role === 'PUBLIC' || user.role === 'CONTRIBUTOR') return false;
+  return hasMinRole(user.role, 'STAFF') || isAdminOrAbove(user);
+}
+
+export function isCitizenUser(user: StaffUser | UserRole | undefined): boolean {
+  if (!user) return true;
+  const role = typeof user === 'object' ? user.role : user;
+  return role === 'PUBLIC' || role === 'CONTRIBUTOR';
+}
+
 
 export function getRoleLabel(role: UserRole): string {
   switch (role) {

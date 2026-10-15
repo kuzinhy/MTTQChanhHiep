@@ -756,7 +756,7 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
           </select>
 
           <div className="flex items-center gap-1 overflow-x-auto">
-            {['ALL', 'SUPER_ADMIN', 'ADMIN', 'MANAGER', 'EDITOR', 'STAFF'].map((r) => (
+            {['ALL', 'SUPER_ADMIN', 'ADMIN', 'MANAGER', 'EDITOR', 'STAFF', 'PUBLIC', 'CONTRIBUTOR'].map((r) => (
               <button
                 key={r}
                 onClick={() => setRoleFilter(r)}

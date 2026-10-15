@@ -29,7 +29,7 @@ import { OptimizedImage } from './common/OptimizedImage';
 import { CitizenAccessibilityToolbar } from './common/CitizenAccessibilityToolbar';
 import { AnimatedIcon } from './common/AnimatedIcon';
 import { NotificationBell074 } from './common/NotificationBell074';
-import { canAccessView } from '../lib/rbac';
+import { canAccessView, canAccessAdminSpace, getRoleLabel, isCitizenUser } from '../lib/rbac';
 
 import { isSocialWelfareModuleEnabled } from '../lib/moduleSettings';
 
@@ -159,39 +159,50 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
             />
 
-            {/* Văn phòng số Pill Button */}
+            {/* Văn phòng số Pill Button - Admin & Staff Only */}
             <button
               onClick={() => {
-                if (canAccessView(currentUser, 'dashboard')) {
+                if (canAccessAdminSpace(currentUser)) {
                   onGoToOffice();
                 } else {
-                  alert('Bạn không có quyền truy cập Văn phòng số.');
+                  alert('Văn phòng số dành riêng cho Cán bộ Quản trị (Admin trở lên). Bạn đang truy cập Cổng Thông Tin Dành Cho Người Dân.');
                 }
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0043aa] text-white font-bold text-xs rounded-full border border-blue-300/40 shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap group"
+              title="Truy cập Văn phòng số dành cho Cán bộ Quản trị (Admin trở lên)"
             >
               <AnimatedIcon name="tasks" size={14} colorScheme="white" trigger="hover" />
               <span>Văn phòng số</span>
             </button>
 
-            {/* Staff User Chip */}
+            {/* User Chip: Citizen vs Admin/Staff */}
             <div 
-              onClick={isStaffLoggedIn ? onGoToOffice : onOpenLoginModal}
+              onClick={() => {
+                if (!isStaffLoggedIn && !currentUser) {
+                  onOpenLoginModal();
+                } else if (canAccessAdminSpace(currentUser)) {
+                  onGoToOffice();
+                } else {
+                  // Logged in Citizen user
+                  onOpenLoginModal();
+                }
+              }}
               className="flex items-center gap-2 px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-full border border-white/20 text-white cursor-pointer transition-colors shrink-0"
+              title={currentUser ? `Tài khoản: ${currentUser.fullname} (${getRoleLabel(currentUser.role)})` : 'Đăng nhập hệ thống'}
             >
-              <div className="w-6 h-6 rounded-full bg-white text-blue-700 flex items-center justify-center text-[10px] font-black overflow-hidden">
+              <div className="w-6 h-6 rounded-full bg-white text-blue-700 flex items-center justify-center text-[10px] font-black overflow-hidden shrink-0">
                 <img
-                  src={isStaffLoggedIn && currentUser?.avatar ? currentUser.avatar : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"}
-                  alt="Avatar cán bộ"
+                  src={currentUser?.avatar ? currentUser.avatar : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"}
+                  alt="Avatar người dùng"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="text-left leading-none hidden sm:block">
                 <div className="font-bold text-[11px] text-white leading-tight">
-                  {isStaffLoggedIn && currentUser?.fullname ? currentUser.fullname : 'Cán bộ'}
+                  {currentUser?.fullname ? currentUser.fullname : 'Đăng nhập'}
                 </div>
-                <div className="text-[9px] text-blue-200 font-medium leading-tight">
-                  {isStaffLoggedIn ? (currentUser?.position || 'Cán bộ') : 'Đăng nhập'}
+                <div className="text-[9px] text-amber-200 font-bold leading-tight mt-0.5">
+                  {currentUser ? getRoleLabel(currentUser.role) : 'Cán bộ / Người dân'}
                 </div>
               </div>
             </div>

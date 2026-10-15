@@ -97,7 +97,7 @@ import { BackupRestoreAdminView } from './components/office/BackupRestoreAdminVi
 import { CitizenWelfareRegistrationModal } from './components/portal/CitizenWelfareRegistrationModal';
 import { SystemHealthAdminView } from './components/office/SystemHealthAdminView';
 import { AnimatedIconLabView } from './components/office/AnimatedIconLabView';
-import { canAccessView } from './lib/rbac';
+import { canAccessView, canAccessAdminSpace, getRoleLabel, isCitizenUser } from './lib/rbac';
 import { PublicVolunteerRegistrationPage } from './components/portal/PublicVolunteerRegistrationPage';
 import { LaunchCelebrationModal } from './components/common/LaunchCelebrationModal';
 import { LaunchPopupAdminView } from './components/office/LaunchPopupAdminView';
@@ -723,6 +723,20 @@ export default function App() {
   useEffect(() => {
     const handleHashRouting = () => {
       const rawHash = window.location.hash || '';
+
+      // Access control check for Admin space
+      if (rawHash.startsWith('#/van-phong-so') || rawHash.startsWith('#/admin') || rawHash.startsWith('#admin')) {
+        if (currentStaffUser && !canAccessAdminSpace(currentStaffUser)) {
+          setNotFoundRoute(null);
+          setCurrentSpace('PORTAL');
+          window.location.hash = '#/trang-chu';
+          handleTriggerSystemToast(
+            'Quyền Truy Cập Bị Giới Hạn',
+            'Tài khoản của bạn là [Người Dân / Thành Viên]. Trang Quản trị chỉ dành cho Cán bộ Quản trị (Admin trở lên).'
+          );
+          return;
+        }
+      }
 
       // 1. Digital Office route: #/van-phong-so or #/van-phong-so/:view
       if (rawHash === '#/van-phong-so' || rawHash === '#/van-phong-so/' || rawHash === '#/van-phong-so/dashboard') {
@@ -1900,13 +1914,22 @@ export default function App() {
                   <StaffLoginPage
                     staffUsers={staffUsers}
                     onLoginSuccess={(user) => {
-                      if (canAccessView(user, 'dashboard')) {
-                        setCurrentStaffUser(user);
-                        AppStorageEngine.saveCurrentUser(user);
+                      setCurrentStaffUser(user);
+                      AppStorageEngine.saveCurrentUser(user);
+                      if (canAccessAdminSpace(user)) {
                         setIsLocked(false);
                         setCurrentSpace('OFFICE');
+                        handleTriggerSystemToast(
+                          'Đăng nhập Văn phòng số thành công',
+                          `Xin chào Cán bộ Quản trị ${user.fullname || user.email} (${getRoleLabel(user.role)})`
+                        );
                       } else {
-                        alert('Bạn không có quyền truy cập Văn phòng số.');
+                        setCurrentSpace('PORTAL');
+                        window.location.hash = '#/trang-chu';
+                        handleTriggerSystemToast(
+                          'Đăng Nhập Cổng Thông Tin Người Dân',
+                          `Tài khoản của bạn (${user.fullname || user.email}) là [Thành Viên Người Dân]. Trang Quản trị dành cho Cán bộ Quản trị (Admin trở lên). Bạn đã được đăng nhập vào Cổng Thông Tin Công Cộng.`
+                        );
                       }
                     }}
                     onBack={() => setCurrentSpace('PORTAL')}
@@ -2711,13 +2734,25 @@ export default function App() {
           AppStorageEngine.saveCurrentUser(user);
           CloudDatabase.saveStaffUser(user);
           setIsLocked(false);
-          setCurrentSpace('OFFICE');
-          
-          // Check if it's a Chi đoàn user (role or department identifier)
-          if (user.role === 'STAFF' && (user.department.includes('Chi đoàn') || user.position.includes('Chi đoàn'))) {
-            setOfficeView('youth_union_workspace');
+
+          if (canAccessAdminSpace(user)) {
+            setCurrentSpace('OFFICE');
+            if (user.role === 'STAFF' && (user.department.includes('Chi đoàn') || user.position.includes('Chi đoàn'))) {
+              setOfficeView('youth_union_workspace');
+            } else {
+              setOfficeView('dashboard');
+            }
+            handleTriggerSystemToast(
+              'Đăng nhập Văn phòng số',
+              `Xin chào Cán bộ Quản trị ${user.fullname || user.email}`
+            );
           } else {
-            setOfficeView('dashboard');
+            setCurrentSpace('PORTAL');
+            window.location.hash = '#/trang-chu';
+            handleTriggerSystemToast(
+              'Đăng Nhập Cổng Thông Tin Người Dân',
+              `Tài khoản (${user.fullname || user.email}) là [Thành Viên Người Dân]. Trang Quản trị dành riêng cho Cán bộ Quản trị (Admin trở lên).`
+            );
           }
         }}
       />
