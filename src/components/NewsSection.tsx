@@ -29,8 +29,10 @@ import {
   ChevronRight,
   ExternalLink,
   Video,
-  Play
+  Play,
+  Bell
 } from 'lucide-react';
+import { ArticleNewsletterSubscriptionCard365 } from './portal/ArticleNewsletterSubscriptionCard365';
 
 // Custom Lotus Flower SVG Component matching the exact artistic botanical composition (Three lotus flowers, stems, and wavy leaf)
 const LotusFlowerIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
@@ -845,6 +847,27 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
             ))}
           </div>
         )}
+      </div>
+
+      {/* NEWSLETTER SUBSCRIPTION BANNER (LUCIAN PROMPT #365) */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-blue-400/30 flex flex-col lg:flex-row items-center justify-between gap-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="space-y-2.5 max-w-xl text-center lg:text-left z-10">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-full text-xs font-black uppercase tracking-wider shadow-xs">
+            <Bell className="w-3.5 h-3.5 text-amber-300" />
+            <span>Đăng ký nhận tin tức tự động</span>
+          </span>
+          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+            Nhận thông báo bài viết &amp; thông tin an sinh qua Email
+          </h3>
+          <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed font-medium">
+            Điền địa chỉ Email cá nhân để tự động nhận thông báo ngay khi Ủy ban MTTQ Việt Nam Phường Chánh Hiệp công bố tin tức, kế hoạch công tác hoặc chương trình hỗ trợ cộng đồng mới nhất.
+          </p>
+        </div>
+
+        <div className="z-10 shrink-0 w-full lg:w-auto flex justify-center">
+          <ArticleNewsletterSubscriptionCard365 />
+        </div>
       </div>
 
       {/* 6. NEIGHBORHOOD 21 STREAM (HOẠT ĐỘNG 21 KHU PHỐ) */}

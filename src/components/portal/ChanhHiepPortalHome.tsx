@@ -25,8 +25,10 @@ import {
   Users,
   Compass,
   Award,
-  Download
+  Download,
+  Bell
 } from 'lucide-react';
+import { ArticleNewsletterSubscriptionCard365 } from './ArticleNewsletterSubscriptionCard365';
 import { sortArticlesNewestFirst } from '../../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { Article, OfficialDocument, PublicOpinion, CloudinaryImageMeta, StaffUser } from '../../types';
@@ -590,6 +592,29 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
           </div>
         </section>
       )}
+
+      {/* ========================================================================= */}
+      {/* NEWSLETTER SUBSCRIPTION BANNER (LUCIAN PROMPT #365) */}
+      {/* ========================================================================= */}
+      <section className="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-blue-400/30 flex flex-col lg:flex-row items-center justify-between gap-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="space-y-2.5 max-w-xl text-center lg:text-left z-10">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-full text-xs font-black uppercase tracking-wider shadow-xs">
+            <Bell className="w-3.5 h-3.5 text-amber-300" />
+            <span>Đăng ký nhận tin tức tự động</span>
+          </span>
+          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+            Cập nhật bài viết &amp; văn bản chỉ đạo mới nhất qua Email
+          </h3>
+          <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed font-medium">
+            Hệ thống tự động gửi thông báo trực tiếp đến hộp thư cá nhân ngay khi Ủy ban Mặt trận Tổ quốc Phường Chánh Hiệp công bố bản tin, chương trình an sinh xã hội hoặc văn bản hướng dẫn mới.
+          </p>
+        </div>
+
+        <div className="z-10 shrink-0 w-full lg:w-auto flex justify-center">
+          <ArticleNewsletterSubscriptionCard365 />
+        </div>
+      </section>
 
       {/* ========================================================================= */}
       {/* 3. MẶT TRẬN SỐ HÔM NAY - Metrics Dashboard */}

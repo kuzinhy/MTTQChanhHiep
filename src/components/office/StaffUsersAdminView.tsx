@@ -1291,6 +1291,7 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
                   <option value="STAFF">Cán Bộ MTTQ (STAFF)</option>
                   <option value="NEIGHBORHOOD_LEADER">Trưởng Ban CTMT Khu Phố</option>
                   <option value="CONTRIBUTOR">Cộng Tác Viên (CONTRIBUTOR)</option>
+                  <option value="PUBLIC">Người Dân (PUBLIC - Thành viên công dân xem thông tin)</option>
                 </select>
               </div>
 
@@ -1526,6 +1527,7 @@ THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP CÁN BỘ:
                   <option value="STAFF">Cán Bộ MTTQ (STAFF)</option>
                   <option value="NEIGHBORHOOD_LEADER">Trưởng Ban CTMT Khu Phố</option>
                   <option value="CONTRIBUTOR">Cộng Tác Viên (CONTRIBUTOR)</option>
+                  <option value="PUBLIC">Người Dân (PUBLIC - Thành viên công dân xem thông tin)</option>
                 </select>
               </div>
 
