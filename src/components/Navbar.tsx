@@ -29,6 +29,7 @@ import { OptimizedImage } from './common/OptimizedImage';
 import { CitizenAccessibilityToolbar } from './common/CitizenAccessibilityToolbar';
 import { AnimatedIcon } from './common/AnimatedIcon';
 import { NotificationBell074 } from './common/NotificationBell074';
+import { CommandPalette046 } from './common/CommandPalette046';
 import { canAccessView, canAccessAdminSpace, getRoleLabel, isCitizenUser } from '../lib/rbac';
 
 import { isSocialWelfareModuleEnabled } from '../lib/moduleSettings';
@@ -92,10 +93,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       {/* Top Banner Header - City Skyline Gradient Branding */}
-      <div className="bg-gradient-to-r from-[#0052cc] via-[#0068ff] to-[#007bfd] text-white px-3 sm:px-4 py-2 border-b border-blue-400/30 relative overflow-hidden shadow-sm">
+      <div className="bg-gradient-to-r from-[#0052cc] via-[#0068ff] to-[#007bfd] text-white px-3 sm:px-4 py-2 border-b border-blue-400/30 relative z-30 shadow-sm">
         {/* Subtle City Skyline & Ambient Backdrop */}
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40" />
-        <div className="absolute -top-10 -left-10 w-48 h-48 bg-cyan-300/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40 rounded-t-none overflow-hidden" />
+        <div className="absolute -top-10 -left-10 w-48 h-48 bg-cyan-300/20 rounded-full blur-2xl pointer-events-none overflow-hidden" />
 
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 relative z-10">
           
@@ -123,25 +124,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: Search Capsule Bar (Universal Search) */}
-          <div 
-            onClick={onOpenGlobalSearch}
-            className="hidden md:flex items-center justify-between bg-white/95 hover:bg-white rounded-full pl-3.5 pr-1.5 py-1 shadow-sm max-w-sm w-full mx-2 border border-blue-200/60 cursor-pointer transition group"
-          >
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Search className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span className="text-xs text-slate-500 font-medium truncate">
-                Tìm kiếm nhanh toàn hệ thống...
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <kbd className="hidden lg:inline-block text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-mono border border-slate-200">
-                Ctrl K
-              </kbd>
-              <div className="w-6 h-6 rounded-full bg-[#0068ff] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition">
-                <Search className="w-3 h-3 text-white" />
-              </div>
-            </div>
+          {/* Center: Command Palette (Prompt 046, Menus & Tabs) */}
+          <div className="hidden md:flex items-center mx-2 flex-1 max-w-sm justify-center">
+            <CommandPalette046
+              onSelectTab={setActiveTab}
+              onOpenHcmSpaceModal={onOpenHcmSpaceModal}
+              onOpenVolunteerModal={onOpenVolunteerModal}
+              onOpenDirectory={onOpenDigitalDirectory}
+              onGoToOffice={onGoToOffice}
+              onOpenGlobalSearch={onOpenGlobalSearch}
+            />
           </div>
 
           {/* Right Actions: Notifications, Văn phòng số, Staff Profile, Red Banner */}
