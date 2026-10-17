@@ -99,112 +99,130 @@ service cloud.firestore {
       );
     }
 
+    // 9. System Lock Status
+    function isSystemLocked() {
+      return exists(/databases/$(database)/documents/system_status/lock_state) && 
+             get(/databases/$(database)/documents/system_status/lock_state).data.isLocked == true;
+    }
+
     // =========================================================================
     // Collection Security Rules
     // =========================================================================
 
+    // 0. System Control (Only Super Admin can unlock)
+    match /system_status/lock_state {
+      allow read: if true;
+      allow write: if isSuperAdmin() || (isSignedIn() && !isSystemLocked()); // Allow locking if not already locked
+    }
+
+    match /security_alerts/{id} {
+      allow read: if isSuperAdmin() || isAdmin();
+      allow create: if isSignedIn(); // Allow reporting alerts
+      allow update, delete: if isSuperAdmin();
+    }
+
     // 1. Articles & News (Public Read, RBAC Controlled Write)
     match /articles/{id} {
       allow read: if true;
-      allow create: if isSuperAdmin() || isAdmin() || hasPermission('post_create') || isStaff();
-      allow update: if isSuperAdmin() || isAdmin() || hasPermission('post_edit') || hasPermission('post_publish') || isStaff();
-      allow delete: if isSuperAdmin() || isAdmin() || hasPermission('post_delete');
+      allow create: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('post_create') || isStaff());
+      allow update: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('post_edit') || hasPermission('post_publish') || isStaff());
+      allow delete: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('post_delete'));
     }
 
     // 2. Official Documents & Circulars
     match /documents/{id} {
       allow read: if true;
-      allow create: if isSuperAdmin() || isAdmin() || hasPermission('document_create') || isStaff();
-      allow update: if isSuperAdmin() || isAdmin() || hasPermission('document_edit') || isStaff();
-      allow delete: if isSuperAdmin() || isAdmin() || hasPermission('document_delete');
+      allow create: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('document_create') || isStaff());
+      allow update: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('document_edit') || isStaff());
+      allow delete: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('document_delete'));
     }
 
     // 3. Competitions & Questions
     match /competitions/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || hasPermission('competition_manage') || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('competition_manage') || isStaff());
     }
 
     // 4. Member Organizations, Areas, Templates, Cultural Media & Files
     match /memberOrganizations/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /areas/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /organizations/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /templates/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /driveFiles/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff() || hasPermission('media_upload');
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff() || hasPermission('media_upload'));
     }
     match /culturalMedia/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff() || hasPermission('cultural_manage');
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff() || hasPermission('cultural_manage'));
     }
 
     // 5. Ho Chi Minh Cultural Space
-    match /hcm_exhibits/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_works/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_audios/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_videos/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_quotes/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_footsteps/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_chanh_hiep_actions/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_chapters/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_events/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
-    match /hcm_cover/{id} { allow read: if true; allow write: if isSuperAdmin() || isAdmin() || isStaff(); }
+    match /hcm_exhibits/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_works/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_audios/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_videos/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_quotes/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_footsteps/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_chanh_hiep_actions/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_chapters/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_events/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
+    match /hcm_cover/{id} { allow read: if true; allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff()); }
 
     // 6. Public Submissions & Citizen Contributions
     match /publicOpinions/{id} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if isSuperAdmin() || isAdmin() || hasPermission('opinion_manage') || isStaff();
+      allow create: if !isSystemLocked();
+      allow update, delete: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('opinion_manage') || isStaff());
     }
     match /competitionSubmissions/{id} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if isSuperAdmin() || isAdmin() || hasPermission('competition_manage') || isStaff();
+      allow create: if !isSystemLocked();
+      allow update, delete: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('competition_manage') || isStaff());
     }
     match /volunteers/{id} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if isSuperAdmin() || isAdmin() || isStaff();
+      allow create: if !isSystemLocked();
+      allow update, delete: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /article_submissions/{id} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if isSuperAdmin() || isAdmin() || hasPermission('post_publish') || isStaff();
+      allow create: if !isSystemLocked();
+      allow update, delete: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('post_publish') || isStaff());
     }
     match /feedback/{id} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if isSuperAdmin() || isAdmin() || isStaff();
+      allow create: if !isSystemLocked();
+      allow update, delete: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
 
     // 7. Internal Tasks, Events, Notes, AI Chats & Audit Logs
     match /tasks/{id} {
-      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow read, write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /events/{id} {
-      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow read, write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /notes/{id} {
-      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow read, write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /knowledgeNotes/{id} {
-      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow read, write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /aiChats/{id} {
-      allow read, write: if isSignedIn();
+      allow read, write: if !isSystemLocked() && isSignedIn();
     }
     match /auditLogs/{id} {
       allow read: if isSuperAdmin() || isAdmin() || hasPermission('audit_view') || isStaff();
@@ -218,59 +236,59 @@ service cloud.firestore {
     // - Super Admin can delete any user; Admins cannot delete Super Admins or themselves
     match /users/{id} {
       allow read: if true;
-      allow create, update: if isSignedIn() && (
+      allow create, update: if !isSystemLocked() && isSignedIn() && (
         request.auth.uid == id ||
         isSuperAdmin() ||
         isAdmin() ||
         hasPermission('user_manage')
       );
-      allow delete: if isSuperAdmin() || (
+      allow delete: if !isSystemLocked() && (isSuperAdmin() || (
         isAdmin() &&
         hasPermission('user_manage') &&
         request.auth.uid != id
-      );
+      ));
     }
 
     match /staffUsers/{id} {
       allow read: if true;
-      allow create, update: if isSignedIn() && (
+      allow create, update: if !isSystemLocked() && isSignedIn() && (
         request.auth.uid == id ||
         isSuperAdmin() ||
         isAdmin() ||
         hasPermission('user_manage')
       );
-      allow delete: if isSuperAdmin() || (
+      allow delete: if !isSystemLocked() && (isSuperAdmin() || (
         isAdmin() &&
         hasPermission('user_manage') &&
         request.auth.uid != id
-      );
+      ));
     }
 
     // 9. System Settings & Realtime Presence
     match /settings/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || hasPermission('settings_manage');
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || hasPermission('settings_manage'));
     }
     match /admin_notifications/{id} {
-      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow read, write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /admin_presence/{id} {
-      allow read, write: if isSignedIn();
+      allow read, write: if !isSystemLocked() && isSignedIn();
     }
     match /entity_editing_presence/{id} {
-      allow read, write: if isSignedIn();
+      allow read, write: if !isSystemLocked() && isSignedIn();
     }
     match /admin_notification_preferences/{id} {
-      allow read, write: if isSignedIn();
+      allow read, write: if !isSystemLocked() && isSignedIn();
     }
     match /notifications/{id} {
-      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow read, write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /email_logs/{id} {
-      allow read, write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow read, write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /notification_reads/{id} {
-      allow read, write: if isSignedIn();
+      allow read, write: if !isSystemLocked() && isSignedIn();
     }
 
     // 10. Visitor Analytics
@@ -284,19 +302,19 @@ service cloud.firestore {
     // 11. Visual One-Stop Procedures Collections
     match /procedures/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /procedureSteps/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /procedureDocuments/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
     match /procedureForms/{id} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin() || isStaff();
+      allow write: if !isSystemLocked() && (isSuperAdmin() || isAdmin() || isStaff());
     }
 
     // Default catch-all

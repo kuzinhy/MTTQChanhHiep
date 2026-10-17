@@ -443,9 +443,46 @@
         "version": { "type": "string" }
       },
       "required": ["id", "procedureId", "name"]
+    },
+    "system_status": {
+      "title": "System Status",
+      "description": "Global system configuration and lock status",
+      "type": "object",
+      "properties": {
+        "isLocked": { "type": "boolean" },
+        "lockedAt": { "type": "string" },
+        "lockReason": { "type": "string" },
+        "lockedBy": { "type": "string" }
+      }
+    },
+    "security_alerts": {
+      "title": "Security Alerts",
+      "description": "Logs of detected security issues and intrusions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["INTRUSION", "SENSITIVE_CONTENT", "UNAUTHORIZED_POST"] },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "details": { "type": "string" },
+        "source": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "relatedEntity": { "type": "string" },
+        "relatedId": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["type", "severity", "timestamp"]
     }
   },
   "firestore": {
+    "system_status/lock_state": {
+      "schema": "system_status",
+      "description": "Global system lock state"
+    },
+    "security_alerts/{id}": {
+      "schema": "security_alerts",
+      "description": "Security alert logs"
+    },
     "notification_reads/{id}": {
       "schema": "notification_reads",
       "description": "Cross-device synced notification read records"

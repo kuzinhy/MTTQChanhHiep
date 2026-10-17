@@ -12,6 +12,7 @@ import { mediaProxyHandler } from './server/mediaProxyRouter';
 import { documentIngestionRouter } from './server/documentIngestionRouter';
 import { backupRouter } from './server/backupRouter';
 import { INITIAL_PROCEDURES } from './src/data/proceduresSeed';
+import { securityRouter } from './server/securityRouter';
 
 dotenv.config({ override: true });
 
@@ -58,6 +59,9 @@ async function startServer() {
 
   // Server-side Automated Backup & Snapshot Router
   app.use('/api/admin/backup', backupRouter);
+
+  // Security & Content Censorship API Router
+  app.use('/api/security', securityRouter);
 
   // Static files for locally uploaded media with full CORS support
   app.use('/uploads', cors(), express.static(path.join(process.cwd(), 'uploads'), {

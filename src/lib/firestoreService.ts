@@ -133,12 +133,24 @@ class CloudSyncService {
       onDriveFilesUpdate?: (files: DriveFileItem[]) => void;
       onArticleSubmissionsUpdate?: (subs: ArticleSubmission[]) => void;
       onFeedbackUpdate?: (feedbacks: FeedbackItem[]) => void;
+      onSystemLockUpdate?: (lockState: { isLocked: boolean, reason?: string, lockedAt?: string }) => void;
     }
   ) {
     if (this.isInitialized) return;
     this.isInitialized = true;
 
     try {
+      // 0. System Lock Listener
+      const lockUnsub = onSnapshot(doc(db, 'system_status', 'lock_state'), (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as any;
+          callbacks.onSystemLockUpdate?.(data);
+        } else {
+          callbacks.onSystemLockUpdate?.({ isLocked: false });
+        }
+      });
+      this.syncListeners.push(lockUnsub);
+
       // 1. Mark initial state and trigger background seed/purge tasks without blocking listener setup
       this.isConnected = true;
       (async () => {
@@ -1373,6 +1385,55 @@ class CloudSyncService {
       isInitialized: this.isInitialized,
       isConnected: this.isConnected,
     };
+  }
+  // Security and Monitoring
+  async reportIntrusion(details: string, staffUser?: StaffUser): Promise<void> {
+    try {
+      await fetch('/api/security/report-intrusion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          details,
+          userId: staffUser?.id,
+          userEmail: staffUser?.email
+        })
+      });
+    } catch (err) {
+      console.error('[Security] Failed to report intrusion:', err);
+    }
+  }
+
+  async scanContent(content: string, title: string, contentType: string, staffUser?: StaffUser): Promise<{ isSafe: boolean, riskLevel: string, reason?: string }> {
+    try {
+      const res = await fetch('/api/security/scan-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+          title,
+          contentType,
+          userId: staffUser?.id,
+          userEmail: staffUser?.email
+        })
+      });
+      return await res.json();
+    } catch (err) {
+      console.error('[Security] Content scan error:', err);
+      return { isSafe: true, riskLevel: 'LOW' }; // Fallback to safe if API fails
+    }
+  }
+
+  async unlockSystem(): Promise<boolean> {
+    try {
+      await setDoc(doc(db, 'system_status', 'lock_state'), {
+        isLocked: false,
+        unlockedAt: new Date().toISOString()
+      }, { merge: true });
+      return true;
+    } catch (err) {
+      console.error('[Security] Failed to unlock system:', err);
+      return false;
+    }
   }
 }
 

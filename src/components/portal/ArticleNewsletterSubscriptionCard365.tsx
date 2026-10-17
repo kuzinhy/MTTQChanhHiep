@@ -7,11 +7,13 @@ import { db } from '../../lib/firebase';
 interface ArticleNewsletterSubscriptionCard365Props {
   onShowToast?: (title: string, message: string) => void;
   className?: string;
+  isCompact?: boolean;
 }
 
 export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSubscriptionCard365Props> = ({
   onShowToast,
-  className = ''
+  className = '',
+  isCompact = false
 }) => {
   const [email, setEmail] = useState<string>('');
   const [isJoined, setIsJoined] = useState<boolean>(false);
@@ -157,77 +159,79 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         .u365 {
           position: relative;
           width: 100%;
-          max-width: 360px;
-          height: 350px;
-          border-radius: 28px;
+          max-width: ${isCompact ? '320px' : '360px'};
+          height: ${isCompact ? 'auto' : '350px'};
+          border-radius: ${isCompact ? '16px' : '28px'};
           overflow: hidden;
-          background: radial-gradient(85% 65% at 50% 0%, rgba(245, 158, 11, 0.16), transparent 75%), #ffffff;
-          box-shadow: 0 0 0 1px rgba(226, 232, 240, 0.9), 0 24px 48px -18px rgba(0, 40, 120, 0.18);
+          background: ${isCompact ? '#ffffff' : 'radial-gradient(85% 65% at 50% 0%, rgba(245, 158, 11, 0.16), transparent 75%), #ffffff'};
+          box-shadow: ${isCompact ? 'inset 0 0 0 1px rgba(226, 232, 240, 0.9)' : '0 0 0 1px rgba(226, 232, 240, 0.9), 0 24px 48px -18px rgba(0, 40, 120, 0.18)'};
           color: #0f172a;
           font-family: inherit;
         }
         .u365-v {
-          position: absolute;
+          position: ${isCompact ? 'relative' : 'absolute'};
           inset: 0;
-          padding: 26px 22px;
+          padding: ${isCompact ? '12px' : '26px 22px'};
           display: flex;
           flex-direction: column;
           transition: opacity 0.35s, transform 0.5s cubic-bezier(.3, 1.2, .5, 1);
         }
         .u365-v1 {
-          text-align: center;
+          text-align: ${isCompact ? 'left' : 'center'};
           justify-content: center;
-          padding-bottom: 28px;
+          padding-bottom: ${isCompact ? '0' : '28px'};
         }
         .u365.is-in .u365-v1 {
           opacity: 0;
-          transform: translateY(-14px) scale(0.97);
-          pointer-events: none;
+          ${isCompact ? 'display: none;' : 'transform: translateY(-14px) scale(0.97); pointer-events: none;'}
         }
         .u365-v2 {
           opacity: 0;
           transform: translateY(16px);
           pointer-events: none;
           text-align: center;
+          ${isCompact ? 'padding: 12px;' : ''}
         }
         .u365.is-in .u365-v2 {
           opacity: 1;
           transform: none;
           pointer-events: auto;
           transition-delay: 0.15s;
+          ${isCompact ? 'position: relative;' : ''}
         }
         .u365-ic {
-          width: 50px;
-          height: 50px;
-          margin: 0 auto;
-          border-radius: 16px;
+          width: ${isCompact ? '32px' : '50px'};
+          height: ${isCompact ? '32px' : '50px'};
+          margin: ${isCompact ? '0' : '0 auto'};
+          border-radius: ${isCompact ? '8px' : '16px'};
           background: linear-gradient(135deg, #fbbf24, #f97316);
-          display: grid;
+          display: ${isCompact ? 'none' : 'grid'};
           place-items: center;
           box-shadow: 0 12px 24px -8px #f97316;
           color: #ffffff;
         }
         .u365 h3 {
-          margin: 12px 0 0;
-          font-size: 17px;
+          margin: ${isCompact ? '0' : '12px 0 0'};
+          font-size: ${isCompact ? '13px' : '17px'};
           font-weight: 900;
           letter-spacing: -0.02em;
           color: #0f172a;
           line-height: 1.25;
         }
         .u365-v1 > p {
-          margin: 6px 0 0;
-          font-size: 11px;
+          margin: ${isCompact ? '2px 0 0' : '6px 0 0'};
+          font-size: ${isCompact ? '10px' : '11px'};
           font-weight: 600;
           color: #64748b;
           line-height: 1.4;
+          display: ${isCompact ? 'none' : 'block'};
         }
         .u365-fm {
           display: flex;
           gap: 6px;
-          margin-top: 18px;
-          padding: 5px;
-          border-radius: 16px;
+          margin-top: ${isCompact ? '8px' : '18px'};
+          padding: ${isCompact ? '2px' : '5px'};
+          border-radius: ${isCompact ? '10px' : '16px'};
           background: #f8fafc;
           box-shadow: inset 0 0 0 1px #e2e8f0;
           transition: box-shadow 0.2s;
@@ -238,13 +242,13 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         .u365-in {
           flex: 1;
           min-width: 0;
-          height: 38px;
+          height: ${isCompact ? '32px' : '38px'};
           padding: 0 10px;
           border: 0;
           background: none;
           color: #0f172a;
           font: inherit;
-          font-size: 12px;
+          font-size: ${isCompact ? '11px' : '12px'};
           font-weight: 700;
           outline: none;
         }
@@ -255,14 +259,14 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         .u365-go {
           position: relative;
           flex: none;
-          min-width: 88px;
-          height: 38px;
+          min-width: ${isCompact ? '76px' : '88px'};
+          height: ${isCompact ? '32px' : '38px'};
           border: 0;
-          border-radius: 12px;
+          border-radius: ${isCompact ? '10px' : '12px'};
           background: #0f172a;
           color: #ffffff;
           font: inherit;
-          font-size: 12px;
+          font-size: ${isCompact ? '11px' : '12px'};
           font-weight: 800;
           cursor: pointer;
           transition: opacity 0.2s, background-color 0.2s;
@@ -293,7 +297,7 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
 
         .u365-v2 small {
           margin-top: 2px;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 800;
           color: #64748b;
           text-transform: uppercase;
@@ -306,7 +310,7 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
           justify-content: center;
           align-items: baseline;
           margin-top: 2px;
-          font-size: 42px;
+          font-size: ${isCompact ? '28px' : '42px'};
           font-weight: 900;
           letter-spacing: -0.04em;
           color: #0f172a;
@@ -314,7 +318,7 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         }
         .u365-nm em {
           font-style: normal;
-          font-size: 22px;
+          font-size: ${isCompact ? '16px' : '22px'};
           color: #f59e0b;
           margin-right: 3px;
         }
@@ -334,8 +338,8 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         }
         .u365-q {
           position: relative;
-          height: 16px;
-          margin: 14px 6px 0;
+          height: ${isCompact ? '12px' : '16px'};
+          margin: ${isCompact ? '8px 6px 0' : '14px 6px 0'};
         }
         .u365-q i {
           position: absolute;
@@ -349,8 +353,8 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         .u365-me {
           position: absolute;
           top: 0;
-          width: 16px;
-          height: 16px;
+          width: ${isCompact ? '12px' : '16px'};
+          height: ${isCompact ? '12px' : '16px'};
           margin-left: -8px;
           border-radius: 50%;
           background: #f59e0b;
@@ -359,7 +363,7 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         }
         .u365-v2 > p {
           margin: 10px 0 0;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 650;
           color: #475569;
           line-height: 1.35;
@@ -367,15 +371,15 @@ export const ArticleNewsletterSubscriptionCard365: React.FC<ArticleNewsletterSub
         .u365-bs {
           display: flex;
           gap: 6px;
-          margin-top: auto;
+          margin-top: ${isCompact ? '12px' : 'auto'};
         }
         .u365-bs button {
           flex: 1;
-          height: 40px;
+          height: ${isCompact ? '34px' : '40px'};
           border: 0;
-          border-radius: 12px;
+          border-radius: ${isCompact ? '10px' : '12px'};
           font: inherit;
-          font-size: 11.5px;
+          font-size: ${isCompact ? '10.5px' : '11.5px'};
           font-weight: 800;
           cursor: pointer;
           display: flex;

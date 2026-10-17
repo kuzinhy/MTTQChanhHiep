@@ -251,6 +251,9 @@ export default function App() {
   });
 
 
+  // Global System Lock State
+  const [systemLockState, setSystemLockState] = useState<{ isLocked: boolean, reason?: string, lockedAt?: string }>({ isLocked: false });
+
   // Navigation & Space State
   const [currentSpace, setCurrentSpace] = useState<'PORTAL' | 'OFFICE'>('PORTAL');
   const [portalTab, setPortalTab] = useState<string>('home');
@@ -699,6 +702,7 @@ export default function App() {
       onDriveFilesUpdate: (files) => setDriveFiles(files),
       onArticleSubmissionsUpdate: (subs) => setArticleSubmissions(subs),
       onFeedbackUpdate: (feedbacks) => setFeedbackItems(feedbacks),
+      onSystemLockUpdate: (lockState) => setSystemLockState(lockState),
     });
 
     const timer = setTimeout(() => {
@@ -2953,6 +2957,99 @@ export default function App() {
           else handleSelectPortalTab('home');
         }}
       />
+
+      {/* GLOBAL SYSTEM LOCK OVERLAY */}
+      {systemLockState.isLocked && (
+        <div className="fixed inset-0 z-[1000000] bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 border border-red-500/50 rounded-[2rem] p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
+            {/* Background Effect */}
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-red-600/20 blur-3xl rounded-full" />
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-orange-600/20 blur-3xl rounded-full" />
+            
+            <div className="relative">
+              <div className="w-20 h-20 bg-red-600/20 text-red-500 rounded-2xl mx-auto flex items-center justify-center border border-red-500/30 animate-pulse">
+                <ShieldAlert className="w-10 h-10" />
+              </div>
+              
+              <div className="mt-6 space-y-2">
+                <h2 className="text-2xl font-black text-white tracking-tight">HỆ THỐNG ĐÃ TẠM KHÓA</h2>
+                <p className="text-red-400 text-xs font-bold uppercase tracking-widest">Cảnh báo An ninh Toàn cầu</p>
+              </div>
+
+              <div className="mt-8 p-4 bg-slate-800/50 rounded-2xl border border-slate-700 text-left space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 p-1 bg-red-500/20 text-red-400 rounded-lg">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Lý do khóa:</p>
+                    <p className="text-xs text-slate-200 font-medium leading-relaxed">
+                      {systemLockState.reason || 'Hệ thống phát hiện hoạt động bất thường hoặc nội dung không an toàn.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-1 bg-slate-700 text-slate-400 rounded-lg">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Thời gian:</p>
+                    <p className="text-xs text-slate-300 font-mono">
+                      {systemLockState.lockedAt ? new Date(systemLockState.lockedAt).toLocaleString('vi-VN') : 'Vừa xong'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="mt-8 text-xs text-slate-400 leading-relaxed">
+                Để đảm bảo an toàn dữ liệu và uy tín cơ quan, hệ thống đã tự động ngắt kết nối các luồng dữ liệu quan trọng. 
+                Vui lòng liên hệ Quản trị viên cấp cao để xác minh và khôi phục.
+              </p>
+
+              <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col gap-3">
+                {currentStaffUser && (currentStaffUser.role === 'SUPER_ADMIN' || currentStaffUser.role === 'MTTQ_ADMIN') ? (
+                  <button
+                    onClick={async () => {
+                      if (confirm('Xác nhận mở khóa hệ thống? Mọi hoạt động sẽ quay lại bình thường.')) {
+                        const success = await CloudDatabase.unlockSystem();
+                        if (success) {
+                          handleTriggerSystemToast('Hệ thống đã mở', 'Đã khôi phục hoạt động bình thường.');
+                        } else {
+                          handleTriggerSystemToast('Lỗi', 'Không thể mở khóa hệ thống.');
+                        }
+                      }
+                    }}
+                    className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-black rounded-2xl transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    XÁC MINH & MỞ KHÓA HỆ THỐNG
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    TẢI LẠI TRANG
+                  </button>
+                )}
+                
+                <button
+                  onClick={async () => {
+                    await signOut(auth);
+                    setCurrentStaffUser(null);
+                    AppStorageEngine.saveCurrentUser(null);
+                    window.location.hash = '#/trang-chu';
+                    window.location.reload();
+                  }}
+                  className="w-full py-3 bg-transparent hover:bg-red-500/10 text-red-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  ĐĂNG XUẤT AN TOÀN
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* GLOBAL GOOGLE DRIVE IMAGE UPLOAD PROGRESS OVERLAY */}
       {uploadProgressState.active && (

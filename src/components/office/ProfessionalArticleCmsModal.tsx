@@ -17,6 +17,7 @@ import { OptimizedImage } from '../common/OptimizedImage';
 import { AppStorageEngine } from '../../lib/storage';
 import { fetchMediaLibrary } from '../../lib/cloudinaryService';
 import { canPublishPost, canEditPost, canDeletePost } from '../../services/permissionService';
+import { CloudDatabase } from '../../lib/firestoreService';
 import { 
   uploadFileToGoogleDrive, 
   getGoogleDriveDirectImageUrl, 
@@ -582,10 +583,37 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     };
   };
 
-  const handleSave = (targetStatus: ArticleStatus, continueEditing = false) => {
+  const [isScanningContent, setIsScanningContent] = useState(false);
+
+  const handleSave = async (targetStatus: ArticleStatus, continueEditing = false) => {
     if (!title.trim()) {
       alert('Vui lòng nhập tiêu đề bài viết!');
       return;
+    }
+
+    // Security Check: Content Scanning with Gemini
+    setIsScanningContent(true);
+    try {
+      const fullTextToScan = `${title}\n${summary}\n${content}`;
+      const scanResult = await CloudDatabase.scanContent(fullTextToScan, title, 'ARTICLE', currentUser || undefined);
+      
+      if (scanResult.isSafe === false) {
+        if (scanResult.riskLevel === 'HIGH' || scanResult.riskLevel === 'CRITICAL') {
+          alert(`CẢNH BÁO AN NINH: Nội dung bị từ chối do vi phạm chính sách: ${scanResult.reason}. Hệ thống đã tự động khóa để bảo mật.`);
+          onClose();
+          return;
+        } else {
+          const proceed = confirm(`CẢNH BÁO NỘI DUNG: Phát hiện yếu tố nhạy cảm (${scanResult.reason}). Bạn có chắc chắn muốn tiếp tục đăng tải?`);
+          if (!proceed) {
+            setIsScanningContent(false);
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Content scanning failed, proceeding anyway:', err);
+    } finally {
+      setIsScanningContent(false);
     }
 
     const finalSlug = slug.trim() || generateSlug(title);
@@ -1373,6 +1401,7 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
             <button
               type="button"
               onClick={onClose}
+              disabled={isScanningContent}
               className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
             >
               Hủy bỏ
@@ -1381,19 +1410,21 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
             <button
               type="button"
               onClick={() => handleSave('Draft')}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+              disabled={isScanningContent}
+              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
             >
-              <Save className="w-3.5 h-3.5 text-slate-600" />
+              {isScanningContent ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 text-slate-600" />}
               <span>Lưu nháp</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleSave(status, true)}
-              className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-black rounded-xl border border-blue-200 transition-colors cursor-pointer flex items-center gap-1.5"
+              disabled={isScanningContent}
+              className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-black rounded-xl border border-blue-200 transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               title="Lưu dữ liệu mà không đóng cửa sổ để tiếp tục viết"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              {isScanningContent ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
               <span>Lưu & tiếp tục</span>
             </button>
 
@@ -1436,10 +1467,20 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
             <button
               type="button"
               onClick={() => handleSave('Published')}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+              disabled={isScanningContent}
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
             >
-              <Check className="w-4 h-4 stroke-[3]" />
-              <span>{articleToEdit ? 'Lưu & Xuất bản ngay' : 'Đăng bài ngay'}</span>
+              {isScanningContent ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>ĐANG QUÉT NỘI DUNG...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>{articleToEdit ? 'Lưu & Xuất bản ngay' : 'Đăng bài ngay'}</span>
+                </>
+              )}
             </button>
           </div>
         </div>

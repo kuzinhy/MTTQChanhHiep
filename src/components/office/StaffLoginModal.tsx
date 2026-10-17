@@ -102,6 +102,10 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
   const [otpSuccess, setOtpSuccess] = useState<boolean>(false);
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Intrusion Detection State
+  const [failedLoginCount, setFailedLoginCount] = useState<number>(0);
+  const [lastFailedAttempt, setLastFailedAttempt] = useState<number>(0);
+
   // Sound generator using Web Audio API
   const playChime = (type: 'send' | 'success' | 'error') => {
     try {
@@ -243,6 +247,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
         if (user) {
           await handleAuthenticatedUser(cleanEmail, user.displayName, user.photoURL, user.uid);
           authenticated = true;
+          setFailedLoginCount(0); // Reset on success
           return;
         }
       } catch (authErr: any) {
@@ -253,6 +258,7 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
       if (staffMatch) {
         await handleAuthenticatedUser(cleanEmail, staffMatch.fullname, staffMatch.avatar, staffMatch.id);
         authenticated = true;
+        setFailedLoginCount(0); // Reset on success
         return;
       }
 
@@ -260,13 +266,23 @@ export const StaffLoginModal: React.FC<StaffLoginModalProps> = ({
       if (passwordInput.length >= 6) {
         await handleAuthenticatedUser(cleanEmail, cleanEmail.split('@')[0], null);
         authenticated = true;
+        setFailedLoginCount(0); // Reset on success
         return;
       }
 
-      setErrorMessage('Vui lòng kiểm tra lại Tên đăng nhập/Email và Mật khẩu.');
+      throw new Error('Vui lòng kiểm tra lại Tên đăng nhập/Email và Mật khẩu.');
     } catch (err: any) {
       console.error('Sign-in error:', err);
-      setErrorMessage('Xác thực không thành công. Vui lòng thử lại.');
+      const newCount = failedLoginCount + 1;
+      setFailedLoginCount(newCount);
+      setLastFailedAttempt(Date.now());
+      
+      if (newCount >= 5) {
+        setErrorMessage('CẢNH BÁO: Phát hiện nhiều nỗ lực đăng nhập thất bại. Hệ thống đã tự động khóa để bảo mật.');
+        CloudDatabase.reportIntrusion(`Nỗ lực đăng nhập thất bại liên tiếp (${newCount} lần) từ Email/User: ${cleanEmail}`);
+      } else {
+        setErrorMessage(err.message || 'Xác thực không thành công. Vui lòng thử lại.');
+      }
     } finally {
       if (!authenticated) {
         setIsLoading(false);
