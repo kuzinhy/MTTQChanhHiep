@@ -598,12 +598,16 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
       const scanResult = await CloudDatabase.scanContent(fullTextToScan, title, 'ARTICLE', currentUser || undefined);
       
       if (scanResult.isSafe === false) {
+        const detectedInfo = (scanResult.detectedWords && scanResult.detectedWords.length > 0) 
+          ? `\nTừ ngữ phát hiện: ${scanResult.detectedWords.join(', ')}` 
+          : '';
+
         if (scanResult.riskLevel === 'HIGH' || scanResult.riskLevel === 'CRITICAL') {
-          alert(`CẢNH BÁO AN NINH: Nội dung bị từ chối do vi phạm chính sách: ${scanResult.reason}. Hệ thống đã tự động khóa để bảo mật.`);
+          alert(`🛑 CẢNH BÁO AN NINH NGHIÊM TRỌNG:\nNội dung vi phạm chính sách bảo mật: ${scanResult.reason}${detectedInfo}\n\nHệ thống đã tự động khóa để bảo vệ an toàn thông tin.`);
           onClose();
           return;
         } else {
-          const proceed = confirm(`CẢNH BÁO NỘI DUNG: Phát hiện yếu tố nhạy cảm (${scanResult.reason}). Bạn có chắc chắn muốn tiếp tục đăng tải?`);
+          const proceed = confirm(`⚠️ PHÁT HIỆN NỘI DUNG NHẠY CẢM:\n${scanResult.reason}${detectedInfo}\n\nBạn có muốn kiểm tra lại nội dung không? Nhấn OK để TIẾP TỤC ĐĂNG, hoặc Cancel để QUAY LẠI CHỈNH SỬA.`);
           if (!proceed) {
             setIsScanningContent(false);
             return;

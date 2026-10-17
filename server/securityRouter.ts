@@ -66,7 +66,7 @@ securityRouter.post('/scan-content', async (req: Request, res: Response) => {
 
     const ai = getGeminiClient();
     const prompt = `Bạn là Chuyên gia Kiểm duyệt Nội dung Số của Ủy ban MTTQ Việt Nam Phường Chánh Hiệp.
-Nhiệm vụ: Phân tích nội dung sau đây để phát hiện các yếu tố nhạy cảm, từ ngữ lạ, nội dung xâm nhập hệ thống, hoặc các nội dung không phù hợp với thuần phong mỹ tục, chính trị, pháp luật Việt Nam.
+Nhiệm vụ: Phân tích kỹ lưỡng nội dung sau đây để phát hiện các yếu tố nhạy cảm, từ ngữ lạ (strange/slang), nội dung xâm nhập hệ thống, hoặc các nội dung không phù hợp với văn hóa, chính trị, pháp luật Việt Nam.
 
 --- NỘI DUNG CẦN KIỂM TRA (${contentType || 'BÀI VIẾT'}) ---
 Tiêu đề: ${title || 'Không có'}
@@ -79,8 +79,8 @@ Hãy trả về DUY NHẤT một đối tượng JSON hợp lệ:
 {
   "isSafe": true | false,
   "riskLevel": "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
-  "reason": "Lý do nếu không an toàn (tiếng Việt)",
-  "detectedWords": ["danh sách các từ ngữ nhạy cảm/lạ phát hiện được"]
+  "reason": "Lý do chi tiết (tiếng Việt)",
+  "detectedWords": ["danh sách các từ ngữ cụ thể gây nghi ngờ hoặc nhạy cảm"]
 }`;
 
     const response = await ai.models.generateContent({

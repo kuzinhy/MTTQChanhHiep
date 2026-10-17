@@ -1403,7 +1403,7 @@ class CloudSyncService {
     }
   }
 
-  async scanContent(content: string, title: string, contentType: string, staffUser?: StaffUser): Promise<{ isSafe: boolean, riskLevel: string, reason?: string }> {
+  async scanContent(content: string, title: string, contentType: string, staffUser?: StaffUser): Promise<{ isSafe: boolean, riskLevel: string, reason?: string, detectedWords?: string[] }> {
     try {
       const res = await fetch('/api/security/scan-content', {
         method: 'POST',
