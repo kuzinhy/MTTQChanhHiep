@@ -22,6 +22,7 @@ import { InitiativesSection } from '../InitiativesSection';
 import { AboutAndMemberOrgsAdminView } from './AboutAndMemberOrgsAdminView';
 import { MediaUploader } from './MediaUploader';
 import { MediaLibraryView } from './MediaLibraryView';
+import { ProfessionalArticleCmsModal } from './ProfessionalArticleCmsModal';
 import { CulturalMediaAdminSection } from '../cultural/CulturalMediaAdminSection';
 import { ChanhHiepDriveFolderBar } from './ChanhHiepDriveFolderBar';
 import { SmartMediaDriveUploader } from './SmartMediaDriveUploader';
@@ -109,7 +110,8 @@ import {
   Send,
   CheckSquare,
   BarChart3,
-  XCircle
+  XCircle,
+  RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -838,6 +840,91 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   };
 
   // Save Article (Create or Update)
+  
+  const handleSaveProfessionalArticle = (payload: Partial<Article>, continueEditing = false) => {
+    const currentUser = AppStorageEngine.getCurrentUser();
+    const currentUid = currentUser?.id || currentUser?.uid || 'staff-1';
+    const currentName = currentUser?.fullname || 'Cán bộ MTTQ';
+    const userCanPublish = canPublishPost(currentUser);
+    const effectiveStatus: ArticleStatus = (!userCanPublish && payload.status === 'Published') 
+      ? 'Pending Review' 
+      : (payload.status || 'Draft');
+    const now = new Date().toISOString();
+
+    if (editingArticle) {
+      const updated: Article = {
+        ...editingArticle,
+        ...payload,
+        status: effectiveStatus,
+        updatedAt: now,
+        updatedBy: currentUid
+      };
+      onUpdateArticle(updated);
+      if (continueEditing) {
+        setEditingArticle(updated);
+      } else {
+        setIsArticleModalOpen(false);
+        setEditingArticle(null);
+      }
+      showSuccessBanner(continueEditing ? 'Đã lưu và tiếp tục chỉnh sửa bài viết!' : 'Cập nhật bài viết thành công!');
+    } else {
+      const newArt: Article = {
+        id: payload.id || 'art-' + Date.now(),
+        title: payload.title || '',
+        slug: payload.slug || generateSlug(payload.title || ''),
+        summary: payload.summary || '',
+        content: payload.content || '',
+        contentStructured: payload.contentStructured,
+        coverImage: payload.coverImage,
+        gallery: payload.gallery,
+        versions: payload.versions,
+        featuredImage: payload.featuredImage || getBannerForCategory(payload.category || 'Hoạt động Mặt trận', payload.title || ''),
+        category: payload.category || 'Hoạt động Mặt trận',
+        tags: payload.tags || ['Mặt trận', 'Chánh Hiệp'],
+        status: effectiveStatus,
+        isFeatured: payload.isFeatured || false,
+        originalUrl: payload.originalUrl,
+        sourceName: payload.sourceName,
+        videoUrl: payload.videoUrl,
+        authorId: currentUid,
+        authorName: payload.authorName || currentName,
+        createdBy: currentUid,
+        publishDate: payload.publishDate || now.split('T')[0],
+        publishedAt: effectiveStatus === 'Published' ? now : undefined,
+        scheduledPublishAt: payload.scheduledPublishAt,
+        createdAt: now,
+        updatedAt: now,
+        organizationId: 'mttq-chanhhiep',
+        attachment: payload.attachment,
+        attachmentName: payload.attachmentName,
+        attachmentSize: payload.attachmentSize,
+        driveFolderUrl: DEFAULT_DRIVE_FOLDER_URL,
+        views: 1
+      };
+      onAddArticle(newArt);
+      if (continueEditing) {
+        setEditingArticle(newArt);
+      } else {
+        setIsArticleModalOpen(false);
+      }
+      showSuccessBanner(continueEditing ? 'Đã lưu và tiếp tục chỉnh sửa bài viết!' : 'Đã đăng bài viết thành công!');
+    }
+  };
+
+  // Restore article from soft-delete trash
+  const handleRestoreArticle = (art: Article) => {
+    const restored: Article = {
+      ...art,
+      isSoftDeleted: false,
+      deletedAt: undefined,
+      deletedBy: undefined,
+      status: 'Draft',
+      updatedAt: new Date().toISOString()
+    };
+    onUpdateArticle(restored);
+    showSuccessBanner('Đã khôi phục bài viết thành công từ Thùng rác về Bản nháp!');
+  };
+
   const handleSaveArticle = (e: React.FormEvent) => {
     e.preventDefault();
     if (!artTitle.trim() || !artContent.trim()) return;
@@ -999,10 +1086,29 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setActiveTab('ARTICLES');
   };
 
-  // Confirm Delete Article
+  // Confirm Delete Article (Soft delete vs Permanent delete)
   const handleConfirmDeleteArticle = () => {
     if (!articleToDelete) return;
-    onDeleteArticle(articleToDelete.id);
+    const currentUser = AppStorageEngine.getCurrentUser();
+    const currentUid = currentUser?.id || currentUser?.uid || 'staff-1';
+
+    if (articleToDelete.isSoftDeleted) {
+      // Permanent removal from database
+      onDeleteArticle(articleToDelete.id);
+      showSuccessBanner('Đã xóa vĩnh viễn bài viết khỏi hệ thống.');
+    } else {
+      // Soft delete: keep in database, mark deleted, move to Trash
+      const softDeleted: Article = {
+        ...articleToDelete,
+        isSoftDeleted: true,
+        deletedAt: new Date().toISOString(),
+        deletedBy: currentUid,
+        status: 'Archived',
+        updatedAt: new Date().toISOString()
+      };
+      onUpdateArticle(softDeleted);
+      showSuccessBanner('Đã chuyển bài viết vào Thùng rác (Xoá mềm). Bạn có thể khôi phục lại bất kỳ lúc nào!');
+    }
     setArticleToDelete(null);
   };
 
@@ -1312,9 +1418,19 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
     setRespondingSubmission(null);
   };
 
+  // Soft-deleted Trash count and active count
+  const trashArticlesCount = useMemo(() => articles.filter(a => !!a.isSoftDeleted).length, [articles]);
+  const activeArticlesList = useMemo(() => articles.filter(a => !a.isSoftDeleted), [articles]);
+
   // Filtered Articles (Always sorted newest first)
   const filteredArticles = useMemo(() => {
     const list = articles.filter(art => {
+      if (statusFilter === 'TRASH') {
+        if (!art.isSoftDeleted) return false;
+      } else {
+        if (art.isSoftDeleted) return false;
+      }
+
       const matchesSearch = 
         art.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         art.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1323,6 +1439,8 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       const isVisibleOnPortal = art.status === 'Published' || art.status === 'Approved';
       const matchesStatus = statusFilter === 'ALL' 
         ? true 
+        : statusFilter === 'TRASH'
+        ? true
         : statusFilter === 'Published' 
         ? isVisibleOnPortal 
         : !isVisibleOnPortal;
@@ -2031,9 +2149,10 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="bg-transparent font-bold text-slate-900 outline-hidden text-xs cursor-pointer"
                 >
-                  <option value="ALL">Tất cả trạng thái ({articles.length})</option>
+                  <option value="ALL">Tất cả bài viết hoạt động ({activeArticlesList.length})</option>
                   <option value="Published">🟢 Đang hiển thị trang chủ ({publishedCount})</option>
-                  <option value="Draft">🟡 Đã ẩn khỏi trang chủ ({articles.length - publishedCount})</option>
+                  <option value="Draft">🟡 Bản nháp / Đã ẩn ({activeArticlesList.length - publishedCount})</option>
+                  <option value="TRASH">🗑️ Thùng rác ({trashArticlesCount})</option>
                 </select>
               </div>
             </div>
@@ -2213,61 +2332,82 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                           </div>
                         </td>
 
-                        {/* Action Buttons: Hide/Show, Preview, Edit, Duplicate, Delete */}
+                        {/* Action Buttons: Hide/Show, Preview, Edit, Duplicate, Soft-Delete / Restore */}
                         <td className="px-5 py-3.5 text-right relative z-20">
-                          <div className="flex items-center justify-end gap-1.5 relative z-30">
-                            {/* Explicit Hide / Show Article Button */}
-                            <button
-                              onClick={() => handleToggleArticleStatus(art)}
-                              className={`px-2.5 py-1.5 rounded-xl font-extrabold text-[11px] transition-all cursor-pointer flex items-center gap-1 shadow-2xs ${
-                                art.status === 'Published' || art.status === 'Approved'
-                                  ? 'bg-amber-100 hover:bg-amber-600 hover:text-white text-amber-800 border border-amber-300'
-                                  : 'bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-300'
-                              }`}
-                              title={art.status === 'Published' || art.status === 'Approved' ? "Click để ẨN bài viết này khỏi trang chủ công khai" : "Click để HIỂN THỊ bài viết này lên trang chủ công khai"}
-                            >
-                              {art.status === 'Published' || art.status === 'Approved' ? (
-                                <>
-                                  <EyeOff className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Ẩn bài</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Eye className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Hiện bài</span>
-                                </>
-                              )}
-                            </button>
+                          {art.isSoftDeleted ? (
+                            <div className="flex items-center justify-end gap-1.5 relative z-30">
+                              <button
+                                onClick={() => handleRestoreArticle(art)}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs active:scale-95"
+                                title="Khôi phục bài viết về Bản nháp"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                <span>Khôi phục</span>
+                              </button>
+                              <button
+                                onClick={() => setArticleToDelete(art)}
+                                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs active:scale-95"
+                                title="Xóa vĩnh viễn bài viết khỏi hệ thống"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Xóa vĩnh viễn</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-1.5 relative z-30">
+                              {/* Explicit Hide / Show Article Button */}
+                              <button
+                                onClick={() => handleToggleArticleStatus(art)}
+                                className={`px-2.5 py-1.5 rounded-xl font-extrabold text-[11px] transition-all cursor-pointer flex items-center gap-1 shadow-2xs ${
+                                  art.status === 'Published' || art.status === 'Approved'
+                                    ? 'bg-amber-100 hover:bg-amber-600 hover:text-white text-amber-800 border border-amber-300'
+                                    : 'bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-800 border border-emerald-300'
+                                }`}
+                                title={art.status === 'Published' || art.status === 'Approved' ? "Click để ẨN bài viết này khỏi trang chủ công khai" : "Click để HIỂN THỊ bài viết này lên trang chủ công khai"}
+                              >
+                                {art.status === 'Published' || art.status === 'Approved' ? (
+                                  <>
+                                    <EyeOff className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Ẩn bài</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Hiện bài</span>
+                                  </>
+                                )}
+                              </button>
 
-                            <button
-                              onClick={() => setPreviewArticle(art)}
-                              className="p-2 bg-slate-100 hover:bg-blue-100 hover:text-blue-700 text-slate-700 rounded-xl transition-all cursor-pointer"
-                              title="Xem trước bài viết"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleOpenEditArticle(art)}
-                              className="p-2 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-xl transition-all cursor-pointer"
-                              title="Chỉnh sửa bài viết"
-                            >
-                              <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDuplicateArticle(art)}
-                              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer"
-                              title="Nhân bản bài viết này"
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setArticleToDelete(art)}
-                              className="p-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded-xl transition-all cursor-pointer"
-                              title="Xóa bài viết"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                              <button
+                                onClick={() => setPreviewArticle(art)}
+                                className="p-2 bg-slate-100 hover:bg-blue-100 hover:text-blue-700 text-slate-700 rounded-xl transition-all cursor-pointer"
+                                title="Xem trước bài viết"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleOpenEditArticle(art)}
+                                className="p-2 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-xl transition-all cursor-pointer"
+                                title="Chỉnh sửa bài viết"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDuplicateArticle(art)}
+                                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer"
+                                title="Nhân bản bài viết này"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setArticleToDelete(art)}
+                                className="p-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded-xl transition-all cursor-pointer"
+                                title="Chuyển vào Thùng rác (Xóa mềm)"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -2781,442 +2921,16 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* ARTICLE CREATE / EDIT MODAL - WIDESCREEN WIDE LAYOUT */}
+            {/* ========================================================================= */}
+      {/* PROFESSIONAL CMS ARTICLE MODAL */}
       {/* ========================================================================= */}
-      <AnimatePresence>
-        {isArticleModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6">
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              className="bg-white w-full max-w-[1400px] w-[96vw] h-[92vh] max-h-[920px] rounded-3xl p-5 md:p-7 shadow-2xl border border-slate-200 flex flex-col text-slate-900 overflow-hidden"
-            >
-              {/* Modal Top Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-3 shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-100 text-blue-700 rounded-2xl">
-                    <Newspaper className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-black text-base md:text-lg text-slate-900">
-                        {editingArticle ? 'Chỉnh sửa nội dung bài viết' : 'Soạn & Xuất bản bài viết mới'}
-                      </h3>
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md">
-                        CMS Editor
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500">Nội dung tự động đồng bộ lên Cổng thông tin Mặt trận Tổ quốc Việt Nam phường Chánh Hiệp.</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setIsArticleModalOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
-                  title="Đóng cửa sổ"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {editingArticle && (
-                <EditingConflictBanner
-                  currentAdmin={AppStorageEngine.getCurrentUser()}
-                  entityType="article"
-                  entityId={editingArticle.id}
-                  entityTitle={editingArticle.title}
-                />
-              )}
-
-              <form onSubmit={handleSaveArticle} className="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
-                {/* 1. TOP TOOLBAR: Article Title & AI Link Parser */}
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 shrink-0">
-                  {/* Article Main Title - Full prominent focus */}
-                  <div className="xl:col-span-8">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        required
-                        placeholder="Nhập tiêu đề bài viết tin tức, hoạt động Mặt trận..."
-                        value={artTitle}
-                        onChange={(e) => {
-                          setArtTitle(e.target.value);
-                          if (!editingArticle) {
-                            setArtSlug(generateSlug(e.target.value));
-                          }
-                        }}
-                        className="w-full text-sm md:text-base px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-bold text-slate-900 shadow-2xs"
-                      />
-                      <span className="absolute right-3 top-3 text-[10px] font-semibold text-slate-400">
-                        {artTitle.length} ký tự
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* AI Link Parser Compact Widget */}
-                  <div className="xl:col-span-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50 border border-blue-200 rounded-2xl px-3 py-1.5 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-blue-600 shrink-0 animate-pulse" />
-                    <div className="relative flex-1">
-                      <input
-                        type="url"
-                        placeholder="Dán link bài viết từ báo chí để AI tự bóc tách..."
-                        value={artInputUrl || artOriginalUrl}
-                        onChange={(e) => {
-                          setArtInputUrl(e.target.value);
-                          setArtOriginalUrl(e.target.value);
-                        }}
-                        className="w-full text-xs pl-7 pr-2 py-1.5 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium text-slate-800"
-                      />
-                      <Globe className="w-3.5 h-3.5 text-blue-500 absolute left-2 top-2" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleParseNewsLink}
-                      disabled={isParsingNewsLink}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 shrink-0 disabled:opacity-50 cursor-pointer"
-                    >
-                      {isParsingNewsLink ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Đang bóc tách...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>AI Bóc tách</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Duplicate Article Warning Banner */}
-                {duplicateArticleMatch && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-amber-50 border border-amber-400 rounded-2xl flex items-start gap-2 shadow-2xs text-slate-900 shrink-0"
-                  >
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="space-y-0.5 text-xs">
-                      <p className="font-black text-amber-950 flex items-center gap-1.5">
-                        <span>⚠️ CẢNH BÁO ĐĂNG BÀI TRÙNG NỘI DUNG!</span>
-                      </p>
-                      <p className="text-amber-900">
-                        Hệ thống phát hiện bài viết tương tự đã tồn tại trong CSDL: <strong>"{duplicateArticleMatch.title}"</strong>
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* MAIN FORM BODY: TWO SPACIOUS COLUMNS WITH INDEPENDENT SCROLL */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-0 overflow-y-auto pr-1">
-                  
-                  {/* LEFT COLUMN: Metadata & Media Settings (5 Cols) */}
-                  <div className="lg:col-span-5 space-y-3.5">
-                    
-                    {/* SECTION 1: Publishing Settings Card */}
-                    <div className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3">
-                      <div className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center justify-between border-b border-slate-200/80 pb-2">
-                        <span>1. Cấu hình xuất bản</span>
-                        <span className="text-[10px] text-slate-400 font-normal">Chuyên mục & Quyền hạn</span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-800 block mb-1">
-                            Chuyên mục <span className="text-rose-600">*</span>
-                          </label>
-                          <select
-                            value={artCategory}
-                            onChange={(e) => setArtCategory(e.target.value as ArticleCategory)}
-                            className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-bold bg-white cursor-pointer"
-                          >
-                            {ARTICLE_CATEGORIES.map(cat => (
-                              <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-800 block mb-1">Trạng thái bài viết</label>
-                          <select
-                            value={artStatus}
-                            onChange={(e) => setArtStatus(e.target.value as ArticleStatus)}
-                            className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-bold bg-white cursor-pointer"
-                          >
-                            <option value="Published">🟢 Đã xuất bản (Hiển thị trang chủ)</option>
-                            <option value="Pending Review">⏳ Chờ duyệt (Trình Lãnh đạo phê duyệt)</option>
-                            <option value="Draft">🟡 Bản nháp (Ẩn khỏi trang chủ)</option>
-                            <option value="Archived">🔴 Lưu trữ (Ẩn khỏi trang chủ)</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-800 block mb-1">Tác giả biên soạn</label>
-                          <input
-                            type="text"
-                            value={artAuthor}
-                            onChange={(e) => setArtAuthor(e.target.value)}
-                            className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-800 block mb-1">Ngày phát hành</label>
-                          <input
-                            type="date"
-                            value={artPublishDate}
-                            onChange={(e) => setArtPublishDate(e.target.value)}
-                            className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Featured Checkbox & Source */}
-                      <div className="pt-1 flex flex-col gap-2">
-                        <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Star className={`w-4 h-4 ${artIsFeatured ? 'text-amber-600 fill-amber-500' : 'text-slate-400'}`} />
-                            <span className="text-xs font-bold text-amber-950">Ghim Tin Nổi Bật (Hero Feature)</span>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={artIsFeatured}
-                            onChange={(e) => setArtIsFeatured(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded cursor-pointer"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[10.5px] font-bold text-slate-700 block mb-1">Thẻ Tags (cách dấu phẩy)</label>
-                            <input
-                              type="text"
-                              placeholder="Mặt trận, Chánh Hiệp..."
-                              value={artTags}
-                              onChange={(e) => setArtTags(e.target.value)}
-                              className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10.5px] font-bold text-slate-700 block mb-1">Tên nguồn thông tin</label>
-                            <input
-                              type="text"
-                              placeholder="MTTQ Chánh Hiệp"
-                              value={artSourceName}
-                              onChange={(e) => setArtSourceName(e.target.value)}
-                              className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* SECTION 2: Featured Image Box with Smart Drive/Link/Upload support */}
-                    <div className="space-y-3">
-                      <SmartMediaDriveUploader
-                        label="2. Ảnh đại diện bài viết (Gắn link Drive/Web hoặc Upload)"
-                        currentValue={artImage}
-                        modeType="image"
-                        defaultFolderCode="data"
-                        onMediaSelected={(res) => {
-                          setArtImage(res.directImageUrl || res.url);
-                          if (res.name && !artTitle) {
-                            // Suggest title from file name if empty
-                          }
-                        }}
-                        onClear={() => setArtImage('')}
-                      />
-
-                      {/* SECTION 2B: Attachment Document Box */}
-                      <SmartMediaDriveUploader
-                        label="2b. Văn bản / Tài liệu đính kèm (PDF, DOCX, Sổ sách trên Google Drive)"
-                        currentValue={artAttachment}
-                        currentName={artAttachmentName}
-                        currentSize={artAttachmentSize}
-                        modeType="document"
-                        defaultFolderCode="van-ban-mttq"
-                        onMediaSelected={(res) => {
-                          setArtAttachment(res.url);
-                          if (res.name) setArtAttachmentName(res.name);
-                          if (res.size) setArtAttachmentSize(res.size);
-                          if (res.url) setArtDriveFolderUrl(res.url);
-                        }}
-                        onClear={() => {
-                          setArtAttachment('');
-                          setArtAttachmentName('');
-                          setArtAttachmentSize('');
-                        }}
-                      />
-
-                      {/* SECTION 2C: Video Embed Field (YouTube & Facebook Video) */}
-                      <div className="p-3.5 bg-gradient-to-r from-red-50/80 via-rose-50/50 to-white rounded-2xl border border-red-200/90 space-y-2.5 shadow-2xs">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[11px] font-black text-red-950 flex items-center gap-1.5">
-                            <Video className="w-4 h-4 text-red-600 shrink-0" />
-                            <span>2c. Video Phóng sự (YouTube, Facebook Video, Reels)</span>
-                          </label>
-                          {artVideoUrl && (
-                            <button
-                              type="button"
-                              onClick={() => setArtVideoUrl('')}
-                              className="text-[10.5px] text-red-600 hover:text-red-800 font-bold hover:underline cursor-pointer"
-                            >
-                              Xóa link video
-                            </button>
-                          )}
-                        </div>
-                        <div>
-                          <input
-                            type="url"
-                            placeholder="Dán link video YouTube (youtu.be/..., shorts/...) hoặc Facebook (fb.watch/..., video/...)"
-                            value={artVideoUrl}
-                            onChange={(e) => setArtVideoUrl(e.target.value)}
-                            className="w-full text-xs px-3 py-2 bg-white border border-red-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-hidden font-medium text-slate-800 placeholder:text-slate-400 shadow-2xs"
-                          />
-                        </div>
-                        <p className="text-[10px] text-slate-500 leading-tight">
-                          ✨ Hỗ trợ phát trực tiếp video từ <strong className="text-red-700">YouTube</strong> (clip dài & shorts) và <strong className="text-blue-700">Facebook Video / Reels</strong> ngay trong bài viết.
-                        </p>
-                        {artVideoUrl.trim() && (
-                          <div className="pt-1">
-                            <EmbeddedVideoPlayer
-                              url={artVideoUrl.trim()}
-                              title="Xem trước video phát trong bài"
-                              className="max-w-full shadow-xs"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* SECTION 3: Excerpt Summary */}
-                    <div className="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-1.5">
-                      <label className="text-[11px] font-black text-slate-800 block">3. Tóm tắt trích yếu (Excerpt)</label>
-                      <textarea
-                        rows={3}
-                        placeholder="Tóm tắt ngắn gọn 1-2 câu hiển thị ở danh sách bài viết trang chủ..."
-                        value={artSummary}
-                        onChange={(e) => setArtSummary(e.target.value)}
-                        className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-medium resize-none"
-                      />
-                    </div>
-
-                  </div>
-
-                  {/* RIGHT COLUMN: Full Height Content Editor Workspace (7 Cols) */}
-                  <div className="lg:col-span-7 flex flex-col space-y-3 h-full">
-                    
-                    {/* Content Editor Toolbar Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100/90 px-3.5 py-2 rounded-2xl border border-slate-200 shrink-0">
-                      <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                        <span>Nội dung chi tiết bài viết <span className="text-rose-600">*</span></span>
-                        <span className="text-[10px] text-slate-500 font-normal">({artContent.length} ký tự)</span>
-                      </label>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const userUrl = prompt('Dán liên kết Video YouTube hoặc Facebook của bài viết:');
-                            if (userUrl && userUrl.trim()) {
-                              setArtVideoUrl(userUrl.trim());
-                              showSuccessBanner('Đã gắn link Video vào bài viết thành công!');
-                            }
-                          }}
-                          className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
-                          title="Gắn link video YouTube hoặc Facebook vào bài viết"
-                        >
-                          <Video className="w-3.5 h-3.5" /> <span>Gắn Video YT/FB</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setShowInsertContentImageModal(true)}
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Chèn ảnh / Drive
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Rich Main Textarea */}
-                    <textarea
-                      rows={18}
-                      required
-                      placeholder="Nhập toàn văn nội dung bài viết tuyên truyền, phóng sự hoặc tin tức hoạt động..."
-                      value={artContent}
-                      onChange={(e) => setArtContent(e.target.value)}
-                      className="w-full text-xs md:text-sm px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:bg-white outline-hidden font-medium leading-relaxed flex-1 min-h-[380px] shadow-2xs"
-                    />
-
-                    {/* Original Article Link Field */}
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl shrink-0">
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                        Liên kết bài viết gốc / Nguồn đính kèm (Facebook / Báo chí / PDF)
-                      </label>
-                      <input
-                        type="url"
-                        placeholder="https://www.facebook.com/mttq.chanhhiep/posts/..."
-                        value={artOriginalUrl}
-                        onChange={(e) => setArtOriginalUrl(e.target.value)}
-                        className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 outline-hidden font-mono"
-                      />
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* MODAL ACTIONS FOOTER */}
-                <div className="pt-3.5 flex items-center justify-between border-t border-slate-100 shrink-0">
-                  <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-ping"></span>
-                    <span>Đồng bộ tức thì lên Cổng thông tin Mặt trận Chánh Hiệp</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 ml-auto flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setIsArticleModalOpen(false)}
-                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
-                    >
-                      Hủy bỏ
-                    </button>
-                    <button
-                      type="submit"
-                      onClick={() => setArtStatus('Draft')}
-                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-colors"
-                    >
-                      Lưu bản nháp
-                    </button>
-                    <button
-                      type="submit"
-                      onClick={() => setArtStatus('Pending Review')}
-                      className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 text-xs font-black rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Send className="w-4 h-4 text-slate-950" />
-                      <span>Trình Lãnh đạo phê duyệt</span>
-                    </button>
-                    {isLeader && (
-                      <button
-                        type="submit"
-                        onClick={() => setArtStatus('Published')}
-                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2"
-                      >
-                        <Check className="w-4 h-4 text-white stroke-[3]" />
-                        <span>{editingArticle ? 'Lưu & Xuất bản' : 'Xuất bản bài viết ngay'}</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <ProfessionalArticleCmsModal
+        isOpen={isArticleModalOpen}
+        onClose={() => setIsArticleModalOpen(false)}
+        articleToEdit={editingArticle}
+        onSave={handleSaveProfessionalArticle}
+        onShowToast={showSuccessBanner}
+      />
 
       {/* ========================================================================= */}
       {/* CUSTOM DELETE CONFIRMATION MODAL FOR ARTICLE */}
@@ -3235,8 +2949,14 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   <Trash2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-black text-base text-slate-900">Xác nhận xóa bài viết</h3>
-                  <p className="text-xs text-slate-500">Bài viết sẽ bị gỡ vĩnh viễn khỏi hệ thống.</p>
+                  <h3 className="font-black text-base text-slate-900">
+                    {articleToDelete.isSoftDeleted ? 'Xác nhận xóa vĩnh viễn bài viết' : 'Chuyển bài viết vào Thùng rác (Xóa mềm)'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {articleToDelete.isSoftDeleted 
+                      ? 'Dữ liệu bài viết sẽ bị xóa vĩnh viễn khỏi hệ thống.' 
+                      : 'Bài viết sẽ được đưa vào Thùng rác, có thể khôi phục lại bất kỳ lúc nào.'}
+                  </p>
                 </div>
               </div>
 
@@ -3271,7 +2991,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
                   className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 transition-all active:scale-95"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Xác nhận xóa bài viết</span>
+                  <span>{articleToDelete.isSoftDeleted ? 'Xác nhận xóa vĩnh viễn' : 'Đưa vào Thùng rác (Xóa mềm)'}</span>
                 </button>
               </div>
             </motion.div>

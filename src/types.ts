@@ -219,12 +219,48 @@ export interface CloudinaryImageMeta {
   caption?: string;
 }
 
+export interface ArticleCoverImage {
+  url: string;
+  alt?: string;
+  caption?: string;
+  width?: number;
+  height?: number;
+  aspectRatio?: string;
+  thumbnailUrl?: string;
+}
+
+export interface ArticleGalleryItem {
+  id: string;
+  url: string;
+  thumbnailUrl?: string;
+  alt?: string;
+  caption?: string;
+  order?: number;
+}
+
+export interface ArticleVersionHistory {
+  id: string;
+  title: string;
+  content: string;
+  summary?: string;
+  savedAt: string;
+  authorName?: string;
+}
+
 export interface Article {
   id: string;
   title: string;
   slug: string;
   summary: string;
   content: string;
+  contentStructured?: any;
+  coverImage?: ArticleCoverImage;
+  gallery?: ArticleGalleryItem[];
+  versions?: ArticleVersionHistory[];
+  scheduledPublishAt?: string;
+  isSoftDeleted?: boolean;
+  deletedAt?: string;
+  deletedBy?: string;
   featuredImage?: string | CloudinaryImageMeta;
   featuredImageMeta?: CloudinaryImageMeta;
   category: ArticleCategory;
