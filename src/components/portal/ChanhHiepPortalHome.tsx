@@ -107,6 +107,10 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
     return safeArticles.slice(0, 4);
   }, [pinnedArticles, safeArticles]);
 
+  React.useEffect(() => {
+    setHeroIndex(index => featuredArticles.length ? Math.min(index, featuredArticles.length - 1) : 0);
+  }, [featuredArticles.length]);
+
   const currentHero = featuredArticles[heroIndex] || featuredArticles[0] || safeArticles[0];
 
   // Right sidebar 3 articles: Các bài viết còn lại (không trùng bài Hero chính)
@@ -202,15 +206,24 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
   }, [safeArticles, selectedNewsCategory, newsSearchTerm]);
 
   const handleNextHero = () => {
-    setHeroIndex((prev) => (prev + 1) % featuredArticles.length);
+    setHeroIndex((prev) => featuredArticles.length ? (prev + 1) % featuredArticles.length : 0);
   };
 
   const handlePrevHero = () => {
-    setHeroIndex((prev) => (prev - 1 + featuredArticles.length) % featuredArticles.length);
+    setHeroIndex((prev) => featuredArticles.length ? (prev - 1 + featuredArticles.length) % featuredArticles.length : 0);
   };
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
+      <section className="portal-welcome rounded-3xl p-6 sm:p-8 text-white overflow-hidden relative">
+        <p className="text-xs font-bold tracking-widest uppercase text-blue-200">Cổng thông tin Mặt trận • Chánh Hiệp</p>
+        <h2 className="mt-3 text-2xl sm:text-4xl font-bold leading-tight max-w-2xl">Kết nối cộng đồng,<br />đồng hành cùng Nhân dân.</h2>
+        <p className="mt-3 text-sm sm:text-base text-blue-100 max-w-xl leading-relaxed">Tra cứu văn bản, theo dõi hoạt động và gửi ý kiến đến Mặt trận phường ngay tại đây.</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button type="button" onClick={() => onSelectTab('opinion')} className="rounded-xl bg-white text-blue-900 px-5 py-3 text-sm font-bold hover:bg-blue-50">Gửi ý kiến <ArrowRight className="inline w-4 h-4 ml-2" /></button>
+          <button type="button" onClick={() => onSelectTab('documents')} className="rounded-xl border border-blue-300/60 px-5 py-3 text-sm font-bold hover:bg-white/10">Tra cứu văn bản</button>
+        </div>
+      </section>
 
       {/* BANNER CHÀO MỪNG RA MẮT CỔNG THÔNG TIN SỐ */}
       {launchConfig.enabled && onOpenLaunchPopup && (
@@ -278,11 +291,11 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           
           {/* Card 1: Không gian Văn hóa Hồ Chí Minh */}
-          <motion.div
+          <motion.button type="button"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={onOpenHcmSpaceModal}
-            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex items-start gap-3 group"
+            className="text-left bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex items-start gap-3 group"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform overflow-hidden p-0.5">
               <img
@@ -299,14 +312,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                 Bảo tàng ảo 3D, tư liệu, học tập và lan tỏa giá trị tốt đẹp
               </p>
             </div>
-          </motion.div>
+          </motion.button>
 
           {/* Card 2: Kho văn bản Mặt trận */}
-          <motion.div
+          <motion.button type="button"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelectTab('documents')}
-            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex items-start gap-3 group"
+            className="text-left bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex items-start gap-3 group"
           >
             <div className="w-10 h-10 rounded-xl bg-[#0068ff] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <Folder className="w-5 h-5 text-white" />
@@ -319,14 +332,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                 Tra cứu văn bản, kế hoạch, hướng dẫn, biểu mẫu
               </p>
             </div>
-          </motion.div>
+          </motion.button>
 
           {/* Card 3: Phản ánh - kiến nghị */}
-          <motion.div
+          <motion.button type="button"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelectTab('opinion')}
-            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex items-start gap-3 group"
+            className="text-left bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex items-start gap-3 group"
           >
             <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <Megaphone className="w-5 h-5 text-white" />
@@ -339,14 +352,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                 Gửi ý kiến, phản ánh đến Ủy ban MTTQ
               </p>
             </div>
-          </motion.div>
+          </motion.button>
 
           {/* Card 4: Đăng ký tình nguyện viên */}
-          <motion.div
+          <motion.button type="button"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={onOpenVolunteerModal}
-            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex items-start gap-3 group"
+            className="text-left bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex items-start gap-3 group"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <UserCheck className="w-5 h-5 text-white" />
@@ -359,14 +372,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                 Tham gia các hoạt động vì cộng đồng
               </p>
             </div>
-          </motion.div>
+          </motion.button>
 
           {/* Card 5: Khảo sát ý kiến */}
-          <motion.div
+          <motion.button type="button"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelectTab('surveys')}
-            className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all cursor-pointer flex items-start gap-3 group"
+            className="text-left bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all cursor-pointer flex items-start gap-3 group"
           >
             <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <BarChart3 className="w-5 h-5 text-white" />
@@ -379,7 +392,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                 Tham gia khảo sát, đóng góp ý kiến xây dựng địa phương
               </p>
             </div>
-          </motion.div>
+          </motion.button>
 
 
 

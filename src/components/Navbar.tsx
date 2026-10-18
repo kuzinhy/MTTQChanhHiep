@@ -78,6 +78,19 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, []);
 
+  React.useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [activeTab]);
+
+  React.useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [mobileMenuOpen]);
+
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home },
     { id: 'hcm_space', label: 'Không gian Văn hóa Hồ Chí Minh', icon: Landmark },
@@ -101,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 relative z-10">
           
           {/* Logo & Agency Title */}
-          <div className="flex items-center gap-3 cursor-pointer group shrink-0" onClick={() => setActiveTab('home')}>
+          <button type="button" aria-label="Về trang chủ" className="flex items-center gap-3 cursor-pointer group min-w-0 flex-1 xl:flex-none text-left" onClick={() => setActiveTab('home')}>
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white p-1 flex items-center justify-center shrink-0 shadow-md border-2 border-amber-400 transition-all duration-300 group-hover:scale-105">
               <OptimizedImage
                 src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png"
@@ -122,10 +135,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Đoàn kết - Dân chủ - Đồng thuận - Phát triển
               </p>
             </div>
-          </div>
+          </button>
 
           {/* Center: Command Palette (Prompt 046, Menus & Tabs) */}
-          <div className="hidden md:flex items-center mx-2 flex-1 max-w-sm justify-center">
+          <div className="hidden xl:flex items-center mx-2 flex-1 max-w-sm justify-center">
             <CommandPalette046
               onSelectTab={setActiveTab}
               onOpenHcmSpaceModal={onOpenHcmSpaceModal}
@@ -156,11 +169,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => {
                 if (canAccessAdminSpace(currentUser)) {
                   onGoToOffice();
+                } else if (!currentUser) {
+                  onOpenLoginModal();
                 } else {
                   alert('Văn phòng số dành riêng cho Cán bộ Quản trị (Admin trở lên). Bạn đang truy cập Cổng Thông Tin Dành Cho Người Dân.');
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0043aa] text-white font-bold text-xs rounded-full border border-blue-300/40 shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap group"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0043aa] text-white font-bold text-xs rounded-full border border-blue-300/40 shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap group"
               title="Truy cập Văn phòng số dành cho Cán bộ Quản trị (Admin trở lên)"
             >
               <AnimatedIcon name="tasks" size={14} colorScheme="white" trigger="hover" />
@@ -168,7 +183,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* User Chip: Citizen vs Admin/Staff */}
-            <div 
+            <button type="button" aria-label={currentUser ? 'Mở tài khoản' : 'Đăng nhập'}
               onClick={() => {
                 if (!isStaffLoggedIn && !currentUser) {
                   onOpenLoginModal();
@@ -197,7 +212,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {currentUser ? getRoleLabel(currentUser.role) : 'Cán bộ / Người dân'}
                 </div>
               </div>
-            </div>
+            </button>
 
             {/* Red Flag Slogan Banner */}
             <div className="hidden xl:flex flex-col items-center justify-center bg-gradient-to-r from-red-600 to-rose-600 text-white px-2.5 py-1 rounded-l-xl shadow-md border-l-2 border-y-2 border-amber-300 relative text-center shrink-0">
@@ -215,7 +230,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="bg-white border-b border-slate-200 shadow-2xs">
         <div className="max-w-7xl mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between h-12">
-            <nav className="hidden lg:flex items-center justify-between w-full gap-1 py-1">
+            <nav className="hidden lg:flex items-center justify-between w-full min-w-0 overflow-x-auto gap-1 py-1">
               {navItems.map((item: any) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -223,6 +238,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 return (
                   <button
                     key={item.id}
+                    aria-current={isActive ? "page" : undefined}
                     onClick={() => {
                       if (item.id === 'hcm_space' && onOpenHcmSpaceModal) {
                         onOpenHcmSpaceModal();
@@ -251,6 +267,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="whitespace-nowrap truncate">{navItems.find((n) => n.id === activeTab)?.label || 'Trang chủ'}</span>
               </span>
               <button
+                aria-label={mobileMenuOpen ? "Đóng menu" : "Mở menu điều hướng"}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="portal-mobile-menu"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 text-slate-700 hover:text-blue-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
               >
@@ -261,7 +280,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Mobile Dropdown Menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden py-3 border-t border-slate-200 space-y-1.5 animate-fadeIn">
+            <div id="portal-mobile-menu" className="lg:hidden max-h-[65dvh] overflow-y-auto py-3 border-t border-slate-200 space-y-1.5 animate-fadeIn">
               <div className="flex items-center gap-2 px-1 pb-2 border-b border-slate-100">
                 <button
                   onClick={() => { onOpenDigitalDirectory?.(); setMobileMenuOpen(false); }}

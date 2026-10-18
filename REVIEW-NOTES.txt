@@ -1,0 +1,36 @@
+BÀN GIAO RÀ SOÁT MTTQ CHÁNH HIỆP — 18/10/2026
+
+Đã thực hiện
+- Trang chủ có khối giới thiệu và hai thao tác chính: gửi ý kiến, tra cứu văn bản.
+- Đầu trang co giãn theo chiều rộng, menu nhỏ cuộn được, đóng bằng Escape và khi đổi mục.
+- Nút tài khoản, logo và 5 thẻ tiện ích thao tác được bằng bàn phím; bổ sung focus rõ ràng và reduced-motion.
+- Sửa timestamp giây/mili giây và từ chối ngày lịch không hợp lệ khi sắp xếp dữ liệu.
+- Giữ chỉ số carousel hợp lệ khi danh sách thay đổi; tránh phép chia dư cho 0.
+- Media và toàn bộ API sao lưu yêu cầu Firebase ID token được xác minh, kiểm tra vai trò từ Firestore và tình trạng tài khoản.
+- Trình duyệt gửi token thật; tải bản sao lưu qua request có xác thực, không qua link công khai.
+- API lạ trả JSON 404. Service worker không dùng index.html làm fallback cho /api và /uploads.
+- Cho cấu hình PORT và VITE_API_BASE_URL. npm start luôn chạy production trên Windows/Linux.
+- Tải các màn hình quản trị khi cần: gói JS chính từ 6.424,22 kB còn 3.975,59 kB (giảm khoảng 38%; gzip 1.470,15 xuống 939,52 kB). Service worker vẫn precache các chunk cho offline, nên đây là giảm gói chính, không phải tổng dữ liệu tải.
+
+Kiểm tra đã thực hiện
+- npm run lint: đạt.
+- npm test: 7/7 đạt (ngày tháng, thứ tự văn bản, chặn token/header giả).
+- npm run build: đạt, frontend + backend + service worker.
+- npm start: khởi động được với PORT=3101, không cần đặt NODE_ENV thủ công.
+- HTTP thực tế: media/sao lưu với header ADMIN giả trả 401; API không tồn tại trả JSON 404.
+- Trình duyệt: trang chủ hiển thị, mở menu, Escape đóng menu, nút tra cứu đưa đến trang văn bản và trang tải được.
+
+Cách chạy
+1. Dùng Node.js 24 và npm; chạy npm ci.
+2. Tạo .env dựa trên .env.example, cấu hình dịch vụ cần dùng.
+3. npm run lint; npm test; npm run build; npm start.
+4. Mở http://localhost:3000 (hoặc PORT đã cấu hình).
+
+Điều kiện triển khai và giới hạn
+- Backend cần Firebase Admin Application Default Credentials và quyền đọc users/staffUsers; hồ sơ tài khoản phải nằm dưới UID Firebase Auth. Chấp nhận SUPER_ADMIN, MTTQ_ADMIN, ADMIN, MANAGER, LEADER (không phân biệt hoa thường). Không còn chấp nhận tài khoản chỉ giả lập trong localStorage.
+- Chưa kiểm chứng thao tác admin hợp lệ end-to-end, upload Cloudinary, khôi phục sao lưu, SMTP và Gemini bằng tài khoản thật vì chưa có thông tin xác thực môi trường.
+- Cần triển khai cả frontend và backend; chỉ cập nhật frontend sẽ không vá API đang chạy.
+- Kiểm tra ảnh hiện có báo 33 cảnh báo URL bên ngoài dễ hỏng, 0 lỗi tĩnh; không có nghĩa mọi ảnh từ xa đã kiểm tra HTTP thành công.
+- Gói JS chính vẫn lớn. Chưa kiểm thử mọi màn hình/phân quyền trên thiết bị thật.
+- Các API proxy URL, AI/security và Firestore rules cần rà soát bảo mật chuyên sâu thêm; bản sửa này không phải chứng nhận an toàn cho toàn bộ hệ thống.
+- Chưa đẩy lên GitHub và chưa triển khai website thật.

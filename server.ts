@@ -34,7 +34,7 @@ function getGeminiClient() {
 async function startServer() {
   const app = express();
   app.set('trust proxy', 1);
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(cors({
     origin: '*', // Allow any origin to connect (Vercel, custom domain, preview)
@@ -2187,6 +2187,11 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
       console.error('[PDF Proxy Error]:', err);
       res.status(500).send('Lỗi khi tải dữ liệu tài liệu từ máy chủ proxy.');
     }
+  });
+
+  // API misses must not return the SPA HTML document.
+  app.use('/api', (_req: Request, res: Response) => {
+    res.status(404).json({ success: false, error: 'API không tồn tại.' });
   });
 
   // Vite development middleware or production static server

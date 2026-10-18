@@ -1,8 +1,10 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { requireAdminAuth } from './requireAdminAuth';
 
 export const backupRouter = express.Router();
+backupRouter.use(requireAdminAuth);
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 

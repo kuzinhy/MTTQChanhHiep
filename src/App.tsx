@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -24,7 +24,7 @@ import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { InitiativesSection } from './components/InitiativesSection';
 import { DocumentDetailPage } from './components/DocumentDetailPage';
 import { CompetitionsSection } from './components/CompetitionsSection';
-import { AiWorkspaceDashboard as AiAssistantView } from './components/office/ai/AiWorkspaceDashboard';
+const AiAssistantView = lazy(() => import('./components/office/ai/AiWorkspaceDashboard').then(module => ({ default: module.AiWorkspaceDashboard })));
 import { DigitalCommunityMap } from './components/map/DigitalCommunityMap';
 import { DigitalMapSection } from './components/map/DigitalMapSection';
 import { VolunteerRegistrationModal } from './components/VolunteerRegistrationModal';
@@ -36,55 +36,55 @@ import { NotFoundPage } from './components/NotFoundPage';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from './data/neighborhoodsList';
 
-import { DigitalOfficeSidebar } from './components/office/DigitalOfficeSidebar';
-import { AdminDashboard } from './components/office/youth_union/admin/AdminDashboard';
-import { WorkspaceShell } from './components/office/youth_union/workspace/WorkspaceShell';
-import { DigitalOfficeHeader } from './components/office/DigitalOfficeHeader';
-import { AiAssistantSettingsAdminView } from './components/office/AiAssistantSettingsAdminView';
-import { AiDataCenterAdminView } from './components/office/AiDataCenterAdminView';
-import { AiKnowledgeAdminView } from './components/office/AiKnowledgeAdminView';
-import { AiMonitorAdminView } from './components/office/AiMonitorAdminView';
-import { AiUnansweredAdminView } from './components/office/AiUnansweredAdminView';
-import { OpinionsAdminView } from './components/office/OpinionsAdminView';
-import { CmsAdminView } from './components/office/CmsAdminView';
+const DigitalOfficeSidebar = lazy(() => import('./components/office/DigitalOfficeSidebar').then(module => ({ default: module.DigitalOfficeSidebar })));
+const AdminDashboard = lazy(() => import('./components/office/youth_union/admin/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
+const WorkspaceShell = lazy(() => import('./components/office/youth_union/workspace/WorkspaceShell').then(module => ({ default: module.WorkspaceShell })));
+const DigitalOfficeHeader = lazy(() => import('./components/office/DigitalOfficeHeader').then(module => ({ default: module.DigitalOfficeHeader })));
+const AiAssistantSettingsAdminView = lazy(() => import('./components/office/AiAssistantSettingsAdminView').then(module => ({ default: module.AiAssistantSettingsAdminView })));
+const AiDataCenterAdminView = lazy(() => import('./components/office/AiDataCenterAdminView').then(module => ({ default: module.AiDataCenterAdminView })));
+const AiKnowledgeAdminView = lazy(() => import('./components/office/AiKnowledgeAdminView').then(module => ({ default: module.AiKnowledgeAdminView })));
+const AiMonitorAdminView = lazy(() => import('./components/office/AiMonitorAdminView').then(module => ({ default: module.AiMonitorAdminView })));
+const AiUnansweredAdminView = lazy(() => import('./components/office/AiUnansweredAdminView').then(module => ({ default: module.AiUnansweredAdminView })));
+const OpinionsAdminView = lazy(() => import('./components/office/OpinionsAdminView').then(module => ({ default: module.OpinionsAdminView })));
+const CmsAdminView = lazy(() => import('./components/office/CmsAdminView').then(module => ({ default: module.CmsAdminView })));
 import { DocumentManager } from './components/admin/DocumentManager';
 import { DocumentsPublicView } from './components/portal/DocumentsPublicView';
 import { RealtimeNotificationPopupModal } from './components/common/RealtimeNotificationPopupModal';
-import { AnalyticsDashboardView } from './components/office/AnalyticsDashboardView';
-import { AuditLogsView } from './components/office/AuditLogsView';
-import { PersonalNotesView } from './components/office/PersonalNotesView';
-import { DocumentTemplatesView } from './components/office/DocumentTemplatesView';
-import { CompetitionsAdminView } from './components/office/CompetitionsAdminView';
-import { CompetitionAdminDetailView } from './components/office/CompetitionAdminDetailView';
-import { QuestionBankAdminView } from './components/office/QuestionBankAdminView';
-import { SurveysAdminView } from './components/office/SurveysAdminView';
-import { SupervisionAdminView } from './components/office/SupervisionAdminView';
-import { StaffUsersAdminView } from './components/office/StaffUsersAdminView';
-import { MemberOrganizationsAdminView } from './components/office/MemberOrganizationsAdminView';
-import { AboutAndMemberOrgsAdminView } from './components/office/AboutAndMemberOrgsAdminView';
+const AnalyticsDashboardView = lazy(() => import('./components/office/AnalyticsDashboardView').then(module => ({ default: module.AnalyticsDashboardView })));
+const AuditLogsView = lazy(() => import('./components/office/AuditLogsView').then(module => ({ default: module.AuditLogsView })));
+const PersonalNotesView = lazy(() => import('./components/office/PersonalNotesView').then(module => ({ default: module.PersonalNotesView })));
+const DocumentTemplatesView = lazy(() => import('./components/office/DocumentTemplatesView').then(module => ({ default: module.DocumentTemplatesView })));
+const CompetitionsAdminView = lazy(() => import('./components/office/CompetitionsAdminView').then(module => ({ default: module.CompetitionsAdminView })));
+const CompetitionAdminDetailView = lazy(() => import('./components/office/CompetitionAdminDetailView').then(module => ({ default: module.CompetitionAdminDetailView })));
+const QuestionBankAdminView = lazy(() => import('./components/office/QuestionBankAdminView').then(module => ({ default: module.QuestionBankAdminView })));
+const SurveysAdminView = lazy(() => import('./components/office/SurveysAdminView').then(module => ({ default: module.SurveysAdminView })));
+const SupervisionAdminView = lazy(() => import('./components/office/SupervisionAdminView').then(module => ({ default: module.SupervisionAdminView })));
+const StaffUsersAdminView = lazy(() => import('./components/office/StaffUsersAdminView').then(module => ({ default: module.StaffUsersAdminView })));
+const MemberOrganizationsAdminView = lazy(() => import('./components/office/MemberOrganizationsAdminView').then(module => ({ default: module.MemberOrganizationsAdminView })));
+const AboutAndMemberOrgsAdminView = lazy(() => import('./components/office/AboutAndMemberOrgsAdminView').then(module => ({ default: module.AboutAndMemberOrgsAdminView })));
 import { CulturalSpaceAdminView } from './components/cultural/CulturalSpaceAdminView';
-import { NeighborhoodMapDashboard } from './components/office/NeighborhoodMapDashboard';
-import { NeighborhoodManagementAdminView } from './components/office/neighborhood/NeighborhoodManagementAdminView';
-import { AdministrativeReportExporter } from './components/office/AdministrativeReportExporter';
-import { DocumentAiPlanGenerator } from './components/office/DocumentAiPlanGenerator';
-import { NeighborhoodEmulationDashboard } from './components/office/NeighborhoodEmulationDashboard';
+const NeighborhoodMapDashboard = lazy(() => import('./components/office/NeighborhoodMapDashboard').then(module => ({ default: module.NeighborhoodMapDashboard })));
+const NeighborhoodManagementAdminView = lazy(() => import('./components/office/neighborhood/NeighborhoodManagementAdminView').then(module => ({ default: module.NeighborhoodManagementAdminView })));
+const AdministrativeReportExporter = lazy(() => import('./components/office/AdministrativeReportExporter').then(module => ({ default: module.AdministrativeReportExporter })));
+const DocumentAiPlanGenerator = lazy(() => import('./components/office/DocumentAiPlanGenerator').then(module => ({ default: module.DocumentAiPlanGenerator })));
+const NeighborhoodEmulationDashboard = lazy(() => import('./components/office/NeighborhoodEmulationDashboard').then(module => ({ default: module.NeighborhoodEmulationDashboard })));
 import { WelfareCommunityMapModal } from './components/map/WelfareCommunityMapModal';
 import { ShareQrPosterModal } from './components/common/ShareQrPosterModal';
-import { NotificationAdminView } from './components/office/NotificationAdminView';
-import { EmailSettingsView } from './components/office/EmailSettingsView';
-import { GoogleDriveAdminView } from './components/office/GoogleDriveAdminView';
-import { VolunteersAdminView } from './components/office/VolunteersAdminView';
-import { ProcedureWorkflowBuilderAdminView as ProceduresAdminView } from './components/office/ProcedureWorkflowBuilderAdminView';
-import { ProcedureBottleneckAnalyticsAdminView } from './components/office/ProcedureBottleneckAnalyticsAdminView';
-import { CivicAnalyticsChartsAdminView } from './components/office/CivicAnalyticsChartsAdminView';
-import { DuplicateOpinionsClusteringAdminView } from './components/office/DuplicateOpinionsClusteringAdminView';
-import { GeoBroadcastAdminView } from './components/office/GeoBroadcastAdminView';
-import { UserProfileView } from './components/office/UserProfileView';
-import { StaffLoginModal } from './components/office/StaffLoginModal';
-import { SessionLockScreen } from './components/office/SessionLockScreen';
+const NotificationAdminView = lazy(() => import('./components/office/NotificationAdminView').then(module => ({ default: module.NotificationAdminView })));
+const EmailSettingsView = lazy(() => import('./components/office/EmailSettingsView').then(module => ({ default: module.EmailSettingsView })));
+const GoogleDriveAdminView = lazy(() => import('./components/office/GoogleDriveAdminView').then(module => ({ default: module.GoogleDriveAdminView })));
+const VolunteersAdminView = lazy(() => import('./components/office/VolunteersAdminView').then(module => ({ default: module.VolunteersAdminView })));
+const ProceduresAdminView = lazy(() => import('./components/office/ProcedureWorkflowBuilderAdminView').then(module => ({ default: module.ProcedureWorkflowBuilderAdminView })));
+const ProcedureBottleneckAnalyticsAdminView = lazy(() => import('./components/office/ProcedureBottleneckAnalyticsAdminView').then(module => ({ default: module.ProcedureBottleneckAnalyticsAdminView })));
+const CivicAnalyticsChartsAdminView = lazy(() => import('./components/office/CivicAnalyticsChartsAdminView').then(module => ({ default: module.CivicAnalyticsChartsAdminView })));
+const DuplicateOpinionsClusteringAdminView = lazy(() => import('./components/office/DuplicateOpinionsClusteringAdminView').then(module => ({ default: module.DuplicateOpinionsClusteringAdminView })));
+const GeoBroadcastAdminView = lazy(() => import('./components/office/GeoBroadcastAdminView').then(module => ({ default: module.GeoBroadcastAdminView })));
+const UserProfileView = lazy(() => import('./components/office/UserProfileView').then(module => ({ default: module.UserProfileView })));
+const StaffLoginModal = lazy(() => import('./components/office/StaffLoginModal').then(module => ({ default: module.StaffLoginModal })));
+const SessionLockScreen = lazy(() => import('./components/office/SessionLockScreen').then(module => ({ default: module.SessionLockScreen })));
 import { ToastContainer } from './components/ToastNotification';
-import { RealtimeActivityToastContainer } from './components/office/RealtimeActivityToastContainer';
-import { LoginSummaryModal } from './components/office/LoginSummaryModal';
+const RealtimeActivityToastContainer = lazy(() => import('./components/office/RealtimeActivityToastContainer').then(module => ({ default: module.RealtimeActivityToastContainer })));
+const LoginSummaryModal = lazy(() => import('./components/office/LoginSummaryModal').then(module => ({ default: module.LoginSummaryModal })));
 import { adminCollaborationService } from './lib/adminCollaborationService';
 import { PageLoader } from './components/PageLoader';
 import { notificationMasterService } from './lib/notificationMasterService';
@@ -92,15 +92,15 @@ import { OptimizedImage } from './components/common/OptimizedImage';
 import { HcmQuoteRotator } from './components/common/HcmQuoteRotator';
 import { NewInterfacePage } from './components/NewInterfacePage';
 import { GlobalSearchModal } from './components/common/GlobalSearchModal';
-import { SystemBackupRestoreModal } from './components/office/SystemBackupRestoreModal';
-import { BackupRestoreAdminView } from './components/office/BackupRestoreAdminView';
+const SystemBackupRestoreModal = lazy(() => import('./components/office/SystemBackupRestoreModal').then(module => ({ default: module.SystemBackupRestoreModal })));
+const BackupRestoreAdminView = lazy(() => import('./components/office/BackupRestoreAdminView').then(module => ({ default: module.BackupRestoreAdminView })));
 import { CitizenWelfareRegistrationModal } from './components/portal/CitizenWelfareRegistrationModal';
-import { SystemHealthAdminView } from './components/office/SystemHealthAdminView';
-import { AnimatedIconLabView } from './components/office/AnimatedIconLabView';
+const SystemHealthAdminView = lazy(() => import('./components/office/SystemHealthAdminView').then(module => ({ default: module.SystemHealthAdminView })));
+const AnimatedIconLabView = lazy(() => import('./components/office/AnimatedIconLabView').then(module => ({ default: module.AnimatedIconLabView })));
 import { canAccessView, canAccessAdminSpace, getRoleLabel, isCitizenUser } from './lib/rbac';
 import { PublicVolunteerRegistrationPage } from './components/portal/PublicVolunteerRegistrationPage';
 import { LaunchCelebrationModal } from './components/common/LaunchCelebrationModal';
-import { LaunchPopupAdminView } from './components/office/LaunchPopupAdminView';
+const LaunchPopupAdminView = lazy(() => import('./components/office/LaunchPopupAdminView').then(module => ({ default: module.LaunchPopupAdminView })));
 
 import { 
   INITIAL_TRIVIA_QUESTIONS, 
@@ -1653,6 +1653,7 @@ export default function App() {
   };
 
   return (
+    <Suspense fallback={<div role="status" className="min-h-screen grid place-items-center bg-slate-50 text-blue-900">Đang tải chức năng…</div>}>
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white">
       {/* Full Page Initial Loader Screen */}
       <AnimatePresence mode="wait">
@@ -3072,6 +3073,7 @@ export default function App() {
         </div>
       )}
     </div>
+    </Suspense>
   );
 }
 

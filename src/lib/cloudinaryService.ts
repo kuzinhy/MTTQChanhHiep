@@ -1,3 +1,5 @@
+import { getAuthenticatedHeaders } from './authenticatedFetch';
+import { getApiUrl } from './api';
 import { CloudinaryImageMeta } from '../types';
 
 export interface UploadMediaResponse {
@@ -32,27 +34,7 @@ async function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-// Get auth headers from stored session
-function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    'x-admin-token': 'admin-session-active',
-    'x-staff-role': 'ADMIN',
-    'x-staff-email': 'admin@chanhhiep.gov.vn'
-  };
-
-  try {
-    const rawUser = localStorage.getItem('mttq_chanhhiep_current_user');
-    if (rawUser) {
-      const user = JSON.parse(rawUser);
-      if (user.role) headers['x-staff-role'] = user.role;
-      if (user.email) headers['x-staff-email'] = user.email;
-    }
-  } catch (err) {
-    console.warn('Could not read current user session from localStorage:', err);
-  }
-
-  return headers;
-}
+const getAuthHeaders = getAuthenticatedHeaders;
 
 /**
  * Upload an image file to Cloudinary via server-side Node.js proxy endpoint
@@ -91,9 +73,9 @@ export async function uploadMediaToCloudinary(
     formData.append('file', file);
     formData.append('folder', folder);
 
-    const headers = getAuthHeaders();
+    const headers = await getAuthHeaders();
 
-    const response = await fetch('/api/admin/media/upload', {
+    const response = await fetch(getApiUrl('/api/admin/media/upload'), {
       method: 'POST',
       headers,
       body: formData
@@ -161,9 +143,9 @@ export async function uploadMediaToCloudinary(
  */
 export async function fetchMediaLibrary(folder?: string): Promise<MediaListResponse> {
   try {
-    const headers = getAuthHeaders();
+    const headers = await getAuthHeaders();
     const query = folder ? `?folder=${encodeURIComponent(folder)}` : '';
-    const response = await fetch(`/api/admin/media${query}`, {
+    const response = await fetch(getApiUrl(`/api/admin/media${query}`), {
       method: 'GET',
       headers
     });
@@ -202,11 +184,11 @@ export async function deleteMediaFromCloudinary(
 
   try {
     const headers = {
-      ...getAuthHeaders(),
+      ...await getAuthHeaders(),
       'Content-Type': 'application/json'
     };
 
-    const response = await fetch(`/api/admin/media?publicId=${encodeURIComponent(publicId)}`, {
+    const response = await fetch(getApiUrl(`/api/admin/media?publicId=${encodeURIComponent(publicId)}`), {
       method: 'DELETE',
       headers,
       body: JSON.stringify({ publicId, isUsed: isUsedInArticles })
@@ -248,10 +230,10 @@ export async function deleteMediaFromCloudinary(
 export async function syncImageUsageWithServer(usedPublicIds: string[]): Promise<boolean> {
   try {
     const headers = {
-      ...getAuthHeaders(),
+      ...await getAuthHeaders(),
       'Content-Type': 'application/json'
     };
-    const response = await fetch('/api/admin/media/sync-usage', {
+    const response = await fetch(getApiUrl('/api/admin/media/sync-usage'), {
       method: 'POST',
       headers,
       body: JSON.stringify({ usedPublicIds })

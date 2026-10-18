@@ -1,3 +1,4 @@
+import { authenticatedFetch } from '../../lib/authenticatedFetch';
 import React, { useState, useEffect } from 'react';
 import { 
   Database, Download, Upload, ShieldCheck, AlertTriangle, CheckCircle2, 
@@ -167,7 +168,7 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
   const fetchServerSnapshots = async () => {
     setIsLoadingServerSnapshots(true);
     try {
-      const res = await fetch('/api/admin/backup/snapshots');
+      const res = await authenticatedFetch('/api/admin/backup/snapshots');
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.snapshots)) {
@@ -204,7 +205,7 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
     setFeedbackMsg(null);
     try {
       const fullData = AppStorageEngine.getFullDatabaseObject();
-      const res = await fetch('/api/admin/backup/snapshots/create', {
+      const res = await authenticatedFetch('/api/admin/backup/snapshots/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -337,7 +338,7 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
     setIsRestoring(true);
     setFeedbackMsg(null);
     try {
-      const res = await fetch(`/api/admin/backup/snapshots/read/${encodeURIComponent(filename)}`);
+      const res = await authenticatedFetch(`/api/admin/backup/snapshots/read/${encodeURIComponent(filename)}`);
       if (!res.ok) throw new Error('Không thể đọc bản sao lưu từ máy chủ');
       const result = await res.json();
       if (result.success && result.data) {
@@ -367,7 +368,7 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
   const handleDeleteServerSnapshot = async (filename: string) => {
     if (!confirm(`Bạn có chắc chắn muốn xóa tệp sao lưu máy chủ "${filename}"?`)) return;
     try {
-      const res = await fetch(`/api/admin/backup/snapshots/${encodeURIComponent(filename)}`, {
+      const res = await authenticatedFetch(`/api/admin/backup/snapshots/${encodeURIComponent(filename)}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -1096,14 +1097,24 @@ export const BackupRestoreAdminView: React.FC<Props> = ({ onRefreshAllData }) =>
                             <span>Khôi phục</span>
                           </button>
 
-                          <a
-                            href={`/api/admin/backup/snapshots/download/${encodeURIComponent(snap.filename)}`}
-                            download
+                          <button type="button"
+                            onClick={async () => {
+                              try {
+                                const response = await authenticatedFetch('/api/admin/backup/snapshots/download/' + encodeURIComponent(snap.filename));
+                                if (!response.ok) throw new Error('Không thể tải bản sao lưu. Vui lòng kiểm tra quyền truy cập.');
+                                const url = URL.createObjectURL(await response.blob());
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = snap.filename;
+                                link.click();
+                                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                              } catch (error) { alert(error instanceof Error ? error.message : 'Tải xuống thất bại'); }
+                            }}
                             className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition flex items-center gap-1"
                           >
                             <Download className="w-3.5 h-3.5" />
                             <span>Tải về</span>
-                          </a>
+                          </button>
 
                           <button
                             onClick={() => handleDeleteServerSnapshot(snap.filename)}

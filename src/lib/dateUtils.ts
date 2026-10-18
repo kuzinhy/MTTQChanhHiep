@@ -13,7 +13,7 @@ import {
 export function parseDateToTimestamp(dateStr?: string, fallbackId?: string): number {
   if (!dateStr && !fallbackId) return 0;
   
-  if (dateStr) {
+  if (typeof dateStr === 'string') {
     const trimmed = dateStr.trim();
     
     // Format: DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
@@ -23,7 +23,8 @@ export function parseDateToTimestamp(dateStr?: string, fallbackId?: string): num
       const month = parseInt(dmyMatch[2], 10) - 1;
       const year = parseInt(dmyMatch[3], 10);
       const d = new Date(year, month, day);
-      if (!isNaN(d.getTime())) return d.getTime();
+      if (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) return d.getTime();
+      return parseDateToTimestamp(undefined, fallbackId);
     }
 
     // Standard ISO 8601 or YYYY-MM-DD
@@ -38,7 +39,7 @@ export function parseDateToTimestamp(dateStr?: string, fallbackId?: string): num
     const numMatch = fallbackId.match(/(\d{10,14})/);
     if (numMatch) {
       const ts = parseInt(numMatch[1], 10);
-      if (ts > 1000000000) return ts;
+      if (ts > 1000000000) return numMatch[1].length === 10 ? ts * 1000 : ts;
     }
   }
 

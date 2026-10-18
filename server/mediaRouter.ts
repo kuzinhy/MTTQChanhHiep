@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
+import { requireAdminAuth } from './requireAdminAuth';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary from environment variables or active product environment
@@ -27,34 +28,6 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024 // 50MB limit for high-res images, audio & video
   }
 });
-
-// Middleware for authentication & authorization check
-function requireAdminAuth(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  const staffRole = req.headers['x-staff-role'] as string;
-  const staffEmail = req.headers['x-staff-email'] as string;
-  const adminToken = req.headers['x-admin-token'] as string;
-
-  // Check if caller provides bearer token or staff role header
-  const hasAuth = !!(authHeader || adminToken || staffEmail || staffRole);
-  
-  if (!hasAuth) {
-    return res.status(401).json({
-      success: false,
-      error: 'Chưa đăng nhập. Yêu cầu xác thực tài khoản Cán bộ / Admin.'
-    });
-  }
-
-  // Check role if provided (Public user is forbidden)
-  if (staffRole === 'PUBLIC') {
-    return res.status(403).json({
-      success: false,
-      error: 'Không đủ quyền hạn. Chức năng này chỉ dành cho BTV / Admin.'
-    });
-  }
-
-  next();
-}
 
 // 1. POST /api/admin/media/upload - Secure Cloudinary Upload Endpoint
 router.post('/upload', requireAdminAuth, (req: Request, res: Response, next: NextFunction) => {

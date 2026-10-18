@@ -1,4 +1,7 @@
 export function getApiUrl(path: string): string {
+  const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '');
+  const apiPath = path.startsWith('/') ? path : '/' + path;
+  if (configuredBase) return configuredBase + apiPath;
   const host = window.location.hostname;
   const isCloudRun = host.endsWith('.run.app') || host.endsWith('.aistudio.google');
   const isLocalhost = host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.');
@@ -10,7 +13,7 @@ export function getApiUrl(path: string): string {
     const sanitizedPath = path.startsWith('/') ? path : '/' + path;
     return `${baseUrl}${sanitizedPath}`;
   }
-  return path;
+  return apiPath;
 }
 
 export function runClientLocalKnowledgeFallback(query: string, documentsContext: string, knowledgeNotesContext: string): string {
