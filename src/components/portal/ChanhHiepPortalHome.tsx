@@ -215,17 +215,6 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
-      <section className="portal-welcome rounded-3xl p-6 sm:p-8 text-white overflow-hidden relative">
-        <p className="text-xs font-bold tracking-widest uppercase text-blue-200">Cổng thông tin Mặt trận • Chánh Hiệp</p>
-        <h2 className="mt-3 text-2xl sm:text-4xl font-bold leading-tight max-w-2xl">Kết nối cộng đồng,<br />đồng hành cùng Nhân dân.</h2>
-        <p className="mt-3 text-sm sm:text-base text-blue-100 max-w-xl leading-relaxed">Tra cứu văn bản, theo dõi hoạt động và gửi ý kiến đến Mặt trận phường ngay tại đây.</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" onClick={() => onSelectTab('opinion')} className="rounded-xl bg-white text-blue-900 px-5 py-3 text-sm font-bold hover:bg-blue-50">Gửi ý kiến <ArrowRight className="inline w-4 h-4 ml-2" /></button>
-          <button type="button" onClick={() => onSelectTab('documents')} className="rounded-xl border border-blue-300/60 px-5 py-3 text-sm font-bold hover:bg-white/10">Tra cứu văn bản</button>
-        </div>
-      </section>
-
-      {/* BANNER CHÀO MỪNG RA MẮT CỔNG THÔNG TIN SỐ */}
       {launchConfig.enabled && onOpenLaunchPopup && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}

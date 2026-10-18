@@ -9,7 +9,7 @@ BÀN GIAO RÀ SOÁT MTTQ CHÁNH HIỆP — 18/10/2026
 - Media và toàn bộ API sao lưu yêu cầu Firebase ID token được xác minh, kiểm tra vai trò từ Firestore và tình trạng tài khoản.
 - Trình duyệt gửi token thật; tải bản sao lưu qua request có xác thực, không qua link công khai.
 - API lạ trả JSON 404. Service worker không dùng index.html làm fallback cho /api và /uploads.
-- Cho cấu hình PORT và VITE_API_BASE_URL. npm start luôn chạy production trên Windows/Linux.
+- Cho cấu hình PORT. npm start luôn chạy production trên Windows/Linux.
 - Tải các màn hình quản trị khi cần: gói JS chính từ 6.424,22 kB còn 3.975,59 kB (giảm khoảng 38%; gzip 1.470,15 xuống 939,52 kB). Service worker vẫn precache các chunk cho offline, nên đây là giảm gói chính, không phải tổng dữ liệu tải.
 
 Kiểm tra đã thực hiện

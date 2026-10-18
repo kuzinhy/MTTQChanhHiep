@@ -110,8 +110,11 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
     }
   };
 
+  const isUnmountedRef = useRef(false);
+
   // 1. Initialize Leaflet Map Instance
   useEffect(() => {
+    isUnmountedRef.current = false;
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
@@ -139,7 +142,7 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
 
     // ResizeObserver to handle container layout changes
     const resizeObserver = new ResizeObserver(() => {
-      if (mapInstanceRef.current) {
+      if (!isUnmountedRef.current && mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
     });
@@ -147,6 +150,7 @@ export const PortalHomeGoogleMap: React.FC<PortalHomeGoogleMapProps> = ({
     resizeObserver.observe(mapContainerRef.current);
 
     return () => {
+      isUnmountedRef.current = true;
       resizeObserver.disconnect();
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();

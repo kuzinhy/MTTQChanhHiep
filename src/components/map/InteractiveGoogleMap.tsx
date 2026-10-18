@@ -111,8 +111,11 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
   };
 
+  const isUnmountedRef = useRef(false);
+
   // 1. Initialize Leaflet Map Instance with Google Maps by default
   useEffect(() => {
+    isUnmountedRef.current = false;
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
@@ -145,18 +148,20 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       mapInstanceRef.current = map;
 
       map.on('zoomend', () => {
-        setMapZoom(map.getZoom());
+        if (!isUnmountedRef.current) {
+          setMapZoom(map.getZoom());
+        }
       });
 
       map.on('click', (e: L.LeafletMouseEvent) => {
-        if (onMapClickRef.current) {
+        if (!isUnmountedRef.current && onMapClickRef.current) {
           onMapClickRef.current(e.latlng.lat, e.latlng.lng);
         }
       });
     }
 
     const resizeObserver = new ResizeObserver(() => {
-      if (mapInstanceRef.current) {
+      if (!isUnmountedRef.current && mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
     });
@@ -166,6 +171,7 @@ export const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     }
 
     return () => {
+      isUnmountedRef.current = true;
       resizeObserver.disconnect();
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
