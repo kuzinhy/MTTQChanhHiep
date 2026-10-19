@@ -9,7 +9,9 @@ import {
   query,
   orderBy,
   limit,
-  writeBatch
+  writeBatch,
+  where,
+  startAfter
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { AppStorageEngine, deduplicateStaffUsers } from './storage';
@@ -52,6 +54,15 @@ import {
   FeedbackItem,
   LaunchPopupConfig
 } from '../types';
+import { 
+  ArticleSchema, 
+  OfficialDocumentSchema, 
+  PublicOpinionSchema, 
+  StaffUserSchema,
+  CompetitionSchema,
+  CompetitionSubmissionSchema,
+  DriveFileItemSchema 
+} from './validation';
 import { getUserEffectivePermissions } from '../services/permissionService';
 import {
   sortArticlesNewestFirst,
@@ -413,21 +424,7 @@ class CloudSyncService {
         this.syncListeners.push(unsub);
       }
 
-      // Audit Logs Listener
-      if (callbacks.onAuditLogsUpdate) {
-        const unsub = onSnapshot(collection(db, FirestoreCollections.AUDIT_LOGS), (snapshot) => {
-          const remoteLogs: AuditLog[] = snapshot.docs
-            .map(d => ({ ...(d.data() as AuditLog), id: d.id }))
-            .filter(l => l && l.id);
-          
-          remoteLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-          AppStorageEngine.saveAuditLogs(remoteLogs);
-          callbacks.onAuditLogsUpdate?.(remoteLogs);
-        }, (err) => {
-          console.warn('[Firestore] Audit logs sync error:', err);
-        });
-        this.syncListeners.push(unsub);
-      }
+      // Audit Logs are now fetched via paginated query (see getPaginatedAuditLogs)
 
       // AI Chats Listener
       if (callbacks.onAiChatsUpdate) {
@@ -631,11 +628,12 @@ class CloudSyncService {
   // Articles
   async saveArticle(article: Article): Promise<boolean> {
     try {
-      const artDoc = doc(db, FirestoreCollections.ARTICLES, article.id);
-      await setDoc(artDoc, cleanFirestoreData(article), { merge: true });
+      const validatedArticle = ArticleSchema.parse(article);
+      const artDoc = doc(db, FirestoreCollections.ARTICLES, validatedArticle.id);
+      await setDoc(artDoc, cleanFirestoreData(validatedArticle), { merge: true });
       return true;
     } catch (err) {
-      console.error('[Firestore] Error saving article:', err);
+      console.error('[Firestore] Error saving/validating article:', err);
       return false;
     }
   }
@@ -724,11 +722,12 @@ class CloudSyncService {
   // Documents
   async saveDocument(docItem: OfficialDocument): Promise<boolean> {
     try {
-      const dDoc = doc(db, FirestoreCollections.DOCUMENTS, docItem.id);
-      await setDoc(dDoc, cleanFirestoreData(docItem), { merge: true });
+      const validatedDoc = OfficialDocumentSchema.parse(docItem);
+      const dDoc = doc(db, FirestoreCollections.DOCUMENTS, validatedDoc.id);
+      await setDoc(dDoc, cleanFirestoreData(validatedDoc), { merge: true });
       return true;
     } catch (err) {
-      console.error('[Firestore] Error saving document:', err);
+      console.error('[Firestore] Error saving/validating document:', err);
       return false;
     }
   }
@@ -771,10 +770,11 @@ class CloudSyncService {
   // Public Opinions
   async saveOpinion(opinion: PublicOpinion): Promise<void> {
     try {
-      const opDoc = doc(db, FirestoreCollections.OPINIONS, opinion.id);
-      await setDoc(opDoc, cleanFirestoreData(opinion), { merge: true });
+      const validatedOpinion = PublicOpinionSchema.parse(opinion);
+      const opDoc = doc(db, FirestoreCollections.OPINIONS, validatedOpinion.id);
+      await setDoc(opDoc, cleanFirestoreData(validatedOpinion), { merge: true });
     } catch (err) {
-      console.error('[Firestore] Error saving opinion:', err);
+      console.error('[Firestore] Error saving/validating opinion:', err);
     }
   }
 
@@ -790,10 +790,12 @@ class CloudSyncService {
   // Competitions
   async saveCompetition(comp: Competition): Promise<void> {
     try {
-      const compDoc = doc(db, FirestoreCollections.COMPETITIONS, comp.id);
-      await setDoc(compDoc, cleanFirestoreData(comp), { merge: true });
+      // Assuming CompetitionSchema is added to validation.ts
+      const validatedComp = CompetitionSchema.parse(comp);
+      const compDoc = doc(db, FirestoreCollections.COMPETITIONS, validatedComp.id);
+      await setDoc(compDoc, cleanFirestoreData(validatedComp), { merge: true });
     } catch (err) {
-      console.error('[Firestore] Error saving competition:', err);
+      console.error('[Firestore] Error saving/validating competition:', err);
     }
   }
 
@@ -810,10 +812,11 @@ class CloudSyncService {
   // Submissions
   async saveSubmission(sub: CompetitionSubmission): Promise<void> {
     try {
-      const sDoc = doc(db, FirestoreCollections.SUBMISSIONS, sub.id);
-      await setDoc(sDoc, cleanFirestoreData(sub), { merge: true });
+      const validatedSub = CompetitionSubmissionSchema.parse(sub);
+      const sDoc = doc(db, FirestoreCollections.SUBMISSIONS, validatedSub.id);
+      await setDoc(sDoc, cleanFirestoreData(validatedSub), { merge: true });
     } catch (err) {
-      console.error('[Firestore] Error saving submission:', err);
+      console.error('[Firestore] Error saving/validating submission:', err);
     }
   }
 
@@ -829,10 +832,11 @@ class CloudSyncService {
   // Drive Files
   async saveDriveFile(file: DriveFileItem): Promise<void> {
     try {
-      const fDoc = doc(db, FirestoreCollections.DRIVE_FILES, file.id);
-      await setDoc(fDoc, cleanFirestoreData(file), { merge: true });
+      const validatedFile = DriveFileItemSchema.parse(file);
+      const fDoc = doc(db, FirestoreCollections.DRIVE_FILES, validatedFile.id);
+      await setDoc(fDoc, cleanFirestoreData(validatedFile), { merge: true });
     } catch (err) {
-      console.error('[Firestore] Error saving drive file:', err);
+      console.error('[Firestore] Error saving/validating drive file:', err);
     }
   }
 
@@ -906,34 +910,35 @@ class CloudSyncService {
   // Staff Users & Unified RBAC User Profile
   async saveStaffUser(user: StaffUser): Promise<boolean> {
     try {
-      const permissionMap = user.permissionMap || getUserEffectivePermissions(user);
-      const enhancedUser: StaffUser = {
-        ...user,
+      const validatedUser = StaffUserSchema.parse(user) as StaffUser;
+      const permissionMap = validatedUser.permissionMap || getUserEffectivePermissions(validatedUser);
+      const enhancedUser = {
+        ...validatedUser,
         permissionMap,
-        status: user.active !== false ? 'active' : 'inactive',
-        organizationId: user.organizationId || 'mttq-chanhhiep',
+        status: validatedUser.active !== false ? 'active' : 'inactive',
+        organizationId: validatedUser.organizationId || 'mttq-chanhhiep',
         updatedAt: new Date().toISOString()
       };
 
       // 1. Sync to staffUsers collection
-      const staffDoc = doc(db, FirestoreCollections.STAFF_USERS, user.id);
+      const staffDoc = doc(db, FirestoreCollections.STAFF_USERS, validatedUser.id);
       await setDoc(staffDoc, cleanFirestoreData(enhancedUser), { merge: true });
 
       // 2. Also sync to users collection for standard Firebase RBAC rules
-      const userDoc = doc(db, FirestoreCollections.USERS, user.id);
+      const userDoc = doc(db, FirestoreCollections.USERS, validatedUser.id);
       await setDoc(userDoc, cleanFirestoreData(enhancedUser), { merge: true });
 
       // If user.uid differs from user.id, also write to uid
-      if (user.uid && user.uid !== user.id) {
-        const uidStaffDoc = doc(db, FirestoreCollections.STAFF_USERS, user.uid);
+      if (validatedUser.uid && validatedUser.uid !== validatedUser.id) {
+        const uidStaffDoc = doc(db, FirestoreCollections.STAFF_USERS, validatedUser.uid);
         await setDoc(uidStaffDoc, cleanFirestoreData(enhancedUser), { merge: true });
-        const uidUserDoc = doc(db, FirestoreCollections.USERS, user.uid);
+        const uidUserDoc = doc(db, FirestoreCollections.USERS, validatedUser.uid);
         await setDoc(uidUserDoc, cleanFirestoreData(enhancedUser), { merge: true });
       }
 
       return true;
     } catch (err) {
-      console.error('[Firestore] Error saving staff user & RBAC profile:', err);
+      console.error('[Firestore] Error saving/validating staff user & RBAC profile:', err);
       return false;
     }
   }
@@ -1433,6 +1438,49 @@ class CloudSyncService {
     } catch (err) {
       console.error('[Security] Failed to unlock system:', err);
       return false;
+    }
+  }
+  // Audit Logs - Paginated
+  async getPaginatedAuditLogs(pageSize: number, lastVisible?: any): Promise<{ logs: AuditLog[], lastVisible: any }> {
+    try {
+      let q = query(
+        collection(db, FirestoreCollections.AUDIT_LOGS),
+        orderBy('timestamp', 'desc'),
+        limit(pageSize)
+      );
+      if (lastVisible) {
+        q = query(q, startAfter(lastVisible));
+      }
+      const snapshot = await getDocs(q);
+      const logs = snapshot.docs.map(d => ({ ...(d.data() as AuditLog), id: d.id }));
+      return { logs, lastVisible: snapshot.docs[snapshot.docs.length - 1] };
+    } catch (err) {
+      console.error('[Firestore] Error fetching paginated audit logs:', err);
+      return { logs: [], lastVisible: null };
+    }
+  }
+
+  // Audit Logs - Cleanup (Older than 30 days)
+  async cleanupOldAuditLogs() {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const q = query(
+        collection(db, FirestoreCollections.AUDIT_LOGS),
+        where('timestamp', '<', thirtyDaysAgo.toISOString())
+      );
+      
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach(d => batch.delete(d.ref));
+      
+      if (snapshot.docs.length > 0) {
+        await batch.commit();
+        console.log(`[Firestore] Purged ${snapshot.docs.length} old audit logs.`);
+      }
+    } catch (err) {
+      console.error('[Firestore] Error cleaning up audit logs:', err);
     }
   }
 }
