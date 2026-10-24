@@ -6,7 +6,7 @@ import {
   MapPin, X, Loader2, HelpCircle, Info, ExternalLink, AlertTriangle, Image as ImageIcon, Share2, CloudUpload
 } from 'lucide-react';
 import { OFFICIAL_NEIGHBORHOOD_NAMES } from '../data/neighborhoodsList';
-import { getGoogleDriveDirectImageUrl, uploadCitizenEvidenceImage } from '../lib/googleDriveService';
+import { getGoogleDriveDirectImageUrl, uploadCitizenEvidenceImage, getEvidenceDriveFolderId } from '../lib/googleDriveService';
 import { AnimatedIcon } from './common/AnimatedIcon';
 
 interface OpinionFormSectionProps {
@@ -41,7 +41,8 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccessNote, setUploadSuccessNote] = useState<string | null>(null);
 
-  const MTTQ_DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1esbw7TuyePZEFmNe7oimUav-AIyeVv4B?hl=vi';
+  const currentEvidenceFolderId = getEvidenceDriveFolderId();
+  const MTTQ_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${currentEvidenceFolderId}?hl=vi`;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,7 +67,7 @@ export const OpinionFormSection: React.FC<OpinionFormSectionProps> = ({ opinions
 
     try {
       // Automatic upload to Google Drive & auto-paste returned Drive link!
-      const res = await uploadCitizenEvidenceImage(file, '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B');
+      const res = await uploadCitizenEvidenceImage(file, getEvidenceDriveFolderId());
       
       if (res.driveLink || res.directUrl) {
         const finalLink = res.driveLink || res.directUrl;

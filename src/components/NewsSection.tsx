@@ -6,6 +6,8 @@ import { sortArticlesNewestFirst } from '../lib/dateUtils';
 import { getGoogleDriveDirectImageUrl, handleImageError } from '../lib/googleDriveService';
 import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
 import { OptimizedImage } from './common/OptimizedImage';
+import { ArticleThumbnail } from './common/ArticleThumbnail';
+import { getArticleImage } from '../lib/articleImageService';
 import { 
   Calendar, 
   Eye, 
@@ -245,12 +247,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onSelectArtic
     >
       {/* CLEAR IMAGE CONTAINER */}
       <div className="relative h-48 w-full overflow-hidden bg-slate-900 border-b border-slate-100">
-        <OptimizedImage
-          src={article.featuredImage}
-          alt={article.title}
+        <ArticleThumbnail
+          article={article}
           variant="card"
-          fallbackCategory={article.category}
+          aspectRatio="auto"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          containerClassName="w-full h-full"
         />
         <span className={`absolute top-3 left-3 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-xs ${getCategoryBadgeStyle(article.category)}`}>
           {article.category}
@@ -505,14 +507,14 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
                 className="lg:col-span-7 group cursor-pointer space-y-3 flex flex-col justify-between hover:shadow-lg p-2.5 rounded-2xl transition-all duration-300 hover:scale-105 bg-white"
               >
                 <div className="relative h-64 sm:h-80 md:h-[360px] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
-                  <OptimizedImage
-                    src={mainHero.featuredImage}
-                    alt={mainHero.title}
+                  <ArticleThumbnail
+                    article={mainHero}
                     variant="article"
-                    fallbackCategory={mainHero.category}
                     priority={true}
-                    style={{ objectPosition: mainHero.objectPosition || mainHero.imageFocalPoint || 'center 35%' }}
+                    aspectRatio="auto"
+                    objectPosition={mainHero.objectPosition || mainHero.imageFocalPoint || 'center 35%'}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    containerClassName="w-full h-full"
                   />
                   
                   {/* LOW DEEP BLUE OVERLAY GRADIENT */}
@@ -590,12 +592,12 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
                         className="p-2.5 bg-white hover:bg-blue-50/60 rounded-xl border border-slate-200/80 hover:border-blue-300 hover:shadow-md cursor-pointer flex gap-3 items-center transition-all duration-200 group/item shrink-0 shadow-2xs"
                       >
                         <div className="w-20 h-16 sm:w-24 sm:h-18 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80 relative shadow-2xs">
-                          <OptimizedImage
-                            src={item.featuredImage}
-                            alt={item.title}
+                          <ArticleThumbnail
+                            article={item}
                             variant="thumbnail"
-                            fallbackCategory={item.category}
+                            aspectRatio="auto"
                             className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
+                            containerClassName="w-full h-full"
                           />
                         </div>
                         <div className="space-y-1 flex-1 min-w-0">

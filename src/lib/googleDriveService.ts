@@ -10,6 +10,22 @@ googleDriveProvider.addScope('https://www.googleapis.com/auth/drive.file');
 export const DEFAULT_DRIVE_FOLDER_ID = '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G';
 export const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}?hl=vi`;
 
+export const EVIDENCE_DRIVE_FOLDER_STORAGE_KEY = 'chanh_hiep_evidence_drive_folder_id';
+export const DEFAULT_EVIDENCE_FOLDER_ID = '1esbw7TuyePZEFmNe7oimUav-AIyeVv4B';
+
+export function getEvidenceDriveFolderId(): string {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(EVIDENCE_DRIVE_FOLDER_STORAGE_KEY) || DEFAULT_EVIDENCE_FOLDER_ID;
+  }
+  return DEFAULT_EVIDENCE_FOLDER_ID;
+}
+
+export function saveEvidenceDriveFolderId(folderId: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(EVIDENCE_DRIVE_FOLDER_STORAGE_KEY, folderId.trim());
+  }
+}
+
 export interface DriveFolderItem {
   id: string;
   name: string;

@@ -36,6 +36,15 @@ interface ModuleFolderConfig {
 
 const MODULE_FOLDERS: ModuleFolderConfig[] = [
   {
+    key: 'evidence',
+    name: 'Google Drive Admin Settings: Folder ID Minh Chứng (Evidence Folder ID)',
+    code: 'MINH_CHUNG',
+    defaultId: OPINIONS_DRIVE_FOLDER_ID,
+    storageKey: 'chanh_hiep_evidence_drive_folder_id',
+    description: 'Cấu hình Folder ID minh chứng trực tiếp để lưu trữ ảnh phản ánh dân sinh mà không cần sửa code cứng.',
+    badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300'
+  },
+  {
     key: 'opinions',
     name: 'Hòm Thư Dân Nguyện & Nắm Bắt Dư Luận (21 Khu Phố)',
     code: 'DAN_NGUYEN',
@@ -452,7 +461,7 @@ function doPost(e) {
         <div className="mt-8 flex flex-wrap gap-2 border-t border-blue-800/40 pt-4">
           {[
             { id: 'CONFIG', label: '1. Cấu hình Web App Master', icon: Zap },
-            { id: 'MODULES', label: '2. Phân bổ Thư mục Phân hệ', icon: FolderGit2 },
+            { id: 'MODULES', label: '2. Google Drive Admin Settings (Minh Chứng & Phân hệ)', icon: FolderGit2 },
             { id: 'SCRIPT', label: '3. Mã nguồn Apps Script Chuẩn', icon: Terminal },
             { id: 'EXPLORER', label: '4. Trình duyệt Tệp Drive', icon: Folder },
             { id: 'DIAGNOSTICS', label: '5. Chẩn đoán & Sức khỏe', icon: Activity },

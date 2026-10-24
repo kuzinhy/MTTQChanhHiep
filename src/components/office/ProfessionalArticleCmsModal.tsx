@@ -28,6 +28,10 @@ import {
   DEFAULT_DRIVE_FOLDER_ID,
   DEFAULT_DRIVE_FOLDER_URL
 } from '../../lib/googleDriveService';
+import { 
+  extractFirstImageFromContent, 
+  normalizeArticleImageUrl 
+} from '../../lib/articleImageService';
 
 
 interface ProfessionalArticleCmsModalProps {
@@ -233,18 +237,36 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
       setAttachmentName(articleToEdit.attachmentName || '');
       setScheduledPublishAt(articleToEdit.scheduledPublishAt || '');
 
-      if (articleToEdit.coverImage) {
-        setCoverImageUrl(articleToEdit.coverImage.url || '');
-        setCoverImageAlt(articleToEdit.coverImage.alt || '');
-        setCoverImageCaption(articleToEdit.coverImage.caption || '');
-        setCoverImageThumbnail(articleToEdit.coverImage.thumbnailUrl || '');
-      } else if (typeof articleToEdit.featuredImage === 'string') {
-        setCoverImageUrl(articleToEdit.featuredImage);
-        setCoverImageAlt(articleToEdit.title);
-      } else if (articleToEdit.featuredImage && typeof articleToEdit.featuredImage === 'object') {
-        setCoverImageUrl(articleToEdit.featuredImage.secureUrl);
-        setCoverImageAlt(articleToEdit.featuredImage.alt || '');
-        setCoverImageCaption(articleToEdit.featuredImage.caption || '');
+      const initialThumb = 
+        articleToEdit.thumbnailUrl || 
+        articleToEdit.thumbnail || 
+        articleToEdit.coverImage?.url || 
+        (typeof articleToEdit.featuredImage === 'string' ? articleToEdit.featuredImage : articleToEdit.featuredImage?.secureUrl) || 
+        '';
+
+      if (initialThumb) {
+        const norm = normalizeArticleImageUrl(initialThumb);
+        setCoverImageUrl(norm);
+        setCoverImageThumbnail(norm);
+        setCoverImageAlt(articleToEdit.coverImage?.alt || articleToEdit.title);
+        setCoverImageCaption(articleToEdit.coverImage?.caption || '');
+      } else if (articleToEdit.content) {
+        const extracted = extractFirstImageFromContent(articleToEdit.content);
+        if (extracted) {
+          setCoverImageUrl(extracted);
+          setCoverImageThumbnail(extracted);
+          setCoverImageAlt(articleToEdit.title);
+        } else {
+          setCoverImageUrl('');
+          setCoverImageThumbnail('');
+          setCoverImageAlt('');
+          setCoverImageCaption('');
+        }
+      } else {
+        setCoverImageUrl('');
+        setCoverImageThumbnail('');
+        setCoverImageAlt('');
+        setCoverImageCaption('');
       }
 
       if (articleToEdit.gallery && Array.isArray(articleToEdit.gallery)) {
@@ -645,12 +667,16 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
       onShowToast?.('Bài viết đã được gửi duyệt lên Lãnh đạo do bạn chưa có quyền xuất bản trực tiếp.');
     }
 
-    const coverImageObj: ArticleCoverImage | undefined = coverImageUrl ? {
-      url: coverImageUrl,
+    // Standardize and normalize primary thumbnail across thumbnailUrl and featuredImage
+    const contentFirstImage = extractFirstImageFromContent(content);
+    const resolvedThumb = normalizeArticleImageUrl(coverImageUrl || contentFirstImage || '');
+
+    const coverImageObj: ArticleCoverImage | undefined = resolvedThumb ? {
+      url: resolvedThumb,
       alt: coverImageAlt || title,
       caption: coverImageCaption,
       aspectRatio: coverCropRatio,
-      thumbnailUrl: coverImageThumbnail || coverImageUrl
+      thumbnailUrl: coverImageThumbnail ? normalizeArticleImageUrl(coverImageThumbnail) : resolvedThumb
     } : undefined;
 
     const payload: Partial<Article> = {
@@ -668,7 +694,8 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
       attachment: attachmentUrl,
       attachmentName,
       coverImage: coverImageObj,
-      featuredImage: coverImageUrl || undefined,
+      thumbnailUrl: resolvedThumb || undefined,
+      featuredImage: resolvedThumb || undefined,
       gallery,
       versions,
       scheduledPublishAt: scheduledPublishAt || undefined,
@@ -893,37 +920,56 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                    <label className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span>Tải từ máy (WebP)</span>
-                      <input type="file" accept="image/*" onChange={handleCoverFileUpload} className="hidden" />
+                  {/* URL Input with Auto Normalization & Folder Warning */}
+                  <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                    <label className="text-[10.5px] font-bold text-slate-700 block">
+                      Hoặc dán URL ảnh đại diện (Google Drive, Cloudinary, Web...)
                     </label>
-                    <label className="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-sm transition-colors">
-                      {isUploadingCoverToDrive ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <HardDrive className="w-4 h-4" />
-                      )}
-                      <span>{isUploadingCoverToDrive ? 'Đang tải Drive...' : 'Tải lên Drive'}</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleCoverDriveUpload} 
-                        disabled={isUploadingCoverToDrive} 
-                        className="hidden" 
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        placeholder="https://drive.google.com/file/d/... hoặc link ảnh..."
+                        value={coverImageUrl}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCoverImageUrl(val);
+                          if (val.trim()) {
+                            const norm = normalizeArticleImageUrl(val);
+                            if (norm && norm !== val) {
+                              setCoverImageUrl(norm);
+                            }
+                          }
+                        }}
+                        className="flex-1 text-xs px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-800"
                       />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaTargetType('cover');
-                        setIsMediaLibraryOpen(true);
-                      }}
-                      className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer shrink-0"
-                    >
-                      Thư viện
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const extracted = extractFirstImageFromContent(content);
+                          if (extracted) {
+                            setCoverImageUrl(extracted);
+                            setCoverImageThumbnail(extracted);
+                            onShowToast?.('Đã trích xuất ảnh đầu tiên từ nội dung bài viết!');
+                          } else {
+                            alert('Không tìm thấy hình ảnh nào trong nội dung bài viết. Hãy dán URL hoặc tải ảnh lên.');
+                          }
+                        }}
+                        title="Tự động tìm kiếm thẻ ảnh hoặc link Drive trong bài viết"
+                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black rounded-xl transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Trích từ nội dung</span>
+                      </button>
+                    </div>
+
+                    {coverImageUrl && coverImageUrl.includes('/drive/folders/') && (
+                      <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-medium flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Cảnh báo:</strong> Đây là đường dẫn <em>Thư mục Google Drive</em> (/drive/folders/), không thể hiển thị làm ảnh. Vui lòng bấm "Chọn ảnh từ Drive" ở trên hoặc mở thư mục và chọn từng tệp ảnh.
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1222,33 +1268,32 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                   <button
                     type="button"
                     onClick={() => {
-                      setInsertImageTab('drive');
-                      setDriveUploadError(null);
-                      setDriveUploadSuccess(null);
-                      setShowInsertImageModal(true);
+                      setMediaTargetType('inline');
+                      setIsMediaLibraryOpen(true);
                     }}
-                    className="px-3 py-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold rounded-xl shadow-xs hover:shadow-md flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-blue-500/30 ring-1 ring-blue-400/20"
-                    title="Chèn ảnh vào nội dung (Tải lên Google Drive, Nén WebP hoặc chọn từ Thư viện)"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs hover:shadow-md flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-emerald-500/30"
+                    title="Mở Thư viện Google Drive chọn ảnh (Folder: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G)"
                   >
-                    <ImageIcon className="w-3.5 h-3.5 text-blue-100" />
-                    <span>Chèn ảnh bài viết</span>
-                    <span className="px-1.5 py-0.5 bg-white/20 hover:bg-white/30 text-[10px] font-bold rounded-md flex items-center gap-1 backdrop-blur-xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Drive
+                    <HardDrive className="w-3.5 h-3.5 text-emerald-100" />
+                    <span>Chọn ảnh từ Drive</span>
+                    <span className="px-1.5 py-0.5 bg-white/20 text-[10px] font-bold rounded-md">
+                      1jz3Q...
                     </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => {
-                      setMediaTargetType('inline');
-                      setIsMediaLibraryOpen(true);
+                      setInsertImageTab('drive');
+                      setDriveUploadError(null);
+                      setDriveUploadSuccess(null);
+                      setShowInsertImageModal(true);
                     }}
-                    className="px-2.5 py-1 bg-slate-200/80 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
-                    title="Mở Thư viện Media chọn nhanh"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs hover:shadow-md flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+                    title="Tải ảnh từ máy tính hoặc dán link Drive"
                   >
-                    <Layers className="w-3.5 h-3.5" />
-                    <span>Media Library</span>
+                    <ImageIcon className="w-3.5 h-3.5 text-blue-100" />
+                    <span>Tải / Dán link Drive</span>
                   </button>
 
                 </div>
@@ -1489,14 +1534,26 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
             {/* TAB CONTENT: GOOGLE DRIVE */}
             {insertImageTab === 'drive' && (
               <div className="space-y-3 p-4 bg-emerald-50/40 border border-emerald-200/70 rounded-2xl">
-                <div className="p-3 bg-emerald-100/70 rounded-xl text-[11px] text-emerald-900 space-y-1 border border-emerald-200">
-                  <p className="font-extrabold flex items-center gap-1 text-emerald-950">
-                    <Cloud className="w-3.5 h-3.5 text-emerald-700" />
-                    Hướng dẫn tải ảnh qua Google Drive (Vĩnh viễn):
-                  </p>
-                  <p>1. Tải ảnh lên thư mục Google Drive được chỉ định.</p>
-                  <p>2. Bật chia sẻ &quot;Bất kỳ ai có đường liên kết&quot;.</p>
-                  <p>3. Lấy ID ảnh hoặc dán link định dạng: <code className="bg-white px-1 py-0.5 rounded font-mono text-emerald-800 font-bold">https://lh3.googleusercontent.com/d/&#123;ID_ANH&#125;=w1600</code></p>
+                <div className="p-3 bg-emerald-100/70 rounded-xl text-[11px] text-emerald-900 space-y-2 border border-emerald-200">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <p className="font-extrabold flex items-center gap-1 text-emerald-950">
+                      <Cloud className="w-3.5 h-3.5 text-emerald-700" />
+                      Kho dữ liệu Google Drive Phường Chánh Hiệp:
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMediaTargetType('inline');
+                        setIsMediaLibraryOpen(true);
+                        setShowInsertImageModal(false);
+                      }}
+                      className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer transition-all shadow-xs"
+                    >
+                      <HardDrive className="w-3.5 h-3.5 text-emerald-200" />
+                      <span>Mở Thư viện Drive chọn ảnh</span>
+                    </button>
+                  </div>
+                  <p className="text-[10.5px] text-emerald-800">Tự động lấy link dạng trực tiếp CDN: <code className="bg-white px-1 py-0.5 rounded font-mono text-emerald-900 font-bold">https://lh3.googleusercontent.com/d/&#123;ID_ANH&#125;=w2000</code></p>
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">

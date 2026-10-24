@@ -4,6 +4,7 @@ import { Calendar, Eye, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mov
 import { motion, AnimatePresence } from 'motion/react';
 import { sortArticlesNewestFirst } from '../lib/dateUtils';
 import { OptimizedImage } from './common/OptimizedImage';
+import { getArticleImage } from '../lib/articleImageService';
 
 interface HeroCarouselProps {
   articles: Article[];
@@ -343,7 +344,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles = [], onSel
             className="absolute inset-0 w-full h-full"
           >
             <OptimizedImage
-              src={current.featuredImage}
+              src={getArticleImage(current).url}
               alt={formattedTitle}
               variant="hero"
               fallbackCategory={current.category}

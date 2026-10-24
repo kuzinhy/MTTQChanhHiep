@@ -23,6 +23,7 @@ import { AboutAndMemberOrgsAdminView } from './AboutAndMemberOrgsAdminView';
 import { MediaUploader } from './MediaUploader';
 import { MediaLibraryView } from './MediaLibraryView';
 import { ProfessionalArticleCmsModal } from './ProfessionalArticleCmsModal';
+import { ArticleImageAuditModal } from './ArticleImageAuditModal';
 import { CulturalMediaAdminSection } from '../cultural/CulturalMediaAdminSection';
 import { ChanhHiepDriveFolderBar } from './ChanhHiepDriveFolderBar';
 import { SmartMediaDriveUploader } from './SmartMediaDriveUploader';
@@ -322,6 +323,7 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
   // Modals for Articles
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [showImageAuditModal, setShowImageAuditModal] = useState(false);
   const [previewArticle, setPreviewArticle] = useState<Article | null>(null);
   const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
   const [articleSubmissionToDelete, setArticleSubmissionToDelete] = useState<ArticleSubmission | null>(null);
@@ -1577,13 +1579,25 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
           </button>
 
           {activeTab === 'ARTICLES' && (
-            <button
-              onClick={() => { resetArticleForm(); setIsArticleModalOpen(true); }}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-black rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <Plus className="w-4 h-4 text-white stroke-[3]" />
-              <span>Đăng Bài Viết Mới</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowImageAuditModal(true)}
+                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 text-xs font-black rounded-2xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Kiểm tra toàn bộ ảnh đại diện bài viết, phát hiện ảnh lỗi và tự động trích xuất ảnh từ nội dung"
+              >
+                <ImageIcon className="w-4 h-4 text-slate-950" />
+                <span>Kiểm Tra Ảnh Tin Bài</span>
+              </button>
+
+              <button
+                onClick={() => { resetArticleForm(); setIsArticleModalOpen(true); }}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-black rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-white stroke-[3]" />
+                <span>Đăng Bài Viết Mới</span>
+              </button>
+            </div>
           )}
 
           {activeTab === 'DOCUMENTS' && (
@@ -2930,6 +2944,22 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         articleToEdit={editingArticle}
         onSave={handleSaveProfessionalArticle}
         onShowToast={showSuccessBanner}
+      />
+
+      {/* ========================================================================= */}
+      {/* ARTICLE IMAGE AUDIT MODAL */}
+      {/* ========================================================================= */}
+      <ArticleImageAuditModal
+        isOpen={showImageAuditModal}
+        onClose={() => setShowImageAuditModal(false)}
+        articles={articles}
+        onEditArticle={(art) => {
+          handleOpenEditArticle(art);
+        }}
+        onUpdateArticle={(updated) => {
+          onUpdateArticle(updated);
+        }}
+        onShowToast={onShowToast}
       />
 
       {/* ========================================================================= */}

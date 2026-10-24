@@ -47,6 +47,8 @@ import { OneStopQueueEstimatorWidget } from './OneStopQueueEstimatorWidget';
 import { LifeEventBundlesWidget } from './LifeEventBundlesWidget';
 import { CivicFeeCalculatorModal } from './CivicFeeCalculatorModal';
 import { IndoorWayfindingModal } from './IndoorWayfindingModal';
+import { ArticleThumbnail } from '../common/ArticleThumbnail';
+import { getArticleImage } from '../../lib/articleImageService';
 
 const getImageUrl = (image?: string | CloudinaryImageMeta, category?: string, title?: string): string => {
   return normalizeImageUrl(image, category, title);
@@ -404,15 +406,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
 
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
-              <img
+              <ArticleThumbnail
                 key={currentHero.id || heroIndex}
-                src={getImageUrl(currentHero.featuredImage, currentHero.category, currentHero.title)}
-                alt={currentHero.title || 'Tin tức Mặt trận'}
-                loading="eager"
-                decoding="async"
-                referrerPolicy="no-referrer"
-                onError={(e) => handleOptimizedImageError(e, getBannerForCategory(currentHero.category, currentHero.title))}
+                article={currentHero}
+                variant="hero"
+                priority={true}
+                aspectRatio="auto"
                 className="w-full h-full object-cover object-top sm:object-center transition-transform duration-700 group-hover:scale-[1.02]"
+                containerClassName="w-full h-full"
               />
               {/* Low-profile Soft Bottom Gradient Overlay */}
               <div className="absolute inset-x-0 bottom-0 h-32 sm:h-40 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent pointer-events-none" />
@@ -514,15 +515,12 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                   >
                     {/* Thumbnail */}
                     <div className="w-24 h-20 sm:w-28 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative">
-                      <img
-                        key={art.id}
-                        src={getImageUrl(art.featuredImage, art.category, art.title)}
-                        alt={art.title || 'Tin bài'}
-                        loading="lazy"
-                        decoding="async"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category, art.title))}
+                      <ArticleThumbnail
+                        article={art}
+                        variant="thumbnail"
+                        aspectRatio="auto"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        containerClassName="w-full h-full"
                       />
                     </div>
 
@@ -983,17 +981,14 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
                     onClick={() => onSelectArticle(art)}
                     className="h-44 sm:h-48 overflow-hidden bg-slate-100 cursor-pointer relative"
                   >
-                    <img
-                      key={art.id}
-                      src={getImageUrl(art.featuredImage, art.category, art.title)}
-                      alt={art.title || 'Tin bài'}
-                      loading="lazy"
-                      decoding="async"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => handleOptimizedImageError(e, getBannerForCategory(art.category, art.title))}
+                    <ArticleThumbnail
+                      article={art}
+                      variant="card"
+                      aspectRatio="auto"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      containerClassName="w-full h-full"
                     />
-                    <div className="absolute top-2.5 left-2.5">
+                    <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none">
                       <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide shadow-xs ${badgeBg}`}>
                         {art.category || 'Hoạt động Mặt trận'}
                       </span>

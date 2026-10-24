@@ -263,6 +263,8 @@ export interface Article {
   deletedBy?: string;
   featuredImage?: string | CloudinaryImageMeta;
   featuredImageMeta?: CloudinaryImageMeta;
+  thumbnailUrl?: string;
+  thumbnail?: string;
   category: ArticleCategory;
   tags: string[];
   status: ArticleStatus;

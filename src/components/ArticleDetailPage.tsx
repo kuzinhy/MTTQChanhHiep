@@ -3,6 +3,8 @@ import { Article } from '../types';
 import { getGoogleDriveDirectImageUrl, handleImageError } from '../lib/googleDriveService';
 import { ARTICLE_BANNERS, getBannerForCategory } from '../utils/officialImages';
 import { OptimizedImage } from './common/OptimizedImage';
+import { ArticleThumbnail } from './common/ArticleThumbnail';
+import { getArticleImage } from '../lib/articleImageService';
 import { ImageLightboxModal } from './common/ImageLightboxModal';
 import { EmbeddedVideoPlayer, parseVideoUrl } from './common/EmbeddedVideoPlayer';
 import { 
@@ -260,29 +262,34 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
             </div>
           </div>
 
-          {/* Featured Image */}
-          {article.featuredImage && (
-            <div className="space-y-2">
-              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-900 group">
-                <OptimizedImage
-                  src={article.featuredImage}
-                  alt={article.title}
-                  variant="article"
-                  fallbackCategory={article.category}
-                  priority={true}
-                  enableLightbox={true}
-                  onOpenLightbox={(origUrl) => {
-                    setLightboxImage(origUrl);
-                    setLightboxTitle(article.title);
-                  }}
-                  className="w-full max-h-[560px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-                />
+          {/* Featured / Cover Image - Universal Resolver */}
+          {(() => {
+            const heroImage = getArticleImage(article);
+            // Show cover if an actual image or fallback is available
+            if (!heroImage.url) return null;
+            return (
+              <div className="space-y-2">
+                <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-900 group">
+                  <OptimizedImage
+                    src={heroImage.url}
+                    alt={article.title}
+                    variant="article"
+                    fallbackCategory={article.category}
+                    priority={true}
+                    enableLightbox={true}
+                    onOpenLightbox={(origUrl) => {
+                      setLightboxImage(origUrl);
+                      setLightboxTitle(article.title);
+                    }}
+                    className="w-full max-h-[560px] object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 italic text-center">
+                  Hình ảnh minh họa hoạt động tại Ủy ban MTTQ Việt Nam Phường Chánh Hiệp. (Nhấp vào ảnh để xem bản gốc độ phân giải cao)
+                </p>
               </div>
-              <p className="text-[11px] text-slate-500 italic text-center">
-                Hình ảnh hoạt động thực tế tại Ủy ban MTTQ Việt Nam Phường Chánh Hiệp, TP. Hồ Chí Minh. (Nhấp vào ảnh để xem bản gốc độ phân giải cao)
-              </p>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Article Lead Summary */}
           <div className="p-5 rounded-2xl bg-blue-50/80 border-l-4 border-blue-600 text-slate-900 text-sm font-semibold leading-relaxed shadow-2xs">
@@ -482,12 +489,12 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                     className="p-3 rounded-2xl hover:bg-blue-50/70 border border-transparent hover:border-blue-200 transition-all cursor-pointer group flex gap-3 items-center"
                   >
                     <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
-                      <OptimizedImage
-                        src={rel.featuredImage}
-                        alt={rel.title}
+                      <ArticleThumbnail
+                        article={rel}
                         variant="thumbnail"
-                        fallbackCategory={rel.category}
+                        aspectRatio="auto"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        containerClassName="w-full h-full"
                       />
                     </div>
                     <div className="space-y-1">
