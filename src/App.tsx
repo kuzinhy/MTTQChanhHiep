@@ -111,6 +111,7 @@ import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOp
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine, deduplicateStaffUsers } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
+import { SupabaseService } from './lib/supabaseService';
 import { getBannerForCategory } from './utils/officialImages';
 import { isFacebookCdnUrl } from './lib/imageOptimization';
 import { NotificationService } from './services/notificationService';
@@ -572,9 +573,48 @@ export default function App() {
   const knownArticleIdsRef = React.useRef<Set<string>>(new Set(AppStorageEngine.getArticles().filter(a => !isSeedArticle(a)).map(a => a.id)));
   const isInitialArticlesLoadRef = React.useRef<boolean>(true);
 
-  // Initialize real-time visitor & session tracking, Offline Sync & Firebase Cloud Sync
+  // Initialize real-time visitor & session tracking, Offline Sync & Supabase Cloud Sync
   useEffect(() => {
     VisitorTrackerEngine.init();
+
+    // Fetch initial data from Supabase
+    (async () => {
+      try {
+        const [supabaseArticles, supabaseDocs, supabaseOpinions, supabaseTasks, supabaseStaff] = await Promise.all([
+          SupabaseService.getArticles(),
+          SupabaseService.getDocuments(),
+          SupabaseService.getOpinions(),
+          SupabaseService.getTasks(),
+          SupabaseService.getStaffUsers()
+        ]);
+
+        if (supabaseArticles.length > 0) {
+          setArticles(supabaseArticles);
+          AppStorageEngine.saveArticles(supabaseArticles);
+        }
+        if (supabaseDocs.length > 0) {
+          setDocuments(supabaseDocs);
+          AppStorageEngine.saveDocuments(supabaseDocs);
+        }
+        if (supabaseOpinions.length > 0) {
+          setOpinions(supabaseOpinions);
+          AppStorageEngine.saveOpinions(supabaseOpinions);
+        }
+        if (supabaseTasks.length > 0) {
+          setTasks(supabaseTasks);
+          AppStorageEngine.saveTasks(supabaseTasks);
+        }
+        if (supabaseStaff.length > 0) {
+          setStaffUsers(supabaseStaff);
+          AppStorageEngine.saveStaffUsers(supabaseStaff);
+        }
+        setIsDataSyncing(false);
+      } catch (err) {
+        console.warn('Failed to load initial data from Supabase:', err);
+        setIsDataSyncing(false);
+      }
+    })();
+
     if (articles.length > 0) {
       VisitorTrackerEngine.syncArticlesBaseline(articles);
     }
