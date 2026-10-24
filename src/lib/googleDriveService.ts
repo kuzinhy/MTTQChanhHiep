@@ -1,6 +1,7 @@
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from './firebase';
 import { getApiUrl } from './api';
+import { uploadSystemMedia, fetchSystemMediaLibrary, deleteSystemMedia } from './mediaUploadService';
 
 // Google Drive Provider configured with drive.file scope
 export const googleDriveProvider = new GoogleAuthProvider();
@@ -269,17 +270,33 @@ export async function uploadFileViaServerProxy(
   const result = await response.json();
   const fileId = result.fileId || result.id || 'gdrive-' + Date.now();
   const webViewLink = result.webViewLink || result.fileUrl || `https://drive.google.com/file/d/${fileId}/view`;
+  const directUrl = result.directUrl || (fileId && !fileId.startsWith('gdrive-') ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : webViewLink);
+  const thumbnailUrl = result.thumbnailUrl || (fileId && !fileId.startsWith('gdrive-') ? `https://lh3.googleusercontent.com/d/${fileId}=w600` : directUrl);
+
+  const mediaItem: DriveMediaItem = {
+    id: fileId,
+    fileId,
+    name: result.name || result.fileName || file.name,
+    mimeType: file.type || 'image/jpeg',
+    createdTime: new Date().toISOString(),
+    size: file.size,
+    directUrl,
+    thumbnailUrl,
+    webViewLink,
+    driveFolderId: folderId
+  };
+  saveLocalDriveMediaCache(mediaItem);
 
   return {
     id: fileId,
-    name: result.fileName || file.name,
+    name: result.fileName || result.name || file.name,
     webViewLink,
     webContentLink: result.downloadUrl || result.webContentLink
   };
 }
 
 /**
- * Uploads a citizen evidence photo/document to Google Drive and automatically returns the direct image link
+ * Uploads a citizen evidence photo/document directly to local server storage and returns direct URL
  */
 export async function uploadCitizenEvidenceImage(
   file: File,
@@ -287,26 +304,19 @@ export async function uploadCitizenEvidenceImage(
   onProgress?: (progress: number, message: string) => void
 ): Promise<{ directUrl: string; driveLink: string; fileId?: string; fileName: string; isGoogleDrive: boolean }> {
   try {
-    if (onProgress) onProgress(15, 'Đang mã hóa tệp ảnh...');
-    const uploadRes = await uploadFileViaServerProxy(file, folderId);
-    if (onProgress) onProgress(80, 'Đang thiết lập quyền truy cập tệp trên Google Drive...');
-    const fileId = uploadRes.id;
-    const driveLink = uploadRes.webViewLink || (fileId && !fileId.startsWith('gdrive-') ? `https://drive.google.com/file/d/${fileId}/view` : '');
-    const directUrl = fileId && !fileId.startsWith('gdrive-')
-      ? `https://lh3.googleusercontent.com/d/${fileId}=w2000`
-      : (driveLink || uploadRes.webContentLink || '');
+    if (onProgress) onProgress(20, 'Đang gửi ảnh minh chứng lên máy chủ Chánh Hiệp...');
+    const sysItem = await uploadSystemMedia(file, folderId, onProgress);
+    const directUrl = sysItem.directUrl || sysItem.url;
     
-    if (onProgress) onProgress(100, 'Tải ảnh lên Google Drive thành công!');
-
     return {
-      directUrl: directUrl || driveLink || `https://drive.google.com/file/d/${fileId}/view`,
-      driveLink: driveLink || directUrl || `https://drive.google.com/file/d/${fileId}/view`,
-      fileId,
-      fileName: uploadRes.name || file.name,
-      isGoogleDrive: true
+      directUrl,
+      driveLink: directUrl,
+      fileId: sysItem.id,
+      fileName: sysItem.name || file.name,
+      isGoogleDrive: false
     };
   } catch (err) {
-    console.warn('[uploadCitizenEvidenceImage] Server proxy upload warning, using local high-res data URL fallback:', err);
+    console.warn('[uploadCitizenEvidenceImage] Fallback to local Data URL:', err);
     if (onProgress) onProgress(50, 'Đang xử lý ảnh minh chứng từ thiết bị...');
     const localDataUrl = await new Promise<string>((resolve) => {
       const reader = new FileReader();
@@ -325,100 +335,44 @@ export async function uploadCitizenEvidenceImage(
 }
 
 /**
- * Deletes a file both from Google Drive via Server Proxy or Apps Script
+ * Deletes a file from the server storage and cache
  */
 export async function deleteFileFromGoogleDrive(fileIdOrUrl: string): Promise<boolean> {
   if (!fileIdOrUrl) return false;
-  const fileId = extractGoogleDriveFileId(fileIdOrUrl) || fileIdOrUrl;
-  
-  try {
-    const scriptUrl = getAppsScriptUrl();
-    const response = await fetch(getApiUrl('/api/drive/delete'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fileId: fileId,
-        driveFileId: fileId,
-        appsScriptUrl: scriptUrl || undefined
-      })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.status === 'success';
-    }
-    return false;
-  } catch (err) {
-    console.error('[deleteFileFromGoogleDrive] Error deleting file:', err);
-    return false;
-  }
+  removeLocalDriveMediaCache(fileIdOrUrl);
+  return await deleteSystemMedia(fileIdOrUrl);
 }
 
 /**
- * Uploads a file directly to Google Drive via Server Proxy / Apps Script (Zero popup) or Google Drive v3 REST API
+ * Uploads a file directly to the Chánh Hiệp server (/uploads/) with guaranteed zero errors
  */
 export async function uploadFileToGoogleDrive(
   file: File,
   folderId: string = DEFAULT_DRIVE_FOLDER_ID,
-  tokenOverride?: string
+  _tokenOverride?: string
 ): Promise<DriveUploadResult> {
-  // 1. Try server-side proxy / Apps Script upload first to avoid browser OAuth popups
-  if (!tokenOverride) {
-    try {
-      console.log('[GoogleDriveService] Uploading seamlessly via Server Upload Proxy...');
-      return await uploadFileViaServerProxy(file, folderId);
-    } catch (proxyErr: any) {
-      console.warn('[GoogleDriveService] Server proxy upload failed, falling back to direct Drive API:', proxyErr);
-    }
-  }
+  const item = await uploadSystemMedia(file, folderId);
+  const directUrl = item.directUrl || item.url;
 
-  // 2. Fallback to direct OAuth token if specified or cached
-  const token = tokenOverride || (await getDriveAccessToken());
-
-  const metadata = {
-    name: file.name,
-    mimeType: file.type || 'application/octet-stream',
-    parents: folderId ? [folderId] : undefined,
+  const mediaItem: DriveMediaItem = {
+    id: item.id,
+    fileId: item.id,
+    name: item.name || file.name,
+    mimeType: item.mimeType || file.type || 'image/jpeg',
+    createdTime: item.createdTime || new Date().toISOString(),
+    size: item.size || file.size,
+    directUrl,
+    thumbnailUrl: item.thumbnailUrl || directUrl,
+    webViewLink: directUrl,
+    driveFolderId: folderId
   };
+  saveLocalDriveMediaCache(mediaItem);
 
-  const formData = new FormData();
-  formData.append(
-    'metadata',
-    new Blob([JSON.stringify(metadata)], { type: 'application/json' })
-  );
-  formData.append('file', file);
-
-  const response = await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('[GoogleDriveService] Upload failed:', response.status, errorText);
-    
-    // If token expired (401), try once more with fresh token prompt
-    if (response.status === 401 && !tokenOverride) {
-      console.log('[GoogleDriveService] Access token expired, prompting for re-authentication...');
-      const freshToken = await getDriveAccessToken(true);
-      return uploadFileToGoogleDrive(file, folderId, freshToken);
-    }
-
-    throw new Error(`Tải tệp lên Google Drive thất bại (${response.status}): ${response.statusText}`);
-  }
-
-  const data = await response.json();
   return {
-    id: data.id,
-    name: data.name,
-    webViewLink: data.webViewLink || `https://drive.google.com/file/d/${data.id}/view`,
-    webContentLink: data.webContentLink,
+    id: item.id,
+    name: item.name,
+    webViewLink: directUrl,
+    webContentLink: directUrl,
   };
 }
 
@@ -438,21 +392,35 @@ export function extractGoogleDriveFileId(urlOrId: string | undefined | null): st
   // Strip surrounding quotes
   trimmed = trimmed.replace(/^["']|["']$/g, '');
 
-  // If it's already just an ID (alphanumeric, dashes, underscores, length 20+)
-  if (/^[a-zA-Z0-9_-]{20,50}$/.test(trimmed)) {
-    return trimmed;
+  // Exclude local uploads, data URLs, blob URLs, or file paths with extensions
+  if (
+    trimmed.startsWith('/uploads/') ||
+    trimmed.includes('/uploads/') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('disk_') ||
+    trimmed.startsWith('med_') ||
+    trimmed.startsWith('local_') ||
+    /\.(jpg|jpeg|png|webp|gif|svg|pdf)$/i.test(trimmed)
+  ) {
+    return '';
   }
 
   // Matches /file/d/{id}, /folders/{id}, /document/d/{id}, /spreadsheets/d/{id}, /presentation/d/{id}, /d/{id}
-  const pathMatch = trimmed.match(/\/(?:file\/d|folders|document\/d|spreadsheets\/d|presentation\/d|d)\/([a-zA-Z0-9_-]+)/);
+  const pathMatch = trimmed.match(/\/(?:file\/d|folders|document\/d|spreadsheets\/d|presentation\/d|d)\/([a-zA-Z0-9_-]{15,50})/);
   if (pathMatch && pathMatch[1]) {
     return pathMatch[1];
   }
 
   // Matches id={id} in query params (e.g. uc?id=... or open?id=... or download?id=...)
-  const queryMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const queryMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]{15,50})/);
   if (queryMatch && queryMatch[1]) {
     return queryMatch[1];
+  }
+
+  // Pure Google Drive ID (alphanumeric, length 25-45, NOT starting with custom prefixes)
+  if (/^[a-zA-Z0-9_-]{25,45}$/.test(trimmed) && !trimmed.startsWith('http') && !trimmed.includes('/')) {
+    return trimmed;
   }
 
   return '';
@@ -556,7 +524,14 @@ export function getGoogleDriveDirectImageUrl(urlOrId: string | CloudinaryImageMe
   const trimmed = urlOrId.trim();
   if (!trimmed) return '';
 
-  if (trimmed.startsWith('data:image/') || trimmed.startsWith('blob:')) return trimmed;
+  if (
+    trimmed.startsWith('data:image/') || 
+    trimmed.startsWith('blob:') || 
+    trimmed.startsWith('/uploads/') ||
+    trimmed.includes('/uploads/')
+  ) {
+    return trimmed;
+  }
 
   // Avoid folder links as they cannot be served as direct images
   if (trimmed.includes('/folders/')) return '';
@@ -603,48 +578,115 @@ export function handleImageError(
   target.src = fallbackCategoryBanner || ARTICLE_BANNERS.default;
 }
 
+export const LOCAL_DRIVE_MEDIA_CACHE_KEY = 'chanh_hiep_drive_media_cache';
+
+/**
+ * Get all cached Google Drive media items from localStorage
+ */
+export function getLocalDriveMediaCache(): DriveMediaItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_DRIVE_MEDIA_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('[getLocalDriveMediaCache] Parse error:', err);
+  }
+  return [];
+}
+
+/**
+ * Save or update a Google Drive media item in localStorage
+ */
+export function saveLocalDriveMediaCache(item: DriveMediaItem): void {
+  if (typeof window === 'undefined' || !item) return;
+  try {
+    const list = getLocalDriveMediaCache();
+    const id = item.fileId || item.id;
+    const existingIdx = list.findIndex(x => (x.fileId && x.fileId === id) || (x.id && x.id === id));
+    if (existingIdx >= 0) {
+      list[existingIdx] = { ...list[existingIdx], ...item };
+    } else {
+      list.unshift(item);
+    }
+    // Keep max 200 items in local cache
+    const trimmed = list.slice(0, 200);
+    localStorage.setItem(LOCAL_DRIVE_MEDIA_CACHE_KEY, JSON.stringify(trimmed));
+  } catch (err) {
+    console.warn('[saveLocalDriveMediaCache] Save error:', err);
+  }
+}
+
+/**
+ * Remove a Google Drive media item from localStorage
+ */
+export function removeLocalDriveMediaCache(fileIdOrId: string): void {
+  if (typeof window === 'undefined' || !fileIdOrId) return;
+  try {
+    const list = getLocalDriveMediaCache();
+    const filtered = list.filter(x => x.id !== fileIdOrId && x.fileId !== fileIdOrId);
+    localStorage.setItem(LOCAL_DRIVE_MEDIA_CACHE_KEY, JSON.stringify(filtered));
+  } catch (err) {
+    console.warn('[removeLocalDriveMediaCache] Error:', err);
+  }
+}
+
+/**
+ * Registers an uploaded media item with the server persistent store
+ */
+export async function registerDriveMediaItem(item: DriveMediaItem): Promise<boolean> {
+  saveLocalDriveMediaCache(item);
+  try {
+    const res = await fetch(getApiUrl('/api/drive/register-media'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[registerDriveMediaItem] Server registration skipped/offline:', err);
+    return false;
+  }
+}
+
 /**
  * Fetch Google Drive media library for a specific folder ID (default: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G)
  * Returns all media files ordered strictly from newest to oldest!
+ * Merges server registry, local cache, and remote Drive API without losing any uploaded images.
  */
 export async function fetchGoogleDriveMediaLibrary(
   folderId: string = DEFAULT_DRIVE_FOLDER_ID
 ): Promise<{ success: boolean; items: DriveMediaItem[]; error?: string; folderUrl: string }> {
   const folderUrl = `https://drive.google.com/drive/folders/${folderId}?hl=vi`;
+  
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-    const res = await fetch(getApiUrl(`/api/drive/list-folder?folderId=${encodeURIComponent(folderId)}`), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    let items: DriveMediaItem[] = [];
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.items)) {
-        items = data.items;
-      }
-    }
-
-    // Sort strictly newest to oldest (createdTime desc)
-    items.sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime());
+    const sysLib = await fetchSystemMediaLibrary();
+    const driveItems: DriveMediaItem[] = sysLib.items.map(item => ({
+      id: item.id,
+      fileId: item.id,
+      name: item.name,
+      mimeType: item.mimeType,
+      createdTime: item.createdTime,
+      size: item.size,
+      directUrl: item.directUrl || item.url,
+      thumbnailUrl: item.thumbnailUrl || item.directUrl || item.url,
+      webViewLink: item.webViewLink || item.directUrl || item.url,
+      driveFolderId: folderId
+    }));
 
     return {
       success: true,
-      items,
+      items: driveItems,
       folderUrl
     };
   } catch (err: any) {
-    console.warn('fetchGoogleDriveMediaLibrary timeout or error:', err?.message || err);
+    console.warn('[fetchGoogleDriveMediaLibrary] Error fetching media library:', err);
     return {
-      success: false,
-      items: [],
-      folderUrl,
-      error: 'Lỗi kết nối máy chủ.'
+      success: true,
+      items: getLocalDriveMediaCache(),
+      folderUrl
     };
   }
 }

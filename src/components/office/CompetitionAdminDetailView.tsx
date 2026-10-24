@@ -111,7 +111,9 @@ export const CompetitionAdminDetailView: React.FC<CompetitionAdminDetailViewProp
       try {
         const res = await uploadFileToGoogleDrive(bannerFile, DEFAULT_DRIVE_FOLDER_ID);
         if (res.webViewLink && !res.webViewLink.includes('/folders/')) {
-          driveLink = res.id ? `https://lh3.googleusercontent.com/d/${res.id}` : res.webViewLink;
+          driveLink = (res.webViewLink.startsWith('/uploads/') || res.webViewLink.startsWith('data:') || res.webViewLink.startsWith('blob:'))
+            ? res.webViewLink
+            : (res.id && !res.id.startsWith('med_') && !res.id.startsWith('disk_') ? `https://lh3.googleusercontent.com/d/${res.id}` : res.webViewLink);
         }
       } catch (e) {
         console.warn('Drive upload notice:', e);

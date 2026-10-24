@@ -324,8 +324,10 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
       const res = await uploadFileToGoogleDrive(selectedFile, DEFAULT_DRIVE_FOLDER_ID);
       setUploadProgress(90);
 
-      const webViewLink = res.webViewLink || `https://drive.google.com/file/d/${res.id}/view`;
-      const directImage = res.id ? `https://lh3.googleusercontent.com/d/${res.id}=w2000` : webViewLink;
+      const webViewLink = res.webViewLink || '';
+      const directImage = (res.webViewLink && (res.webViewLink.startsWith('/uploads/') || res.webViewLink.startsWith('data:') || res.webViewLink.startsWith('blob:')))
+        ? res.webViewLink
+        : (res.id && !res.id.startsWith('med_') && !res.id.startsWith('disk_') ? `https://lh3.googleusercontent.com/d/${res.id}=w2000` : (res.webViewLink || ''));
       const sizeMb = (selectedFile.size / (1024 * 1024)).toFixed(2);
       const formattedSize = sizeMb === '0.00' ? `${(selectedFile.size / 1024).toFixed(1)} KB` : `${sizeMb} MB`;
 
@@ -682,8 +684,10 @@ export const SmartMediaDriveUploader: React.FC<SmartMediaDriveUploaderProps> = (
                   updateProgress(0.9);
                   setUploadProgress(90);
 
-                  const webViewLink = res.webViewLink || `https://drive.google.com/file/d/${res.id}/view`;
-                  const directImage = res.id ? `https://lh3.googleusercontent.com/d/${res.id}=w2000` : webViewLink;
+                  const webViewLink = res.webViewLink || '';
+                  const directImage = (res.webViewLink && (res.webViewLink.startsWith('/uploads/') || res.webViewLink.startsWith('data:') || res.webViewLink.startsWith('blob:')))
+                    ? res.webViewLink
+                    : (res.id && !res.id.startsWith('med_') && !res.id.startsWith('disk_') ? `https://lh3.googleusercontent.com/d/${res.id}=w2000` : (res.webViewLink || ''));
                   const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
                   const formattedSize = sizeMb === '0.00' ? `${(file.size / 1024).toFixed(1)} KB` : `${sizeMb} MB`;
 

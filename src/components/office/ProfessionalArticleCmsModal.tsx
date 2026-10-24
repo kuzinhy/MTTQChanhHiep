@@ -23,6 +23,11 @@ import {
   getGoogleDriveDirectImageUrl, 
   extractGoogleDriveFileId,
   fetchGoogleDriveMediaLibrary,
+  saveLocalDriveMediaCache,
+  removeLocalDriveMediaCache,
+  registerDriveMediaItem,
+  getLocalDriveMediaCache,
+  deleteFileFromGoogleDrive,
   DriveMediaItem,
   CHANH_HIEP_DRIVE_FOLDERS,
   DEFAULT_DRIVE_FOLDER_ID,
@@ -32,6 +37,12 @@ import {
   extractFirstImageFromContent, 
   normalizeArticleImageUrl 
 } from '../../lib/articleImageService';
+import { 
+  uploadSystemMedia, 
+  fetchSystemMediaLibrary, 
+  deleteSystemMedia,
+  SystemMediaItem 
+} from '../../lib/mediaUploadService';
 
 
 interface ProfessionalArticleCmsModalProps {
@@ -197,6 +208,7 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
   const [mediaFilterType, setMediaFilterType] = useState<'all' | 'image' | 'video' | 'file'>('all');
   const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [newlyUploadedId, setNewlyUploadedId] = useState<string | null>(null);
 
   // Version History & Autosave State
   const [versions, setVersions] = useState<ArticleVersionHistory[]>([]);
@@ -361,18 +373,22 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     return () => clearInterval(interval);
   }, [isOpen, title, slug, summary, content, category, tags, coverImageUrl, coverImageAlt, coverImageCaption, gallery]);
 
-  const loadMediaLibrary = async (targetFolder = selectedDriveFolderId) => {
+  const loadMediaLibrary = async (_targetFolder = selectedDriveFolderId) => {
     setIsLoadingMedia(true);
+    // 1. Immediately display local cache so user never sees a blank screen
+    const initialLocal = getLocalDriveMediaCache();
+    if (initialLocal.length > 0) {
+      setMediaLibraryItems(initialLocal);
+    }
     try {
-      const driveRes = await fetchGoogleDriveMediaLibrary(targetFolder);
-      if (driveRes.success && driveRes.items && driveRes.items.length > 0) {
-        setMediaLibraryItems(driveRes.items);
-      } else {
-        const res = await fetchMediaLibrary();
-        setMediaLibraryItems(res.resources || []);
+      const res = await fetchSystemMediaLibrary();
+      if (res.success && res.items && res.items.length > 0) {
+        setMediaLibraryItems(res.items);
+      } else if (initialLocal.length > 0) {
+        setMediaLibraryItems(initialLocal);
       }
     } catch (err) {
-      console.error('Failed to load Google Drive media library:', err);
+      console.error('Failed to load system media library:', err);
     } finally {
       setIsLoadingMedia(false);
     }
@@ -433,23 +449,24 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Vui lòng chọn ảnh dung lượng dưới 10MB!');
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Vui lòng chọn ảnh dung lượng dưới 20MB!');
       return;
     }
 
     try {
       setIsUploadingMedia(true);
-      const compressed = await compressImageToWebp(file, 1600, 900, 0.85);
-      setCoverImageUrl(compressed.dataUrl);
-      setCoverImageThumbnail(compressed.thumbnailUrl);
+      const res = await uploadSystemMedia(file, 'cover');
+      const directUrl = res.directUrl || res.url;
+      setCoverImageUrl(directUrl);
+      setCoverImageThumbnail(res.thumbnailUrl || directUrl);
       if (!coverImageAlt) {
         setCoverImageAlt(file.name.replace(/\.[^/.]+$/, ''));
       }
-      onShowToast?.(`Đã nén ảnh xuống ${(compressed.sizeBytes / 1024).toFixed(0)} KB (WebP chuẩn) thành công!`);
-    } catch (err) {
-      console.error('Image compression error:', err);
-      alert('Lỗi nén ảnh, vui lòng thử lại!');
+      onShowToast?.(`Đã tải ảnh đại diện lên máy chủ Chánh Hiệp thành công!`);
+    } catch (err: any) {
+      console.error('Image upload error:', err);
+      alert('Lỗi tải ảnh: ' + (err.message || 'Vui lòng thử lại!'));
     } finally {
       setIsUploadingMedia(false);
       e.target.value = '';
@@ -465,21 +482,23 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
       const newItems: ArticleGalleryItem[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.size > 10 * 1024 * 1024) continue;
-        const compressed = await compressImageToWebp(file, 1400, 1050, 0.85);
+        if (file.size > 20 * 1024 * 1024) continue;
+        const res = await uploadSystemMedia(file, 'gallery');
+        const directUrl = res.directUrl || res.url;
         newItems.push({
           id: 'gal-' + Date.now() + '-' + i,
-          url: compressed.dataUrl,
-          thumbnailUrl: compressed.thumbnailUrl,
+          url: directUrl,
+          thumbnailUrl: res.thumbnailUrl || directUrl,
           alt: file.name.replace(/\.[^/.]+$/, ''),
           caption: '',
           order: gallery.length + i + 1
         });
       }
       setGallery(prev => [...prev, ...newItems]);
-      onShowToast?.(`Đã thêm ${newItems.length} ảnh vào Gallery bộ sưu tập!`);
-    } catch (err) {
+      onShowToast?.(`Đã tải ${newItems.length} ảnh vào Gallery bộ sưu tập!`);
+    } catch (err: any) {
       console.error('Gallery upload error:', err);
+      alert('Lỗi tải ảnh bộ sưu tập: ' + (err.message || 'Vui lòng thử lại'));
     } finally {
       setIsUploadingMedia(false);
       e.target.value = '';
@@ -492,19 +511,17 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     setDriveUploadError(null);
     setDriveUploadSuccess(null);
     try {
-      const result = await uploadFileToGoogleDrive(file, selectedDriveFolderId);
-      const fileId = result.id;
-      const driveLink = result.webViewLink || (fileId ? `https://drive.google.com/file/d/${fileId}/view` : '');
-      const directUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : driveLink;
+      const res = await uploadSystemMedia(file, 'inline');
+      const directUrl = res.directUrl || res.url;
 
-      setInsertImageUrl(directUrl || driveLink);
+      setInsertImageUrl(directUrl);
       if (!insertImageAlt) {
         setInsertImageAlt(file.name.replace(/\.[^/.]+$/, ''));
       }
-      setDriveUploadSuccess(`Tải lên Google Drive thành công: "${file.name}"`);
+      setDriveUploadSuccess(`Tải ảnh lên máy chủ thành công: "${file.name}"`);
     } catch (err: any) {
-      console.error('Lỗi khi tải ảnh lên Google Drive:', err);
-      setDriveUploadError(err.message || 'Không thể tải lên Google Drive. Vui lòng kiểm tra quyền hoặc thử lại.');
+      console.error('Lỗi khi tải ảnh:', err);
+      setDriveUploadError(err.message || 'Không thể tải ảnh. Vui lòng thử lại.');
     } finally {
       setIsUploadingToDrive(false);
     }
@@ -515,10 +532,10 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     const directUrl = getGoogleDriveDirectImageUrl(driveInputLink.trim());
     if (directUrl) {
       setInsertImageUrl(directUrl);
-      setDriveUploadSuccess('Đã chuyển đổi liên kết Google Drive sang ảnh hiển thị tốc độ cao (CDN)!');
+      setDriveUploadSuccess('Đã nhận diện liên kết ảnh thành công!');
       setDriveUploadError(null);
     } else {
-      setDriveUploadError('Không thể nhận diện liên kết Google Drive hợp lệ.');
+      setDriveUploadError('Không thể nhận diện liên kết ảnh hợp lệ.');
     }
   };
 
@@ -527,18 +544,16 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     if (!file) return;
     setIsUploadingCoverToDrive(true);
     try {
-      const result = await uploadFileToGoogleDrive(file, DEFAULT_DRIVE_FOLDER_ID);
-      const fileId = result.id;
-      const driveLink = result.webViewLink || (fileId ? `https://drive.google.com/file/d/${fileId}/view` : '');
-      const directUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : driveLink;
+      const res = await uploadSystemMedia(file, 'cover');
+      const directUrl = res.directUrl || res.url;
 
-      setCoverImageUrl(directUrl || driveLink);
-      setCoverImageThumbnail(directUrl || driveLink);
+      setCoverImageUrl(directUrl);
+      setCoverImageThumbnail(res.thumbnailUrl || directUrl);
       if (!coverImageAlt) setCoverImageAlt(file.name.replace(/\.[^/.]+$/, ''));
-      if (onShowToast) onShowToast('Đã tải ảnh lên thư mục Google Drive và gán liên kết thành công!');
+      if (onShowToast) onShowToast('Đã tải ảnh lên máy chủ Chánh Hiệp thành công!');
     } catch (err: any) {
       console.error(err);
-      alert('Tải ảnh lên Google Drive thất bại: ' + err.message);
+      alert('Tải ảnh thất bại: ' + (err.message || 'Vui lòng thử lại'));
     } finally {
       setIsUploadingCoverToDrive(false);
       e.target.value = '';
@@ -1272,13 +1287,10 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                       setIsMediaLibraryOpen(true);
                     }}
                     className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs hover:shadow-md flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-emerald-500/30"
-                    title="Mở Thư viện Google Drive chọn ảnh (Folder: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G)"
+                    title="Mở Kho ảnh Chánh Hiệp chọn ảnh"
                   >
                     <HardDrive className="w-3.5 h-3.5 text-emerald-100" />
-                    <span>Chọn ảnh từ Drive</span>
-                    <span className="px-1.5 py-0.5 bg-white/20 text-[10px] font-bold rounded-md">
-                      1jz3Q...
-                    </span>
+                    <span>Kho ảnh Chánh Hiệp</span>
                   </button>
 
                   <button
@@ -1290,10 +1302,10 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                       setShowInsertImageModal(true);
                     }}
                     className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs hover:shadow-md flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-                    title="Tải ảnh từ máy tính hoặc dán link Drive"
+                    title="Tải ảnh lên máy chủ hoặc dán liên kết"
                   >
                     <ImageIcon className="w-3.5 h-3.5 text-blue-100" />
-                    <span>Tải / Dán link Drive</span>
+                    <span>Tải ảnh / Chèn ảnh</span>
                   </button>
 
                 </div>
@@ -1500,7 +1512,7 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                 }`}
               >
                 <HardDrive className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Google Drive</span>
+                <span>Máy chủ Chánh Hiệp</span>
                 <span className="px-1.5 py-0.2 text-[9px] bg-emerald-100 text-emerald-800 rounded font-black hidden sm:inline">Khuyên dùng</span>
               </button>
 
@@ -1531,14 +1543,14 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
               </button>
             </div>
 
-            {/* TAB CONTENT: GOOGLE DRIVE */}
+            {/* TAB CONTENT: SERVER MEDIA */}
             {insertImageTab === 'drive' && (
               <div className="space-y-3 p-4 bg-emerald-50/40 border border-emerald-200/70 rounded-2xl">
                 <div className="p-3 bg-emerald-100/70 rounded-xl text-[11px] text-emerald-900 space-y-2 border border-emerald-200">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p className="font-extrabold flex items-center gap-1 text-emerald-950">
-                      <Cloud className="w-3.5 h-3.5 text-emerald-700" />
-                      Kho dữ liệu Google Drive Phường Chánh Hiệp:
+                      <HardDrive className="w-3.5 h-3.5 text-emerald-700" />
+                      Kho dữ liệu hình ảnh máy chủ Chánh Hiệp:
                     </p>
                     <button
                       type="button"
@@ -1550,44 +1562,10 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                       className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer transition-all shadow-xs"
                     >
                       <HardDrive className="w-3.5 h-3.5 text-emerald-200" />
-                      <span>Mở Thư viện Drive chọn ảnh</span>
+                      <span>Mở Kho ảnh chọn nhanh</span>
                     </button>
                   </div>
-                  <p className="text-[10.5px] text-emerald-800">Tự động lấy link dạng trực tiếp CDN: <code className="bg-white px-1 py-0.5 rounded font-mono text-emerald-900 font-bold">https://lh3.googleusercontent.com/d/&#123;ID_ANH&#125;=w2000</code></p>
-                </div>
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <Cloud className="w-4 h-4 text-emerald-600" />
-                    Tải ảnh lên Google Drive Phường Chánh Hiệp:
-                  </span>
-                  <a
-                    href={DEFAULT_DRIVE_FOLDER_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 hover:underline"
-                  >
-                    <span>Mở thư mục Drive</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-
-                {/* Destination Folder Selector */}
-                <div>
-                  <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                    Thư mục lưu trữ trên Google Drive:
-                  </label>
-                  <select
-                    value={selectedDriveFolderId}
-                    onChange={(e) => setSelectedDriveFolderId(e.target.value)}
-                    className="w-full text-xs px-3 py-2 bg-white border border-emerald-300 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500/20"
-                  >
-                    <option value={DEFAULT_DRIVE_FOLDER_ID}>Thư mục Chung (Kho Dữ Liệu Số Chánh Hiệp)</option>
-                    {CHANH_HIEP_DRIVE_FOLDERS.map((f) => (
-                      <option key={f.code} value={f.id}>
-                        {f.name} — {f.description}
-                      </option>
-                    ))}
-                  </select>
+                  <p className="text-[10.5px] text-emerald-800">Ảnh được lưu trực tiếp tại thư mục máy chủ <code className="bg-white px-1 py-0.5 rounded font-mono text-emerald-900 font-bold">/uploads/</code>, tải siêu tốc và không lo lỗi liên kết ngoài.</p>
                 </div>
 
                 {/* Upload File Box */}
@@ -1595,8 +1573,8 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                   {isUploadingToDrive ? (
                     <div className="py-6 flex flex-col items-center justify-center gap-2">
                       <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-                      <p className="text-xs font-black text-emerald-800">Đang tải ảnh lên Google Drive...</p>
-                      <p className="text-[11px] text-slate-500">Tự động cấu hình quyền chia sẻ và tạo liên kết trực tiếp CDN</p>
+                      <p className="text-xs font-black text-emerald-800">Đang tải ảnh lên máy chủ Chánh Hiệp...</p>
+                      <p className="text-[11px] text-slate-500">Tự động tối ưu dung lượng và lưu trữ vĩnh viễn</p>
                     </div>
                   ) : (
                     <div>
@@ -1604,14 +1582,14 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                         <HardDrive className="w-5 h-5" />
                       </div>
                       <p className="text-xs font-bold text-slate-800 mb-1">
-                        Chọn tệp ảnh từ máy tính để tải trực tiếp lên Google Drive
+                        Chọn tệp ảnh từ máy tính để tải trực tiếp lên máy chủ
                       </p>
                       <p className="text-[11px] text-slate-500 mb-3">
-                        Hỗ trợ PNG, JPG, JPEG, WEBP, GIF (Tối đa 15MB)
+                        Hỗ trợ PNG, JPG, JPEG, WEBP, GIF, SVG (Tối đa 20MB)
                       </p>
                       <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all active:scale-95">
                         <Upload className="w-4 h-4" />
-                        <span>Tải ảnh lên Google Drive</span>
+                        <span>Tải ảnh lên máy chủ ngay</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1942,13 +1920,13 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-black text-lg text-slate-900">Thư Viện Ảnh Google Drive Phường Chánh Hiệp</h3>
+                    <h3 className="font-black text-lg text-slate-900">Kho Lưu Trữ Hình Ảnh Chánh Hiệp</h3>
                     <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full border border-emerald-300">
-                      Drive ID: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G
+                      Máy chủ nội bộ Chánh Hiệp (/uploads/)
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    Đang chọn ảnh cho: <strong className="text-emerald-800">{mediaTargetType === 'cover' ? 'Ảnh đại diện bài viết' : mediaTargetType === 'gallery' ? 'Bộ sưu tập (Gallery)' : 'Chèn vào nội dung bài viết'}</strong>
+                    Lưu trữ trực tiếp trên máy chủ hệ thống — Tốc độ cao, hiển thị tức thì 100%, không lo lỗi Drive hay hết hạn link.
                   </p>
                 </div>
               </div>
@@ -1960,65 +1938,62 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
               </button>
             </div>
 
-            {/* Folder & Search controls */}
+            {/* Controls */}
             <div className="space-y-3 mb-4 shrink-0">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                {/* Folder Selector */}
-                <div className="flex items-center gap-2 flex-1 min-w-[260px]">
-                  <FolderOpen className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <select
-                    value={selectedDriveFolderId}
-                    onChange={(e) => setSelectedDriveFolderId(e.target.value)}
-                    className="w-full text-xs font-bold px-3 py-2 bg-emerald-50/70 border border-emerald-300 rounded-xl text-emerald-900 focus:ring-2 focus:ring-emerald-500/20 outline-none"
-                  >
-                    <option value={DEFAULT_DRIVE_FOLDER_ID}>📁 Thư mục Chung (Kho Dữ Liệu Số Chánh Hiệp)</option>
-                    {CHANH_HIEP_DRIVE_FOLDERS.map((f) => (
-                      <option key={f.code} value={f.id}>
-                        📂 {f.name} — {f.description}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                  <HardDrive className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Mục đích: <strong className="text-emerald-700">{mediaTargetType === 'cover' ? 'Ảnh đại diện bài viết' : mediaTargetType === 'gallery' ? 'Bộ sưu tập (Gallery)' : 'Chèn vào nội dung bài viết'}</strong></span>
                 </div>
 
-                {/* External Link & Actions */}
                 <div className="flex items-center gap-2">
-                  <a
-                    href={`https://drive.google.com/drive/folders/${selectedDriveFolderId}?hl=vi`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
-                  >
-                    <span>Mở thư mục trên Google Drive</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-
                   <button
                     type="button"
-                    onClick={() => loadMediaLibrary(selectedDriveFolderId)}
+                    onClick={() => loadMediaLibrary()}
                     disabled={isLoadingMedia}
                     className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors cursor-pointer shrink-0"
-                    title="Làm mới danh sách Drive"
+                    title="Làm mới danh sách ảnh"
                   >
                     <RefreshCw className={`w-4 h-4 ${isLoadingMedia ? 'animate-spin text-emerald-600' : ''}`} />
                   </button>
 
                   <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs transition-all active:scale-95 shrink-0">
-                    <Upload className="w-4 h-4" />
-                    <span>Upload ảnh lên Drive này</span>
+                    {isUploadingMedia ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    <span>{isUploadingMedia ? 'Đang tải lên...' : 'Tải ảnh mới từ máy tính'}</span>
                     <input
                       type="file"
                       accept="image/*"
+                      disabled={isUploadingMedia}
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         setIsUploadingMedia(true);
                         try {
-                          const res = await uploadFileToGoogleDrive(file, selectedDriveFolderId);
-                          onShowToast?.(`Đã tải tệp "${file.name}" lên Google Drive!`);
-                          await loadMediaLibrary(selectedDriveFolderId);
+                          const res = await uploadSystemMedia(file, 'library');
+                          const newItem = {
+                            id: res.id,
+                            fileId: res.id,
+                            name: res.name || file.name,
+                            mimeType: res.mimeType || file.type || 'image/jpeg',
+                            createdTime: res.createdTime || new Date().toISOString(),
+                            size: res.size || file.size,
+                            directUrl: res.directUrl || res.url,
+                            thumbnailUrl: res.thumbnailUrl || res.directUrl || res.url,
+                            url: res.url,
+                            webViewLink: res.url
+                          };
+
+                          // 1. Immediately prepend into current view state
+                          setMediaLibraryItems(prev => [newItem, ...prev.filter(x => x.id !== newItem.id)]);
+                          setNewlyUploadedId(newItem.id);
+
+                          onShowToast?.(`Đã tải tệp "${file.name}" lên máy chủ thành công!`);
+
+                          // 2. Background sync
+                          await loadMediaLibrary();
                         } catch (err: any) {
                           console.error(err);
-                          alert(err.message || 'Lỗi khi tải ảnh lên Google Drive');
+                          alert(err.message || 'Lỗi khi tải ảnh lên máy chủ');
                         } finally {
                           setIsUploadingMedia(false);
                           e.target.value = '';
@@ -2036,7 +2011,7 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                   <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Tìm kiếm hình ảnh trong thư mục Google Drive theo tên..."
+                    placeholder="Tìm kiếm hình ảnh trong kho theo tên tệp..."
                     value={mediaSearchTerm}
                     onChange={(e) => setMediaSearchTerm(e.target.value)}
                     className="w-full text-xs pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -2051,16 +2026,65 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
 
             {/* Grid List */}
             <div className="flex-1 overflow-y-auto min-h-[320px] pr-1">
-              {isLoadingMedia ? (
+              {isLoadingMedia && mediaLibraryItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-56 text-slate-500 text-xs font-bold gap-2">
                   <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                  <span>Đang kết nối và lấy danh sách ảnh từ Google Drive...</span>
+                  <span>Đang tải danh sách ảnh máy chủ Chánh Hiệp...</span>
                 </div>
               ) : mediaLibraryItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-56 text-slate-400 text-xs space-y-2">
-                  <ImageIcon className="w-12 h-12 text-slate-300" />
-                  <p className="font-bold text-slate-700">Chưa có tệp ảnh nào trong thư mục Google Drive này.</p>
-                  <p className="text-[11px] text-slate-500">Hãy bấm nút "Upload ảnh lên Drive này" phía trên để thêm hình ảnh đầu tiên.</p>
+                <div className="flex flex-col items-center justify-center h-64 text-slate-400 text-xs space-y-3 p-4 text-center">
+                  <ImageIcon className="w-14 h-14 text-slate-300" />
+                  <p className="font-black text-sm text-slate-700">Chưa có tệp ảnh nào trong kho lưu trữ.</p>
+                  <p className="text-xs text-slate-500 max-w-md">Hãy chọn tệp từ máy tính để tải lên máy chủ Chánh Hiệp ngay bây giờ.</p>
+                  <div className="flex items-center gap-2 pt-2">
+                    <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl cursor-pointer flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
+                      <Upload className="w-4 h-4" />
+                      <span>Chọn ảnh từ máy tải lên ngay</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setIsUploadingMedia(true);
+                          try {
+                            const res = await uploadSystemMedia(file, 'library');
+                            const newItem = {
+                              id: res.id,
+                              fileId: res.id,
+                              name: res.name || file.name,
+                              mimeType: res.mimeType || file.type || 'image/jpeg',
+                              createdTime: res.createdTime || new Date().toISOString(),
+                              size: res.size || file.size,
+                              directUrl: res.directUrl || res.url,
+                              thumbnailUrl: res.thumbnailUrl || res.directUrl || res.url,
+                              url: res.url,
+                              webViewLink: res.url
+                            };
+
+                            setMediaLibraryItems(prev => [newItem, ...prev.filter(x => x.id !== newItem.id)]);
+                            setNewlyUploadedId(newItem.id);
+                            onShowToast?.(`Đã tải tệp "${file.name}" lên máy chủ thành công!`);
+                            await loadMediaLibrary();
+                          } catch (err: any) {
+                            alert(err.message || 'Lỗi khi tải ảnh');
+                          } finally {
+                            setIsUploadingMedia(false);
+                            e.target.value = '';
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => loadMediaLibrary()}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Làm mới danh sách</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -2070,20 +2094,22 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                       return name.toLowerCase().includes(mediaSearchTerm.toLowerCase());
                     })
                     .map((item, idx) => {
-                      const fileId = item.fileId || extractGoogleDriveFileId(item.secureUrl || item.url) || item.id;
-                      const directCdnUrl = fileId && !fileId.startsWith('local-') 
-                        ? `https://lh3.googleusercontent.com/d/${fileId}=w2000`
-                        : (item.secureUrl || item.url);
-                      const thumbUrl = item.thumbnailUrl || (fileId && !fileId.startsWith('local-') ? `https://lh3.googleusercontent.com/d/${fileId}=w600` : directCdnUrl);
-                      const displayTitle = item.name || item.publicId || `Drive Image ${idx + 1}`;
+                      const directCdnUrl = item.directUrl || item.url || item.thumbnailUrl;
+                      const thumbUrl = item.thumbnailUrl || directCdnUrl;
+                      const displayTitle = item.name || item.publicId || `Ảnh ${idx + 1}`;
                       const formattedDate = item.createdTime 
                         ? new Date(item.createdTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
                         : 'Gần đây';
+                      const isNew = item.id === newlyUploadedId || item.fileId === newlyUploadedId;
 
                       return (
                         <div
                           key={item.id || item.fileId || idx}
-                          className="border border-slate-200 rounded-2xl overflow-hidden group hover:border-emerald-500 hover:shadow-md transition-all bg-white flex flex-col justify-between"
+                          className={`border rounded-2xl overflow-hidden group transition-all bg-white flex flex-col justify-between ${
+                            isNew 
+                              ? 'ring-2 ring-emerald-500 border-emerald-500 shadow-lg' 
+                              : 'border-slate-200 hover:border-emerald-500 hover:shadow-md'
+                          }`}
                         >
                           <div className="aspect-video bg-slate-900 relative overflow-hidden">
                             <img 
@@ -2091,10 +2117,22 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                               alt={displayTitle} 
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
                               loading="lazy" 
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (!target.dataset.triedFallback && directCdnUrl && directCdnUrl !== thumbUrl) {
+                                  target.dataset.triedFallback = 'true';
+                                  target.src = directCdnUrl;
+                                }
+                              }}
                             />
                             <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-emerald-800/90 text-[9px] text-white font-bold rounded-md">
-                              Google Drive
+                              Máy chủ Chánh Hiệp
                             </span>
+                            {isNew && (
+                              <span className="absolute top-1.5 right-1.5 px-2 py-0.5 bg-emerald-500 text-[9px] text-white font-black rounded-md shadow animate-pulse">
+                                VỪA TẢI LÊN
+                              </span>
+                            )}
                             <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-slate-950/80 text-[9px] text-slate-200 font-mono rounded">
                               {formattedDate}
                             </span>
@@ -2112,7 +2150,7 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                                   if (mediaTargetType === 'cover') {
                                     setCoverImageUrl(directCdnUrl);
                                     if (!coverImageAlt) setCoverImageAlt(displayTitle);
-                                    onShowToast?.('Đã chọn ảnh đại diện từ Google Drive!');
+                                    onShowToast?.('Đã chọn ảnh đại diện từ kho ảnh!');
                                   } else if (mediaTargetType === 'gallery') {
                                     setGallery(prev => [
                                       ...prev,
@@ -2142,12 +2180,32 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                                 type="button"
                                 onClick={() => {
                                   navigator.clipboard.writeText(directCdnUrl);
-                                  onShowToast?.('Đã sao chép link ảnh Google Drive CDN!');
+                                  onShowToast?.('Đã sao chép liên kết ảnh!');
                                 }}
                                 className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors cursor-pointer"
-                                title="Sao chép liên kết CDN"
+                                title="Sao chép liên kết ảnh"
                               >
                                 <Copy className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (window.confirm(`Xóa ảnh "${displayTitle}" khỏi kho lưu trữ?`)) {
+                                    const targetId = item.id || item.fileId || directCdnUrl;
+                                    setMediaLibraryItems(prev => prev.filter(x => (x.id !== targetId && x.fileId !== targetId && x.url !== targetId)));
+                                    try {
+                                      await deleteSystemMedia(targetId);
+                                    } catch (e) {
+                                      console.warn(e);
+                                    }
+                                    onShowToast?.('Đã xóa ảnh khỏi kho lưu trữ!');
+                                  }
+                                }}
+                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-colors cursor-pointer"
+                                title="Xóa ảnh này khỏi kho"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
@@ -2161,7 +2219,7 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
             {/* Footer */}
             <div className="pt-3 border-t border-slate-200 flex items-center justify-between shrink-0">
               <span className="text-xs text-slate-500 font-medium">
-                Tổng cộng: <strong>{mediaLibraryItems.length}</strong> tệp ảnh trên Google Drive (Xếp từ mới đến cũ)
+                Tổng cộng: <strong>{mediaLibraryItems.length}</strong> tệp ảnh trên máy chủ Chánh Hiệp (Xếp từ mới đến cũ)
               </span>
               <button
                 type="button"

@@ -8,6 +8,7 @@ import {
   extractGoogleDriveFileId,
   handleImageError
 } from '../../lib/googleDriveService';
+import { uploadSystemMedia } from '../../lib/mediaUploadService';
 import { ARTICLE_BANNERS } from '../../utils/officialImages';
 import { 
   X, 
@@ -83,17 +84,17 @@ export const ContentImageDriveModal: React.FC<ContentImageDriveModalProps> = ({
     setUploadProgress(30);
 
     try {
-      const res = await uploadFileToGoogleDrive(selectedFile, DEFAULT_DRIVE_FOLDER_ID);
-      setUploadProgress(80);
+      const res = await uploadSystemMedia(selectedFile, targetFolderCode || 'data');
+      setUploadProgress(100);
 
-      const finalUrl = res.id ? `https://lh3.googleusercontent.com/d/${res.id}=w2000` : res.webViewLink;
+      const finalUrl = res.directUrl || res.url;
       const finalCaption = caption || selectedFile.name;
 
       let snippet = '';
       if (selectedFile.type.startsWith('image/')) {
         snippet = `\n\n![${finalCaption}](${finalUrl})\n*${finalCaption}*\n\n`;
       } else {
-        snippet = `\n\n📄 **[Tài liệu đính kèm: ${finalCaption}](${res.webViewLink})**\n\n`;
+        snippet = `\n\n📄 **[Tài liệu đính kèm: ${finalCaption}](${finalUrl})**\n\n`;
       }
 
       onInsertContent(snippet);

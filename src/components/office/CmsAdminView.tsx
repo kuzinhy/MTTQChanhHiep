@@ -814,7 +814,9 @@ export const CmsAdminView: React.FC<CmsAdminViewProps> = ({
         const res = await uploadFileToGoogleDrive(artSelectedFile, DEFAULT_DRIVE_FOLDER_ID);
         if (res.webViewLink) {
           resLink = res.webViewLink;
-          directImageUrl = res.id ? `https://lh3.googleusercontent.com/d/${res.id}` : res.webViewLink;
+          directImageUrl = (res.webViewLink.startsWith('/uploads/') || res.webViewLink.startsWith('data:') || res.webViewLink.startsWith('blob:'))
+            ? res.webViewLink
+            : (res.id && !res.id.startsWith('med_') && !res.id.startsWith('disk_') ? `https://lh3.googleusercontent.com/d/${res.id}` : res.webViewLink);
         }
       } catch (e) {
         console.warn('Drive upload fallback notice, converting to permanent Data URL:', e);
