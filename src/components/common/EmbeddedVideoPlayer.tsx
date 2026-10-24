@@ -78,7 +78,7 @@ export const EmbeddedVideoPlayer: React.FC<EmbeddedVideoPlayerProps> = ({
 }) => {
   const videoInfo = parseVideoUrl(url);
 
-  if (!videoInfo) return null;
+  if (!videoInfo || videoInfo.type === 'unsupported') return null;
 
   return (
     <div className={`overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-slate-950 text-white shadow-md ${className}`}>
@@ -149,25 +149,6 @@ export const EmbeddedVideoPlayer: React.FC<EmbeddedVideoPlayerProps> = ({
           >
             Trình duyệt của bạn không hỗ trợ phát trực tiếp video này.
           </video>
-        )}
-
-        {videoInfo.type === 'unsupported' && (
-          <div className="p-8 text-center space-y-3">
-            <Video className="w-12 h-12 text-slate-400 mx-auto" />
-            <p className="text-xs text-slate-300">
-              Liên kết video: <span className="font-mono text-blue-400">{videoInfo.originalUrl}</span>
-            </p>
-            <a
-              href={videoInfo.originalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Xem trực tiếp video</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
         )}
       </div>
 

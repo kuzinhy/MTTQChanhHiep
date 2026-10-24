@@ -16,8 +16,10 @@ export const SupabaseService = {
       id: item.id,
       title: item.title,
       slug: item.slug,
+      summary: item.summary || '',
       content: item.content,
       category: item.category,
+      tags: item.tags || [],
       status: item.status,
       authorId: item.author_id,
       authorName: item.author_name,
@@ -34,8 +36,10 @@ export const SupabaseService = {
       id: article.id,
       title: article.title,
       slug: article.slug,
+      summary: article.summary,
       content: article.content,
       category: article.category,
+      tags: article.tags,
       status: article.status,
       author_id: article.authorId,
       author_name: article.authorName,
@@ -82,7 +86,12 @@ export const SupabaseService = {
       signer: item.signer,
       isPublic: item.is_public,
       status: item.status,
-      createdAt: item.created_at
+      createdAt: item.created_at,
+      fileUrl: item.file_url || '',
+      fileName: item.file_name || '',
+      fileSize: item.file_size || '',
+      signerPosition: item.signer_position || '',
+      summary: item.summary || ''
     }));
   },
 
@@ -97,7 +106,12 @@ export const SupabaseService = {
       field: docItem.field,
       signer: docItem.signer,
       is_public: docItem.isPublic,
-      status: docItem.status
+      status: docItem.status,
+      file_url: docItem.fileUrl,
+      file_name: docItem.fileName,
+      file_size: docItem.fileSize,
+      signer_position: docItem.signerPosition,
+      summary: docItem.summary
     };
     const { error } = await supabase.from('documents').upsert(payload);
     if (error) {
@@ -172,10 +186,10 @@ export const SupabaseService = {
       id: item.id,
       title: item.title,
       description: item.description,
-      assignedTo: item.assigned_to,
+      assigneeId: item.assigned_to || item.assignee_id || '',
       status: item.status,
-      dueDate: item.due_date,
-      priority: item.priority,
+      deadline: item.due_date || item.deadline || new Date().toISOString(),
+      priority: item.priority || 'NORMAL',
       createdAt: item.created_at
     }));
   },
@@ -185,9 +199,9 @@ export const SupabaseService = {
       id: task.id,
       title: task.title,
       description: task.description,
-      assigned_to: task.assignedTo,
+      assigned_to: task.assigneeId,
       status: task.status,
-      due_date: task.dueDate,
+      due_date: task.deadline,
       priority: task.priority
     };
     const { error } = await supabase.from('tasks').upsert(payload);
@@ -206,6 +220,7 @@ export const SupabaseService = {
       position: item.position,
       department: item.department,
       active: item.active,
+      permissions: item.permissions || [],
       createdAt: item.created_at
     }));
   },
@@ -218,7 +233,8 @@ export const SupabaseService = {
       role: user.role,
       position: user.position,
       department: user.department,
-      active: user.active
+      active: user.active,
+      permissions: user.permissions
     };
     const { error } = await supabase.from('staff_users').upsert(payload);
     return !error;

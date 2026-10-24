@@ -86,7 +86,8 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   }, [article?.id]);
 
   const safeArticles: Article[] = Array.isArray(allArticles) ? allArticles : (Array.isArray(articles) ? articles : []);
-  const effectiveVideoUrl = article?.videoUrl || (article?.originalUrl && parseVideoUrl(article.originalUrl)?.type !== 'unsupported' ? article.originalUrl : undefined);
+  const effectiveVideoUrl = (article?.videoUrl && parseVideoUrl(article.videoUrl)?.type !== 'unsupported' ? article.videoUrl : undefined) || 
+    (article?.originalUrl && parseVideoUrl(article.originalUrl)?.type !== 'unsupported' ? article.originalUrl : undefined);
 
   // Scroll to top when article changes
   useEffect(() => {

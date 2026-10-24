@@ -107,7 +107,7 @@ import {
   INITIAL_TEMPLATES
 } from './data/seedData';
 
-import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization, FeedbackItem, ArticleSubmission, LaunchPopupConfig } from './types';
+import { Article, OfficialDocument, Competition, CompetitionSubmission, PublicOpinion, DriveFileItem, StaffUser, AuditLog, OpinionStatus, ToastMessage, UserRole, AiChatLog, KnowledgeNote, MemberOrganization, Area, Organization, FeedbackItem, ArticleSubmission, LaunchPopupConfig, Task } from './types';
 import { sortArticlesNewestFirst, sortDocumentsNewestFirst, sortCompetitionsNewestFirst, sortOpinionsNewestFirst } from './lib/dateUtils';
 import { AppStorageEngine, deduplicateStaffUsers } from './lib/storage';
 import { CloudDatabase } from './lib/firestoreService';
@@ -558,6 +558,7 @@ export default function App() {
   const [opinions, setOpinions] = useState<PublicOpinion[]>(() => AppStorageEngine.getOpinions());
   const [driveFiles, setDriveFiles] = useState<DriveFileItem[]>(() => AppStorageEngine.getDriveFiles());
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => AppStorageEngine.getAuditLogs());
+  const [tasks, setTasks] = useState<Task[]>(() => AppStorageEngine.getTasks());
   const [notes, setNotes] = useState(() => AppStorageEngine.getNotes());
   const [templates] = useState(INITIAL_TEMPLATES);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>(() => AppStorageEngine.getStaffUsers());
