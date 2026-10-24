@@ -7,7 +7,7 @@ import {
   Underline, List, ListOrdered, Quote, Heading1, Heading2, Heading3, 
   RotateCcw, Redo, Undo, Search, Filter, ShieldCheck, CheckCircle2, ChevronRight,
   ExternalLink, Smartphone, Monitor, Share2, Crop, Sliders,
-  HardDrive, Cloud, FolderOpen, Loader2
+  HardDrive, Cloud, FolderOpen, Loader2, Copy
 } from 'lucide-react';
 import { 
   Article, ArticleCategory, ArticleStatus, ArticleCoverImage, 
@@ -462,8 +462,11 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     setDriveUploadSuccess(null);
     try {
       const result = await uploadFileToGoogleDrive(file, selectedDriveFolderId);
-      const directUrl = getGoogleDriveDirectImageUrl(result.id || result.webViewLink);
-      setInsertImageUrl(directUrl || result.webViewLink);
+      const fileId = result.id;
+      const driveLink = result.webViewLink || (fileId ? `https://drive.google.com/file/d/${fileId}/view` : '');
+      const directUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : driveLink;
+
+      setInsertImageUrl(directUrl || driveLink);
       if (!insertImageAlt) {
         setInsertImageAlt(file.name.replace(/\.[^/.]+$/, ''));
       }
@@ -494,22 +497,17 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     setIsUploadingCoverToDrive(true);
     try {
       const result = await uploadFileToGoogleDrive(file, DEFAULT_DRIVE_FOLDER_ID);
-      const fileId = result.id && !result.id.startsWith('gdrive-') ? result.id : extractGoogleDriveFileId(result.webViewLink);
-      const directUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : (result.webViewLink || '');
-      
-      let webpDataUrl = directUrl;
-      try {
-        const compressed = await compressImageToWebp(file, 1600, 900, 0.85);
-        webpDataUrl = compressed.dataUrl;
-        setCoverImageThumbnail(compressed.thumbnailUrl);
-      } catch {}
+      const fileId = result.id;
+      const driveLink = result.webViewLink || (fileId ? `https://drive.google.com/file/d/${fileId}/view` : '');
+      const directUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : driveLink;
 
-      setCoverImageUrl(webpDataUrl || directUrl);
+      setCoverImageUrl(directUrl || driveLink);
+      setCoverImageThumbnail(directUrl || driveLink);
       if (!coverImageAlt) setCoverImageAlt(file.name.replace(/\.[^/.]+$/, ''));
-      if (onShowToast) onShowToast('Đã tải ảnh đại diện lên Google Drive & nén WebP thành công!');
+      if (onShowToast) onShowToast('Đã tải ảnh lên thư mục Google Drive và gán liên kết thành công!');
     } catch (err: any) {
       console.error(err);
-      alert('Tải ảnh đại diện lên Google Drive thất bại: ' + err.message);
+      alert('Tải ảnh lên Google Drive thất bại: ' + err.message);
     } finally {
       setIsUploadingCoverToDrive(false);
       e.target.value = '';
@@ -1482,6 +1480,15 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
             {/* TAB CONTENT: GOOGLE DRIVE */}
             {insertImageTab === 'drive' && (
               <div className="space-y-3 p-4 bg-emerald-50/40 border border-emerald-200/70 rounded-2xl">
+                <div className="p-3 bg-emerald-100/70 rounded-xl text-[11px] text-emerald-900 space-y-1 border border-emerald-200">
+                  <p className="font-extrabold flex items-center gap-1 text-emerald-950">
+                    <Cloud className="w-3.5 h-3.5 text-emerald-700" />
+                    Hướng dẫn tải ảnh qua Google Drive (Vĩnh viễn):
+                  </p>
+                  <p>1. Tải ảnh lên thư mục Google Drive được chỉ định.</p>
+                  <p>2. Bật chia sẻ &quot;Bất kỳ ai có đường liên kết&quot;.</p>
+                  <p>3. Lấy ID ảnh hoặc dán link định dạng: <code className="bg-white px-1 py-0.5 rounded font-mono text-emerald-800 font-bold">https://lh3.googleusercontent.com/d/&#123;ID_ANH&#125;=w1600</code></p>
+                </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                     <Cloud className="w-4 h-4 text-emerald-600" />
@@ -1553,6 +1560,34 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
                     </div>
                   )}
                 </div>
+
+                {insertImageUrl && insertImageUrl.includes('googleusercontent.com') && (
+                  <div className="p-3 bg-white border border-emerald-300 rounded-xl space-y-1.5 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        Liên kết ảnh trực tiếp trên Google Drive:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(insertImageUrl);
+                          onShowToast?.('Đã sao chép liên kết ảnh vào bộ nhớ tạm!');
+                        }}
+                        className="px-2 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] font-bold rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <Copy className="w-3 h-3" />
+                        <span>Sao chép link</span>
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      readOnly
+                      value={insertImageUrl}
+                      className="w-full text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-700 select-all"
+                    />
+                  </div>
+                )}
 
                 {/* Drive Link Pasting / Converter */}
                 <div className="pt-2 border-t border-emerald-200/60">

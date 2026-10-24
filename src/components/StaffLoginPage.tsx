@@ -43,6 +43,13 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
   ) => {
     const cleanEmail = userEmail.trim().toLowerCase();
     
+    const allowedSuperAdmins = [
+      'nguyenhuy.thudaumot@gmail.com',
+      'buivanhuy0705@gmail.com',
+      'admin.chanhhiep@binhduong.gov.vn',
+      'mttqvietnamphuongchanhhiep@gmail.com'
+    ];
+    
     // Refresh token if authenticated
     try {
       await auth.currentUser?.getIdToken(true);
@@ -51,6 +58,14 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
     }
 
     try {
+      const isStaffOrAdmin = allowedSuperAdmins.includes(cleanEmail) || staffUsers.some(u => u.email.toLowerCase() === cleanEmail && u.active !== false);
+
+      if (!isStaffOrAdmin) {
+        setErrorMsg(`Tài khoản "${cleanEmail}" là tài khoản cá nhân/người dân, không có quyền truy cập trang Cán bộ / Quản trị. Vui lòng sử dụng tính năng trên Cổng thông tin công cộng.`);
+        setIsLoading(false);
+        return;
+      }
+
       const resolvedUser = await CloudDatabase.syncAuthUserProfile(
         authUid || auth.currentUser?.uid || ('staff-' + Date.now()),
         cleanEmail,
@@ -70,13 +85,23 @@ export const StaffLoginPage: React.FC<StaffLoginPageProps> = ({
     } catch (err: any) {
       console.error('Error syncing profile:', err);
       const found = staffUsers.find(u => u.email.toLowerCase() === cleanEmail);
-      if (found && found.active !== false) {
+      if ((allowedSuperAdmins.includes(cleanEmail) || found) && (!found || found.active !== false)) {
         setIsSuccess(true);
         setTimeout(() => {
-          onLoginSuccess(found);
+          onLoginSuccess(found || {
+            id: authUid || 'admin-1',
+            email: cleanEmail,
+            fullname: displayName || 'Quản trị viên',
+            role: 'SUPER_ADMIN',
+            position: 'Quản trị viên hệ thống',
+            department: 'Ban Thường trực',
+            active: true,
+            permissions: [],
+            createdAt: new Date().toISOString()
+          });
         }, 350);
       } else {
-        setErrorMsg(`Không thể đồng bộ hồ sơ cán bộ: ${err?.message || 'Vui lòng thử lại.'}`);
+        setErrorMsg(`Tài khoản này không có quyền truy cập Cán bộ / Quản trị. Vui lòng sử dụng tài khoản công vụ được cấp.`);
       }
     }
   };

@@ -993,10 +993,13 @@ class CloudSyncService {
     }
 
     const now = new Date().toISOString();
-    const isPrimaryAdmin = cleanEmail.includes('nguyenhuy') || 
-                           cleanEmail.includes('admin.chanhhiep') || 
-                           cleanEmail === 'buivanhuy0705@gmail.com' ||
-                           cleanEmail.includes('buivanhuy');
+    const allowedSuperAdmins = [
+      'nguyenhuy.thudaumot@gmail.com',
+      'buivanhuy0705@gmail.com',
+      'admin.chanhhiep@binhduong.gov.vn',
+      'mttqvietnamphuongchanhhiep@gmail.com'
+    ];
+    const isPrimaryAdmin = allowedSuperAdmins.includes(cleanEmail);
 
     let resolvedUser: StaffUser;
 

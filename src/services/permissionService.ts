@@ -367,12 +367,14 @@ export function getUserEffectivePermissions(user: StaffUser | null | undefined):
  */
 export function isSuperAdmin(user: StaffUser | null | undefined): boolean {
   if (!user) return false;
-  const cleanEmail = (user.email || '').toLowerCase();
-  if (
-    cleanEmail.includes('nguyenhuy') || 
-    cleanEmail.includes('admin.chanhhiep') || 
-    cleanEmail.includes('buivanhuy')
-  ) {
+  const cleanEmail = (user.email || '').toLowerCase().trim();
+  const allowedSuperAdmins = [
+    'nguyenhuy.thudaumot@gmail.com',
+    'buivanhuy0705@gmail.com',
+    'admin.chanhhiep@binhduong.gov.vn',
+    'mttqvietnamphuongchanhhiep@gmail.com'
+  ];
+  if (allowedSuperAdmins.includes(cleanEmail)) {
     return true;
   }
   if (user.active === false && user.status === 'inactive') return false;
