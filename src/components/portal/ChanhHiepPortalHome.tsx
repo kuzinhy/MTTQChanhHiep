@@ -217,7 +217,7 @@ export const ChanhHiepPortalHome: React.FC<ChanhHiepPortalHomeProps> = ({
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
-      {launchConfig.enabled && onOpenLaunchPopup && (
+      {launchConfig?.enabled && onOpenLaunchPopup && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}

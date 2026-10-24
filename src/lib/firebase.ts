@@ -7,37 +7,25 @@ import firebaseConfig from '../../firebase-applet-config.json';
 // Initialize Firebase App
 export const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Cloud Firestore instance with long-polling auto-detection & offline persistence for web sandboxes
+// Initialize Cloud Firestore instance with safe memory cache fallback
 let firestoreDb: Firestore;
-const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+const targetDbId = (firebaseConfig as any).firestoreDatabaseId || undefined;
 
-if (isInIframe) {
-  // Use memory local cache inside sandboxed iframes to prevent write queue exhaustion across reloads
+try {
+  // If Firestore is already initialized, get the existing instance
+  firestoreDb = targetDbId ? getFirestore(firebaseApp, targetDbId) : getFirestore(firebaseApp);
+} catch {
   try {
     firestoreDb = initializeFirestore(firebaseApp, {
       experimentalAutoDetectLongPolling: true,
       localCache: memoryLocalCache()
-    }, (firebaseConfig as any).firestoreDatabaseId || undefined);
-  } catch {
-    firestoreDb = (firebaseConfig as any).firestoreDatabaseId
-      ? getFirestore(firebaseApp, (firebaseConfig as any).firestoreDatabaseId)
-      : getFirestore(firebaseApp);
-  }
-} else {
-  try {
-    firestoreDb = initializeFirestore(firebaseApp, {
-      experimentalAutoDetectLongPolling: true,
-      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-    }, (firebaseConfig as any).firestoreDatabaseId || undefined);
+    }, targetDbId);
   } catch {
     try {
-      firestoreDb = initializeFirestore(firebaseApp, {
-        experimentalAutoDetectLongPolling: true
-      }, (firebaseConfig as any).firestoreDatabaseId || undefined);
-    } catch {
-      firestoreDb = (firebaseConfig as any).firestoreDatabaseId
-        ? getFirestore(firebaseApp, (firebaseConfig as any).firestoreDatabaseId)
-        : getFirestore(firebaseApp);
+      firestoreDb = targetDbId ? getFirestore(firebaseApp, targetDbId) : getFirestore(firebaseApp);
+    } catch (finalErr) {
+      console.warn('[Firebase] Firestore fallback initialization warning:', finalErr);
+      firestoreDb = getFirestore(firebaseApp);
     }
   }
 }

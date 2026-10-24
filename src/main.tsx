@@ -39,54 +39,67 @@ if (typeof window !== 'undefined') {
   });
 }
 
-const rootElement = document.getElementById('root');
+// 3. Mount React application safely with instant fallback handling
+try {
+  const rootElement = document.getElementById('root');
 
-if (!rootElement) {
-  throw new Error('Root element #root not found in document');
-}
+  if (!rootElement) {
+    throw new Error('Root element #root not found in document');
+  }
 
-// 3. Mount React application
-const root = createRoot(rootElement);
-root.render(
-  <StrictMode>
+  const root = createRoot(rootElement);
+  root.render(
     <AppErrorBoundary>
       <App />
-    </AppErrorBoundary>
-  </StrictMode>,
-);
+    </AppErrorBoundary>,
+  );
+} catch (mountErr: any) {
+  console.error('[Mount Fatal Error]:', mountErr);
+  const rootElement = document.getElementById('root');
+  if (rootElement) {
+    rootElement.innerHTML = `
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0f172a; color: #fff; font-family: sans-serif; padding: 24px; text-align: center;">
+        <div style="max-width: 480px; background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+          <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(239, 68, 68, 0.2); color: #f87171; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; font-size: 28px;">⚠️</div>
+          <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px 0; color: #f8fafc;">Đã Xảy Ra Sự Cố Khởi Động</h2>
+          <p style="font-size: 13px; color: #94a3b8; line-height: 1.5; margin: 0 0 20px 0;">Hệ thống phát hiện lỗi bộ nhớ đệm hoặc xung đột phiên làm việc. Vui lòng bấm nút bên dưới để khôi phục:</p>
+          <button onclick="localStorage.clear(); sessionStorage.clear(); window.location.reload();" style="background: #2563eb; color: #fff; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 12px; cursor: pointer;">
+            Xóa bộ nhớ đệm &amp; Tải lại trang
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
 
 // 4. Safe Service Worker management:
-// In dev or preview iframe: Unregister any service worker that intercepts Vite requests
-// In standalone production: Lazily register service worker on window load
+// Proactively unregister any active service worker in development, preview, and iframe environments
+// to prevent workbox precache from intercepting new Vite assets.
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   const isInIframe = window.self !== window.top;
-  if (import.meta.env.DEV || isInIframe) {
+  const isLocalOrPreview = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1' || 
+                           window.location.hostname.includes('.run.app') ||
+                           window.location.hostname.includes('web.app') ||
+                           isInIframe ||
+                           import.meta.env.DEV;
+
+  if (isLocalOrPreview) {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (const registration of registrations) {
         registration.unregister().catch(() => {});
       }
     }).catch(() => {});
-  } else {
-    window.addEventListener('load', () => {
-      import('virtual:pwa-register')
-        .then(({ registerSW }) => {
-          registerSW({
-            immediate: false,
-            onNeedRefresh() {
-              console.log('[PWA SW] New content available, updating automatically...');
-            },
-            onOfflineReady() {
-              console.log('[PWA SW] App is ready to work offline.');
-            },
-            onRegisterError(error) {
-              console.warn('[PWA SW] Registration failed:', error);
-            },
-          });
-        })
-        .catch((err) => {
-          console.warn('[PWA SW] Service worker module unavailable:', err);
-        });
-    });
+
+    if ('caches' in window) {
+      caches.keys().then((keys) => {
+        for (const key of keys) {
+          if (key.includes('workbox') || key.includes('pwa')) {
+            caches.delete(key).catch(() => {});
+          }
+        }
+      }).catch(() => {});
+    }
   }
 }
 

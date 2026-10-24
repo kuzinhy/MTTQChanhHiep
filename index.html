@@ -45,9 +45,59 @@
     }
     </script>
   </head>
-  <body>
-    <div id="root"></div>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <body class="bg-slate-900 text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
+    <div id="root">
+      <div id="mttq-initial-loader" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 30%, #0c204c 0%, #07122b 60%, #030816 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Be Vietnam Pro', Helvetica, Arial, sans-serif; color: #ffffff; padding: 24px; text-align: center; box-sizing: border-box;">
+        <div style="position: relative; margin-bottom: 24px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6; animation: mttq-spin 0.9s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;"></div>
+          <img src="https://res.cloudinary.com/idt08wyp/image/upload/v1789907080/Logo-Mat-Tran-To-Quoc-Viet-Nam.png" alt="MTTQ Logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));" onerror="this.style.display='none'" />
+        </div>
+        <div style="max-width: 480px; width: 100%;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #60a5fa; margin-bottom: 6px;">Ủy ban MTTQ Việt Nam Phường Chánh Hiệp</div>
+          <h1 style="font-size: 18px; font-weight: 800; color: #ffffff; margin: 0 0 8px 0; line-height: 1.4;">Cổng Thông Tin Điện Tử &amp; Văn Phòng Số</h1>
+          <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #94a3b8; background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.1);">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
+            <span>Đang khởi động hệ thống trực tuyến...</span>
+          </div>
+        </div>
+        <div id="mttq-loader-recovery" style="display: none; margin-top: 28px; max-width: 420px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
+          <p style="font-size: 12px; color: #cbd5e1; margin: 0 0 12px 0; line-height: 1.5;">Nếu trình duyệt tải chậm hoặc bị nghẽn bộ nhớ đệm, vui lòng bấm nút bên dưới:</p>
+          <button onclick="mttqHardReload()" style="background: #2563eb; color: #ffffff; border: none; padding: 10px 20px; font-size: 13px; font-weight: 700; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            Xóa đệm &amp; Tải lại trang ngay
+          </button>
+        </div>
+        <style>
+          @keyframes mttq-spin { to { transform: rotate(360deg); } }
+        </style>
+      </div>
+    </div>
+    <script>
+      function mttqHardReload() {
+        try {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              for (var i = 0; i < regs.length; i++) { regs[i].unregister(); }
+            });
+          }
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              for (var i = 0; i < names.length; i++) { caches.delete(names[i]); }
+            });
+          }
+        } catch (e) {}
+        setTimeout(function() {
+          window.location.reload(true);
+        }, 150);
+      }
+      // Show recovery button if React has not mounted within 6 seconds
+      setTimeout(function() {
+        var rec = document.getElementById('mttq-loader-recovery');
+        if (rec && document.getElementById('mttq-initial-loader')) {
+          rec.style.display = 'block';
+        }
+      }, 6000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -72,7 +72,21 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
                 className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Tải lại &amp; Khôi phục Cổng TT</span>
+                <span>Tải lại trang</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  try {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                  } catch {}
+                  window.location.hash = '#/trang-chu';
+                  window.location.reload();
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg"
+              >
+                <span>Xóa đệm &amp; Tải lại</span>
               </button>
 
               <button

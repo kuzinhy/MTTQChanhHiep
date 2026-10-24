@@ -318,8 +318,8 @@ export default function App() {
   // Auto-trigger launch popup on Public Portal visit if enabled and autoPopup is true, and not dismissed today
   useEffect(() => {
     if (currentSpace !== 'PORTAL') return;
-    if (!launchPopupConfig.enabled) return;
-    if (launchPopupConfig.autoPopup === false) return;
+    if (!launchPopupConfig?.enabled) return;
+    if (launchPopupConfig?.autoPopup === false) return;
 
     const isDismissed = AppStorageEngine.hasDismissedLaunchPopup();
     if (isDismissed) return;
@@ -330,7 +330,7 @@ export default function App() {
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, [currentSpace, launchPopupConfig.enabled, launchPopupConfig.autoPopup]);
+  }, [currentSpace, launchPopupConfig?.enabled, launchPopupConfig?.autoPopup]);
 
   const handleCongratulateLaunch = () => {
     const newCount = AppStorageEngine.incrementLaunchCongratulations();
@@ -2971,7 +2971,7 @@ export default function App() {
       />
 
       {/* FLOATING LAUNCH CELEBRATION BUTTON (PORTAL SPACE) */}
-      {currentSpace === 'PORTAL' && launchPopupConfig.enabled && launchPopupConfig.showFloatingBadge !== false && !isLaunchPopupOpen && (
+      {currentSpace === 'PORTAL' && launchPopupConfig?.enabled && launchPopupConfig?.showFloatingBadge !== false && !isLaunchPopupOpen && (
         <motion.button
           type="button"
           initial={{ scale: 0, opacity: 0 }}
