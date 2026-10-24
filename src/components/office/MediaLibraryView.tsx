@@ -32,15 +32,20 @@ export const MediaLibraryView: React.FC<MediaLibraryViewProps> = ({
     setIsLoading(true);
     setErrorMessage(null);
 
-    const folderArg = selectedFolder === 'all' ? undefined : selectedFolder;
-    const res = await fetchMediaLibrary(folderArg);
+    try {
+      const folderArg = selectedFolder === 'all' ? undefined : selectedFolder;
+      const res = await fetchMediaLibrary(folderArg);
 
-    setIsLoading(false);
-
-    if (res.success && res.resources) {
-      setMediaList(res.resources);
-    } else {
-      setErrorMessage(res.error || 'Không thể lấy dữ liệu thư viện ảnh Cloudinary.');
+      if (res.success && res.resources) {
+        setMediaList(res.resources);
+      } else {
+        setErrorMessage(res.error || 'Không thể lấy dữ liệu thư viện ảnh Cloudinary.');
+      }
+    } catch (err: any) {
+      console.warn('loadMedia error:', err);
+      setErrorMessage('Lỗi kết nối khi tải thư viện ảnh.');
+    } finally {
+      setIsLoading(false);
     }
   };
 

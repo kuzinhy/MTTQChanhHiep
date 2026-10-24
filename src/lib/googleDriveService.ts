@@ -198,6 +198,21 @@ export interface DriveUploadResult {
   webContentLink?: string;
 }
 
+export interface DriveMediaItem {
+  id: string;
+  fileId: string;
+  name: string;
+  mimeType: string;
+  createdTime: string;
+  size?: number;
+  directUrl: string;
+  thumbnailUrl: string;
+  webViewLink: string;
+  driveFolderId: string;
+}
+
+
+
 /**
  * Uploads a file via server-side proxy endpoint (Zero popup prompt, works for all connected users)
  */
@@ -237,10 +252,12 @@ export async function uploadFileViaServerProxy(
 
   const result = await response.json();
   const fileId = result.fileId || result.id || 'gdrive-' + Date.now();
+  const webViewLink = result.webViewLink || result.fileUrl || `https://drive.google.com/file/d/${fileId}/view`;
+
   return {
     id: fileId,
     name: result.fileName || file.name,
-    webViewLink: result.webViewLink || result.fileUrl || `https://drive.google.com/file/d/${fileId}/view`,
+    webViewLink,
     webContentLink: result.downloadUrl || result.webContentLink
   };
 }
@@ -569,4 +586,51 @@ export function handleImageError(
   target.dataset.errorHandled = 'true';
   target.src = fallbackCategoryBanner || ARTICLE_BANNERS.default;
 }
+
+/**
+ * Fetch Google Drive media library for a specific folder ID (default: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G)
+ * Returns all media files ordered strictly from newest to oldest!
+ */
+export async function fetchGoogleDriveMediaLibrary(
+  folderId: string = DEFAULT_DRIVE_FOLDER_ID
+): Promise<{ success: boolean; items: DriveMediaItem[]; error?: string; folderUrl: string }> {
+  const folderUrl = `https://drive.google.com/drive/folders/${folderId}?hl=vi`;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    const res = await fetch(getApiUrl(`/api/drive/list-folder?folderId=${encodeURIComponent(folderId)}`), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    let items: DriveMediaItem[] = [];
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        items = data.items;
+      }
+    }
+
+    // Sort strictly newest to oldest (createdTime desc)
+    items.sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime());
+
+    return {
+      success: true,
+      items,
+      folderUrl
+    };
+  } catch (err: any) {
+    console.warn('fetchGoogleDriveMediaLibrary timeout or error:', err?.message || err);
+    return {
+      success: false,
+      items: [],
+      folderUrl,
+      error: 'Lỗi kết nối máy chủ.'
+    };
+  }
+}
+
 

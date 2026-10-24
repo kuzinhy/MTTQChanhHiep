@@ -578,10 +578,13 @@ export default function App() {
   useEffect(() => {
     VisitorTrackerEngine.init();
 
-    // Fetch initial data from Supabase
+    // Fetch initial data from Supabase with 2.5s safety timeout
     (async () => {
       try {
-        const [supabaseArticles, supabaseDocs, supabaseOpinions, supabaseTasks, supabaseStaff] = await Promise.all([
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Supabase fetch timeout')), 2500)
+        );
+        const dataPromise = Promise.all([
           SupabaseService.getArticles(),
           SupabaseService.getDocuments(),
           SupabaseService.getOpinions(),
@@ -589,29 +592,31 @@ export default function App() {
           SupabaseService.getStaffUsers()
         ]);
 
-        if (supabaseArticles.length > 0) {
+        const [supabaseArticles, supabaseDocs, supabaseOpinions, supabaseTasks, supabaseStaff] = await Promise.race([dataPromise, timeoutPromise]) as any;
+
+        if (supabaseArticles && supabaseArticles.length > 0) {
           setArticles(supabaseArticles);
           AppStorageEngine.saveArticles(supabaseArticles);
         }
-        if (supabaseDocs.length > 0) {
+        if (supabaseDocs && supabaseDocs.length > 0) {
           setDocuments(supabaseDocs);
           AppStorageEngine.saveDocuments(supabaseDocs);
         }
-        if (supabaseOpinions.length > 0) {
+        if (supabaseOpinions && supabaseOpinions.length > 0) {
           setOpinions(supabaseOpinions);
           AppStorageEngine.saveOpinions(supabaseOpinions);
         }
-        if (supabaseTasks.length > 0) {
+        if (supabaseTasks && supabaseTasks.length > 0) {
           setTasks(supabaseTasks);
           AppStorageEngine.saveTasks(supabaseTasks);
         }
-        if (supabaseStaff.length > 0) {
+        if (supabaseStaff && supabaseStaff.length > 0) {
           setStaffUsers(supabaseStaff);
           AppStorageEngine.saveStaffUsers(supabaseStaff);
         }
-        setIsDataSyncing(false);
       } catch (err) {
-        console.warn('Failed to load initial data from Supabase:', err);
+        console.warn('Failed or timed out loading initial data from Supabase:', err);
+      } finally {
         setIsDataSyncing(false);
       }
     })();

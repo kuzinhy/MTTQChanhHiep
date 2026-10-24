@@ -22,10 +22,13 @@ import {
   uploadFileToGoogleDrive, 
   getGoogleDriveDirectImageUrl, 
   extractGoogleDriveFileId,
+  fetchGoogleDriveMediaLibrary,
+  DriveMediaItem,
   CHANH_HIEP_DRIVE_FOLDERS,
   DEFAULT_DRIVE_FOLDER_ID,
   DEFAULT_DRIVE_FOLDER_URL
 } from '../../lib/googleDriveService';
+
 
 interface ProfessionalArticleCmsModalProps {
   isOpen: boolean;
@@ -336,13 +339,18 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
     return () => clearInterval(interval);
   }, [isOpen, title, slug, summary, content, category, tags, coverImageUrl, coverImageAlt, coverImageCaption, gallery]);
 
-  const loadMediaLibrary = async () => {
+  const loadMediaLibrary = async (targetFolder = selectedDriveFolderId) => {
     setIsLoadingMedia(true);
     try {
-      const res = await fetchMediaLibrary();
-      setMediaLibraryItems(res.resources || []);
+      const driveRes = await fetchGoogleDriveMediaLibrary(targetFolder);
+      if (driveRes.success && driveRes.items && driveRes.items.length > 0) {
+        setMediaLibraryItems(driveRes.items);
+      } else {
+        const res = await fetchMediaLibrary();
+        setMediaLibraryItems(res.resources || []);
+      }
     } catch (err) {
-      console.error('Failed to load media library:', err);
+      console.error('Failed to load Google Drive media library:', err);
     } finally {
       setIsLoadingMedia(false);
     }
@@ -350,9 +358,10 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
 
   useEffect(() => {
     if (isMediaLibraryOpen) {
-      loadMediaLibrary();
+      loadMediaLibrary(selectedDriveFolderId);
     }
-  }, [isMediaLibraryOpen]);
+  }, [isMediaLibraryOpen, selectedDriveFolderId]);
+
 
   const insertAtCursor = (before: string, after = '') => {
     const textarea = contentTextareaRef.current;
@@ -1864,153 +1873,245 @@ export const ProfessionalArticleCmsModal: React.FC<ProfessionalArticleCmsModalPr
         </div>
       )}
 
-      {/* MODAL: MEDIA LIBRARY PICKER */}
+      {/* MODAL: MEDIA LIBRARY PICKER (GOOGLE DRIVE CONNECTED) */}
       {isMediaLibraryOpen && (
         <div className="fixed inset-0 z-70 bg-slate-950/85 backdrop-blur-xs flex items-center justify-center p-3 md:p-6">
-          <div className="bg-white w-full max-w-5xl rounded-3xl p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh] text-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4 mb-4 shrink-0">
+          <div className="bg-white w-full max-w-5xl rounded-3xl p-5 md:p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] text-slate-900">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-100 text-blue-600 rounded-2xl">
-                  <Layers className="w-6 h-6" />
+                <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-2xl">
+                  <HardDrive className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg text-slate-900">Thư Viện Media Phường Chánh Hiệp</h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Chọn media cho: <strong>{mediaTargetType === 'cover' ? 'Ảnh đại diện (16:9)' : mediaTargetType === 'gallery' ? 'Gallery ảnh' : 'Nội dung bài viết'}</strong>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-lg text-slate-900">Thư Viện Ảnh Google Drive Phường Chánh Hiệp</h3>
+                    <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full border border-emerald-300">
+                      Drive ID: 1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Đang chọn ảnh cho: <strong className="text-emerald-800">{mediaTargetType === 'cover' ? 'Ảnh đại diện bài viết' : mediaTargetType === 'gallery' ? 'Bộ sưu tập (Gallery)' : 'Chèn vào nội dung bài viết'}</strong>
                   </p>
                 </div>
               </div>
-              <button onClick={() => setIsMediaLibraryOpen(false)} className="p-2 text-slate-400 hover:text-slate-700 rounded-xl">
+              <button 
+                onClick={() => setIsMediaLibraryOpen(false)} 
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between gap-3 mb-4 shrink-0 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm file media theo tên hoặc tag..."
-                  value={mediaSearchTerm}
-                  onChange={(e) => setMediaSearchTerm(e.target.value)}
-                  className="w-full text-xs pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-hidden focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
-                  {(['all', 'image', 'video', 'file'] as const).map(t => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setMediaFilterType(t)}
-                      className={`px-3 py-1 rounded-lg capitalize ${mediaFilterType === t ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
-                    >
-                      {t === 'all' ? 'Tất cả' : t === 'image' ? 'Hình ảnh' : t === 'video' ? 'Video' : 'Tài liệu'}
-                    </button>
-                  ))}
+            {/* Folder & Search controls */}
+            <div className="space-y-3 mb-4 shrink-0">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                {/* Folder Selector */}
+                <div className="flex items-center gap-2 flex-1 min-w-[260px]">
+                  <FolderOpen className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <select
+                    value={selectedDriveFolderId}
+                    onChange={(e) => setSelectedDriveFolderId(e.target.value)}
+                    className="w-full text-xs font-bold px-3 py-2 bg-emerald-50/70 border border-emerald-300 rounded-xl text-emerald-900 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                  >
+                    <option value={DEFAULT_DRIVE_FOLDER_ID}>📁 Thư mục Chung (Kho Dữ Liệu Số Chánh Hiệp)</option>
+                    {CHANH_HIEP_DRIVE_FOLDERS.map((f) => (
+                      <option key={f.code} value={f.id}>
+                        📂 {f.name} — {f.description}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <label className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 shadow-sm">
-                  <Upload className="w-4 h-4" />
-                  <span>Tải file mới lên</span>
+                {/* External Link & Actions */}
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://drive.google.com/drive/folders/${selectedDriveFolderId}?hl=vi`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                  >
+                    <span>Mở thư mục trên Google Drive</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => loadMediaLibrary(selectedDriveFolderId)}
+                    disabled={isLoadingMedia}
+                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors cursor-pointer shrink-0"
+                    title="Làm mới danh sách Drive"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isLoadingMedia ? 'animate-spin text-emerald-600' : ''}`} />
+                  </button>
+
+                  <label className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs transition-all active:scale-95 shrink-0">
+                    <Upload className="w-4 h-4" />
+                    <span>Upload ảnh lên Drive này</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setIsUploadingMedia(true);
+                        try {
+                          const res = await uploadFileToGoogleDrive(file, selectedDriveFolderId);
+                          onShowToast?.(`Đã tải tệp "${file.name}" lên Google Drive!`);
+                          await loadMediaLibrary(selectedDriveFolderId);
+                        } catch (err: any) {
+                          console.error(err);
+                          alert(err.message || 'Lỗi khi tải ảnh lên Google Drive');
+                        } finally {
+                          setIsUploadingMedia(false);
+                          e.target.value = '';
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Search Bar & Order Info */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                   <input
-                    type="file"
-                    accept="image/*,video/*,.pdf,.docx"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setIsUploadingMedia(true);
-                      try {
-                        const compressed = await compressImageToWebp(file);
-                        const newItem = {
-                          publicId: 'local-' + Date.now(),
-                          secureUrl: compressed.dataUrl,
-                          thumbnailUrl: compressed.thumbnailUrl,
-                          bytes: compressed.sizeBytes,
-                          format: compressed.format,
-                          resourceType: 'image'
-                        };
-                        setMediaLibraryItems(prev => [newItem, ...prev]);
-                        onShowToast?.('Đã nén và lưu file vào Thư viện Media!');
-                      } catch (err) {
-                        console.error(err);
-                      } finally {
-                        setIsUploadingMedia(false);
-                        e.target.value = '';
-                      }
-                    }}
-                    className="hidden"
+                    type="text"
+                    placeholder="Tìm kiếm hình ảnh trong thư mục Google Drive theo tên..."
+                    value={mediaSearchTerm}
+                    onChange={(e) => setMediaSearchTerm(e.target.value)}
+                    className="w-full text-xs pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                   />
-                </label>
+                </div>
+                <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1 bg-slate-100 px-3 py-1.5 rounded-xl shrink-0">
+                  <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Sắp xếp: Mới nhất → Cũ nhất</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto min-h-[300px]">
+            {/* Grid List */}
+            <div className="flex-1 overflow-y-auto min-h-[320px] pr-1">
               {isLoadingMedia ? (
-                <div className="flex items-center justify-center h-48 text-slate-400 text-xs font-bold gap-2">
-                  <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
-                  Đang tải Thư viện Media...
+                <div className="flex flex-col items-center justify-center h-56 text-slate-500 text-xs font-bold gap-2">
+                  <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                  <span>Đang kết nối và lấy danh sách ảnh từ Google Drive...</span>
                 </div>
               ) : mediaLibraryItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-xs">
-                  <ImageIcon className="w-10 h-10 text-slate-300 mb-2" />
-                  <p className="font-bold text-slate-600">Thư viện trống hoặc không tìm thấy file nào.</p>
+                <div className="flex flex-col items-center justify-center h-56 text-slate-400 text-xs space-y-2">
+                  <ImageIcon className="w-12 h-12 text-slate-300" />
+                  <p className="font-bold text-slate-700">Chưa có tệp ảnh nào trong thư mục Google Drive này.</p>
+                  <p className="text-[11px] text-slate-500">Hãy bấm nút "Upload ảnh lên Drive này" phía trên để thêm hình ảnh đầu tiên.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                  {mediaLibraryItems.map((item, idx) => {
-                    const imgUrl = item.secureUrl || item.url;
-                    const sizeKb = item.bytes ? (item.bytes / 1024).toFixed(0) : '120';
-                    return (
-                      <div
-                        key={item.publicId || idx}
-                        onClick={() => {
-                          if (mediaTargetType === 'cover') {
-                            setCoverImageUrl(imgUrl);
-                            if (!coverImageAlt && item.publicId) setCoverImageAlt(item.publicId);
-                          } else if (mediaTargetType === 'gallery') {
-                            setGallery(prev => [
-                              ...prev,
-                              {
-                                id: 'gal-' + Date.now(),
-                                url: imgUrl,
-                                thumbnailUrl: item.thumbnailUrl || imgUrl,
-                                alt: item.publicId || 'Ảnh gallery',
-                                caption: ''
-                              }
-                            ]);
-                          } else {
-                            setInsertImageUrl(imgUrl);
-                            setShowInsertImageModal(true);
-                          }
-                          setIsMediaLibraryOpen(false);
-                        }}
-                        className="border border-slate-200 rounded-xl overflow-hidden group cursor-pointer hover:border-blue-500 hover:shadow-md transition-all bg-slate-50 flex flex-col"
-                      >
-                        <div className="aspect-video bg-slate-900 relative overflow-hidden">
-                          <img src={item.thumbnailUrl || imgUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                          <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-slate-900/80 text-[9px] text-white rounded font-mono">
-                            {sizeKb} KB
-                          </span>
+                  {mediaLibraryItems
+                    .filter(item => {
+                      const name = item.name || item.publicId || '';
+                      return name.toLowerCase().includes(mediaSearchTerm.toLowerCase());
+                    })
+                    .map((item, idx) => {
+                      const fileId = item.fileId || extractGoogleDriveFileId(item.secureUrl || item.url) || item.id;
+                      const directCdnUrl = fileId && !fileId.startsWith('local-') 
+                        ? `https://lh3.googleusercontent.com/d/${fileId}=w2000`
+                        : (item.secureUrl || item.url);
+                      const thumbUrl = item.thumbnailUrl || (fileId && !fileId.startsWith('local-') ? `https://lh3.googleusercontent.com/d/${fileId}=w600` : directCdnUrl);
+                      const displayTitle = item.name || item.publicId || `Drive Image ${idx + 1}`;
+                      const formattedDate = item.createdTime 
+                        ? new Date(item.createdTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        : 'Gần đây';
+
+                      return (
+                        <div
+                          key={item.id || item.fileId || idx}
+                          className="border border-slate-200 rounded-2xl overflow-hidden group hover:border-emerald-500 hover:shadow-md transition-all bg-white flex flex-col justify-between"
+                        >
+                          <div className="aspect-video bg-slate-900 relative overflow-hidden">
+                            <img 
+                              src={thumbUrl} 
+                              alt={displayTitle} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                              loading="lazy" 
+                            />
+                            <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-emerald-800/90 text-[9px] text-white font-bold rounded-md">
+                              Google Drive
+                            </span>
+                            <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-slate-950/80 text-[9px] text-slate-200 font-mono rounded">
+                              {formattedDate}
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 space-y-2 flex-1 flex flex-col justify-between">
+                            <p className="text-[11px] font-bold text-slate-800 line-clamp-2 leading-tight" title={displayTitle}>
+                              {displayTitle}
+                            </p>
+
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (mediaTargetType === 'cover') {
+                                    setCoverImageUrl(directCdnUrl);
+                                    if (!coverImageAlt) setCoverImageAlt(displayTitle);
+                                    onShowToast?.('Đã chọn ảnh đại diện từ Google Drive!');
+                                  } else if (mediaTargetType === 'gallery') {
+                                    setGallery(prev => [
+                                      ...prev,
+                                      {
+                                        id: 'gal-' + Date.now(),
+                                        url: directCdnUrl,
+                                        thumbnailUrl: thumbUrl,
+                                        alt: displayTitle,
+                                        caption: ''
+                                      }
+                                    ]);
+                                    onShowToast?.('Đã thêm ảnh vào bộ sưu tập!');
+                                  } else {
+                                    setInsertImageUrl(directCdnUrl);
+                                    if (!insertImageAlt) setInsertImageAlt(displayTitle);
+                                    setShowInsertImageModal(true);
+                                  }
+                                  setIsMediaLibraryOpen(false);
+                                }}
+                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-xl flex-1 flex items-center justify-center gap-1 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                              >
+                                <Check className="w-3 h-3" />
+                                <span>Chọn ảnh</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(directCdnUrl);
+                                  onShowToast?.('Đã sao chép link ảnh Google Drive CDN!');
+                                }}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors cursor-pointer"
+                                title="Sao chép liên kết CDN"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="p-2 text-[10px] text-slate-600 truncate font-medium">
-                          {item.publicId || `Media-${idx + 1}`}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
+            {/* Footer */}
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between shrink-0">
+              <span className="text-xs text-slate-500 font-medium">
+                Tổng cộng: <strong>{mediaLibraryItems.length}</strong> tệp ảnh trên Google Drive (Xếp từ mới đến cũ)
+              </span>
               <button
                 type="button"
                 onClick={() => setIsMediaLibraryOpen(false)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
+                className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer"
               >
-                Đóng
+                Đóng thư viện
               </button>
             </div>
           </div>

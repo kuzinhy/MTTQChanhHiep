@@ -1617,6 +1617,100 @@ Hãy phân tích và lập **BÁO CÁO NHANH TÌNH HÌNH DƯ LUẬN XÃ HỘI**:
     });
   });
 
+  // 1a. GET /api/drive/list-folder - List files/images in a Google Drive folder (Newest to Oldest)
+  app.get('/api/drive/list-folder', async (req: Request, res: Response) => {
+    try {
+      const folderId = (req.query.folderId as string) || GOOGLE_DRIVE_MONITORED_FOLDER_ID || '1jz3QltvYgaHqG9uZUiJtBtowU4OM7G3G';
+      const limit = parseInt(req.query.limit as string) || 100;
+      const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_DRIVE_API_KEY;
+
+      let files: any[] = [];
+
+      // 1. Query Google Drive v3 REST API using API Key if available
+      if (apiKey) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3500);
+          const q = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+          const driveApiUrl = `https://www.googleapis.com/drive/v3/files?q=${q}&pageSize=${limit}&orderBy=createdTime desc&fields=files(id,name,mimeType,webViewLink,createdTime,modifiedTime,size,thumbnailLink)&key=${apiKey}`;
+          const response = await fetch(driveApiUrl, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.files && Array.isArray(data.files)) {
+              files = data.files;
+            }
+          }
+        } catch (err) {
+          console.warn('[Server Drive ListFolder] Drive v3 API query warning:', err);
+        }
+      }
+
+      // 2. Query Google Drive API using Authorization Bearer token if provided in request header
+      if (files.length === 0) {
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        if (token) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
+            const q = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+            const driveApiUrl = `https://www.googleapis.com/drive/v3/files?q=${q}&pageSize=${limit}&orderBy=createdTime desc&fields=files(id,name,mimeType,webViewLink,createdTime,modifiedTime,size,thumbnailLink)`;
+            const response = await fetch(driveApiUrl, {
+              headers: { Authorization: `Bearer ${token}` },
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.files && Array.isArray(data.files)) {
+                files = data.files;
+              }
+            }
+          } catch (err) {
+            console.warn('[Server Drive ListFolder] Drive API bearer token warning:', err);
+          }
+        }
+      }
+
+      // Format items with direct CDN URL and thumbnail
+      const items = files.map((f: any) => {
+        const fileId = f.id;
+        return {
+          id: fileId,
+          fileId: fileId,
+          name: f.name || 'Ảnh Google Drive',
+          mimeType: f.mimeType || 'image/jpeg',
+          createdTime: f.createdTime || f.modifiedTime || new Date().toISOString(),
+          size: f.size ? parseInt(f.size) : 0,
+          directUrl: `https://lh3.googleusercontent.com/d/${fileId}=w2000`,
+          thumbnailUrl: f.thumbnailLink || `https://lh3.googleusercontent.com/d/${fileId}=w600`,
+          webViewLink: f.webViewLink || `https://drive.google.com/file/d/${fileId}/view`,
+          driveFolderId: folderId
+        };
+      });
+
+      // Sort strictly from newest to oldest
+      items.sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime());
+
+      return res.json({
+        success: true,
+        folderId,
+        folderUrl: `https://drive.google.com/drive/folders/${folderId}?hl=vi`,
+        total: items.length,
+        items
+      });
+    } catch (error: any) {
+      console.error('[Server Drive ListFolder Error]:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Không thể lấy danh sách tệp trong thư mục Google Drive.'
+      });
+    }
+  });
+
+
+
   // 1b. POST /api/drive/delete - Delete or trash file on Google Drive via Proxy or Apps Script
   app.post('/api/drive/delete', async (req: Request, res: Response) => {
     try {
